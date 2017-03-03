@@ -429,6 +429,7 @@
 		]
 	},
 	"config": {
+		"PageFormsUploadWindowIgnoreWarning": false,
 		"PageFormsUseDisplayTitle": false,
 		"PageFormsSimpleUpload": false,
 		"PageFormsMaxAutocompleteValues": 1000,
