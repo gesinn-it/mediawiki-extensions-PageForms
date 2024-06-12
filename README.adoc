@@ -1,7 +1,7 @@
 = Page Forms
 
 image:https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/actions/workflows/ci.yml/badge.svg[CI,link=https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/actions/workflows/ci.yml]
-image:https://codecov.io/gh/gesinn-it-pub/mediawiki-extensions-PageForms/branch/master/graph/badge.svg?token=9AYOTTYUA8[Codecov]
+image:https://codecov.io/github/gesinn-it-pub/SimpleTooltip/graph/badge.svg?token=hmfXuxLJC8[Codecov]
 
 
 == About
