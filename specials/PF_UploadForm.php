@@ -27,8 +27,8 @@ class PFUploadForm extends HTMLForm {
 
 	public function __construct( $options = [], IContextSource $context = null ) {
 		if ( $context instanceof IContextSource ) {
-            $this->setContext( $context );
-        }
+			$this->setContext( $context );
+		}
 		$this->mWatch = !empty( $options['watch'] );
 		$this->mForReUpload = !empty( $options['forreupload'] );
 		$this->mSessionKey = isset( $options['sessionkey'] )
