@@ -1457,13 +1457,13 @@ END;
 							switch ( $sub_components[0] ) {
 								case 'label':
 									$input_label = $parser->recursiveTagParse( $sub_components[1] );
-								break;
+									break;
 								case 'class':
 									$attr['class'] = $sub_components[1];
-								break;
+									break;
 								case 'style':
 									$attr['style'] = Sanitizer::checkCSS( $sub_components[1] );
-								break;
+									break;
 							}
 						}
 					}
