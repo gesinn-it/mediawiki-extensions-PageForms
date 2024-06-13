@@ -41,7 +41,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 
 		$wgOut->getContext()->setTitle( $this->getTitle() );
 
-		list( $form_text, $page_text, $form_page_title, $generated_page_name ) =
+		[ $form_text, $page_text, $form_page_title, $generated_page_name ] =
 			$wgPageFormsFormPrinter->formHTML(
 				$form_def = $setup['form_definition'],
 				$form_submitted = true,
