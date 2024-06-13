@@ -149,7 +149,7 @@ class PFTreeInput extends PFFormInput {
 					'id' => $input_name . 'treeinput_searchinput',
 					'class' => 'PFTreeSearchInput',
 				], null ) )
-			.  $text ;
+			. " " . $text ;
 		}
 
 		$wrapperClass = 'pfTreeInputWrapper';
