@@ -12,7 +12,7 @@ class PFFormEditTest extends MediaWikiIntegrationTestCase {
 
 	use IntegrationTestHelpers;
 
-	public function setUp() : void {
+	public function setUp(): void {
 		parent::setUp();
 		$this->requireLanguageCodeEn();
 		$this->tablesUsed[] = 'page';
