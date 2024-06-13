@@ -139,11 +139,11 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 
 		$mockTitle->expects( $this->any() )
 			->method( 'getDBkey' )
-			->will( $this->returnValue( 'Sometitle' ) );
+			->willReturn( 'Sometitle' );
 
 		$mockTitle->expects( $this->any() )
 			->method( 'getNamespace' )
-			->will( $this->returnValue( PF_NS_FORM ) );
+			->willReturn( PF_NS_FORM );
 
 		return $mockTitle;
 	}
