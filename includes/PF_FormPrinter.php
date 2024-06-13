@@ -1294,12 +1294,12 @@ END;
 								$mappingCargoTable = $form_field->getFieldArg( 'mapping cargo table' );
 								$mappingCargoField = $form_field->getFieldArg( 'mapping cargo field' );
 								$mappingCargoValueField = $form_field->getFieldArg( 'mapping cargo value field' );
-								if ( !$form_submitted && $cur_value !== null && $cur_value !== '' ) {
-									$cur_value = $this->getCargoBasedMapping( $cur_value, $mappingCargoTable, $mappingCargoField, $mappingCargoValueField, $form_field );
-								}
-								if ( $form_submitted && $cur_value_in_template !== null && $cur_value_in_template !== '' ) {
-									$cur_value_in_template = $this->getCargoBasedMapping( $cur_value_in_template, $mappingCargoTable, $mappingCargoValueField, $mappingCargoField, $form_field );
-								}
+							if ( !$form_submitted && $cur_value !== null && $cur_value !== '' ) {
+								$cur_value = $this->getCargoBasedMapping( $cur_value, $mappingCargoTable, $mappingCargoField, $mappingCargoValueField, $form_field );
+							}
+							if ( $form_submitted && $cur_value_in_template !== null && $cur_value_in_template !== '' ) {
+								$cur_value_in_template = $this->getCargoBasedMapping( $cur_value_in_template, $mappingCargoTable, $mappingCargoValueField, $mappingCargoField, $form_field );
+							}
 						}
 						if ( $cur_value !== '' &&
 							( $form_field->hasFieldArg( 'mapping template' ) ||
@@ -1455,14 +1455,14 @@ END;
 							}
 						} elseif ( count( $sub_components ) == 2 ) {
 							switch ( $sub_components[0] ) {
-							case 'label':
-								$input_label = $parser->recursiveTagParse( $sub_components[1] );
+								case 'label':
+									$input_label = $parser->recursiveTagParse( $sub_components[1] );
 								break;
-							case 'class':
-								$attr['class'] = $sub_components[1];
+								case 'class':
+									$attr['class'] = $sub_components[1];
 								break;
-							case 'style':
-								$attr['style'] = Sanitizer::checkCSS( $sub_components[1] );
+								case 'style':
+									$attr['style'] = Sanitizer::checkCSS( $sub_components[1] );
 								break;
 							}
 						}

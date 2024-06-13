@@ -302,27 +302,27 @@ class PFUploadWindow extends UnlistedSpecialPage {
 			. '<ul class="warningbox">';
 		foreach ( $warnings as $warning => $args ) {
 				// Unlike the other warnings, this one can be worked around.
-				if ( $warning == 'badfilename' ) {
-					$this->mDesiredDestName = Title::makeTitle( NS_FILE, $args )->getText();
-				}
+			if ( $warning == 'badfilename' ) {
+				$this->mDesiredDestName = Title::makeTitle( NS_FILE, $args )->getText();
+			}
 
-				if ( $warning == 'exists' ) {
-					$msg = self::getExistsWarning( $args );
-				} elseif ( $warning == 'duplicate' ) {
-					$msg = $this->getDupeWarning( $args );
-				} elseif ( $warning == 'duplicate-archive' ) {
-					$msg = "\t<li>" . $this->msg(
-						'file-deleted-duplicate',
-						[ Title::makeTitle( NS_FILE, $args )->getPrefixedText() ]
-					)->parse() . "</li>\n";
-				} else {
-					if ( is_bool( $args ) ) {
-						$args = [];
-					} elseif ( !is_array( $args ) ) {
-						$args = [ $args ];
-					}
-					$msg = "\t<li>" . $this->msg( $warning, $args )->parse() . "</li>\n";
+			if ( $warning == 'exists' ) {
+				$msg = self::getExistsWarning( $args );
+			} elseif ( $warning == 'duplicate' ) {
+				$msg = $this->getDupeWarning( $args );
+			} elseif ( $warning == 'duplicate-archive' ) {
+				$msg = "\t<li>" . $this->msg(
+					'file-deleted-duplicate',
+					[ Title::makeTitle( NS_FILE, $args )->getPrefixedText() ]
+				)->parse() . "</li>\n";
+			} else {
+				if ( is_bool( $args ) ) {
+					$args = [];
+				} elseif ( !is_array( $args ) ) {
+					$args = [ $args ];
 				}
+				$msg = "\t<li>" . $this->msg( $warning, $args )->parse() . "</li>\n";
+			}
 				$warningHtml .= $msg;
 		}
 		$warningHtml .= "</ul>\n";

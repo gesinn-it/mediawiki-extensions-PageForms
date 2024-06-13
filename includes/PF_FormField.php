@@ -1003,11 +1003,11 @@ class PFFormField {
 		$fullCargoField = $this->template_field->getFullCargoField();
 		if ( $fullCargoField !== null &&
 			!array_key_exists( 'full_cargo_field', $other_args ) ) {
-				if ( array_key_exists( 'cargo where', $other_args ) ) {
-					$other_args['full_cargo_field'] = $fullCargoField . '|' . $other_args['cargo where'];
-				} else {
-					$other_args['full_cargo_field'] = $fullCargoField;
-				}
+			if ( array_key_exists( 'cargo where', $other_args ) ) {
+				$other_args['full_cargo_field'] = $fullCargoField . '|' . $other_args['cargo where'];
+			} else {
+				$other_args['full_cargo_field'] = $fullCargoField;
+			}
 		}
 
 		if ( $this->template_field->getFieldType() == 'Hierarchy' ) {
