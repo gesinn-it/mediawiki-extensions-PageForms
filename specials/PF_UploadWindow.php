@@ -252,7 +252,8 @@ class PFUploadWindow extends UnlistedSpecialPage {
 	protected function showViewDeletedLinks() {
 		$title = Title::makeTitleSafe( NS_FILE, $this->mDesiredDestName );
 		// Show a subtitle link to deleted revisions (to sysops et al only)
-		if ( $title instanceof Title && ( $count = $title->isDeleted() ) > 0
+		$count = $title->isDeleted();
+		if ( $title instanceof Title && ( $count ) > 0
 			&& $this->getUser()->isAllowed( 'deletedhistory' ) ) {
 			$link = $this->msg( $this->getUser()->isAllowed( 'delete' ) ? 'thisisdeleted' : 'viewdeleted' )
 				->rawParams( $this->getSkin()->linkKnown(
