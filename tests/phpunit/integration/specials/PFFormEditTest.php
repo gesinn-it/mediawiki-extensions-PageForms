@@ -27,7 +27,6 @@ class PFFormEditTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringStartsWith( '<div class="error"><p>No target page specified.', $output->mBodytext );
 	}
 
-
 	public function testInvalidForm() {
 		$formEdit = new PFFormEdit();
 
