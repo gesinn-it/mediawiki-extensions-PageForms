@@ -47,9 +47,9 @@ class PFCreateTemplateTest extends MediaWikiIntegrationTestCase {
 			"csrf" => "+\\",
 			"wpSave" => ""
 		];
-		foreach ( $values as $k => $v )
+		foreach ( $values as $k => $v ) {
 			$context->getRequest()->setVal( $k, $v );
-
+		}
 		$createTemplate->execute( null );
 
 		$output = $createTemplate->getOutput();
