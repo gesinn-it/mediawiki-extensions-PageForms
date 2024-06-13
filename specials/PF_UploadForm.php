@@ -307,14 +307,15 @@ class PFUploadForm extends HTMLForm {
 		// disable output - we'll print out the page manually,
 		// taking the body created by the form, plus the necessary
 		// Javascript files, and turning them into an HTML page
-		global $wgTitle, $wgLanguageCode, $wgScriptPath,
+		global $wgLanguageCode, $wgScriptPath,
 			$wgPageFormsScriptPath,
 			$wgXhtmlDefaultNamespace, $wgXhtmlNamespaces;
+		$titleGlobal = RequestContext::getMain()->getTitle();
 
 		$out = $this->getOutput();
 
 		$out->disable();
-		$wgTitle = SpecialPage::getTitleFor( 'Upload' );
+		$titleGlobal = SpecialPage::getTitleFor( 'Upload' );
 
 		$text = <<<END
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">

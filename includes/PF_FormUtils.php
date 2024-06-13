@@ -114,7 +114,8 @@ class PFFormUtils {
 	}
 
 	public static function watchInputHTML( $form_submitted, $is_disabled, $is_checked = false, $label = null, $attrs = [] ) {
-		global $wgPageFormsTabIndex, $wgTitle;
+		global $wgPageFormsTabIndex;
+		$titleGlobal = RequestContext::getMain()->getTitle();
 
 		$wgPageFormsTabIndex++;
 		// figure out if the checkbox should be checked -
@@ -131,10 +132,10 @@ class PFFormUtils {
 					# Watch all edits
 					$is_checked = true;
 				} elseif ( $userOptionsLookup->getOption( $user, 'watchcreations' ) &&
-					!$wgTitle->exists() ) {
+					!$titleGlobal->exists() ) {
 					# Watch creations
 					$is_checked = true;
-				} elseif ( $watchlistManager->isWatched( $user, $wgTitle ) ) {
+				} elseif ( $watchlistManager->isWatched( $user, $titleGlobal ) ) {
 					# Already watched
 					$is_checked = true;
 				}
@@ -142,10 +143,10 @@ class PFFormUtils {
 				if ( $user->getOption( 'watchdefault' ) ) {
 					# Watch all edits
 					$is_checked = true;
-				} elseif ( $user->getOption( 'watchcreations' ) && !$wgTitle->exists() ) {
+				} elseif ( $user->getOption( 'watchcreations' ) && !$titleGlobal->exists() ) {
 					# Watch creations
 					$is_checked = true;
-				} elseif ( $user->isWatched( $wgTitle ) ) {
+				} elseif ( $user->isWatched( $titleGlobal ) ) {
 					# Already watched
 					$is_checked = true;
 				}
@@ -291,15 +292,15 @@ class PFFormUtils {
 	}
 
 	public static function cancelLinkHTML( $is_disabled, $label = null, $attr = [] ) {
-		global $wgTitle;
+		$titleGlobal = RequestContext::getMain()->getTitle();
 
 		if ( $label == null ) {
 			$label = wfMessage( 'cancel' )->parse();
 		}
-		if ( $wgTitle == null || $wgTitle->isSpecial( 'FormEdit' ) ) {
+		if ( $titleGlobal == null || $titleGlobal->isSpecial( 'FormEdit' ) ) {
 			$attr['classes'] = [ 'pfSendBack' ];
 		} else {
-			$attr['href'] = $wgTitle->getFullURL();
+			$attr['href'] = $titleGlobal->getFullURL();
 		}
 		$attr['framed'] = false;
 		$attr['label'] = $label;

@@ -860,8 +860,8 @@ END;
 		if ( $is_embedded || $is_query ) {
 			// If this is an embedded form (probably a 'RunQuery') or we're in Special:RunQuery,
 			// just use the name of the actual page we're on.
-			global $wgTitle;
-			$this->mPageTitle = $wgTitle;
+			$titleGlobal = RequestContext::getMain()->getTitle();
+			$this->mPageTitle = $titleGlobal;
 		} elseif ( $page_name === '' || $page_name === null ) {
 			$this->mPageTitle = Title::newFromText(
 				$wgRequest->getVal( 'namespace' ) . ":Page Forms permissions test" );

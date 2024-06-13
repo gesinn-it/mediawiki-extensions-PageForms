@@ -346,9 +346,9 @@ class PFFormField {
 				} elseif ( $sub_components[0] == 'cargo where' ) {
 					$cargo_where = $sub_components[1];
 				} elseif ( $sub_components[0] == 'default filename' ) {
-					global $wgTitle;
-					$page_name = $wgTitle->getText();
-					if ( $wgTitle->isSpecialPage() ) {
+					$titleGlobal = RequestContext::getMain()->getTitle();
+					$page_name = $titleGlobal->getText();
+					if ( $titleGlobal->isSpecialPage() ) {
 						// If it's of the form
 						// Special:FormEdit/form/target,
 						// get just the target.
