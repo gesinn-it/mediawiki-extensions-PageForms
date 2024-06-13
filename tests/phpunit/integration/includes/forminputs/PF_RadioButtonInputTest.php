@@ -362,7 +362,7 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 		$provider[] = [ [
 			'args' => [
 				'No', $label, true, false, [
-					'possible_values' => [ 'eins'=> 'one', 'zwei' => 'deux', 'drei' => 'drei' ],
+					'possible_values' => [ 'eins' => 'one', 'zwei' => 'deux', 'drei' => 'drei' ],
 				] ] ], [
 					'expected_html' => '<span id="span_\d+" '
 					. 'class="radioButtonSpan mandatoryFieldSpan">'
