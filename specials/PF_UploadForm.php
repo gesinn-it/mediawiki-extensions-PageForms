@@ -349,7 +349,7 @@ END;
 	 *
 	 * @return bool false
 	 */
-	function trySubmit() {
+	public function trySubmit() {
 		return false;
 	}
 

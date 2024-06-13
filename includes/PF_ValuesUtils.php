@@ -313,7 +313,7 @@ class PFValuesUtils {
 	 * @param string[] $pages
 	 * @return string[] a sorted version of $pages, sorted via $sortkeys
 	 */
-	static function fixedMultiSort( $sortkeys, $pages ) {
+	public static function fixedMultiSort( $sortkeys, $pages ) {
 		array_multisort( $sortkeys, $pages );
 		$newPages = [];
 		foreach ( $pages as $key => $value ) {

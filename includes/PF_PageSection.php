@@ -17,14 +17,14 @@ class PFPageSection {
 	private $mHideIfEmpty = false;
 	private $mSectionArgs = [];
 
-	static function create( $section_name ) {
+	public static function create( $section_name ) {
 		$ps = new PFPageSection();
 		$ps->mSectionName = $section_name;
 
 		return $ps;
 	}
 
-	static function newFromFormTag( $tag_components, User $user ) {
+	public static function newFromFormTag( $tag_components, User $user ) {
 		$ps = new PFPageSection();
 		$ps->mSectionName = trim( $tag_components[1] );
 
@@ -114,7 +114,7 @@ class PFPageSection {
 		return $this->mSectionArgs;
 	}
 
-	function createMarkup() {
+	public function createMarkup() {
 		$section_name = $this->mSectionName;
 		$section_level = $this->mSectionLevel;
 		// Set default section level to 2

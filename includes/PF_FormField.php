@@ -55,7 +55,7 @@ class PFFormField {
 	 *
 	 * @return self
 	 */
-	static function create( PFTemplateField $template_field ) {
+	public static function create( PFTemplateField $template_field ) {
 		$f = new PFFormField();
 		$f->template_field = $template_field;
 		$f->mInputType = null;
@@ -176,7 +176,7 @@ class PFFormField {
 		$this->mDescriptionArgs[$key] = $value;
 	}
 
-	static function newFromFormFieldTag(
+	public static function newFromFormFieldTag(
 		$tag_components,
 		$template,
 		$template_in_form,
@@ -520,7 +520,7 @@ class PFFormField {
 		return $f;
 	}
 
-	function cleanupTranslateTags( &$value ) {
+	public function cleanupTranslateTags( &$value ) {
 		$i = 0;
 		// If there are two tags ("<!--T:X-->") with no content between them, remove the first one.
 		while ( preg_match( '/(<!--T:[0-9]+-->\s*)(<!--T:[0-9]+-->)/', $value, $matches ) ) {
@@ -553,7 +553,7 @@ class PFFormField {
 		}
 	}
 
-	function autocapitalize( $val ) {
+	public function autocapitalize( $val ) {
 		if ( $this->mAutocapitalize === 'words') {
 			return ucwords( $val );
 		} else {
@@ -561,7 +561,7 @@ class PFFormField {
 		}
 	}
 
-	function getCurrentValue( $template_instance_query_values, $form_submitted, $source_is_page, $all_instances_printed, &$val_modifier = null ) {
+	public function getCurrentValue( $template_instance_query_values, $form_submitted, $source_is_page, $all_instances_printed, &$val_modifier = null ) {
 		// Get the value from the request, if
 		// it's there, and if it's not an array.
 		$field_name = $this->template_field->getFieldName();
@@ -683,7 +683,7 @@ class PFFormField {
 		return null;
 	}
 
-	function setMappedValues( $mappingType ) {
+	public function setMappedValues( $mappingType ) {
 		if ( $mappingType == 'template' ) {
 			$this->setValuesWithMappingTemplate();
 		} elseif ( $mappingType == 'property' ) {
@@ -699,7 +699,7 @@ class PFFormField {
 	 * Helper function to get an array of labels from an array of values
 	 * given a mapping template.
 	 */
-	function setValuesWithMappingTemplate() {
+	public function setValuesWithMappingTemplate() {
 		$labels = [];
 		$templateName = $this->mFieldArgs['mapping template'];
 		$title = Title::makeTitleSafe( NS_TEMPLATE, $templateName );
@@ -727,7 +727,7 @@ class PFFormField {
 	 * Helper function to get an array of labels from an array of values
 	 * given a mapping property.
 	 */
-	function setValuesWithMappingProperty() {
+	public function setValuesWithMappingProperty() {
 		$store = PFUtils::getSMWStore();
 		if ( $store == null ) {
 			return;
@@ -755,7 +755,7 @@ class PFFormField {
 	 * Helper function to get an array of labels from an array of values
 	 * given a mapping Cargo table/field.
 	 */
-	function setValuesWithMappingCargoField() {
+	public function setValuesWithMappingCargoField() {
 		$labels = [];
 		foreach ( $this->mPossibleValues as $index => $value ) {
 			if ( $this->mUseDisplayTitle ) {
@@ -784,7 +784,7 @@ class PFFormField {
 	 * @param string $label
 	 * @return string
 	 */
-	function labelToValue( $label ) {
+	public function labelToValue( $label ) {
 		$value = array_search( $label, $this->mPossibleValues );
 		if ( $value === false ) {
 			return $label;
@@ -901,7 +901,7 @@ class PFFormField {
 	 * @param bool $is_last_field_in_template
 	 * @return string
 	 */
-	function createMarkup( $part_of_multiple, $is_last_field_in_template ) {
+	public function createMarkup( $part_of_multiple, $is_last_field_in_template ) {
 		$text = "";
 		$descPlaceholder = "";
 		$textBeforeField = "";
@@ -978,7 +978,7 @@ class PFFormField {
 		return $text;
 	}
 
-	function getArgumentsForInputCallSMW( array &$other_args ) {
+	public function getArgumentsForInputCallSMW( array &$other_args ) {
 		if ( $this->template_field->getSemanticProperty() !== '' &&
 			!array_key_exists( 'semantic_property', $other_args ) ) {
 			$other_args['semantic_property'] = $this->template_field->getSemanticProperty();
@@ -999,7 +999,7 @@ class PFFormField {
 		}
 	}
 
-	function getArgumentsForInputCallCargo( array &$other_args ) {
+	public function getArgumentsForInputCallCargo( array &$other_args ) {
 		$fullCargoField = $this->template_field->getFullCargoField();
 		if ( $fullCargoField !== null &&
 			!array_key_exists( 'full_cargo_field', $other_args ) ) {
@@ -1041,7 +1041,7 @@ class PFFormField {
 	 * @param array|null $default_args
 	 * @return array
 	 */
-	function getArgumentsForInputCall( array $default_args = null ) {
+	public function getArgumentsForInputCall( array $default_args = null ) {
 		$parser = PFUtils::getParser();
 
 		// start with the arguments array already defined

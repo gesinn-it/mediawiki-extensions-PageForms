@@ -59,7 +59,7 @@ class PFDateInput extends PFFormInput {
 		return 'dateInput';
 	}
 
-	static function parseDate( $date, $includeTime = false ) {
+	public static function parseDate( $date, $includeTime = false ) {
 		global $wgLanguageCode;
 
 		// Special handling for 'default=now'.

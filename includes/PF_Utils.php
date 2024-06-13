@@ -354,7 +354,7 @@ END;
 	 * @param string $string
 	 * @return string[]
 	 */
-	static function smartSplitFormTag( $string ) {
+	public static function smartSplitFormTag( $string ) {
 		if ( $string == '' ) {
 			return [];
 		}

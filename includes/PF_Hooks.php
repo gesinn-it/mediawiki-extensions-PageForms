@@ -129,7 +129,7 @@ class PFHooks {
 		return true;
 	}
 
-	static function registerFunctions( Parser $parser ) {
+	public static function registerFunctions( Parser $parser ) {
 		$parser->setFunctionHook( 'default_form', [ 'PFDefaultForm', 'run' ] );
 		$parser->setFunctionHook( 'forminput', [ 'PFFormInputParserFunction', 'run' ] );
 		$parser->setFunctionHook( 'formlink', [ 'PFFormLink', 'run' ] );
@@ -146,7 +146,7 @@ class PFHooks {
 		return true;
 	}
 
-	static function setGlobalJSVariables( &$vars ) {
+	public static function setGlobalJSVariables( &$vars ) {
 		global $wgPageFormsTargetName;
 		global $wgPageFormsAutocompleteValues, $wgPageFormsAutocompleteOnAllChars;
 		global $wgPageFormsFieldProperties, $wgPageFormsCargoFields, $wgPageFormsDependentFields;

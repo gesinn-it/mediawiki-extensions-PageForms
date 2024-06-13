@@ -239,7 +239,7 @@ class PFDatePickerInput extends PFFormInput {
 	 * @param string $class
 	 * @return string the html text of an input element
 	 */
-	static function genericTextHTML( $currentValue, $inputName, $isDisabled, $otherArgs, $inputId = null, $tabIndex = null, $class = '' ) {
+	public static function genericTextHTML( $currentValue, $inputName, $isDisabled, $otherArgs, $inputId = null, $tabIndex = null, $class = '' ) {
 		global $wgPageFormsTabIndex;
 
 		// array of attributes to pass to the input field

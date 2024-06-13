@@ -12,11 +12,11 @@
  */
 class PFRunQuery extends IncludableSpecialPage {
 
-	function __construct() {
+	public function __construct() {
 		parent::__construct( 'RunQuery' );
 	}
 
-	function execute( $query ) {
+	public function execute( $query ) {
 		if ( !$this->including() ) {
 			$this->setHeaders();
 		}
@@ -28,7 +28,7 @@ class PFRunQuery extends IncludableSpecialPage {
 		$this->printPage( $form_name, $this->including() );
 	}
 
-	function printPage( $form_name, $embedded = false ) {
+	public function printPage( $form_name, $embedded = false ) {
 		global $wgPageFormsFormPrinter, $wgPageFormsRunQueryFormAtTop;
 
 		$out = $this->getOutput();

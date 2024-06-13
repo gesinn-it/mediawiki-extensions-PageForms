@@ -266,7 +266,7 @@ class PFFormPrinter {
 	 * @param OutputPage $out
 	 * @return true
 	 */
-	function showDeletionLog( $out ) {
+	public function showDeletionLog( $out ) {
 		LogEventsList::showLogExtract( $out, 'delete', $this->mPageTitle->getPrefixedText(),
 			'', [ 'lim' => 10,
 				'conds' => [ "log_action != 'revision'" ],
@@ -288,7 +288,7 @@ class PFFormPrinter {
 	 * @param string $subject
 	 * @return string
 	 */
-	function strReplaceFirst( $search, $replace, $subject ) {
+	public function strReplaceFirst( $search, $replace, $subject ) {
 		$firstChar = strpos( $subject, $search );
 		if ( $firstChar !== false ) {
 			$beforeStr = substr( $subject, 0, $firstChar );
@@ -299,17 +299,17 @@ class PFFormPrinter {
 		}
 	}
 
-	static function placeholderFormat( $templateName, $fieldName ) {
+	public static function placeholderFormat( $templateName, $fieldName ) {
 		$templateName = str_replace( '_', ' ', $templateName );
 		$fieldName = str_replace( '_', ' ', $fieldName );
 		return $templateName . '___' . $fieldName;
 	}
 
-	static function makePlaceholderInFormHTML( $str ) {
+	public static function makePlaceholderInFormHTML( $str ) {
 		return '@insert"HTML_' . $str . '@';
 	}
 
-	function multipleTemplateStartHTML( $tif ) {
+	public function multipleTemplateStartHTML( $tif ) {
 		// If placeholder is set, it means we want to insert a
 		// multiple template form's HTML into the main form's HTML.
 		// So, the HTML will be stored in $text.
@@ -335,7 +335,7 @@ class PFFormPrinter {
 	 * @param string $mainText
 	 * @return string
 	 */
-	function multipleTemplateInstanceTableHTML( $form_is_disabled, $mainText ) {
+	public function multipleTemplateInstanceTableHTML( $form_is_disabled, $mainText ) {
 		if ( $form_is_disabled ) {
 			$addAboveButton = $removeButton = '';
 		} else {
@@ -365,7 +365,7 @@ END;
 	 * @param string &$section
 	 * @return string
 	 */
-	function multipleTemplateInstanceHTML( $template_in_form, $form_is_disabled, &$section ) {
+	public function multipleTemplateInstanceHTML( $template_in_form, $form_is_disabled, &$section ) {
 		global $wgPageFormsCalendarHTML;
 
 		$wgPageFormsCalendarHTML[$template_in_form->getTemplateName()] = str_replace( '[num]', "[cf]", $section );
@@ -408,7 +408,7 @@ END;
 	 * @param string $section
 	 * @return string
 	 */
-	function multipleTemplateEndHTML( $template_in_form, $form_is_disabled, $section ) {
+	public function multipleTemplateEndHTML( $template_in_form, $form_is_disabled, $section ) {
 		global $wgPageFormsTabIndex;
 
 		$text = "\t\t" . Html::rawElement( 'div',
@@ -440,7 +440,7 @@ END;
 		return $text;
 	}
 
-	function tableHTML( $tif, $instanceNum ) {
+	public function tableHTML( $tif, $instanceNum ) {
 		global $wgPageFormsFieldNum;
 
 		$allGridValues = $tif->getGridValues();
@@ -518,7 +518,7 @@ END;
 		return $html;
 	}
 
-	function getSpreadsheetAutocompleteAttributes( $formFieldArgs ) {
+	public function getSpreadsheetAutocompleteAttributes( $formFieldArgs ) {
 		if ( array_key_exists( 'values from category', $formFieldArgs ) ) {
 			return [ 'category', $formFieldArgs[ 'values from category' ] ];
 		} elseif ( array_key_exists( 'cargo table', $formFieldArgs ) ) {
@@ -538,7 +538,7 @@ END;
 		}
 	}
 
-	function spreadsheetHTML( $tif ) {
+	public function spreadsheetHTML( $tif ) {
 		global $wgOut, $wgPageFormsGridValues, $wgPageFormsGridParams;
 		global $wgPageFormsScriptPath;
 
@@ -634,7 +634,7 @@ END;
 	 * @param string $includeTimezone
 	 * @return string
 	 */
-	function getStringForCurrentTime( $includeTime, $includeTimezone ) {
+	public function getStringForCurrentTime( $includeTime, $includeTimezone ) {
 		global $wgLocaltimezone, $wgAmericanDates, $wgPageForms24HourTime;
 
 		if ( isset( $wgLocaltimezone ) ) {
@@ -689,7 +689,7 @@ END;
 	 * @param string $delimiter
 	 * @return string
 	 */
-	static function getStringFromPassedInArray( $value, $delimiter ) {
+	public static function getStringFromPassedInArray( $value, $delimiter ) {
 		// If it's just a regular list, concatenate it.
 		// This is needed due to some strange behavior
 		// in PF, where, if a preload page is passed in
@@ -784,7 +784,7 @@ END;
 		return '';
 	}
 
-	static function displayLoadingImage() {
+	public static function displayLoadingImage() {
 		global $wgPageFormsScriptPath;
 
 		$text = '<div id="loadingMask"></div>';
@@ -821,7 +821,7 @@ END;
 	 * @throws FatalError
 	 * @throws MWException
 	 */
-	function formHTML(
+	public function formHTML(
 		$form_def,
 		$form_submitted,
 		$source_is_page,
@@ -1970,7 +1970,7 @@ END;
 	 * @param string $cur_value
 	 * @return string
 	 */
-	function formFieldHTML( $form_field, $cur_value ) {
+	public function formFieldHTML( $form_field, $cur_value ) {
 		global $wgPageFormsFieldNum;
 
 		// Also get the actual field, with all the semantic information
