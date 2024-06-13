@@ -369,8 +369,8 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 					. "\n"
 
 					. $this->radioButtonFormat( $label, 'one', null, null, null, null, null, 'eins' )
-					. $this->radioButtonFormat( $label, 'deux', 'deux', null, null, null,null,'zwei' )
-					. $this->radioButtonFormat( $label, 'drei', 'drei', null, null, null,null, 'drei' )
+					. $this->radioButtonFormat( $label, 'deux', 'deux', null, null, null, null, 'zwei' )
+					. $this->radioButtonFormat( $label, 'drei', 'drei', null, null, null, null, 'drei' )
 
 					. "</span>"
 				] ];
