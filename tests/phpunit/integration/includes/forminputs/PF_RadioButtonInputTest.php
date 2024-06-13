@@ -90,8 +90,8 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 				. 'class="radioButtonSpan">' . "\n"
 
 				. $this->radioButtonFormat( $label, '', 'None', 'checked' )
-				. $this->radioButtonFormat( $label, 'Yes')
-				. $this->radioButtonFormat( $label, 'No')
+				. $this->radioButtonFormat( $label, 'Yes' )
+				. $this->radioButtonFormat( $label, 'No' )
 
 				. "</span>"
 			] ];

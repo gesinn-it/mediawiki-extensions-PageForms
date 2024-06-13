@@ -107,7 +107,7 @@ class PFFormLink {
 			} elseif ( $param_name == null && $value == 'create page' ) {
 				$inCreatePage = true;
 			} elseif ( $param_name !== null ) {
-				PFParserFunctionHelpers::handleFreeParameter($param_name, $value, $inQueryArr, $hasReturnTo);
+				PFParserFunctionHelpers::handleFreeParameter( $param_name, $value, $inQueryArr, $hasReturnTo );
 			}
 		}
 

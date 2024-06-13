@@ -554,7 +554,7 @@ class PFFormField {
 	}
 
 	public function autocapitalize( $val ) {
-		if ( $this->mAutocapitalize === 'words') {
+		if ( $this->mAutocapitalize === 'words' ) {
 			return ucwords( $val );
 		} else {
 			return $val;
