@@ -5,7 +5,7 @@
  * @covers \PFAutoeditAPI
  * @group Database
  * @group medium
- *  
+ *
  * @author gesinn-it-wam
  */
 class PFFormEditTest extends MediaWikiIntegrationTestCase {

@@ -274,7 +274,7 @@ class PFTemplateInForm {
 	public function getGridValues() {
 		return $this->mGridValues;
 	}
-	
+
 	public function incrementInstanceNum() {
 		$this->mInstanceNum++;
 	}

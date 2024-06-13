@@ -145,7 +145,7 @@ class PFTreeInput extends PFFormInput {
 
 		if ( !empty( $params['search-input'] ) ) {
 			$text = Html::rawElement( 'div', [],
-				Html::element( 'input', [					
+				Html::element( 'input', [
 					'id' => $input_name . 'treeinput_searchinput',
 					'class' => 'PFTreeSearchInput',
 				], null ) )
