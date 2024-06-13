@@ -64,7 +64,4 @@ class PFCreateTemplateTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertStringContainsString( '<form id="editform" name="editform" method="post" action="/index.php?title=Template:Thing&amp;action=submit"><input type="hidden" value="&lt;noinclude&gt;&#10;{{#template_params:Name (property=Foaf =&gt;name)}}&#10;&lt;/noinclude&gt;&lt;includeonly&gt;{| class=&quot;wikitable&quot;&#10;! Name&#10;| [[Foaf =&gt;name::{{{Name|}}}]]&#10;|-&#10;! &#10;|{{#ask:[[Foaf =&gt;homepage::{{SUBJECTPAGENAME}}]]|format=list}}&#10;|}&#10;&#10;[[Category:Thing]]&#10;&lt;/includeonly&gt;&#10;" name="wpTextbox1"/><input type="hidden" value="ℳ𝒲♥𝓊𝓃𝒾𝒸ℴ𝒹ℯ" name="wpUnicodeCheck"/><input type="hidden" name="wpSummary"/><input type="hidden" value="+\" name="wpEditToken"/><input type="hidden" name="wpSave"/><input type="hidden" value="1" name="wpUltimateParam"/></form>', $output->mBodytext );
 	}
-
-//	public function 
-
 }
