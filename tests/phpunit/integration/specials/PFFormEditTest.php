@@ -18,8 +18,7 @@ class PFFormEditTest extends MediaWikiIntegrationTestCase {
 		$this->tablesUsed[] = 'page';
 	}
 
-	public function testEmptyQuery()
-	{
+	public function testEmptyQuery() {
 		$formEdit = new PFFormEdit();
 
 		$formEdit->execute( null );
@@ -40,8 +39,7 @@ class PFFormEditTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( '<div class="error"><p><b>InvalidForm</b> is not a valid form.', $output->mBodytext );
 	}
 
-	public function testValidForm()
-	{
+	public function testValidForm() {
 		$formText = <<<EOF
 			{{{for template|Thing|label=Thing}}}
 			{| class="formtable"
