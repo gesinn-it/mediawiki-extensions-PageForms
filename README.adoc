@@ -1,12 +1,12 @@
-= Page Forms
+:project_name: Page Forms
+= {project_name}
 
 image:https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/actions/workflows/ci.yml/badge.svg[CI,link=https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/actions/workflows/ci.yml]
 image:https://codecov.io/gh/gesinn-it-pub/mediawiki-extensions-PageForms/branch/master/graph/badge.svg?token=9AYOTTYUA8[Codecov]
 
-
-== About
-
+[NOTE]
+====
 Fork of the MediaWiki extension https://www.mediawiki.org/wiki/Extension:Page_Forms[PageForms], aimed at simplifying contributions by hosting on GitHub instead of Gerrit, improving quality through better test coverage and continuous integration. From time to time, changes in the upstream repository may be cherry-picked and integrated.
-
+====
 
 Page Forms, previously known as Semantic Forms, is a MediaWiki extension aimed at simplifying data management through forms. In essence, Page Forms allows users to create, edit, and query data on a wiki without the need for coding. The central feature of Page Forms is the form definition pages, located in the 'Form:' namespace. These pages utilize markup code to define forms, empowering users to create and modify forms without requiring programming knowledge. Forms populate predefined templates and page sections, facilitating data storage and querying, especially when used with Semantic MediaWiki.
