@@ -49,7 +49,17 @@ class PFUploadWindow extends UnlistedSpecialPage {
 	 */
 	public $mUploadClicked;
 
+	/**
+	 * This property stores mTextTop value
+	 *
+	 * @var string
+	 */
 	protected $mTextTop;
+	/**
+	 * This property stores mTextAfterSummary value
+	 *
+	 * @var string
+	 */
 	protected $mTextAfterSummary;
 
 	/** User input variables from the "description" section */

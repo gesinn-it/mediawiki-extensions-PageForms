@@ -11,12 +11,42 @@
  * @ingroup PFSpecialPages
  */
 class PFUploadForm extends HTMLForm {
-	protected $mWatch;
-	protected $mForReUpload;
-	protected $mSessionKey;
-	protected $mHideIgnoreWarning;
-	protected $mDestWarningAck;
 
+	/**
+	 * This property stores mWatch value
+	 *
+	 * @var string
+	 */
+	protected $mWatch;
+	/**
+	 * This property stores mForReUpload value
+	 *
+	 * @var string
+	 */
+	protected $mForReUpload;
+	/**
+	 * This property stores mSessionKey value
+	 *
+	 * @var string
+	 */
+	protected $mSessionKey;
+	/**
+	 * This property stores mHideIgnoreWarning value
+	 *
+	 * @var string
+	 */
+	protected $mHideIgnoreWarning;
+	/**
+	 * This property stores mDestWarningAck value
+	 *
+	 * @var string
+	 */
+	protected $mDestWarningAck;
+	/**
+	 * This property stores mSourceIds value
+	 *
+	 * @var string
+	 */
 	protected $mSourceIds;
 
 	private $mTextTop;
