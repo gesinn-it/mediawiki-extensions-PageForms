@@ -19,7 +19,17 @@ use MediaWiki\Revision\RevisionRecord;
  */
 class PFMultiPageEdit extends QueryPage {
 
+	/**
+	 * This property stores mTemplate value
+	 *
+	 * @var string
+	 */
 	public $mTemplate;
+	/**
+	 * This property stores mForm value
+	 *
+	 * @var string
+	 */
 	public $mForm;
 	private $mTemplateInForm = [];
 	private $mTemplatesUsed = [];

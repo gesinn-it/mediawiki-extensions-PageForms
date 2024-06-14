@@ -30,6 +30,11 @@ class PFUploadWindow extends UnlistedSpecialPage {
 
 	/** @var WebRequest|FauxRequest The request this form is supposed to handle */
 	public $mRequest;
+	/**
+	 * This property stores mSourceType value
+	 *
+	 * @var string
+	 */
 	public $mSourceType;
 
 	/** @var UploadBase */
@@ -37,6 +42,11 @@ class PFUploadWindow extends UnlistedSpecialPage {
 
 	/** @var LocalFile */
 	public $mLocalFile;
+	/**
+	 * This property stores mUploadClicked value
+	 *
+	 * @var bool
+	 */
 	public $mUploadClicked;
 
 	protected $mTextTop;
@@ -46,13 +56,43 @@ class PFUploadWindow extends UnlistedSpecialPage {
 
 	/** @var string The requested target file name */
 	public $mDesiredDestName;
+	/**
+	 * This property stores mComment value
+	 *
+	 * @var string
+	 */
 	public $mComment;
+	/**
+	 * This property stores mLicense value
+	 *
+	 * @var string
+	 */
 	public $mLicense;
 
 	/** User input variables from the root section */
+	/**
+	 * This property stores mIgnoreWarning value
+	 *
+	 * @var bool
+	 */
 	public $mIgnoreWarning;
+	/**
+	 * This property stores mWatchThis value
+	 *
+	 * @var bool
+	 */
 	public $mWatchThis;
+	/**
+	 * This property stores mCopyrightStatus value
+	 *
+	 * @var string
+	 */
 	public $mCopyrightStatus;
+	/**
+	 * This property stores mCopyrightSource value
+	 *
+	 * @var string
+	 */
 	public $mCopyrightSource;
 
 	/** Hidden variables */
@@ -62,10 +102,25 @@ class PFUploadWindow extends UnlistedSpecialPage {
 
 	/** @var bool The user clicked "Cancel and return to upload form" button */
 	public $mCancelUpload;
+	/**
+	 * This property stores mTokenOk value
+	 *
+	 * @var bool
+	 */
 	public $mTokenOk;
 
 	/** used by Page Forms */
+	/**
+	 * This property stores mInputID value
+	 *
+	 * @var string
+	 */
 	public $mInputID;
+	/**
+	 * This property stores mDelimiter value
+	 *
+	 * @var string
+	 */
 	public $mDelimiter;
 
 	private $uploadFormTextTop;

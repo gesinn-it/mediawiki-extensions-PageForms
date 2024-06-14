@@ -17,10 +17,35 @@ use MediaWiki\MediaWikiServices;
 
 class PFFormPrinter {
 
+	/**
+	 * This property stores mSemanticTypeHooks values
+	 *
+	 * @var array
+	 */
 	public $mSemanticTypeHooks;
+	/**
+	 * This property stores mCargoTypeHooks values
+	 *
+	 * @var array
+	 */
 	public $mCargoTypeHooks;
+	/**
+	 * This property stores mInputTypeHooks values
+	 *
+	 * @var array
+	 */
 	public $mInputTypeHooks;
+	/**
+	 * This property stores standardInputsIncluded values
+	 *
+	 * @var array
+	 */
 	public $standardInputsIncluded;
+	/**
+	 * This property stores mPageTitle values
+	 *
+	 * @var array
+	 */
 	public $mPageTitle;
 
 	private $mInputTypeClasses;

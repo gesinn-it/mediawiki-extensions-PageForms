@@ -13,8 +13,23 @@
  */
 class PFFormEdit extends UnlistedSpecialPage {
 
+	/**
+	 * This property stores mTarget value
+	 *
+	 * @var string
+	 */
 	public $mTarget;
+	/**
+	 * This property stores mForm value
+	 *
+	 * @var string
+	 */
 	public $mForm;
+	/**
+	 * This property stores mError value
+	 *
+	 * @var string
+	 */
 	public $mError;
 
 	public function __construct() {
