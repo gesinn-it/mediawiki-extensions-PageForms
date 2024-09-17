@@ -17,7 +17,7 @@ DB_TYPE?=sqlite
 DB_IMAGE?=""
 
 # extensions
-SMW_VERSION?=4.1.2
+SMW_VERSION?=4.1.3
 DT_VERSION?=3.1
 PS_VERSION?=0.6.1
 
