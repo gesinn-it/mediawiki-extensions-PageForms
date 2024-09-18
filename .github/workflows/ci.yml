@@ -11,14 +11,14 @@ jobs:
 
   test:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     continue-on-error: ${{ matrix.experimental }}
 
     strategy:
       matrix:
         include:
           - mediawiki_version: '1.35'
-            smw_version: '4.1.3'    # SemanticMediaWiki
+            smw_version: '4.2.0'    # SemanticMediaWiki
             php_version: 7.4        # PHP
             dt_version: 3.1         # DisplayTitle
             ps_version: 0.6.1       # PageSchemas
@@ -27,7 +27,7 @@ jobs:
             coverage: true
             experimental: false
           - mediawiki_version: '1.35'
-            smw_version: '4.1.3'
+            smw_version: '4.2.0'
             php_version: 7.4
             dt_version: 3.1
             ps_version: 0.6.1
@@ -35,7 +35,7 @@ jobs:
             coverage: false
             experimental: false
           - mediawiki_version: '1.39'
-            smw_version: '4.1.3'
+            smw_version: '4.2.0'
             php_version: 8.1
             dt_version: 4.0.2
             ps_version: 0.9.1
