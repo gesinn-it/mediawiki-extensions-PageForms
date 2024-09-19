@@ -57,4 +57,39 @@ class PFFormEditTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( '<legend>Thing</legend>', $output->mBodytext );
 		$this->assertStringContainsString( 'Thing[Name]', $output->mBodytext );
 	}
+
+	public function testPrintAltFormsList() {
+		// Sample input data
+		$altForms = [ 'Form1', 'Form2' ];
+		$targetName = 'TargetPage';
+
+		// Mocking the PFUtils::getSpecialPage method
+		$mockSpecialPage = $this->createMock( SpecialPage::class );
+		$mockTitle = $this->createMock( Title::class );
+
+		// Set expectations on the mocked objects
+		$mockTitle->expects( $this->once() )
+			->method( 'getFullURL' )
+			->willReturn( 'https://example.com/index.php/Special:FormEdit' );
+
+		$mockSpecialPage->expects( $this->once() )
+			->method( 'getPageTitle' )
+			->willReturn( $mockTitle );
+
+		// Replace the static method call in PFUtils with the mock
+		$this->setMwGlobals( 'wgSpecialPages', [ 'FormEdit' => $mockSpecialPage ] );
+
+		// Create an instance of the class that contains printAltFormsList
+		$pfFormEdit = new PFFormEdit();
+
+		// Run the method with the mocked objects and inputs
+		$output = $pfFormEdit->printAltFormsList( $altForms, $targetName );
+
+		// Check the expected HTML output
+		$expectedOutput = '<a href="https://example.com/index.php/Special:FormEdit/Form1/TargetPage">Form1</a>, ' .
+						  '<a href="https://example.com/index.php/Special:FormEdit/Form2/TargetPage">Form2</a>';
+
+		// Assert the output matches the expected result
+		$this->assertEquals( $expectedOutput, $output );
+	}
 }
