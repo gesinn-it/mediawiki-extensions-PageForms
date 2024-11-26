@@ -1,11 +1,13 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 /**
- * @covers \PFCreateForm
+ * @covers \PFFormStart
  *
  * @author gesinn-it-wam
  */
-class PFFormStartTest extends MediaWikiIntegrationTestCase {
+class PFFormStartTest extends SpecialPageTestBase {
 
 	use IntegrationTestHelpers;
 
@@ -14,8 +16,18 @@ class PFFormStartTest extends MediaWikiIntegrationTestCase {
 		$this->requireLanguageCodeEn();
 	}
 
+	/**
+	 * Create an instance of the special page being tested.
+	 *
+	 * @return SpecialPage
+	 */
+	protected function newSpecialPage() {
+		// Return an instance of PFFormStart
+		return MediaWikiServices::getInstance()->getSpecialPageFactory()->getPage( 'FormStart' );
+	}
+
 	public function testEmptyQuery() {
-		$formStart = new PFFormStart();
+		$formStart = $this->newSpecialPage();
 
 		$formStart->execute( null );
 

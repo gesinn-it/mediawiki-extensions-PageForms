@@ -1,11 +1,13 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * @covers \PFCreateTemplate
  *
  * @author gesinn-it-wam
  */
-class PFCreateTemplateTest extends MediaWikiIntegrationTestCase {
+class PFCreateTemplateTest extends SpecialPageTestBase {
 
 	use IntegrationTestHelpers;
 
@@ -14,8 +16,18 @@ class PFCreateTemplateTest extends MediaWikiIntegrationTestCase {
 		$this->requireLanguageCodeEn();
 	}
 
+	/**
+	 * Create an instance of the special page being tested.
+	 *
+	 * @return SpecialPage
+	 */
+	protected function newSpecialPage() {
+		// Return an instance of PFCreateTemplate
+		return MediaWikiServices::getInstance()->getSpecialPageFactory()->getPage( 'CreateTemplate' );
+	}
+
 	public function testGetCreatePage() {
-		$createTemplate = new PFCreateTemplate();
+		$createTemplate = $this->newSpecialPage();
 
 		$createTemplate->execute( null );
 
@@ -24,7 +36,7 @@ class PFCreateTemplateTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testCreateTemplate() {
-		$createTemplate = new PFCreateTemplate();
+		$createTemplate = $this->newSpecialPage();
 		$context = new RequestContext();
 		$createTemplate->setContext( $context );
 		$values = [
@@ -63,5 +75,26 @@ class PFCreateTemplateTest extends MediaWikiIntegrationTestCase {
 		EOF;
 
 		$this->assertStringContainsString( '<form id="editform" name="editform" method="post" action="/index.php?title=Template:Thing&amp;action=submit"><input type="hidden" value="&lt;noinclude&gt;&#10;{{#template_params:Name (property=Foaf =&gt;name)}}&#10;&lt;/noinclude&gt;&lt;includeonly&gt;{| class=&quot;wikitable&quot;&#10;! Name&#10;| [[Foaf =&gt;name::{{{Name|}}}]]&#10;|-&#10;! &#10;|{{#ask:[[Foaf =&gt;homepage::{{SUBJECTPAGENAME}}]]|format=list}}&#10;|}&#10;&#10;[[Category:Thing]]&#10;&lt;/includeonly&gt;&#10;" name="wpTextbox1"/><input type="hidden" value="ℳ𝒲♥𝓊𝓃𝒾𝒸ℴ𝒹ℯ" name="wpUnicodeCheck"/><input type="hidden" name="wpSummary"/><input type="hidden" value="+\" name="wpEditToken"/><input type="hidden" name="wpSave"/><input type="hidden" value="1" name="wpUltimateParam"/></form>', $output->mBodytext );
+
+		// Load the HTML with DOMDocument and DOMXPath
+		$dom = new DomDocument;
+		@$dom->loadHTML( $output->mBodytext );
+		$xpath = new DomXPath( $dom );
+
+		// Check if the form exists with the correct action
+		$form = $xpath->query( '//form[contains(@action,"Template:Thing")]' )->item( 0 );
+		$this->assertNotNull( $form, 'Form element not found' );
+
+		// Debugging: Check if wpTextbox1 input exists in the DOM
+		$templateInput = $xpath->query( '//input[@name="wpTextbox1"]' )->item( 0 );
+		$this->assertNotNull( $templateInput, 'Template input field not found' );
+
+		// Check for wpSave field
+		$wpSave = $xpath->query( '//input[@name="wpSave"]' )->item( 0 );
+		$this->assertNotNull( $wpSave, 'wpSave input field not found' );
+
+		// Check for script tag that submits the form
+		$script = $xpath->query( '//script[contains(text(),"document.editform.submit();")]' )->item( 0 );
+		$this->assertNotNull( $script, 'Script for form submission not found' );
 	}
 }
