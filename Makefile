@@ -1,4 +1,4 @@
--include .env-40
+-include .env
 export
 
 # setup for docker-compose-ci build directory
@@ -18,8 +18,8 @@ DB_IMAGE?="mysql:8"
 
 # extensions
 SMW_VERSION?=4.2.0
-DT_VERSION?=3.1
-PS_VERSION?=0.9.1
+DT_VERSION?=4.0.3
+PS_VERSION?=1.0
 
 # composer
 # Enables "composer update" inside of extension
