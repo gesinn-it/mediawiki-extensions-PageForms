@@ -79,6 +79,9 @@
 		{
 			"type": "api",
 			"about": "concept search finds pages matching at the beginning of words",
+			"skip-on": {
+				"mediawiki": [ ">1.39.x", "MediaWiki changed the HTML Tidy" ]
+			},
 			"api": {
 				"parameters": {
 					"action": "pfautocomplete",
