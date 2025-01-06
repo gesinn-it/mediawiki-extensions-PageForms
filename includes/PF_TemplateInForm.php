@@ -140,6 +140,10 @@ class PFTemplateInForm {
 		return $this->mTemplateName;
 	}
 
+	public function setTemplateName( $value ) {
+		$this->mTemplateName = $value;
+	}
+
 	public function getHeight() {
 		return $this->mHeight;
 	}
@@ -200,6 +204,10 @@ class PFTemplateInForm {
 		return $this->mAllowMultiple;
 	}
 
+	public function setAllowsMultiple( $value ) {
+		$this->mAllowMultiple = $value;
+	}
+
 	public function strictParsing() {
 		return $this->mStrictParsing;
 	}
@@ -210,6 +218,30 @@ class PFTemplateInForm {
 
 	public function getMaxInstancesAllowed() {
 		return $this->mMaxAllowed;
+	}
+
+	public function setInstanceNum( $value ) {
+		$this->mInstanceNum = $value;
+	}
+
+	public function getPregMatchTemplateStr() {
+		return $this->mPregMatchTemplateStr;
+	}
+
+	public function setPregMatchTemplateStr( $value ) {
+		$this->mPregMatchTemplateStr = $value;
+	}
+
+	public function getSearchTemplateStr() {
+		return $this->mSearchTemplateStr;
+	}
+
+	public function setSearchTemplateStr( $value ) {
+		$this->mSearchTemplateStr = $value;
+	}
+
+	public function numSeenInstancesOnThisPage() {
+		return $this->mNumSeenInstancesOnThisPage;
 	}
 
 	public function createMarkup() {
