@@ -23,6 +23,25 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 		parent::setUp();
 	}
 
+	/**
+	 * Formats a single radio button's HTML representation for test validation.
+	 *
+	 * Purpose:
+	 * This helper method generates the expected HTML structure of a radio button,
+	 * which is used in test cases to verify the output of the `PFRadioButtonInput::getHTML` method.
+	 * By centralizing the HTML format in one method, it ensures consistency across multiple test scenarios.
+	 *
+	 * @param string $name The name attribute for the radio button input (usually prefixed).
+	 * @param string $value The value attribute of the radio button.
+	 * @param string|null $label The text label displayed next to the radio button. Defaults to the value if not specified.
+	 * @param string|null $checked Adds the 'checked' attribute if the radio button is selected.
+	 * @param string|null $class Additional CSS class(es) to add to the `<label>` element.
+	 * @param string|null $append Additional attributes or content appended to the input element.
+	 * @param string|null $disabled Adds the 'disabled' attribute if the radio button is disabled.
+	 * @param string|null $originalValue The original value for data tracking, added as a 'data-original-value' attribute.
+	 *
+	 * @return string The formatted HTML string for the radio button and label.
+	 */
 	private function radioButtonFormat(
 		$name, $value, $label = null, $checked = null, $class = null,
 		$append = null, $disabled = null, $originalValue = null
@@ -41,10 +60,23 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 		) . "\n";
 	}
 
-	// Tests for the radiobutton code.
-
 	/**
+	 * Test method for validating the HTML output of radio button input elements.
+	 *
+	 * Purpose:
+	 * This test ensures that the `PFRadioButtonInput::getHTML` method generates the correct HTML output for radio buttons.
+	 * It leverages a data provider (`radioButtonDataProvider`) to supply various test cases, checking different configurations
+	 * of the radio button (e.g., labels, values, default selections, etc.). The method compares the generated HTML against
+	 * the expected output to confirm correctness.
+	 *
+	 * Test Behavior:
+	 * - The test executes `PFRadioButtonInput::getHTML` with different argument setups, including dynamic values like
+	 *   the radio button's name, value, label, and other attributes.
+	 * - The test checks that the generated HTML matches the expected HTML for each case.
+	 *
 	 * @dataProvider radioButtonDataProvider
+	 * @param array $setup An associative array containing the test setup values for the radio button generation.
+	 * @param array $expected An associative array containing the expected HTML output for comparison.
 	 */
 	public function testRadioButtons( $setup, $expected ) {
 		$args = $setup['args'];
@@ -68,7 +100,28 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * Data provider method
+	 * Data provider method for supplying test cases for radio button input generation.
+	 *
+	 * Purpose:
+	 * This method generates multiple sets of test data used by the `testRadioButtons` function. Each data set includes the
+	 * parameters required to test the HTML generation of radio button inputs in different scenarios. The data is structured as
+	 * an array of arrays, where each sub-array contains:
+	 * - **args**: A set of arguments passed to the `PFRadioButtonInput::getHTML` method.
+	 * - **expected_html**: The expected HTML output that should match the result of the `getHTML` method for the provided `args`.
+	 *
+	 * The `args` array in each test case includes the following parameters:
+	 * - `$cur_value`: The current value of the radio button, representing the initially selected option.
+	 * - `$input_name`: The name of the radio button input field, used for grouping multiple radio buttons together.
+	 * - `$is_mandatory`: A boolean indicating whether the field is mandatory (i.e., required to be selected).
+	 * - `$is_disabled`: A boolean indicating whether the radio button should be disabled.
+	 * - `$other_args`: An associative array containing additional arguments that control the behavior and appearance of the radio buttons.
+	 *     - **'possible_values'**: An array of possible values for the radio buttons.
+	 *     - **'property_type'**: A string specifying the type of property (e.g., `'_boo'` for boolean).
+	 *     - **'value_labels'**: An array of custom labels for the radio button values.
+	 *     - **'show on select'**: A configuration for elements that should be shown when a specific option is selected.
+	 *     - **'class'**: An optional CSS class for styling the radio buttons and labels.
+	 *
+	 * @return array The data provider array, where each element contains a set of arguments (`args`) and the expected HTML (`expected_html`).
 	 */
 	public function radioButtonDataProvider() {
 		$provider = [];
