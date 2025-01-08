@@ -387,6 +387,9 @@ class PFFormFieldTest extends TestCase {
 	}
 
 	public function testAdditionalHTMLForInput() {
+		global $wgPageFormsFieldNum;
+		$wgPageFormsFieldNum = 0;
+
 		// Create the PFFormField object
 		$field = PFFormField::create( $this->mockTemplateField );
 
@@ -411,8 +414,8 @@ class PFFormFieldTest extends TestCase {
 		$this->assertStringContainsString( 'type="hidden" value="some_value" name="input_field"', $result );
 
 		// Assertions for unique-related hidden fields
-		$this->assertStringContainsString( 'type="hidden" value="Category1" name="input__unique_for_category"', $result );
-		$this->assertStringContainsString( 'type="hidden" value="Namespace1" name="input__unique_for_namespace"', $result );
+		$this->assertStringContainsString( 'type="hidden" value="Category1" name="input_0_unique_for_category"', $result );
+		$this->assertStringContainsString( 'type="hidden" value="Namespace1" name="input_0_unique_for_namespace"', $result );
 	}
 
 	public function testGetCurrentValue() {
