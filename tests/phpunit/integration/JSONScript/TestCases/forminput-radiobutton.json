@@ -1,0 +1,58 @@
+{
+	"description": "form input radiobutton",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Radiobutton without other parameters",
+			"contents": "{{{field|Radiobutton|input type=radiobutton}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Radiobutton with values",
+			"contents": "{{{field|Radiobutton|input type=radiobutton|values=Radio A,Radio B}}}"
+		}
+	],
+    "tests": [
+		{
+			"type": "special",
+			"about": "Radiobutton without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Radiobutton without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<label class=\"radioButtonItem\"><input id=\"input_2\" tabindex=\"2\" data-original-value=\"0\" checked=\"\" type=\"radio\" value=\"\" name=\"standard input[Radiobutton]\"/>&nbsp;None</label>"				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Radiobutton with values",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Radiobutton with values/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<label class=\"radioButtonItem\"><input id=\"input_3\" tabindex=\"3\" data-original-value=\"1\" type=\"radio\" value=\"Radio A\" name=\"standard input[Radiobutton]\"/>&nbsp;Radio A</label>",
+					"<label class=\"radioButtonItem\"><input id=\"input_4\" tabindex=\"4\" data-original-value=\"2\" type=\"radio\" value=\"Radio B\" name=\"standard input[Radiobutton]\"/>&nbsp;Radio B</label>"
+				]
+			}
+		}
+	],
+    "settings": {
+        "wgLang": "en"
+    },
+    "meta": {
+        "version": "2",
+        "is-incomplete": false,
+        "debug": false
+    }
+}
