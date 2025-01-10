@@ -1,0 +1,40 @@
+{
+	"description": "form input regexp",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Regexp accepting only letters, numbers and spaces",
+			"contents": "{{{field|Regexp|input type=regexp|regexp=/^[0-9A-Za-z ]+$/}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Regexp accepting only letters, numbers and spaces",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Regexp accepting only letters, numbers and spaces/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"createboxInput",
+                    "standard input[Regexp]"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

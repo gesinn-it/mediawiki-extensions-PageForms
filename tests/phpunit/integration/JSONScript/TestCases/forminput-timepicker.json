@@ -1,0 +1,39 @@
+{
+	"description": "form input timepicker",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Timepicker without other parameters",
+			"contents": "{{{field|Timepicker|input type=timepicker}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Timepicker without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Timepicker without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" name=\"standard input[Timepicker]\"/>"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

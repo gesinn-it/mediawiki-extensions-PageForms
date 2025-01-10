@@ -1,0 +1,42 @@
+{
+	"description": "form input datetimepicker",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Datetimepicker with values",
+			"contents": "{{{field|Datetimepicker|input type=datetimepicker}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Datetimepicker with values",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Datetimepicker with values/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"pfPickerWrapper\">",
+                    "'pfDateTimePicker",
+                    "standard input[Datetimepicker]",
+					"<label for=\"input_1\" class=\"oo-ui-labelWidget oo-ui-inline-help\" style=\"margin-top: 4px;\">Time should be entered in 24-hour format.</label>"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

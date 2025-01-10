@@ -1,0 +1,43 @@
+{
+	"description": "form input tree",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Tree with structure params",
+			"contents": "{{{field|Tree|input type=tree|structure=*Test**Test1**Test2}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Tree with structure params",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Tree with structure params/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"pfTreeInputWrapper\">",
+					"pfTreeInput",
+					"standard input[Tree]treeinput",
+					"<input type='hidden' class='PFTree_data' name='standard input[Tree]'>",
+					"data=\"[{&quot;level&quot;:1,&quot;text&quot;:&quot;Test**Test1**Test2&quot;,&quot;node_id&quot;:0,&quot;state&quot;:{&quot;opened&quot;:true}}]"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

@@ -1,0 +1,77 @@
+{
+	"description": "form input textarea",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Textarea input without other parameters",
+			"contents": "{{{field|Textarea|input type=textarea}}}"
+		},
+        {
+			"namespace": "PF_NS_FORM",
+			"page": "Textarea input with rows param",
+			"contents": "{{{field|Textarea|input type=textarea|rows=10}}}"
+		},
+        {
+			"namespace": "PF_NS_FORM",
+			"page": "Textarea input with placeholder param",
+			"contents": "{{{field|Textarea|input type=textarea|placeholder=add text here}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Textarea input without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Textarea input without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<textarea tabindex=\"1\" name=\"standard input[Textarea]\" id=\"input_1\" class=\"createboxInput\" rows=\"5\" cols=\"90\" style=\"width: 100%\"></textarea>"
+				]
+			}
+		},
+        {
+			"type": "special",
+			"about": "Textarea input with rows param",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Textarea input with rows param/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<textarea tabindex=\"1\" name=\"standard input[Textarea]\" id=\"input_1\" class=\"createboxInput\" rows=\"10\" cols=\"90\" style=\"width: 100%\"></textarea>"
+				]
+			}
+		},
+        {
+			"type": "special",
+			"about": "Textarea input with placeholder param",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Textarea input with placeholder param/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<textarea tabindex=\"1\" name=\"standard input[Textarea]\" id=\"input_1\" class=\"createboxInput\" rows=\"5\" cols=\"90\" style=\"width: 100%\" placeholder=\"add text here\">"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

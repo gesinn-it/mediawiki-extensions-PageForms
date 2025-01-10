@@ -1,0 +1,42 @@
+{
+	"description": "form input combobox",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Combobox without values",
+			"contents": "{{{field|Combobox|input type=combobox}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Combobox without values",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Combobox without values/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"comboboxSpan\" data-input-type=\"combobox\">",
+					"<select id=\"input_1\" name=\"standard input[Combobox]\" class=\"pfComboBox\" tabindex=\"1\" autocompletesettings=\"\" data-size=\"210\" style=\"width:210px\">",
+					"<option value=\"\"></option>",
+                    "<option selected=\"\"></option>"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

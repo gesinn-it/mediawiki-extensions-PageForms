@@ -1,0 +1,51 @@
+{
+	"description": "form input datetime",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Datetime without other parameters",
+			"contents": "{{{field|Datetime|input type=datetime}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Datetime without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Datetime without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"dateTimeInput\">",
+                    "dayInput",
+                    "standard input[Datetime][day]",
+                    "monthInput",
+                    "standard input[Datetime][month]",
+                    "yearInput",
+                    "standard input[Datetime][year]",
+                    "hoursInput",
+                    "standard input[Datetime][hour]",
+                    "minutesInput",
+                    "standard input[Datetime][minute]",
+                    "secondsInput",
+                    "standard input[Datetime][second]"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

@@ -1,0 +1,39 @@
+{
+	"description": "form input textarea with autocomplete (aliases for \"combobox\" or \"tokens\")",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Textarea with autocomplete input without other parameters",
+			"contents": "{{{field|TextareaWithAutocomplete|input type=textarea with autocomplete}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Textarea with autocomplete input without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Textarea with autocomplete input without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<select id=\"input_1\" name=\"standard input[TextareaWithAutocomplete]\" class=\"pfComboBox\" tabindex=\"1\" autocompletesettings=\"\" data-size=\"210\" style=\"width:210px\">"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

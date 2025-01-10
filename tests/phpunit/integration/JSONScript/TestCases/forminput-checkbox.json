@@ -1,0 +1,43 @@
+{
+	"description": "form input checkbox",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Boolean Property",
+			"contents": "[[Has type::Boolean]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Checkbox without other parameters",
+			"contents": "{{{field|Checkbox|input type=checkbox}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Checkbox without other parameters",
+			"special-page": {
+			"page": "FormEdit",
+			"query-parameters": "Checkbox without other parameters/01",
+			"request-parameters": {}
+			},
+			"assert-output": {
+            "to-contain": [
+                    "<input type='checkbox'",
+                    "tabindex='1'",
+                    "name='standard input[Checkbox][value]'",
+                    "class='oo-ui-inputWidget-input' />",
+					"standard input[Checkbox][is_checkbox]"
+                ]
+		    }
+	    }
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

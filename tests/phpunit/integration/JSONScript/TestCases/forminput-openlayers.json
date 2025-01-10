@@ -1,0 +1,44 @@
+{
+	"description": "form input openlayers",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Openlayers without other parameters",
+			"contents": "{{{field|Openlayers|input type=openlayers}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Openlayers without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Openlayers without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"pfOpenLayersInput\">",
+					"pfAddressInput",
+					"placeholder='Enter address here'",
+					"pfLookUpAddress",
+					"<span class='oo-ui-labelElement-label'>Calculate coordinates using address</span>",
+					"<input tabindex=\"3\" class=\"pfCoordsInput\" name=\"standard input[Openlayers]\" size=\"40\"/>"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

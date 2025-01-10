@@ -1,0 +1,39 @@
+{
+	"description": "form input rating",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Rating without other parameters",
+			"contents": "{{{field|Rating|input type=rating}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Rating without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Rating without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"pfRating\" data-starwidth=\"24px\" data-numstars=\"5\">"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
