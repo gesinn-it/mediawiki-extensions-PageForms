@@ -3,7 +3,7 @@
 	"setup": [
 		{
 			"namespace": "SMW_NS_PROPERTY",
-			"page": "String Property",
+			"page": "Text Property",
 			"contents": "[[Has type::Text]]"
 		},
 		{
@@ -31,9 +31,7 @@
 		}
 	],
 	"settings": {
-		"wgLang": "en",
-		"wgPageFormsTabIndex": 2,
-		"wgPageFormsFieldNum": 1
+		"wgLang": "en"
 	},
 	"meta": {
 		"version": "2",
