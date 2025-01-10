@@ -29,9 +29,7 @@
 		}
 	],
 	"settings": {
-		"wgLang": "en",
-		"wgPageFormsTabIndex": 2,
-		"wgPageFormsFieldNum": 1
+		"wgLang": "en"
 	},
 	"meta": {
 		"version": "2",
