@@ -25,7 +25,7 @@
 				"to-contain": [
 					"<span class=\"comboboxSpan\" data-input-type=\"combobox\">",
 					"<option value=\"\"></option>",
-                    "<option selected=\"\"></option>"   
+                    "<option selected=\"\"></option>"
 				]
 			}
 		}
