@@ -1,0 +1,39 @@
+{
+	"description": "form input tokens",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Tokens without other parameters",
+			"contents": "{{{field|Tokens|input type=tokens}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Tokens without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Tokens without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<select id=\"input_1\" name=\"standard input[Tokens][]\" class=\"pfTokens createboxInput\" style=\"width:450px\" multiple=\"\" size=\"1\" data-size=\"450px\" tabindex=\"1\" autocompletesettings=\",list,,\"></select>"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
