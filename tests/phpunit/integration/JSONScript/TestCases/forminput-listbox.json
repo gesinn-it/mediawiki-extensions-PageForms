@@ -1,0 +1,39 @@
+{
+	"description": "form input listbox",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Listbox without other parameters",
+			"contents": "{{{field|Listbox|input type=listbox}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Listbox without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Listbox without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<select id=\"input_1\" tabindex=\"1\" name=\"standard input[Listbox][]\" class=\"createboxInput pfShowIfSelected\" multiple=\"\"></select>"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
