@@ -1,0 +1,43 @@
+{
+	"description": "form input googlemaps",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Googlemaps without other parameters",
+			"contents": "{{{field|Googlemaps|input type=googlemaps}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Googlemaps without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Googlemaps without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+                    "<div class=\"pfGoogleMapsInput\">",
+                    "placeholder='Enter address here'",
+                    "<input tabindex=\"3\" class=\"pfCoordsInput\" name=\"standard input[Googlemaps]\" size=\"40\"/>",
+                    "<span class='oo-ui-labelElement-label'>Calculate coordinates using address</span>",
+					"<div class=\"pfMapCanvas\" id=\"pfMapCanvas1\" style=\"height: 500px; width: 500px;\">"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
