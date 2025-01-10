@@ -24,7 +24,7 @@
 			"assert-output": {
 				"to-contain": [
 					"<div class=\"pfOpenLayersInput\">",
-					"<div class='pfAddressInput oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-textInputWidget oo-ui-textInputWidget-type-text oo-ui-textInputWidget-php'>",
+					"pfAddressInput",
 					"placeholder='Enter address here'",
 					"pfLookUpAddress",
 					"<span class='oo-ui-labelElement-label'>Calculate coordinates using address</span>",

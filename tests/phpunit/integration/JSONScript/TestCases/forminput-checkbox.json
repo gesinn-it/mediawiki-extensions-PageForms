@@ -23,12 +23,11 @@
 			},
 			"assert-output": {
             "to-contain": [
-                    "<span id='input_1' class=' oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget'>",
                     "<input type='checkbox'",
                     "tabindex='1'",
                     "name='standard input[Checkbox][value]'",
                     "class='oo-ui-inputWidget-input' />",
-                    "<span class='oo-ui-checkboxInputWidget-checkIcon oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement-icon oo-ui-icon-check oo-ui-iconElement oo-ui-labelElement-invisible oo-ui-iconWidget oo-ui-image-invert'>"
+					"standard input[Checkbox][is_checkbox]"
                 ]
 		    }
 	    }

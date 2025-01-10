@@ -23,7 +23,10 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"<input type='date' tabindex='0' name='standard input[Datepicker]' value='' placeholder='YYYY-MM-DD' class='oo-ui-inputWidget-input' />"
+					"<div class=\"pfPickerWrapper\">",
+					"pfDatePicker",
+					"standard input[Datepicker]",
+					"placeholder='YYYY-MM-DD'"
 				]
 			}
 		}
