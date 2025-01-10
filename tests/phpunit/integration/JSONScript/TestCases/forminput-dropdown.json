@@ -1,0 +1,40 @@
+{
+	"description": "form input dropdown",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Dropdown without other parameters",
+			"contents": "{{{field|Dropdown|input type=dropdown}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Dropdown without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Dropdown without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"createboxInput",
+					"standard input[Dropdown]"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
