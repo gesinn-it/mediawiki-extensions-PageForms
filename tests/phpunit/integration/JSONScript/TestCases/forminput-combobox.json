@@ -24,6 +24,7 @@
 			"assert-output": {
 				"to-contain": [
 					"<span class=\"comboboxSpan\" data-input-type=\"combobox\">",
+					"<select id=\"input_1\" name=\"standard input[Combobox]\" class=\"pfComboBox\" tabindex=\"1\" autocompletesettings=\"\" data-size=\"210\" style=\"width:210px\">",
 					"<option value=\"\"></option>",
                     "<option selected=\"\"></option>"
 				]
