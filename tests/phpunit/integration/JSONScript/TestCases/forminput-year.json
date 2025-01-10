@@ -1,0 +1,41 @@
+{
+	"description": "form input year",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Year without other parameters",
+			"contents": "{{{field|Year|input type=year}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Year without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Year without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"inputSpan\" data-input-type=\"text\">",
+					"createboxInput",
+					"standard input[Year]"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

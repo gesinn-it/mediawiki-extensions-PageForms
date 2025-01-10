@@ -1,0 +1,41 @@
+{
+	"description": "form input datepicker",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Datepicker with values",
+			"contents": "{{{field|Datepicker|input type=datepicker}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Datepicker with values",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Datepicker with values/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<input type='date' tabindex='0' name='standard input[Datepicker]' value='' placeholder='YYYY-MM-DD' class='oo-ui-inputWidget-input' />"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en",
+		"wgPageFormsTabIndex": 2,
+		"wgPageFormsFieldNum": 1
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

@@ -1,0 +1,45 @@
+{
+	"description": "form input date",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "Text Property",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Date without other parameters",
+			"contents": "{{{field|Date|input type=date}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Date without other parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Date without other parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"dateInput\">",
+                    "dayInput",
+                    "standard input[Date][day]",
+                    "monthInput",
+                    "standard input[Date][month]",
+                    "yearInput",
+                    "standard input[Date][year]"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
