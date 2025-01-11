@@ -75,7 +75,7 @@ class PFCreateTemplateTest extends SpecialPageTestBase {
 		</script>
 		EOF;
 
-		if ( version_compare( MW_VERSION, '1.39', '>=' ) ) {
+		if ( version_compare( MW_VERSION, '1.41', '>=' ) ) {
 			$this->assertStringContainsString( '<form id="editform" name="editform" method="post" action="/index.php?title=Template:Thing&amp;action=submit">', $output->mBodytext );
 			$this->assertStringContainsString( '<input type="hidden" value="&lt;noinclude&gt;&#10;{{#template_params:Name (property=Foaf =&gt;name)}}&#10;&lt;/noinclude&gt;&lt;includeonly&gt;{| class=&quot;wikitable&quot;&#10;! Name&#10;| [[Foaf =&gt;name::{{{Name|}}}]]&#10;|-&#10;! &#10;|{{#ask:[[Foaf =&gt;homepage::{{SUBJECTPAGENAME}}]]|format=list}}&#10;|}&#10;&#10;[[Category:Thing]]&#10;&lt;/includeonly&gt;&#10;" name="wpTextbox1">', $output->mBodytext );
 			$this->assertStringContainsString( '<input type="hidden" value="ℳ𝒲♥𝓊𝓃𝒾𝒸ℴ𝒹ℯ" name="wpUnicodeCheck">', $output->mBodytext );
