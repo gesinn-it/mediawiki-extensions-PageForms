@@ -28,7 +28,10 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"<label class=\"radioButtonItem\"><input id=\"input_2\" tabindex=\"2\" data-original-value=\"0\" checked=\"\" type=\"radio\" value=\"\" name=\"standard input[Radiobutton]\"/>&nbsp;None</label>"				]
+					"<label class=\"radioButtonItem\">",
+					"<input id=\"input_2\" tabindex=\"2\" data-original-value=\"0\" checked=\"\" type=\"radio\" value=\"\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;None"		
+				]
 			}
 		},
 		{
@@ -41,8 +44,12 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"<label class=\"radioButtonItem\"><input id=\"input_3\" tabindex=\"3\" data-original-value=\"1\" type=\"radio\" value=\"Radio A\" name=\"standard input[Radiobutton]\"/>&nbsp;Radio A</label>",
-					"<label class=\"radioButtonItem\"><input id=\"input_4\" tabindex=\"4\" data-original-value=\"2\" type=\"radio\" value=\"Radio B\" name=\"standard input[Radiobutton]\"/>&nbsp;Radio B</label>"
+					"<label class=\"radioButtonItem\">",
+					"<input id=\"input_3\" tabindex=\"3\" data-original-value=\"1\" type=\"radio\" value=\"Radio A\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Radio A",
+					"<label class=\"radioButtonItem\">",
+					"<input id=\"input_4\" tabindex=\"4\" data-original-value=\"2\" type=\"radio\" value=\"Radio B\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Radio B"	
 				]
 			}
 		}
