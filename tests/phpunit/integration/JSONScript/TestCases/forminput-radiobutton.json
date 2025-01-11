@@ -45,7 +45,7 @@
 				"to-contain": [
 					"<label class=\"radioButtonItem\">",
 					"<input id=\"input_2\" tabindex=\"2\" data-original-value=\"0\" checked=\"\" type=\"radio\" value=\"\" name=\"standard input[Radiobutton]\"",
-					"&nbsp;None"		
+					"&nbsp;None"	
 				]
 			}
 		},
@@ -64,7 +64,7 @@
 					"&nbsp;Radio A",
 					"<label class=\"radioButtonItem\">",
 					"<input id=\"input_4\" tabindex=\"4\" data-original-value=\"2\" type=\"radio\" value=\"Radio B\" name=\"standard input[Radiobutton]\"",
-					"&nbsp;Radio B"	
+					"&nbsp;Radio B"
 				]
 			}
 		},
