@@ -1936,7 +1936,11 @@ END;
 			// This variable is called $mwWikiPage and not
 			// something simpler, to avoid confusion with the
 			// variable $wiki_page, which is of type PFWikiPage.
-			$mwWikiPage = WikiPage::factory( $this->mPageTitle );
+			if ( version_compare( MW_VERSION, '1.39', '>=' ) ) {
+				$mwWikiPage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $this->mPageTitle );
+			} else {
+				$mwWikiPage = WikiPage::factory( $this->mPageTitle );
+			}
 			$form_text .= Html::hidden( 'wpEdittime', $mwWikiPage->getTimestamp() );
 			$form_text .= Html::hidden( 'editRevId', 0 );
 			$form_text .= Html::hidden( 'wpEditToken', $user->getEditToken() );
