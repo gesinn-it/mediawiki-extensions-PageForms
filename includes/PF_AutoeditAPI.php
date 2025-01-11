@@ -221,7 +221,7 @@ class PFAutoeditAPI extends ApiBase {
 			$this->mOptions['target'] = $target->getPrefixedText();
 		}
 
-		Hooks::run( 'PageForms::SetTargetName', [ &$this->mOptions['target'], $hookQuery ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::SetTargetName', [ &$this->mOptions['target'], $hookQuery ] );
 
 		// set html return status. If all goes well, this will not be changed
 		$this->mStatus = 200;
@@ -380,13 +380,13 @@ class PFAutoeditAPI extends ApiBase {
 		$out = $this->getOutput();
 		$previewOutput = $editor->getPreviewText();
 
-		Hooks::run( 'EditPage::showEditForm:initial', [ $editor, $out ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'EditPage::showEditForm:initial', [ $editor, $out ] );
 
 		$out->setRobotPolicy( 'noindex,nofollow' );
 
 		// This hook seems slightly odd here, but makes things more
 		// consistent for extensions.
-		Hooks::run( 'OutputPageBeforeHTML', [ $out, $previewOutput ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'OutputPageBeforeHTML', [ $out, $previewOutput ] );
 
 		$out->addHTML( Html::rawElement( 'div', [ 'id' => 'wikiPreview' ], $previewOutput ) );
 
@@ -460,7 +460,7 @@ class PFAutoeditAPI extends ApiBase {
 				// show normal Edit page
 
 				// remove Preview and Diff standard buttons from editor page
-				Hooks::register( 'EditPageBeforeEditButtons', static function ( &$editor, &$buttons, &$tabindex ){
+				MediaWikiServices::getInstance()->getHookContainer()->register( 'EditPageBeforeEditButtons', static function ( &$editor, &$buttons, &$tabindex ){
 					foreach ( array_keys( $buttons ) as $key ) {
 						if ( $key !== 'save' ) {
 							unset( $buttons[$key] );
@@ -510,7 +510,7 @@ class PFAutoeditAPI extends ApiBase {
 				// Give extensions a chance to modify URL query on create
 				$sectionanchor = null;
 				$extraQuery = null;
-				Hooks::run( 'ArticleUpdateBeforeRedirect', [ $editor->getArticle(), &$sectionanchor, &$extraQuery ] );
+				MediaWikiServices::getInstance()->getHookContainer()->run( 'ArticleUpdateBeforeRedirect', [ $editor->getArticle(), &$sectionanchor, &$extraQuery ] );
 
 				// @phan-suppress-next-line PhanImpossibleCondition
 				if ( $extraQuery ) {
@@ -544,7 +544,7 @@ class PFAutoeditAPI extends ApiBase {
 				$sectionanchor = $resultDetails['sectionanchor'];
 
 				// Give extensions a chance to modify URL query on update
-				Hooks::run( 'ArticleUpdateBeforeRedirect', [ $editor->getArticle(), &$sectionanchor, &$extraQuery ] );
+				MediaWikiServices::getInstance()->getHookContainer()->run( 'ArticleUpdateBeforeRedirect', [ $editor->getArticle(), &$sectionanchor, &$extraQuery ] );
 
 				if ( $resultDetails['redirect'] ) {
 					// @phan-suppress-next-line PhanSuspiciousValueComparison
@@ -909,9 +909,9 @@ class PFAutoeditAPI extends ApiBase {
 		// Allow extensions to set/change the preload text, for new
 		// pages.
 		if ( !$pageExists ) {
-			Hooks::run( 'PageForms::EditFormPreloadText', [ &$preloadContent, $targetTitle, $formTitle ] );
+			MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::EditFormPreloadText', [ &$preloadContent, $targetTitle, $formTitle ] );
 		} else {
-			Hooks::run( 'PageForms::EditFormInitialText', [ &$preloadContent, $targetTitle, $formTitle ] );
+			MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::EditFormInitialText', [ &$preloadContent, $targetTitle, $formTitle ] );
 		}
 
 		// Flag to keep track of formHTML() runs.
@@ -1002,7 +1002,7 @@ class PFAutoeditAPI extends ApiBase {
 			}
 
 			// Lets other code process additional form-definition syntax
-			Hooks::run( 'PageForms::WritePageData', [ $this->mOptions['form'], Title::newFromText( $this->mOptions['target'] ), &$targetContent ] );
+			MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::WritePageData', [ $this->mOptions['form'], Title::newFromText( $this->mOptions['target'] ), &$targetContent ] );
 
 			$editor = $this->setupEditPage( $targetContent );
 
