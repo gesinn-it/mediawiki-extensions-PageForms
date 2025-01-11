@@ -4,6 +4,7 @@ use MediaWiki\MediaWikiServices;
 
 /**
  * @covers \PFFormStart
+ * @group Database
  *
  * @author gesinn-it-wam
  */

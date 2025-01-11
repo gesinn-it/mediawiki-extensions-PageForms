@@ -8,6 +8,7 @@ use MediaWiki\MediaWikiServices;
  * SpecialPageTestBase extends MediaWikiIntegrationTestCase
  *
  * @covers \PFCreateCategory
+ * @group Database
  *
  * @author gesinn-it-ilm
  */

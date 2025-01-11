@@ -24,6 +24,8 @@ $wgExtraNamespaces[TEST_NAMESPACE] = "Test_Namespace";
 /**
  * @group PF
  * @group SMWExtension
+ * @group Database
+ *
  */
 class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 
