@@ -45,22 +45,27 @@ class PFHooks {
 	}
 
 	public static function initialize() {
-		global $wgHooks;
+		$hookContainer = MediaWikiServices::getInstance()->getHookContainer();
 
 		$GLOBALS['wgPageFormsScriptPath'] = $GLOBALS['wgExtensionAssetsPath'] . '/PageForms';
 
 		if ( class_exists( 'MediaWiki\HookContainer\HookContainer' ) ) {
 			// MW 1.35+
-			$wgHooks['PageSaveComplete'][] = 'PFHooks::setPostEditCookie';
-			$wgHooks['MultiContentSave'][] = 'PFFormUtils::purgeCache2';
+			$hookContainer->register( 'PageSaveComplete',
+				'PFHooks::setPostEditCookie' );
+			$hookContainer->register( 'MultiContentSave',
+				'PFFormUtils::purgeCache2' );
 		} else {
-			$wgHooks['PageContentSaveComplete'][] = 'PFHooks::setPostEditCookieOld';
-			$wgHooks['PageContentSave'][] = 'PFFormUtils::purgeCache';
+			$hookContainer->register( 'PageContentSaveComplete',
+				'PFHooks::setPostEditCookieOld' );
+			$hookContainer->register( 'PageContentSave',
+				'PFFormUtils::purgeCache' );
 		}
 		// Admin Links hook needs to be called in a delayed way so that it
 		// will always be called after SMW's Admin Links addition; as of
 		// SMW 1.9, SMW delays calling all its hook functions.
-		$wgHooks['AdminLinks'][] = 'PFHooks::addToAdminLinks';
+		$hookContainer->register( 'AdminLinks',
+				'PFHooks::addToAdminLinks' );
 
 		// This global variable is needed so that other
 		// extensions can hook into it to add their own
