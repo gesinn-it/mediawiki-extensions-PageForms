@@ -4,6 +4,7 @@ use OOUI\BlankTheme;
 
 /**
  * @covers \PFRadioButtonInput
+ * @group Database
  *
  * @author Mark A. Hershberger <mah@nichework.com>
  */
@@ -74,6 +75,10 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 	 * @param array $expected An associative array containing the expected HTML output for comparison.
 	 */
 	public function testRadioButtons( $setup, $expected ) {
+		if ( version_compare( MW_VERSION, '1.41', '>=' ) ) {
+			$this->markTestSkipped( 'JSONScript tests covers Radiobutton functionality. Consider removing this test completely' );
+		}
+
 		$args = $setup['args'];
 		$args[1] = "TestTemplate123[{$args[1]}]";
 		$result = call_user_func_array(
@@ -437,6 +442,9 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 	 * @dataProvider radioButtomFromWikitextDataProvider
 	 */
 	public function testRadioButtonsFromWikitext( $setup, $expected ) {
+		if ( version_compare( MW_VERSION, '1.41', '>=' ) ) {
+			$this->markTestSkipped( 'JSONScript tests covers Radiobutton functionality. Consider removing this test completely' );
+		}
 		if ( !isset( $expected['skip'] ) ) {
 			global $wgPageFormsFormPrinter, $wgOut;
 
