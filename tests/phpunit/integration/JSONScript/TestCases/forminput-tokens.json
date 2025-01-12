@@ -10,6 +10,16 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Tokens without other parameters",
 			"contents": "{{{field|Tokens|input type=tokens}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Tokens with parameter placeholder",
+			"contents": "{{{field|Tokens|input type=tokens|placeholder=This is tokens TEST}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Tokens with parameter existing values only",
+			"contents": "{{{field|Tokens|input type=tokens|existing values only}}}"
 		}
 	],
 	"tests": [
@@ -24,6 +34,34 @@
 			"assert-output": {
 				"to-contain": [
 					"<select id=\"input_1\" name=\"standard input[Tokens][]\" class=\"pfTokens createboxInput\" style=\"width:450px\" multiple=\"\" size=\"1\" data-size=\"450px\" tabindex=\"1\" autocompletesettings=\",list,,\"></select>"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Tokens with parameter placeholder",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Tokens with parameter placeholder/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<select id=\"input_1\" name=\"standard input[Tokens][]\" class=\"pfTokens createboxInput\" style=\"width:450px\" multiple=\"\" size=\"1\" data-size=\"450px\" tabindex=\"1\" autocompletesettings=\",list,,\" placeholder=\"This is tokens TEST\"></select>"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Tokens with parameter existing values only",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Tokens with parameter existing values only/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<select id=\"input_1\" name=\"standard input[Tokens][]\" class=\"pfTokens createboxInput\" style=\"width:450px\" multiple=\"\" size=\"1\" data-size=\"450px\" tabindex=\"1\" autocompletesettings=\",list,,\" existingvaluesonly=\"true\"></select>"
 				]
 			}
 		}
