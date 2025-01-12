@@ -10,6 +10,11 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Datetime without other parameters",
 			"contents": "{{{field|Datetime|input type=datetime}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Datetime with parameter include timezone",
+			"contents": "{{{field|Datetime|input type=datetime|include timezone}}}"
 		}
 	],
 	"tests": [
@@ -36,6 +41,39 @@
                     "standard input[Datetime][minute]",
                     "secondsInput",
                     "standard input[Datetime][second]"
+				],
+				"not-contain": [
+					"<input tabindex=\"5\" name=\"standard input[Datetime][timezone]\" type=\"text\" value=\"\" size=\"3\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Datetime with parameter include timezone",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Datetime with parameter include timezone/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"dateTimeInput\">",
+                    "dayInput",
+                    "standard input[Datetime][day]",
+                    "monthInput",
+                    "standard input[Datetime][month]",
+                    "yearInput",
+                    "standard input[Datetime][year]",
+                    "hoursInput",
+                    "standard input[Datetime][hour]",
+                    "minutesInput",
+                    "standard input[Datetime][minute]",
+                    "secondsInput",
+                    "standard input[Datetime][second]",
+					"<select tabindex=\"4\" name=\"standard input[Datetime][ampm24h]\" class=\"ampmInput\"",
+					"<option value=\"AM\">AM</option>",
+					"<option value=\"PM\">PM</option>",
+					"<input tabindex=\"5\" name=\"standard input[Datetime][timezone]\" type=\"text\" value=\"\" size=\"3\""
 				]
 			}
 		}

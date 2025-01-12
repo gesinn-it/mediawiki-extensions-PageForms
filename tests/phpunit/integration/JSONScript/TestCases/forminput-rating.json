@@ -10,6 +10,21 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Rating without other parameters",
 			"contents": "{{{field|Rating|input type=rating}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Rating with num stars parameter",
+			"contents": "{{{field|Rating|input type=rating|num stars=10}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Rating with num stars and star width parameters",
+			"contents": "{{{field|Rating|input type=rating|num stars=14|star width=40px}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Rating with allow half stars parameter",
+			"contents": "{{{field|Rating|input type=rating|allow half stars}}}"
 		}
 	],
 	"tests": [
@@ -24,6 +39,48 @@
 			"assert-output": {
 				"to-contain": [
 					"<div class=\"pfRating\" data-starwidth=\"24px\" data-numstars=\"5\">"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Rating with num stars parameter",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Rating with num stars parameter/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"pfRating\" data-starwidth=\"24px\" data-numstars=\"10\">"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Rating with num stars and star width parameters",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Rating with num stars and star width parameters/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"pfRating\" data-starwidth=\"40px\" data-numstars=\"14\">"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Rating with allow half stars parameter",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Rating with allow half stars parameter/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"pfRating\" data-starwidth=\"24px\" data-numstars=\"5\" data-allows-half=\"1\">"
 				]
 			}
 		}

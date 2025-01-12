@@ -8,17 +8,27 @@
 		},
 		{
 			"namespace": "PF_NS_FORM",
-			"page": "Datepicker with values",
+			"page": "Datepicker without values",
 			"contents": "{{{field|Datepicker|input type=datepicker}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Datepicker with first date parameter",
+			"contents": "{{{field|Datepicker|input type=datepicker|first date=2025-01-20}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Datepicker with date format parameter",
+			"contents": "{{{field|Datepicker|input type=datepicker|date format=DD-MM-YYYY}}}"
 		}
 	],
 	"tests": [
 		{
 			"type": "special",
-			"about": "Datepicker with values",
+			"about": "Datepicker without values",
 			"special-page": {
 				"page": "FormEdit",
-				"query-parameters": "Datepicker with values/01",
+				"query-parameters": "Datepicker without values/01",
 				"request-parameters": {}
 			},
 			"assert-output": {
@@ -26,6 +36,51 @@
 					"<div class=\"pfPickerWrapper\">",
 					"pfDatePicker",
 					"standard input[Datepicker]",
+					"placeholder='YYYY-MM-DD'"
+				],
+				"not-contain": [
+					"\"displayFormat\":\"DD-MM-YYYY\"",
+					"min='2025-01-21'"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Datepicker with first date parameter",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Datepicker with first date parameter/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"pfPickerWrapper\">",
+					"pfDatePicker",
+					"standard input[Datepicker]",
+					"placeholder='YYYY-MM-DD'",
+					"min='2025-01-21'"
+				],
+				"not-contain": [
+					"\"displayFormat\":\"DD-MM-YYYY\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Datepicker with date format parameter",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Datepicker with date format parameter/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"pfPickerWrapper\">",
+					"pfDatePicker",
+					"standard input[Datepicker]",
+					"\"displayFormat\":\"DD-MM-YYYY\""
+				],
+				"not-contain": [
 					"placeholder='YYYY-MM-DD'"
 				]
 			}
