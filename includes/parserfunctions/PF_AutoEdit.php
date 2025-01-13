@@ -101,7 +101,11 @@ class PFAutoEdit {
 							$errorMsg = wfMessage( 'pf-autoedit-invalidnamespace', $targetTitle->getNsText() )->parse();
 							return Html::element( 'div', [ 'class' => 'error' ], $errorMsg );
 						}
-						$targetWikiPage = WikiPage::factory( $targetTitle );
+						if ( version_compare( MW_VERSION, '1.39', '>=' ) ) {
+							$targetWikiPage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $targetTitle );
+						} else {
+							$targetWikiPage = WikiPage::factory( $targetTitle );
+						}
 						$targetWikiPage->clear();
 						$editTime = $targetWikiPage->getTimestamp();
 						$latestRevId = $targetWikiPage->getLatest();

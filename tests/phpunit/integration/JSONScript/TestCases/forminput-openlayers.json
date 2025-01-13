@@ -28,7 +28,7 @@
 					"placeholder='Enter address here'",
 					"pfLookUpAddress",
 					"<span class='oo-ui-labelElement-label'>Calculate coordinates using address</span>",
-					"<input tabindex=\"3\" class=\"pfCoordsInput\" name=\"standard input[Openlayers]\" size=\"40\"/>"
+					"<input tabindex=\"3\" class=\"pfCoordsInput\" name=\"standard input[Openlayers]\" size=\"40\""
 				]
 			}
 		}

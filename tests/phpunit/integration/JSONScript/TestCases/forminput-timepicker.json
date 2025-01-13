@@ -23,7 +23,7 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"<input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" name=\"standard input[Timepicker]\"/>"
+					"<input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" name=\"standard input[Timepicker]\""
 				]
 			}
 		}

@@ -4,6 +4,7 @@ use MediaWiki\MediaWikiServices;
 
 /**
  * @covers \PFCreateProperty
+ * @group Database
  *
  * @author gesinn-it-ilm
  */

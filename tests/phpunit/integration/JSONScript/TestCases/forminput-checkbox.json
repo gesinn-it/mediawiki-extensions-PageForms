@@ -10,6 +10,11 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Checkbox without other parameters",
 			"contents": "{{{field|Checkbox|input type=checkbox}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Checkbox with parameter label",
+			"contents": "{{{field|Checkbox|input type=checkbox|label=Test1}}}"
 		}
 	],
 	"tests": [
@@ -28,6 +33,27 @@
                     "name='standard input[Checkbox][value]'",
                     "class='oo-ui-inputWidget-input' />",
 					"standard input[Checkbox][is_checkbox]"
+                ],
+			"not-contain": [
+					"<label for=\"input_1\""
+				]
+		    }
+	    },
+		{
+			"type": "special",
+			"about": "Checkbox with parameter label",
+			"special-page": {
+			"page": "FormEdit",
+			"query-parameters": "Checkbox with parameter label/01",
+			"request-parameters": {}
+			},
+			"assert-output": {
+            "to-contain": [
+                    "<label for=\"input_1\"",
+					"<input type=\"hidden\" value=\"true\" name=\"standard input[Checkbox][is_checkbox]\"",
+					"<input type='checkbox'",
+					"name='standard input[Checkbox][value]'",
+					"Test1</label>"
                 ]
 		    }
 	    }

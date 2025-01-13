@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
 use OOUI\BlankTheme;
 
 if ( !class_exists( 'MediaWikiIntegrationTestCase' ) ) {
@@ -9,6 +10,7 @@ if ( !class_exists( 'MediaWikiIntegrationTestCase' ) ) {
 
 /**
  * @covers \PFFormPrinter
+ * @group Database
  *
  * @author Himeshi De Silva
  */
@@ -23,7 +25,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		// Make sure the form is not in "disabled" state. Unfortunately setting up the global state
 		// environment in a proper way to have PFFormPrinter work on a mock title object is very
 		// difficult. Therefore we just override the permission check by using a hook.
-		Hooks::register( 'PageForms::UserCanEditPage', static function ( $pageTitle, &$userCanEditPage ) {
+		MediaWikiServices::getInstance()->getHookContainer()->register( 'PageForms::UserCanEditPage', static function ( $pageTitle, &$userCanEditPage ) {
 			$userCanEditPage = true;
 			return true;
 		} );
@@ -121,7 +123,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 			'form_definition' => "====section 4====
 								 {{{section|section 4|level=4|hidden}}}" ],
 		[
-			'expected_form_text' => "<input type=\"hidden\" name=\"_section[section 4]\"/>",
+			'expected_form_text' => "<input type=\"hidden\" name=\"_section[section 4]\"",
 			'expected_page_text' => "====section 4====" ]
 		];
 

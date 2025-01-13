@@ -15,6 +15,31 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Radiobutton with values",
 			"contents": "{{{field|Radiobutton|input type=radiobutton|values=Radio A,Radio B}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Radiobutton with possible values",
+			"contents": "{{{field|Radiobutton|input type=radiobutton|values=Option 1,Option 2,Option 3}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Radiobutton with custom value labels",
+			"contents": "{{{field|Radiobutton|input type=radiobutton|values=eins,zwei,drei|value_labels={\"eins\":\"One\",\"zwei\":\"Two\",\"drei\":\"Three\"}}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Radiobutton with boolean property",
+			"contents": "{{{field|Radiobutton|input type=radiobutton|property_type=_boo}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Radiobutton with values and mandatory param",
+			"contents": "{{{field|Radiobutton|input type=radiobutton|values=Button1|mandatory}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Radiobutton with values and default param",
+			"contents": "{{{field|Radiobutton|input type=radiobutton|values=Button1,Button2|default=Button2}}}"
 		}
 	],
     "tests": [
@@ -28,7 +53,13 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"<label class=\"radioButtonItem\"><input id=\"input_2\" tabindex=\"2\" data-original-value=\"0\" checked=\"\" type=\"radio\" value=\"\" name=\"standard input[Radiobutton]\"/>&nbsp;None</label>"				]
+					"<label class=\"radioButtonItem\">",
+					"<input id=\"input_2\" tabindex=\"2\" data-original-value=\"0\" checked=\"\" type=\"radio\" value=\"\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;None"
+				],
+				"not-contain": [
+					"\"radioButtonSpan mandatoryFieldSpan\""
+				]
 			}
 		},
 		{
@@ -41,8 +72,114 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"<label class=\"radioButtonItem\"><input id=\"input_3\" tabindex=\"3\" data-original-value=\"1\" type=\"radio\" value=\"Radio A\" name=\"standard input[Radiobutton]\"/>&nbsp;Radio A</label>",
-					"<label class=\"radioButtonItem\"><input id=\"input_4\" tabindex=\"4\" data-original-value=\"2\" type=\"radio\" value=\"Radio B\" name=\"standard input[Radiobutton]\"/>&nbsp;Radio B</label>"
+					"<label class=\"radioButtonItem\">",
+					"<input id=\"input_3\" tabindex=\"3\" data-original-value=\"1\" type=\"radio\" value=\"Radio A\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Radio A",
+					"<label class=\"radioButtonItem\">",
+					"<input id=\"input_4\" tabindex=\"4\" data-original-value=\"2\" type=\"radio\" value=\"Radio B\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Radio B"
+				],
+				"not-contain": [
+					"\"radioButtonSpan mandatoryFieldSpan\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Radiobutton with possible values",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Radiobutton with possible values/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<label class=\"radioButtonItem\">",
+					"<input id=\"input_3\" tabindex=\"3\" data-original-value=\"1\" type=\"radio\" value=\"Option 1\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Option 1",
+					"<input id=\"input_4\" tabindex=\"4\" data-original-value=\"2\" type=\"radio\" value=\"Option 2\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Option 2",
+					"<input id=\"input_5\" tabindex=\"5\" data-original-value=\"3\" type=\"radio\" value=\"Option 3\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Option 3"
+				],
+				"not-contain": [
+					"\"radioButtonSpan mandatoryFieldSpan\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Radiobutton with custom value labels",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Radiobutton with custom value labels/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<label class=\"radioButtonItem\">",
+					"<input id=\"input_3\" tabindex=\"3\" data-original-value=\"1\" type=\"radio\" value=\"eins\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;One",
+					"<input id=\"input_4\" tabindex=\"4\" data-original-value=\"2\" type=\"radio\" value=\"zwei\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Two",
+					"<input id=\"input_5\" tabindex=\"5\" data-original-value=\"3\" type=\"radio\" value=\"drei\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Three"
+				],
+				"not-contain": [
+					"\"radioButtonSpan mandatoryFieldSpan\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Radiobutton with boolean property",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Radiobutton with boolean property/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<input id=\"input_3\" tabindex=\"3\" data-original-value=\"1\" type=\"radio\" value=\"Yes\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Yes",
+					"<input id=\"input_4\" tabindex=\"4\" data-original-value=\"2\" type=\"radio\" value=\"No\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;No"
+				],
+				"not-contain": [
+					"\"radioButtonSpan mandatoryFieldSpan\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Radiobutton with values and mandatory param",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Radiobutton with values and mandatory param/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<span id=\"span_2\" class=\"radioButtonSpan mandatoryFieldSpan\"",
+					"<input id=\"input_2\" tabindex=\"2\" data-original-value=\"0\" type=\"radio\" value=\"Button1\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Button1"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Radiobutton with values and default param",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Radiobutton with values and default param/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<input id=\"input_3\" tabindex=\"3\" data-original-value=\"1\" type=\"radio\" value=\"Button1\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Button1",
+					"<input id=\"input_4\" tabindex=\"4\" data-original-value=\"2\" checked=\"\" type=\"radio\" value=\"Button2\" name=\"standard input[Radiobutton]\"",
+					"&nbsp;Button2"
 				]
 			}
 		}

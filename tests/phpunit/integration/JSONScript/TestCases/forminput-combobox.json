@@ -10,6 +10,16 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Combobox without values",
 			"contents": "{{{field|Combobox|input type=combobox}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Combobox with parameter placeholder",
+			"contents": "{{{field|Combobox|input type=combobox|placeholder=This is TEST}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Combobox with parameter existing values only",
+			"contents": "{{{field|Combobox|input type=combobox|existing values only}}}"
 		}
 	],
 	"tests": [
@@ -27,6 +37,42 @@
 					"<select id=\"input_1\" name=\"standard input[Combobox]\" class=\"pfComboBox\" tabindex=\"1\" autocompletesettings=\"\" data-size=\"210\" style=\"width:210px\">",
 					"<option value=\"\"></option>",
                     "<option selected=\"\"></option>"
+				],
+				"not-contain": [
+					"placeholder=\"This is TEST\""
+				]
+		    }
+		},
+		{
+			"type": "special",
+			"about": "Combobox with parameter placeholder",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Combobox with parameter placeholder/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"comboboxSpan\" data-input-type=\"combobox\">",
+					"<select id=\"input_1\" name=\"standard input[Combobox]\" class=\"pfComboBox\" tabindex=\"1\" autocompletesettings=\"\" data-size=\"210\" style=\"width:210px\" placeholder=\"This is TEST\""
+				],
+				"not-contain": [
+					"existingvaluesonly=\"true\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Combobox with parameter existing values only",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Combobox with parameter existing values only/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"comboboxSpan\" data-input-type=\"combobox\">",
+					"<select id=\"input_1\" name=\"standard input[Combobox]\" class=\"pfComboBox\" tabindex=\"1\" autocompletesettings=\"\" data-size=\"210\" style=\"width:210px\" existingvaluesonly=\"true\""
 				]
 			}
 		}

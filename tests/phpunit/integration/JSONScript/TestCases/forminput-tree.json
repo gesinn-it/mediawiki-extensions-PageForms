@@ -10,6 +10,16 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Tree with structure params",
 			"contents": "{{{field|Tree|input type=tree|structure=*Test**Test1**Test2}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Tree with height and width params",
+			"contents": "{{{field|Tree|input type=tree|structure=*Test**Test1**Test2|width=200|height=300}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Tree with delimiter param",
+			"contents": "{{{field|Tree|input type=tree|structure=*Test**Test1**Test2|delimiter=:}}}"
 		}
 	],
 	"tests": [
@@ -28,6 +38,48 @@
 					"standard input[Tree]treeinput",
 					"<input type='hidden' class='PFTree_data' name='standard input[Tree]'>",
 					"data=\"[{&quot;level&quot;:1,&quot;text&quot;:&quot;Test**Test1**Test2&quot;,&quot;node_id&quot;:0,&quot;state&quot;:{&quot;opened&quot;:true}}]"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Tree with height and width params",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Tree with height and width params/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"pfTreeInputWrapper\">",
+					"pfTreeInput",
+					"standard input[Tree]treeinput",
+					"<input type='hidden' class='PFTree_data' name='standard input[Tree]'>",
+					"height: 300px",
+					"width: 200px",
+					"data=\"[{&quot;level&quot;:1,&quot;text&quot;:&quot;Test**Test1**Test2&quot;,&quot;node_id&quot;:0,&quot;state&quot;:{&quot;opened&quot;:true}}]"
+				],
+				"not-contain": [
+					"params=\"{&quot;multiple&quot;:false,&quot;delimiter&quot;:&quot;:&quot;,&quot;cur_value&quot;:&quot;&quot;}\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Tree with delimiter param",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Tree with delimiter param/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"pfTreeInputWrapper\">",
+					"pfTreeInput",
+					"standard input[Tree]treeinput",
+					"<input type='hidden' class='PFTree_data' name='standard input[Tree]'>",
+					"data=\"[{&quot;level&quot;:1,&quot;text&quot;:&quot;Test**Test1**Test2&quot;,&quot;node_id&quot;:0,&quot;state&quot;:{&quot;opened&quot;:true}}]",
+					"params=\"{&quot;multiple&quot;:false,&quot;delimiter&quot;:&quot;:&quot;,&quot;cur_value&quot;:&quot;&quot;}\""
 				]
 			}
 		}

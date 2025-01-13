@@ -456,7 +456,7 @@ class PFTemplate {
 	public function createText() {
 		// Avoid PHP 7.1 warning from passing $this by reference
 		$template = $this;
-		Hooks::run( 'PageForms::CreateTemplateText', [ &$template ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::CreateTemplateText', [ &$template ] );
 		$text = <<<END
 <noinclude>
 {{#template_params:
@@ -703,7 +703,7 @@ END;
 	public function createTextForField( $field ) {
 		$text = '';
 		$fieldStart = $this->mFieldStart;
-		Hooks::run( 'PageForms::TemplateFieldStart', [ $field, &$fieldStart ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::TemplateFieldStart', [ $field, &$fieldStart ] );
 		if ( $fieldStart != '' ) {
 			$text .= "$fieldStart ";
 		}
@@ -712,7 +712,7 @@ END;
 		$text .= $field->createText( $cargoInUse );
 
 		$fieldEnd = $this->mFieldEnd;
-		Hooks::run( 'PageForms::TemplateFieldEnd', [ $field, &$fieldEnd ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::TemplateFieldEnd', [ $field, &$fieldEnd ] );
 		if ( $fieldEnd != '' ) {
 			$text .= " $fieldEnd";
 		}

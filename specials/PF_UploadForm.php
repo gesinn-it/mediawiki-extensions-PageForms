@@ -7,6 +7,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * @ingroup PFSpecialPages
  */
@@ -174,7 +176,7 @@ class PFUploadForm extends HTMLForm {
 				'checked' => $selectedSourceType == 'url',
 			];
 		}
-		Hooks::run( 'UploadFormSourceDescriptors', [ &$descriptor, &$radio, $selectedSourceType ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'UploadFormSourceDescriptors', [ &$descriptor, &$radio, $selectedSourceType ] );
 
 		$descriptor['Extensions'] = [
 			'type' => 'info',

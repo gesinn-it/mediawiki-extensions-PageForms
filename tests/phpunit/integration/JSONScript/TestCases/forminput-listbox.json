@@ -10,6 +10,11 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Listbox without other parameters",
 			"contents": "{{{field|Listbox|input type=listbox}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Listbox with parameter size",
+			"contents": "{{{field|Listbox|input type=listbox|size=25}}}"
 		}
 	],
 	"tests": [
@@ -24,6 +29,23 @@
 			"assert-output": {
 				"to-contain": [
 					"<select id=\"input_1\" tabindex=\"1\" name=\"standard input[Listbox][]\" class=\"createboxInput pfShowIfSelected\" multiple=\"\"></select>"
+				],
+				"not-contain": [
+					"size=\"25\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Listbox with parameter size",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Listbox with parameter size/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<select id=\"input_1\" tabindex=\"1\" name=\"standard input[Listbox][]\" class=\"createboxInput pfShowIfSelected\" multiple=\"\" size=\"25\"></select>"
 				]
 			}
 		}

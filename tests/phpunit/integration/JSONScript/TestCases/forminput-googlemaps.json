@@ -25,7 +25,7 @@
 				"to-contain": [
                     "<div class=\"pfGoogleMapsInput\">",
                     "placeholder='Enter address here'",
-                    "<input tabindex=\"3\" class=\"pfCoordsInput\" name=\"standard input[Googlemaps]\" size=\"40\"/>",
+                    "<input tabindex=\"3\" class=\"pfCoordsInput\" name=\"standard input[Googlemaps]\" size=\"40\"",
                     "<span class='oo-ui-labelElement-label'>Calculate coordinates using address</span>",
 					"<div class=\"pfMapCanvas\" id=\"pfMapCanvas1\" style=\"height: 500px; width: 500px;\">"
 				]

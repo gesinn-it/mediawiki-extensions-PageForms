@@ -8,6 +8,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * @ingroup PFSpecialPages
  */
@@ -200,7 +202,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 
 		$text .= '<form name="createbox" id="pfForm" method="post" class="createbox">';
 		$pre_form_html = '';
-		Hooks::run( 'PageForms::HTMLBeforeForm', [ &$targetTitle, &$pre_form_html ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::HTMLBeforeForm', [ &$targetTitle, &$pre_form_html ] );
 		$text .= $pre_form_html;
 
 		$out->addHTML( $text );
