@@ -10,6 +10,16 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Text input without other parameters",
 			"contents": "{{{field|Text|input type=text}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Text input with maxlength parameter",
+			"contents": "{{{field|Text|input type=text|maxlength=120}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Text input with placeholder parameter",
+			"contents": "{{{field|Text|input type=text|placeholder=This is TEXT placeholder}}}"
 		}
 	],
 	"tests": [
@@ -24,6 +34,38 @@
 			"assert-output": {
 				"to-contain": [
 					"<input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" name=\"standard input[Text]\""
+				],
+				"not-contain": [
+					"maxlength=\"120\"",
+					"placeholder=\"This is TEXT placeholder\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Text input with maxlength parameter",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Text input with maxlength parameter/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" maxlength=\"120\" name=\"standard input[Text]\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Text input with placeholder parameter",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Text input with placeholder parameter/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" placeholder=\"This is TEXT placeholder\" name=\"standard input[Text]\""
 				]
 			}
 		}
