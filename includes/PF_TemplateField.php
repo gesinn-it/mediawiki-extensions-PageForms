@@ -9,6 +9,8 @@
  * @ingroup PF
  */
 
+use SMW\DIProperty;
+
 class PFTemplateField {
 	private $mFieldName;
 	private $mValueLabels;
@@ -154,7 +156,7 @@ class PFTemplateField {
 			$allowed_values = PFValuesUtils::getSMWPropertyValues( $store, $proptitle, "Allows value list" );
 		}
 		$label_formats = PFValuesUtils::getSMWPropertyValues( $store, $proptitle, "Has field label format" );
-		$propValue = SMWDIProperty::newFromUserLabel( $this->mSemanticProperty );
+		$propValue = DIProperty::newFromUserLabel( $this->mSemanticProperty );
 		$this->mPropertyType = $propValue->findPropertyTypeID();
 
 		foreach ( $allowed_values as $allowed_value ) {

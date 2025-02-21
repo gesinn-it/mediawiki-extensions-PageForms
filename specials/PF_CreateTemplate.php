@@ -8,6 +8,8 @@
  * @ingroup PF
  */
 
+use SMW\RequestOptions;
+
 /**
  * @ingroup PFSpecialPages
  */
@@ -30,7 +32,7 @@ class PFCreateTemplate extends SpecialPage {
 		// Set limit on results - we don't want a massive dropdown
 		// of properties, if there are a lot of properties in this wiki.
 		// getProperties() functions stop requiring a limit
-		$options = new SMWRequestOptions();
+		$options = new RequestOptions();
 		$options->limit = 500;
 		$used_properties = PFUtils::getSMWStore()->getPropertiesSpecial( $options );
 		if ( $used_properties instanceof SMW\SQLStore\PropertiesCollector ) {
