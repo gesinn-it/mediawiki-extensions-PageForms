@@ -41,8 +41,10 @@ class PFAutocompleteAPI extends ApiBase {
 
 		global $wgPageFormsUseDisplayTitle;
 		$map = false;
-		if ( $baseprop !== null && $property !== null ) {
-			$data = $this->getAllValuesForProperty( $property, null, $baseprop, $basevalue );
+		if ( $baseprop !== null ) {
+			if ( $property !== null ) {
+				$data = $this->getAllValuesForProperty( $property, null, $baseprop, $basevalue );
+			}
 		} elseif ( $property !== null ) {
 			$data = $this->getAllValuesForProperty( $property, $substr );
 		} elseif ( $category !== null ) {
@@ -310,6 +312,7 @@ class PFAutocompleteAPI extends ApiBase {
 			$values[] = str_replace( '_', ' ', $row[0] );
 		}
 		$res->free();
+		$values = self::shiftExactMatch( $substring, $values );
 		return $values;
 	}
 
@@ -442,6 +445,7 @@ class PFAutocompleteAPI extends ApiBase {
 			// quotes, at least.
 			$values[] = str_replace( '&quot;', '"', $value );
 		}
+		$values = self::shiftExactMatch( $substring, $values );
 		return $values;
 	}
 
@@ -463,6 +467,21 @@ class PFAutocompleteAPI extends ApiBase {
 		}
 		$fieldDesc = $tableSchema->mFieldDescriptions[$cargoField];
 		return $fieldDesc->mIsList;
+	}
+
+	/**
+	 * Move the exact match to the top for better autocompletion
+	 * @param string $substring
+	 * @param array $values
+	 * @return array $values
+	 */
+	public static function shiftExactMatch( $substring, $values ) {
+		$firstMatchIdx = array_search( $substring, $values );
+		if ( $firstMatchIdx ) {
+			unset( $values[ $firstMatchIdx ] );
+			array_unshift( $values, $substring );
+		}
+		return $values;
 	}
 
 }
