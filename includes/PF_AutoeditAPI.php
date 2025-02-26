@@ -923,11 +923,8 @@ class PFAutoeditAPI extends ApiBase {
 			$pageExists = true;
 
 			// Spoof $wgRequest for PFFormPrinter::formHTML().
-			if ( isset( $_SESSION ) ) {
-				$wgRequest = new FauxRequest( $this->mOptions, true, $_SESSION );
-			} else {
-				$wgRequest = new FauxRequest( $this->mOptions, true );
-			}
+			$session = RequestContext::getMain()->getRequest()->getSession();
+			$wgRequest = new FauxRequest( $this->mOptions, true, $session );
 			// Call PFFormPrinter::formHTML() to get at the form
 			// HTML of the existing page.
 			[ $formHTML, $targetContent, $form_page_title, $generatedTargetNameFormula ] =
@@ -965,11 +962,8 @@ class PFAutoeditAPI extends ApiBase {
 		// if we haven't called it already.
 		if ( $preloadContent == '' ) {
 			// Spoof $wgRequest for PFFormPrinter::formHTML().
-			if ( isset( $_SESSION ) ) {
-				$wgRequest = new FauxRequest( $this->mOptions, true, $_SESSION );
-			} else {
-				$wgRequest = new FauxRequest( $this->mOptions, true );
-			}
+			$session = RequestContext::getMain()->getRequest()->getSession();
+			$wgRequest = new FauxRequest( $this->mOptions, true, $session );
 			[ $formHTML, $targetContent, $generatedFormName, $generatedTargetNameFormula ] =
 				$wgPageFormsFormPrinter->formHTML(
 					$formContent, $isFormSubmitted, $pageExists,
