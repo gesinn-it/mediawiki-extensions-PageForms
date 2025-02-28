@@ -41,12 +41,22 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	public function testPageSectionsWithoutExistingPages( $setup, $expected ) {
 		global $wgPageFormsFormPrinter, $wgOut;
 
+		$form_def = $setup['form_definition'];
+		$form_submitted = true;
+		// assign user minor edit right for test case no 6
+		if ( strpos( $form_def, 'section 6' ) !== false || strpos( $form_def, 'section 7' ) !== false ) {
+			$user = $this->getTestUser()->getUser();
+			$user->addGroup( 'autoconfirmed' );
+			RequestContext::getMain()->setUser( $user );
+			$form_submitted = false;
+		}
+
 		$wgOut->getContext()->setTitle( $this->getTitle() );
 
 		[ $form_text, $page_text, $form_page_title, $generated_page_name ] =
 			$wgPageFormsFormPrinter->formHTML(
-				$form_def = $setup['form_definition'],
-				$form_submitted = true,
+				$form_def,
+				$form_submitted,
 				$source_is_page = false,
 				$form_id = null,
 				$existing_page_content = null,
@@ -127,6 +137,25 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 			'expected_page_text' => "====section 4====" ]
 		];
 
+		// #6 check when minor edit checkbox is enabled for user and $form_submitted is false
+		$provider[] = [
+			[
+				'form_definition' => "=====section 6=====
+									 {{{section|section 6|level=5}}}" ],
+			[
+				'expected_form_text' => "<span id='wpMinoredit' class='oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget'><input type='checkbox' tabindex='3' accesskey='i' value=''",
+				'expected_page_text' => "=====section 6=====" ]
+		];
+
+		// #7 check when watch checkbox is enabled for user and $form_submitted is false
+		$provider[] = [
+			[
+				'form_definition' => "=====section 7=====
+									{{{section|section 7|level=5|rows=5|cols=8}}}" ],
+			[
+				'expected_form_text' => "<span id='wpWatchthis' class='oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget'><input type='checkbox' tabindex='4' accesskey='w' value='' checked='checked'",
+				'expected_page_text' => "=====section 7=====" ]
+		];
 		return $provider;
 	}
 
