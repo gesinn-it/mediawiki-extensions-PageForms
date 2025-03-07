@@ -20,6 +20,11 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Combobox with parameter existing values only",
 			"contents": "{{{field|Combobox|input type=combobox|existing values only}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Combobox with parameter show on select",
+			"contents": "{{{field|Combobox|input type=combobox|show on select=Test}}}"
 		}
 	],
 	"tests": [
@@ -33,7 +38,7 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"<span class=\"comboboxSpan\" data-input-type=\"combobox\">",
+					"<span id=\"span_1\" class=\"comboboxSpan\" data-input-type=\"combobox\">",
 					"<select id=\"input_1\" name=\"standard input[Combobox]\" class=\"pfComboBox\" tabindex=\"1\" autocompletesettings=\"\" data-size=\"210\" style=\"width:210px\">",
 					"<option value=\"\"></option>",
                     "<option selected=\"\"></option>"
@@ -53,7 +58,7 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"<span class=\"comboboxSpan\" data-input-type=\"combobox\">",
+					"<span id=\"span_1\" class=\"comboboxSpan\" data-input-type=\"combobox\">",
 					"<select id=\"input_1\" name=\"standard input[Combobox]\" class=\"pfComboBox\" tabindex=\"1\" autocompletesettings=\"\" data-size=\"210\" style=\"width:210px\" placeholder=\"This is TEST\""
 				],
 				"not-contain": [
@@ -71,8 +76,23 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"<span class=\"comboboxSpan\" data-input-type=\"combobox\">",
+					"<span id=\"span_1\" class=\"comboboxSpan\" data-input-type=\"combobox\">",
 					"<select id=\"input_1\" name=\"standard input[Combobox]\" class=\"pfComboBox\" tabindex=\"1\" autocompletesettings=\"\" data-size=\"210\" style=\"width:210px\" existingvaluesonly=\"true\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Combobox with parameter show on select",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Combobox with parameter show on select/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<span id=\"span_1\" class=\"comboboxSpan pfShowIfSelected\" data-input-type=\"combobox\">",
+					"<select id=\"input_1\" name=\"standard input[Combobox]\" class=\"pfComboBox\" tabindex=\"1\" autocompletesettings=\"\" data-size=\"210\" style=\"width:210px\""
 				]
 			}
 		}
