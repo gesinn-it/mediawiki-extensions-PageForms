@@ -15,6 +15,11 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Listbox with parameter size",
 			"contents": "{{{field|Listbox|input type=listbox|size=25}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Listbox with show on select",
+			"contents": "{{{field|Listbox|input type=listbox|show on select=Test}}}"
 		}
 	],
 	"tests": [
@@ -28,7 +33,7 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"<select id=\"input_1\" tabindex=\"1\" name=\"standard input[Listbox][]\" class=\"createboxInput pfShowIfSelected\" multiple=\"\"></select>"
+					"<select id=\"input_1\" tabindex=\"1\" name=\"standard input[Listbox][]\" class=\"createboxInput\" multiple=\"\"></select>"
 				],
 				"not-contain": [
 					"size=\"25\""
@@ -45,7 +50,21 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"<select id=\"input_1\" tabindex=\"1\" name=\"standard input[Listbox][]\" class=\"createboxInput pfShowIfSelected\" multiple=\"\" size=\"25\"></select>"
+					"<select id=\"input_1\" tabindex=\"1\" name=\"standard input[Listbox][]\" class=\"createboxInput\" multiple=\"\" size=\"25\"></select>"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Listbox with show on select",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Listbox with show on select/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<select id=\"input_1\" tabindex=\"1\" name=\"standard input[Listbox][]\" class=\"createboxInput pfShowIfSelected\" multiple=\"\"></select>"
 				]
 			}
 		}
