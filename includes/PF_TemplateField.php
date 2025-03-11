@@ -165,8 +165,8 @@ class PFTemplateField {
 			$this->mPossibleValues[] = $wiki_value;
 			if ( count( $label_formats ) > 0 ) {
 				$label_format = $label_formats[0];
-				$prop_instance = SMWDataValueFactory::findTypeID( $this->mPropertyType );
-				$label_value = SMWDataValueFactory::newTypeIDValue( $prop_instance, $wiki_value );
+				$prop_instance = \SMW\DataValueFactory::findTypeID( $this->mPropertyType );
+				$label_value = \SMW\DataValueFactory::newTypeIDValue( $prop_instance, $wiki_value );
 				$label_value->setOutputFormat( $label_format );
 				$this->mValueLabels[$wiki_value] = html_entity_decode( $label_value->getWikiValue() );
 			}

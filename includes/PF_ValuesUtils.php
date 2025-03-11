@@ -9,8 +9,6 @@
 
 use MediaWiki\MediaWikiServices;
 use SMW\DIWikiPage;
-use SMW\Query\Language\ConceptDescription;
-use SMW\Query\PrintRequest;
 
 class PFValuesUtils {
 
@@ -20,7 +18,7 @@ class PFValuesUtils {
 	 * @param Store $store
 	 * @param Title $subject
 	 * @param string $propID
-	 * @param SMWRequestOptions|null $requestOptions
+	 * @param \SMW\RequestOptions|null $requestOptions
 	 * @return array
 	 * @suppress PhanUndeclaredTypeParameter For Store
 	 */
@@ -34,7 +32,7 @@ class PFValuesUtils {
 		} else {
 			$page = DIWikiPage::newFromTitle( $subject );
 		}
-		$property = SMWDIProperty::newFromUserLabel( $propID );
+		$property = \SMW\DIProperty::newFromUserLabel( $propID );
 		$res = $store->getPropertyValues( $page, $property, $requestOptions );
 		$values = [];
 		foreach ( $res as $value ) {
@@ -129,7 +127,7 @@ class PFValuesUtils {
 		if ( $store == null ) {
 			return [];
 		}
-		$requestoptions = new SMWRequestOptions();
+		$requestoptions = new \SMW\RequestOptions();
 		$requestoptions->limit = $wgPageFormsMaxAutocompleteValues;
 		$values = self::getSMWPropertyValues( $store, null, $property_name, $requestoptions );
 		sort( $values );
@@ -367,8 +365,8 @@ class PFValuesUtils {
 
 		global $wgPageFormsUseDisplayTitle;
 		$conceptDI = DIWikiPage::newFromTitle( $conceptTitle );
-		$desc = new ConceptDescription( $conceptDI );
-		$printout = new PrintRequest( PrintRequest::PRINT_THIS, "" );
+		$desc = new \SMW\Query\Language\ConceptDescription( $conceptDI );
+		$printout = new \SMW\Query\PrintRequest( \SMW\Query\PrintRequest::PRINT_THIS, "" );
 		$desc->addPrintRequest( $printout );
 		$query = new SMWQuery( $desc );
 		$query->setLimit( $wgPageFormsMaxAutocompleteValues );
