@@ -8,7 +8,6 @@
  */
 
 use MediaWiki\MediaWikiServices;
-use SMW\DIWikiPage;
 
 class PFValuesUtils {
 
@@ -24,13 +23,13 @@ class PFValuesUtils {
 	 */
 	public static function getSMWPropertyValues( $store, $subject, $propID, $requestOptions = null ) {
 		// If SMW is not installed, exit out.
-		if ( !class_exists( 'DIWikiPage' ) ) {
+		if ( !class_exists( '\SMW\DIWikiPage' ) ) {
 			return [];
 		}
 		if ( $subject === null ) {
 			$page = null;
 		} else {
-			$page = DIWikiPage::newFromTitle( $subject );
+			$page = \SMW\DIWikiPage::newFromTitle( $subject );
 		}
 		$property = \SMW\DIProperty::newFromUserLabel( $propID );
 		$res = $store->getPropertyValues( $page, $property, $requestOptions );
@@ -38,7 +37,7 @@ class PFValuesUtils {
 		foreach ( $res as $value ) {
 			if ( $value instanceof SMWDIUri ) {
 				$values[] = $value->getURI();
-			} elseif ( $value instanceof DIWikiPage ) {
+			} elseif ( $value instanceof \SMW\DIWikiPage ) {
 				$realValue = str_replace( '_', ' ', $value->getDBKey() );
 				if ( $value->getNamespace() != 0 ) {
 					$realValue = PFUtils::getNsText( $value->getNamespace() ) . ":$realValue";
@@ -364,7 +363,7 @@ class PFValuesUtils {
 		}
 
 		global $wgPageFormsUseDisplayTitle;
-		$conceptDI = DIWikiPage::newFromTitle( $conceptTitle );
+		$conceptDI = \SMW\DIWikiPage::newFromTitle( $conceptTitle );
 		$desc = new \SMW\Query\Language\ConceptDescription( $conceptDI );
 		$printout = new \SMW\Query\PrintRequest( \SMW\Query\PrintRequest::PRINT_THIS, "" );
 		$desc->addPrintRequest( $printout );
