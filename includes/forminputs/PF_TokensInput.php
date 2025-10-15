@@ -126,6 +126,7 @@ class PFTokensInput extends PFFormInput {
 		}
 		$input_id = 'input_' . $wgPageFormsFieldNum;
 
+		// >>>> Specific fork setup (DO NOT MODIFY)
 		if ( array_key_exists( 'size', $other_args ) ) {
 			$size = intval( $other_args['size'] );
 			if ( $size == 0 ) {
@@ -134,6 +135,7 @@ class PFTokensInput extends PFFormInput {
 		} else {
 			$size = 75;
 		}
+		// <<<< End specific fork setup
 
 		$inputAttrs = [
 			'id' => $input_id,
