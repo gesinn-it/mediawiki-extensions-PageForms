@@ -46,7 +46,7 @@
             var input_id = "#" + this.getInputId();
             var name = $(input_id).attr(this.nameAttr($(input_id)));
             var positionOfBracket = name.indexOf('[');
-            var data_autocomplete = name.substring(0,positionOfBracket)+'|'+name.substring(positionOfBracket+1,name.length-1)
+            var data_autocomplete = name.substring(0,positionOfBracket)+'|'+name.substring(positionOfBracket+1,name.length-1);
             this.setInputAttribute('data-autocomplete',data_autocomplete);
         }
         // Bind the blur event to resize input according to the value
