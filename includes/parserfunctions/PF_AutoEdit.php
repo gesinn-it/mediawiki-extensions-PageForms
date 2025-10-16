@@ -17,6 +17,8 @@
  * or link.
  */
 
+use MediaWiki\MediaWikiServices;
+
 class PFAutoEdit {
 	public static function run( Parser $parser ) {
 		global $wgPageFormsAutoeditNamespaces;
@@ -44,6 +46,13 @@ class PFAutoEdit {
 		$params = func_get_args();
 		// We don't need the parser.
 		array_shift( $params );
+
+		if ( method_exists( MediaWikiServices::class, 'getWikiPageFactory' ) ) {
+			// MW 1.36+
+			$wikiPageFactory = MediaWikiServices::getInstance()->getWikiPageFactory();
+		} else {
+			$wikiPageFactory = null;
+		}
 
 		foreach ( $params as $param ) {
 			$elements = explode( '=', $param, 2 );
@@ -101,8 +110,9 @@ class PFAutoEdit {
 							$errorMsg = wfMessage( 'pf-autoedit-invalidnamespace', $targetTitle->getNsText() )->parse();
 							return Html::element( 'div', [ 'class' => 'error' ], $errorMsg );
 						}
-						if ( version_compare( MW_VERSION, '1.39', '>=' ) ) {
-							$targetWikiPage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $targetTitle );
+						if ( $wikiPageFactory !== null ) {
+							// MW 1.36+
+							$targetWikiPage = $wikiPageFactory->newFromTitle( $targetTitle );
 						} else {
 							$targetWikiPage = WikiPage::factory( $targetTitle );
 						}
