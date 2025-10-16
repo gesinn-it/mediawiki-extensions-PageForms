@@ -138,7 +138,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		];
 
 		$ariaDisabled = version_compare( MW_VERSION, '1.39', '<' ) ? " aria-disabled='false' " : " ";
-		
+
 		// #6 check when minor edit checkbox is enabled for user and $form_submitted is false
 		$provider[] = [
 			[
