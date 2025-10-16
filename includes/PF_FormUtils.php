@@ -89,6 +89,7 @@ class PFFormUtils {
 
 		$attrs += [
 			'id' => 'wpMinoredit',
+			'name' => 'wpMinoredit',
 			'accessKey' => wfMessage( 'accesskey-minoredit' )->text(),
 			'tabIndex' => $wgPageFormsTabIndex,
 		];
@@ -157,6 +158,7 @@ class PFFormUtils {
 		}
 		$attrs += [
 			'id' => 'wpWatchthis',
+			'name' => 'wpWatchthis',
 			'accessKey' => wfMessage( 'accesskey-watch' )->text(),
 			'tabIndex' => $wgPageFormsTabIndex,
 		];
