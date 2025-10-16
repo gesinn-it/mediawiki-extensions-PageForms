@@ -90,8 +90,8 @@ function prepareMediaWiki() {
 			}
 		});
 		mw.hook = () => ({
-			fire: () => {
-			}
+			add: () => {},
+			fire: () => {}
 		});
 		mw.user = {
 			tokens: {
