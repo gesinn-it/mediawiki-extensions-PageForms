@@ -218,7 +218,7 @@ class PFTreeInput extends PFFormInput {
 	public static function makeTitle( $title ) {
 		$title = trim( $title );
 
-		if ( strval( $title ) === '' ) {
+		if ( $title === '' ) {
 			return null;
 		}
 

@@ -1,4 +1,5 @@
 {
+	"name": "PageForms",
 	"private": true,
 	"scripts": {
 		"test": "npm run analyze && npm run node-qunit",
@@ -12,9 +13,11 @@
 		"node-qunit-coverage": "nyc --reporter=text --reporter=html --reporter=clover --all --include='libs/**' npm run node-qunit"
 	},
 	"devDependencies": {
-		"eslint-config-wikimedia": "0.20.0",
+		"eslint-config-wikimedia": "0.22.1",
+		"grunt": "1.5.2",
 		"fetch-blob": "^3.2.0",
 		"grunt-banana-checker": "0.9.0",
+		"grunt-eslint": "24.0.0",
 		"jsdom": "^19.0.0",
 		"nyc": "^15.1.0",
 		"qunit": "^2.19.1",

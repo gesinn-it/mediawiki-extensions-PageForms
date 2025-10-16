@@ -37,7 +37,7 @@ pf.SpreadsheetComboBoxInput.prototype.setValues = function() {
 	// editor and hence we get "No Matches found" so we can
 	// simply remove that space.
 	if ( curValue[0] == ' ' ) {
-		curValue = curValue.substring(1);
+		curValue = curValue.slice(1);
 	}
 	if ( data_type == 'external data' ) { // External Data Autocompletion
 		var	wgPageFormsEDSettings = mw.config.get( 'wgPageFormsEDSettings' ),
@@ -133,7 +133,7 @@ pf.SpreadsheetComboBoxInput.prototype.setValues = function() {
 pf.SpreadsheetComboBoxInput.prototype.highlightText = function ( suggestion ) {
 	var searchTerm = this.getValue();
 	if ( searchTerm[0] == ' ' ) {
-		searchTerm = searchTerm.substring(1);
+		searchTerm = searchTerm.slice(1);
 	}
     var searchRegexp = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
         searchTerm.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1") +
@@ -142,9 +142,9 @@ pf.SpreadsheetComboBoxInput.prototype.highlightText = function ( suggestion ) {
     var loc = itemLabel.search(searchRegexp);
     var t;
     if (loc >= 0) {
-        t = itemLabel.substr(0, loc) +
+        t = itemLabel.slice(0, Math.max(0, loc)) +
             '<strong>' + itemLabel.substr(loc, searchTerm.length) + '</strong>' +
-            itemLabel.substr(loc + searchTerm.length);
+            itemLabel.slice(loc + searchTerm.length);
     } else {
         t = itemLabel;
     }
