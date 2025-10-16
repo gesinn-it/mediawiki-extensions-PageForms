@@ -85,6 +85,13 @@
             curValue,
             my_server,
             wgPageFormsAutocompleteOnAllChars = mw.config.get( 'wgPageFormsAutocompleteOnAllChars' );
+
+        // First, handle "show on select" stuff.
+        var $parentSpan = $(input_id).closest('span');
+        if ( $parentSpan.hasClass('pfShowIfSelected') ) {
+            mw.hook('pf.comboboxChange').fire($parentSpan);
+        }
+
         this.itemFound = false;
         if (this.config.autocompletedatatype !== undefined) {
             var data_source = this.config.autocompletesettings,
@@ -295,11 +302,6 @@
                 });
             }
             this.setOptions(values);
-        }
-
-        var $parentSpan = $(input_id).closest('span');
-        if ( $parentSpan.hasClass('pfShowIfSelected') ) {
-            mw.hook('pf.comboboxChange').fire($parentSpan);
         }
     };
     /**
