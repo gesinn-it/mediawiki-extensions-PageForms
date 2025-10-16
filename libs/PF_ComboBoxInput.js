@@ -68,6 +68,9 @@
         this.$element.mouseup( () =>{
             this.setValues(false);
         })
+        this.$element.focusout( () =>{
+            $( '.combobox_map_feed' ).val( this.$input.val() );
+        });
     };
     /**
      * Sets the values for combobox
