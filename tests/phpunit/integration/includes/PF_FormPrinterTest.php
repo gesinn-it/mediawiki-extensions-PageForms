@@ -137,13 +137,15 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 			'expected_page_text' => "====section 4====" ]
 		];
 
+		$ariaDisabled = version_compare( MW_VERSION, '1.39', '<' ) ? " aria-disabled='false' " : " ";
+		
 		// #6 check when minor edit checkbox is enabled for user and $form_submitted is false
 		$provider[] = [
 			[
 				'form_definition' => "=====section 6=====
 									 {{{section|section 6|level=5}}}" ],
 			[
-				'expected_form_text' => "<span id='wpMinoredit' class='oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget'><input type='checkbox' tabindex='3' accesskey='i' name='wpMinoredit' value=''",
+				'expected_form_text' => "<span id='wpMinoredit'{$ariaDisabled}class='oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget'><input type='checkbox' tabindex='3'{$ariaDisabled}accesskey='i' name='wpMinoredit' value=''",
 				'expected_page_text' => "=====section 6=====" ]
 		];
 
@@ -153,7 +155,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 				'form_definition' => "=====section 7=====
 									{{{section|section 7|level=5|rows=5|cols=8}}}" ],
 			[
-				'expected_form_text' => "<span id='wpWatchthis' class='oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget'><input type='checkbox' tabindex='4' accesskey='w' name='wpWatchthis' value='' checked='checked'",
+				'expected_form_text' => "<span id='wpWatchthis'{$ariaDisabled}class='oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget'><input type='checkbox' tabindex='4'{$ariaDisabled}accesskey='w' name='wpWatchthis' value='' checked='checked'",
 				'expected_page_text' => "=====section 7=====" ]
 		];
 		return $provider;
