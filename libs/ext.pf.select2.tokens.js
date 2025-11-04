@@ -175,6 +175,10 @@
 				inputData.$container.find(".select2-search__field").val(clickedValue).trigger("input").focus();
 			} );
 		}
+		var $loadingIcon = $( '<img src = "' + mw.config.get( 'wgPageFormsScriptPath' ) + '/skins/loading.gif'
+		+ '" id="loading-' + this.id + '">' );
+		$loadingIcon.hide();
+		$( '#' + element.attr('id') ).parent().append( $loadingIcon );
 	};
 	/*
 	 * Returns options to be set by select2
@@ -373,6 +377,7 @@
 	 *
 	 */
 	tokens_proto.getAjaxOpts = function() {
+		var input_id = this.id;
 		var autocomplete_opts = this.getAutocompleteOpts();
 		var data_source = autocomplete_opts.autocompletesettings.split(',')[0];
 		var my_server = mw.util.wikiScript( 'api' );
@@ -393,6 +398,7 @@
 			url: my_server,
 			dataType: 'json',
 			data: function (term) {
+				$( '#loading-' + input_id ).show();
 				var reqParams = { substr: term.term }; // search term
 				if ( autocomplete_type === 'wikidata' ) {
 					// Support for getting query values from an existing field in the form
@@ -415,6 +421,7 @@
 			},
 			processResults: function (data) { // parse the results into the format expected by Select2.
 				if (data.pfautocomplete !== undefined) {
+					$( '#loading-' + input_id ).hide();
 					data.pfautocomplete.forEach( function(item) {
 						item.id = item.title;
 						if (item.displaytitle !== undefined) {
