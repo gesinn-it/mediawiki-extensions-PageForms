@@ -123,10 +123,11 @@ class PFFormUtils {
 		// this code borrowed from /includes/EditPage.php
 		if ( !$form_submitted ) {
 			$user = RequestContext::getMain()->getUser();
+			$services = MediaWikiServices::getInstance();
 			if ( method_exists( \MediaWiki\Watchlist\WatchlistManager::class, 'isWatched' ) ) {
 				// MediaWiki 1.37+
 				// UserOptionsLookup::getOption was introduced in MW 1.35
-				$services = MediaWikiServices::getInstance();
+
 				$userOptionsLookup = $services->getUserOptionsLookup();
 				$watchlistManager = $services->getWatchlistManager();
 				if ( $userOptionsLookup->getOption( $user, 'watchdefault' ) ) {
@@ -137,6 +138,21 @@ class PFFormUtils {
 					# Watch creations
 					$is_checked = true;
 				} elseif ( $watchlistManager->isWatched( $user, $titleGlobal ) ) {
+					# Already watched
+					$is_checked = true;
+				}
+			} elseif ( method_exists( MediaWikiServices::class, 'getUserOptionsLookup' ) ) {
+				// MediaWiki 1.35+
+				$userOptionsLookup = $services->getUserOptionsLookup();
+				$watchlistManager = $services->getWatchlistManager();
+				if ( $userOptionsLookup->getOption( $user, 'watchdefault' ) ) {
+					# Watch all edits
+					$is_checked = true;
+				} elseif ( $userOptionsLookup->getOption( $user, 'watchcreations' ) &&
+					!$titleGlobal->exists() ) {
+					# Watch creations
+					$is_checked = true;
+				} elseif ( $user->isWatched( $titleGlobal ) ) {
 					# Already watched
 					$is_checked = true;
 				}
