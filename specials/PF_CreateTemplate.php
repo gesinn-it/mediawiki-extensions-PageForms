@@ -226,7 +226,7 @@ class PFCreateTemplate extends SpecialPage {
 				'classes' => [ 'allowed_values_input' ]
 			] );
 		}
-		
+
 		$text .= "\t</td>\n";
 		$addAboveButton = Html::element( 'a', [ 'class' => "addAboveButton", 'title' => $this->msg( 'pf_createtemplate_addanotherabove' )->text() ] );
 		$removeButton = Html::element( 'a', [ 'class' => "removeButton", 'title' => $this->msg( 'pf_createtemplate_deletefield' )->text() ] );
