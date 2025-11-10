@@ -35,7 +35,7 @@ class PFTemplateField {
 	private $mIsList;
 	private $mDelimiter;
 	private $mDisplay;
-	private $mNamespace;
+	private $mNamespace = 0;
 	private $mIsMandatory = false;
 	private $mIsUnique = false;
 	private $mRegex = null;
@@ -82,7 +82,7 @@ class PFTemplateField {
 		if ( $this->mSemanticProperty != '' ) {
 			$attribsStrings['property'] = $this->mSemanticProperty;
 		}
-		if ( $this->mNamespace != '' ) {
+		if ( $this->mNamespace != 0 ) {
 			$attribsStrings['namespace'] = $this->mNamespace;
 		}
 		if ( $this->mDisplay != '' ) {
@@ -118,7 +118,9 @@ class PFTemplateField {
 			} elseif ( $key == 'delimiter' ) {
 				$f->mDelimiter = $value;
 			} elseif ( $key == 'namespace' ) {
-				$f->mNamespace = $value;
+				// Translate from text to ID.
+				$dummyTitle = Title::newFromText( $value . ':ABC' );
+				$f->mNamespace = $dummyTitle->getNamespace();
 			} elseif ( $key == 'display' ) {
 				$f->mDisplay = $value;
 			} elseif ( $key == 'holds template' ) {
@@ -378,7 +380,7 @@ class PFTemplateField {
 			$text = "{{#arraymap:{{{" . $this->mFieldName . '|}}}|' . $this->mDelimiter . "|$var|[[";
 			if ( $fieldProperty == '' ) {
 				$text .= "$var]]";
-			} elseif ( $this->mNamespace == '' ) {
+			} elseif ( $this->mNamespace == 0 ) {
 				$text .= "$fieldProperty::$var]]";
 			} else {
 				$text .= $this->mNamespace . ":$var]] {{#set:" . $fieldProperty . "=$var}} ";
@@ -394,7 +396,7 @@ class PFTemplateField {
 
 		// Not a list.
 		$fieldParam = '{{{' . $this->mFieldName . '|}}}';
-		if ( $this->mNamespace === null ) {
+		if ( $this->mNamespace == 0 ) {
 			$fieldString = $fieldParam;
 		} else {
 			$fieldString = $this->mNamespace . ':' . $fieldParam;
@@ -413,7 +415,7 @@ class PFTemplateField {
 				return $fieldString;
 			}
 			return $fieldString;
-		} elseif ( $this->mNamespace === null ) {
+		} elseif ( $this->mNamespace == 0 ) {
 			return "[[$fieldProperty::$fieldString]]";
 		} else {
 			// Special handling is needed, for at
