@@ -35,6 +35,7 @@ class PFTemplateField {
 	private $mIsList;
 	private $mDelimiter;
 	private $mDisplay;
+	private $mNSText = null;
 	private $mNamespace = 0;
 	private $mIsMandatory = false;
 	private $mIsUnique = false;
@@ -82,8 +83,8 @@ class PFTemplateField {
 		if ( $this->mSemanticProperty != '' ) {
 			$attribsStrings['property'] = $this->mSemanticProperty;
 		}
-		if ( $this->mNamespace != 0 ) {
-			$attribsStrings['namespace'] = $this->mNamespace;
+		if ( $this->mNSText != null ) {
+			$attribsStrings['namespace'] = $this->mNSText;
 		}
 		if ( $this->mDisplay != '' ) {
 			$attribsStrings['display'] = $this->mDisplay;
@@ -118,6 +119,7 @@ class PFTemplateField {
 			} elseif ( $key == 'delimiter' ) {
 				$f->mDelimiter = $value;
 			} elseif ( $key == 'namespace' ) {
+				$f->mNSText = $value;
 				// Translate from text to ID.
 				$dummyTitle = Title::newFromText( $value . ':ABC' );
 				$f->mNamespace = $dummyTitle->getNamespace();
@@ -311,6 +313,10 @@ class PFTemplateField {
 		return $this->mDisplay;
 	}
 
+	public function getNSText() {
+		return $this->mNSText;
+	}
+
 	public function getNamespace() {
 		return $this->mNamespace;
 	}
@@ -335,6 +341,10 @@ class PFTemplateField {
 		$this->mLabel = $label;
 	}
 
+	public function setNSText( $mNSText ) {
+		$this->mNSText = $mNSText;
+	}
+
 	public function setNamespace( $namespace ) {
 		$this->mNamespace = $namespace;
 	}
@@ -343,7 +353,8 @@ class PFTemplateField {
 		$this->mFieldType = $fieldType;
 
 		if ( $fieldType == 'File' ) {
-			$this->mNamespace = PFUtils::getCanonicalName( NS_FILE );
+			$this->mNSText = PFUtils::getCanonicalName( NS_FILE );
+			$this->mNamespace = NS_FILE;
 		}
 	}
 

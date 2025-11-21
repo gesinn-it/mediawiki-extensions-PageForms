@@ -93,7 +93,7 @@ class PFTemplateFieldTest extends TestCase {
 		$field = PFTemplateField::create( 'testField', 'Test Label' );
 		$field->setLabel( 'Custom Label' );
 		$field->isList( true );
-		$field->setNamespace( 'MyNamespace' );
+		$field->setNSText( 'MyNamespace' );
 
 		// Act: Call the toWikitext method
 		$result = $field->toWikitext();
