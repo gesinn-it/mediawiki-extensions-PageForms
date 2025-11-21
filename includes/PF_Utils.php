@@ -113,12 +113,7 @@ class PFUtils {
 		}
 		$content = $wikiPage->getContent( $audience );
 		if ( $content instanceof TextContent ) {
-			// Since MW 1.33
-			if ( method_exists( $content, 'getText' ) ) {
-				return $content->getText();
-			} else {
-				return $content->getNativeData();
-			}
+			return $content->getText();
 		} else {
 			return null;
 		}
@@ -199,12 +194,7 @@ END;
 		// @TODO - add this in at some point.
 		//$form_body .= Html::hidden( 'editRevId', $edit_rev_id );
 
-		if ( method_exists( $user, 'isRegistered' ) ) {
-			// MW 1.34+
-			$userIsRegistered = $user->isRegistered();
-		} else {
-			$userIsRegistered = $user->isLoggedIn();
-		}
+		$userIsRegistered = $user->isRegistered();
 		if ( $userIsRegistered ) {
 			$edit_token = $user->getEditToken();
 		} else {
