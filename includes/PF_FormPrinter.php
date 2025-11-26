@@ -1187,7 +1187,10 @@ END;
 								}
 							}
 							// Convert modified array back to a comma-separated string value and modify
+							// ==== GESINN PATCH BEGIN ====
+							// https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/commit/3017e9b503a09da312dc0a03f1235e90a66dc6d9
 							$cur_value = implode( $delimiter, $val_array );
+							// ==== GESINN PATCH BEGIN ====
 							if ( $cur_value === '' ) {
 								// HACK: setting an empty string prevents anything from happening at all.
 								// set a dummy string that evaluates to an empty string

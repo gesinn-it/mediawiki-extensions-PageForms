@@ -1184,7 +1184,11 @@ class PFAutoeditAPI extends ApiBase {
 	 * @return array
 	 */
 	private function parseDataFromQueryString( &$data, $queryString ) {
+		// ==== GESINN PATCH BEGIN ====
+		// https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/commit/ba07ccfeb19797135d1d5a3e3e80515ea1571235
+		// Fix + character not getting replaced in AutoeditAPI
 		$queryString = str_replace( '+', '%2B', $queryString );
+		// ==== GESINN PATCH END ====
 		$params = explode( '&', $queryString );
 
 		foreach ( $params as $param ) {
