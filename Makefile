@@ -17,7 +17,7 @@ DB_TYPE?=mysql
 DB_IMAGE?="mysql:8"
 
 # extensions
-SMW_VERSION?=4.2.0
+SMW_VERSION?=5.1.0
 DT_VERSION?=4.0.3
 PS_VERSION?=1.0
 
