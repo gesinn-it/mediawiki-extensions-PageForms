@@ -31,7 +31,11 @@
         this.setInputAttribute('origname', element.attr('origname'));
         this.setInputId(element.attr('id'));
         this.setValue(element.val());
+        // ==== GESINN PATCH BEGIN ====
+        // https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/commit/1f556e83ee2e806e243eb08d91226a9ea6842f81
+        // pass the class attribute to the OOUI widget
         this.appendToInputAttribute('class', element.attr('class'));
+        // ==== GESINN PATCH END ====
         this.config['autocompletesettings'] = element.attr('autocompletesettings');
         this.config['autocompletedatatype'] = element.attr('autocompletedatatype');
         this.config['existingvaluesonly'] = element.attr('existingvaluesonly');
@@ -464,7 +468,11 @@
         this.$input.attr(attr, value);
     };
 
+    // ==== GESINN PATCH BEGIN ====
+    // https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/commit/1f556e83ee2e806e243eb08d91226a9ea6842f81
+    // pass the class attribute to the OOUI widget
     pf.ComboBoxInput.prototype.appendToInputAttribute = function (attr, value) {
         this.$input.attr(attr, this.$input.attr(attr) + ' ' + value);
     };
+    // ==== GESINN PATCH END ====
 }(jQuery, mediaWiki, pageforms));
