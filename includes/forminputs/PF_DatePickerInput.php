@@ -115,7 +115,7 @@ class PFDatePickerInput extends PFFormInput {
 			$wrapperClass .= ' ' . $this->mOtherArgs['class'];
 		}
 		// ==== GESINN PATCH END ====
-		
+
 		return Html::rawElement( 'div', [ 'class' => $wrapperClass ], $text );
 	}
 
