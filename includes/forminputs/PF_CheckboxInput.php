@@ -24,10 +24,19 @@ class PFCheckboxInput extends PFFormInput {
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
 		global $wgPageFormsTabIndex, $wgPageFormsFieldNum;
 
-		$className = '';
+		// ==== GESINN PATCH BEGIN ====
+		// Add base class for checkbox and append mandatoryFieldSpan if field is mandatory
+		// enabling support for the 'mandatory' parameter
+		$className = 'checkboxInput';
 		if ( array_key_exists( 'class', $other_args ) ) {
 			$className .= ' ' . $other_args['class'];
 		}
+
+		if ( $is_mandatory ) {
+			$className .= ' mandatoryFieldSpan';
+		}
+		 // ==== GESINN PATCH END ====
+
 		$inputID = "input_$wgPageFormsFieldNum";
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$className .= ' pfShowIfCheckedCheckbox';
@@ -81,15 +90,10 @@ class PFCheckboxInput extends PFFormInput {
 	}
 
 	public static function getParameters() {
-		// Remove the 'mandatory' option - it doesn't make sense for
-		// checkboxes.
-		$params = [];
-		foreach ( parent::getParameters() as $param ) {
-			if ( $param['name'] != 'mandatory' ) {
-				$params[] = $param;
-			}
-		}
-		return $params;
+		// ==== GESINN PATCH BEGIN ====
+		// return parameters from parent include to support 'mandatory' parameter
+		return parent::getParameters();
+		// ==== GESINN PATCH END ====
 	}
 
 	/**

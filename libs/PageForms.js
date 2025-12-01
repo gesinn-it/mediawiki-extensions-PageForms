@@ -972,6 +972,17 @@ window.validateAll = function () {
 			num_errors += 1;
 		}
 	});
+	// ==== GESINN PATCH BEGIN ====
+	// Added support for mandatory checkbox:
+	// Iterate over all span.checkboxInput.mandatoryFieldSpan elements
+	// that are not hidden by PF and validate them using
+	// the custom validateMandatoryCheckboxes() function
+	$("span.checkboxInput.mandatoryFieldSpan").not(".hiddenByPF").each( function() {
+		if (! $(this).validateMandatoryCheckboxes() ) {
+			num_errors += 1;
+		}
+	});
+	// ==== GESINN PATCH END ====
 	$("div.pfTreeInputWrapper.mandatory").not(".hiddenByPF").each( function() {
 		if (! $(this).validateMandatoryTree() ) {
 			num_errors += 1;
