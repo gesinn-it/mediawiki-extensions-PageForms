@@ -630,6 +630,25 @@ $.fn.validateMandatoryDateField = function() {
 
 	return true;
 };
+// ==== GESINN PATCH BEGIN ====
+// Added custom validation function for mandatory datetime fields
+$.fn.validateMandatoryDateTimeField = function() {
+	// validate that all fields are filled in
+    var day = this.find(".dayInput").val();
+    var month = this.find(".monthInput").val();
+    var year = this.find(".yearInput").val();
+    var hour = this.find(".hoursInput").val();
+    var minute = this.find(".minutesInput").val();
+    var second = this.find(".secondsInput").val();
+
+	// if any field is blank, return false and mandatory error
+    if (day === "" || month === "" || year === "" || hour === "" || minute === "") {
+        this.addErrorMessage('pf_blank_error');
+        return false;
+    }
+    return true;
+};
+// ==== GESINN PATCH END ====
 
 $.fn.validateMandatoryRadioButton = function() {
 	var checkedValue = this.find("input:checked").val();
@@ -962,6 +981,17 @@ window.validateAll = function () {
 			num_errors += 1;
 		}
 	});
+	// ==== GESINN PATCH BEGIN ====
+	// Added support for mandatory datetime:
+	// Iterate over all mandatoryFieldSpan elements
+	// that are not hidden by PF and validate them using
+	// the custom validateMandatoryDateTimeField() function
+	$("span.dateTimeInput.mandatoryFieldSpan").not(".hiddenByPF").each( function() {
+		if (! $(this).validateMandatoryDateTimeField() ) {
+			num_errors += 1;
+		}
+	});
+	// ==== GESINN PATCH END ====
 	$("span.radioButtonSpan.mandatoryFieldSpan").not(".hiddenByPF").each( function() {
 		if (! $(this).validateMandatoryRadioButton() ) {
 			num_errors += 1;
