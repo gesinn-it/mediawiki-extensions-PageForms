@@ -107,6 +107,15 @@ class PFDatePickerInput extends PFFormInput {
 			$wrapperClass .= ' mandatory';
 		}
 
+		// ==== GESINN PATCH BEGIN ====
+		// Added support for the 'class' parameter on PF_DatePicker:
+		// User-defined CSS classes supplied via other_args['class'] are now
+		// appended to the wrapper element, allowing custom styling.
+		if ( isset( $this->mOtherArgs['class'] ) ) {
+			$wrapperClass .= ' ' . $this->mOtherArgs['class'];
+		}
+		// ==== GESINN PATCH END ====
+		
 		return Html::rawElement( 'div', [ 'class' => $wrapperClass ], $text );
 	}
 

@@ -156,6 +156,16 @@ class PFTreeInput extends PFFormInput {
 		if ( $is_mandatory ) {
 			$wrapperClass .= ' mandatory';
 		}
+
+		// ==== GESINN PATCH BEGIN ====
+		// Added support for the 'class' parameter on PF_TreeInput:
+		// User-defined CSS classes supplied via other_args['class'] are now
+		// appended to the wrapper element, allowing custom styling.
+		if ( array_key_exists( 'class', $other_args ) ) {
+			$wrapperClass .= ' ' . $other_args['class'];
+		}
+		// ==== GESINN PATCH END ====
+
 		$text = Html::rawElement( 'div', [ 'class' => $wrapperClass ], $text );
 
 		return $text;

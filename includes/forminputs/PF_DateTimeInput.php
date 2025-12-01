@@ -127,6 +127,16 @@ class PFDateTimeInput extends PFDateInput {
 		if ( $is_mandatory ) {
 			$spanClass .= ' mandatoryFieldSpan';
 		}
+
+		// ==== GESINN PATCH BEGIN ====
+		// Added support for the 'class' parameter on PF_DateTimeInput:
+		// User-defined CSS classes supplied via other_args['class'] are now
+		// appended to the span element, allowing custom styling.
+		if ( array_key_exists( 'class', $other_args ) ) {
+			$spanClass .= ' ' . $other_args['class'];
+		}
+		// ==== GESINN PATCH END ====
+
 		$text = Html::rawElement( 'span', [ 'class' => $spanClass ], $text );
 
 		return $text;
