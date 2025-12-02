@@ -42,6 +42,13 @@
         this.setInputAttribute('autocompletesettings', this.config['autocompletesettings']);
         this.setInputAttribute('placeholder', element.attr('placeholder'));
         this.setInputAttribute('tabIndex', element.attr('tabindex'));
+        // ==== GESINN PATCH BEGIN ====
+        // handle disabled state when the field is disabled in the form definition
+        if ( element.is(':disabled') ) {
+            this.setDisabled( true );
+        }
+        // ==== GESINN PATCH END ====
+
         // Initialize values in the combobox
         this.setValues();
 

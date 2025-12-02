@@ -11,10 +11,16 @@
  */
 
  ( function ($, mw, pf) {
-
 	pf.TreeInput = function (elem) {
 		this.element = elem;
-		this.id = $(this.element).attr('id');
+		// ==== GESINN PATCH BEGIN ====
+		// check if element is defined to avoid errors when instantiating the object
+		// and check for disabled state of the field
+		this.id = this.element ? $(this.element).attr('id') : null;
+
+		this.class = this.element ? $(this.element).attr('class') : '';
+		this.isDisabled = this.class.includes('pfTreeInputDisabled');
+		// ==== GESINN PATCH END ====
 	};
 
 	var TreeInput_proto = new pf.TreeInput();
@@ -116,13 +122,30 @@ $.fn.extend({
 		var jsTree = $(this).jstree(options);
 
 		tree.handleSearch( tree, jsTree );
+		// ==== GESINN PATCH BEGIN ====
+		// handle disabled state when the field is disabled in the form definition
+		// we need to prevent clicks on checkboxes
+        if (tree.isDisabled) {
+            $(this).on('click.jstree-disabled', '.jstree-checkbox', function (e) {
+                e.stopImmediatePropagation();
+                return false;
+            });
 
-		$(this).bind('select_node.jstree', function (evt, data) {
-			tree.check(data.node.text);
-		});
-		$(this).bind('deselect_node.jstree', function (evt, data) {
-			tree.uncheck(data.node.text);
-		});
+            $(this).on('click.jstree-disabled', '.jstree-anchor', function (e) {
+                if ($(e.target).hasClass('jstree-checkbox')) {
+                    e.stopImmediatePropagation();
+                    return false;
+                }
+            });
+        } else {
+            $(this).bind('select_node.jstree', function (evt, data) {
+                tree.check(data.node.text);
+            });
+            $(this).bind('deselect_node.jstree', function (evt, data) {
+                tree.uncheck(data.node.text);
+            });
+        }
+		// ==== GESINN PATCH END ====
 
 		tree.setCurValue();
 	}

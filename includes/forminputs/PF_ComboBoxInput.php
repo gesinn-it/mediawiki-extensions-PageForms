@@ -99,8 +99,15 @@ class PFComboBoxInput extends PFFormInput {
 			'value' => $cur_value,
 			'data-size' => $size * 6,
 			'style' => 'width:' . $size * 6 . 'px',
-			'disabled' => $is_disabled
 		];
+		// ==== GESINN PATCH BEGIN ====
+		// handle disabled state when param `restricted` is used in form definition
+		// that makes the field read-only
+		if ( $is_disabled ) {
+			$inputAttrs['disabled'] = 'disabled';
+		}
+		// ==== GESINN PATCH END ====
+
 		if ( array_key_exists( 'origName', $other_args ) ) {
 			$inputAttrs['origname'] = $other_args['origName'];
 		}

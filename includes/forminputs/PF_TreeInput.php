@@ -139,6 +139,15 @@ class PFTreeInput extends PFFormInput {
 			'data' => json_encode( $pftree->tree_array ),
 			'params' => json_encode( $params )
 		];
+		// ==== GESINN PATCH BEGIN ====
+		// when 'restricted' parameter is set, add a data attribute
+		// to indicate that the tree input should be in restricted mode
+		// is_disabled is then true and we add the pfTreeInputDisabled class below
+		// to visually indicate the restriction in js
+		if ( $is_disabled ) {
+			$treeInputAttrs['class'] .= ' pfTreeInputDisabled';
+		}
+		// ==== GESINN PATCH END ====
 
 		$text = Html::element( 'div', $treeInputAttrs, null );
 		$text .= "<input type='hidden' class='PFTree_data' name='" . $input_name . "'>";
