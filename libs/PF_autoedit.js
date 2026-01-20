@@ -68,8 +68,22 @@
 
 	var autoEditHandler = function handleAutoEdit( e ){
 
-		// Prevents scroll from jumping to the top of the page due to anchor #
-		e.preventDefault();
+		// Normalize event
+		const event =
+			e && typeof e.preventDefault === 'function'
+				? e
+				: null;
+
+		// No usable event → exit safely
+		if (!event) {
+			return;
+		}
+
+		// Prevent anchor (#) jump
+		event.preventDefault();
+		if (typeof event.stopPropagation === 'function') {
+			event.stopPropagation();
+		}
 
 		if ( mw.config.get( 'wgUserName' ) === null &&
 			! confirm( mw.msg( 'pf_autoedit_anoneditwarning' ) ) ) {
