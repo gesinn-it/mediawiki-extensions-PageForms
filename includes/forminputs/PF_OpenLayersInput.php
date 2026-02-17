@@ -101,14 +101,34 @@ class PFOpenLayersInput extends PFFormInput {
 			$text = new OOUI\FieldLayout( $addressLookupButton );
 		}
 
+		// ==== GESINN PATCH BEGIN ====
+		// add custom class name if defined in $other_args
+		$className = 'pfCoordsInput';
+		if ( array_key_exists( 'class', $other_args ) ) {
+			$className .= ' ' . $other_args['class'];
+		}
+		// ==== GESINN PATCH END ====
+
 		$coordsInputAttrs = [
 			'type' => 'text',
 			'tabindex' => $wgPageFormsTabIndex++,
-			'class' => 'pfCoordsInput',
+			'class' => $className,
 			'name' => $input_name,
 			'value' => self::parseCoordinatesString( $cur_value ),
 			'size' => 40
 		];
+
+		// ==== GESINN PATCH BEGIN ====
+		// handle restricted and mandatory params
+		if ( $is_mandatory ) {
+			$coordsInputAttrs['class'] .= ' mandatoryFieldSpan';
+		}
+
+		if ( $is_disabled ) {
+			$className .= ' pfCoordsInputDisabled';
+			$coordsInputAttrs['disabled'] = 'disabled';
+		}
+		// ==== GESINN PATCH END ====
 
 		if ( array_key_exists( 'starting bounds', $other_args ) ) {
 			$boundCoords = $other_args['starting bounds'];

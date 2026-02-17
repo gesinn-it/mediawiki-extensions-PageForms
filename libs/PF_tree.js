@@ -126,17 +126,21 @@ $.fn.extend({
 		// handle disabled state when the field is disabled in the form definition
 		// we need to prevent clicks on checkboxes
         if (tree.isDisabled) {
-            $(this).on('click.jstree-disabled', '.jstree-checkbox', function (e) {
-                e.stopImmediatePropagation();
-                return false;
-            });
+			$(this).on('before_open.jstree', function(e) {
+				e.stopImmediatePropagation();
+				return false;
+			});
+            $(this).on('click.jstree-disabled', '.jstree-anchor, .jstree-checkbox, .jstree-ocl', function(e) {
+				e.stopImmediatePropagation();
+				e.preventDefault();
+				return false;
+			});
 
-            $(this).on('click.jstree-disabled', '.jstree-anchor', function (e) {
-                if ($(e.target).hasClass('jstree-checkbox')) {
-                    e.stopImmediatePropagation();
-                    return false;
-                }
-            });
+            $(this).on('select_node.jstree deselect_node.jstree', function(e) {
+				e.stopImmediatePropagation();
+				$(this).jstree('deselect_all', true);
+				return false;
+			});
         } else {
             $(this).bind('select_node.jstree', function (evt, data) {
                 tree.check(data.node.text);

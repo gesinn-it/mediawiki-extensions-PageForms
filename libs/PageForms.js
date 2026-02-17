@@ -672,6 +672,17 @@ $.fn.validateMandatoryCheckboxes = function() {
 	}
 };
 
+// ==== GESINN PATCH BEGIN ====
+// Added custom validation function for mandatory google maps fields
+$.fn.validateMandatoryGeoCoordinatesMaps = function() {
+    if ( $(this).val().trim() === '' ) {
+        $(this).parent().addErrorMessage('pf_blank_error');
+        return false;
+    }
+    return true;
+};
+// ==== GESINN PATCH END ====
+
 $.fn.validateMandatoryTree = function() {
 	var input_value = this.find( 'input' ).attr( 'value' );
 	if ( input_value === undefined || input_value === '' ) {
@@ -1023,6 +1034,17 @@ window.validateAll = function () {
 			num_errors += 1;
 		}
 	});
+	// ==== GESINN PATCH BEGIN ====
+	// Added support for mandatory maps fields:
+	// Iterate over all input.pfCoordsInput.mandatoryFieldSpan elements
+	// that are not hidden by PF and validate them using
+	// the custom validateMandatoryGeoCoordinatesMaps() function
+	$("input.pfCoordsInput.mandatoryFieldSpan").not(".hiddenByPF").each( function() {
+    	if (! $(this).validateMandatoryGeoCoordinatesMaps() ) {
+			num_errors += 1;
+		}
+	});
+	// ==== GESINN PATCH END ====
 	$("span.inputSpan.uniqueFieldSpan").not(".hiddenByPF").each( function() {
 		if (! $(this).validateUniqueField() ) {
 			num_errors += 1;
