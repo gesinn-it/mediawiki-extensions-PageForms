@@ -108,7 +108,10 @@
 	jQuery( document ).ready( function ( $ ) {
 		$( '.autoedit-trigger' ).click( autoEditHandler );
 		$( '.autoedit-trigger-instant' ).each( function() {
-			autoEditHandler.bind( this )();
+			autoEditHandler.call( this, {
+				preventDefault: function(){},
+				stopPropagation: function(){}
+			} );
 		});
 	} );
 
