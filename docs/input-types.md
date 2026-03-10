@@ -1,0 +1,404 @@
+# PageForms Input Type System
+
+## Overview
+
+PageForms provides a flexible **input type system** that allows form
+fields to be rendered using different UI widgets. These inputs define
+how users interact with form fields and how values are collected,
+validated, and submitted.
+
+Input types control:
+
+-   the HTML widget rendered for a field
+-   client-side behavior and interactivity
+-   validation logic
+-   integration with autocompletion and dynamic form features
+
+The input system connects several architectural layers within PageForms:
+
+    Form definition
+            │
+            ▼
+    PFFormField (field configuration)
+            │
+            ▼
+    PFFormPrinter (input resolution and rendering)
+            │
+            ▼
+    HTML widget output
+            │
+            ▼
+    JavaScript initialization (PageForms.js)
+            │
+            ▼
+    Interactive browser widget
+
+This document explains how this system works and how new input types can
+be implemented.
+
+------------------------------------------------------------------------
+
+# Input Type Architecture
+
+Input types are implemented as **plugin-style components** consisting
+of:
+
+-   a PHP class implementing the server-side rendering
+-   optional JavaScript code implementing client-side behavior
+-   optional ResourceLoader modules
+
+The server and client components together form the complete widget
+implementation.
+
+Key architectural elements include:
+
+  Component                  Responsibility
+  -------------------------- -----------------------------------------------------
+  `PFFormField`              Stores field configuration from the form definition
+  `PFFormPrinter`            Resolves and renders input types
+  `PFFormInput` subclasses   Implement specific input types
+  `PageForms.js`             Initializes JavaScript widgets
+  ResourceLoader modules     Provide JS and CSS for inputs
+
+------------------------------------------------------------------------
+
+# Server-Side Input Registry
+
+## Input type registration
+
+All input types are registered with `PFFormPrinter`.
+
+During initialization the printer registers built-in inputs using:
+
+``` php
+$this->registerInputType( 'PFTokensInput' );
+$this->registerInputType( 'PFRegExpInput' );
+$this->registerInputType( 'PFRatingInput' );
+```
+
+Each registered class must implement a static `getName()` method.
+
+Example:
+
+``` php
+class PFTokensInput extends PFFormInput {
+
+    public static function getName(): string {
+        return 'tokens';
+    }
+
+}
+```
+
+The name returned by `getName()` becomes the identifier used in form
+definitions.
+
+Example:
+
+    {{{field|Authors|input type=tokens}}}
+
+Internally the registry mapping becomes:
+
+    "tokens" → PFTokensInput
+
+## Registry storage
+
+The mapping between input names and classes is stored in:
+
+    PFFormPrinter::mInputTypeClasses
+
+This allows PageForms to resolve input types dynamically.
+
+------------------------------------------------------------------------
+
+# Input Type Resolution
+
+When a form is rendered, the following process occurs:
+
+    Form definition parsed
+            │
+            ▼
+    PFFormField created
+            │
+            ▼
+    input type stored as string
+            │
+            ▼
+    PFFormPrinter resolves class
+            │
+            ▼
+    Input implementation generates HTML
+
+The input type name originates from the form definition:
+
+    {{{field|Author|input type=combobox}}}
+
+The value `combobox` is stored in the `PFFormField` instance and later
+used by `PFFormPrinter` to determine the input class.
+
+------------------------------------------------------------------------
+
+# Automatic Input Selection
+
+If no `input type=` is explicitly specified, PageForms may automatically
+choose an input based on the field's data type.
+
+Input classes can declare default mappings using:
+
+    getDefaultPropTypes()
+    getDefaultPropTypeLists()
+
+These methods associate input types with Semantic MediaWiki or Cargo
+property types.
+
+Example concept:
+
+    Property type → Default input
+    _dat → date input
+    _wpg → dropdown
+
+This mechanism allows PageForms to infer appropriate widgets
+automatically.
+
+------------------------------------------------------------------------
+
+# Rendering Input HTML
+
+Once the input type class is resolved, the renderer generates HTML for
+the field.
+
+The rendering call typically occurs via:
+
+    PFFormPrinter::formFieldHTML()
+
+The input implementation outputs the HTML widget used in the form.
+
+Example structure:
+
+``` html
+<span class="pfComboBox" data-input-type="combobox">
+    <input name="Author" value="...">
+</span>
+```
+
+The generated markup includes:
+
+-   CSS classes identifying the input type
+-   metadata attributes used by JavaScript
+-   hidden fields required for submission
+
+Additional HTML may also be inserted by
+`PFFormField::additionalHTMLForInput()`.
+
+------------------------------------------------------------------------
+
+# Client-Side Widget Initialization
+
+After the HTML is delivered to the browser, PageForms JavaScript
+converts inputs into interactive widgets.
+
+The main entry point is:
+
+    PageForms.js
+
+The system uses two registration mechanisms:
+
+    PageForms_registerInputInit()
+    PageForms_registerInputValidation()
+
+These allow inputs to attach initialization and validation logic.
+
+## Initialization pipeline
+
+    HTML form loaded
+            │
+            ▼
+    PageForms.js scans DOM
+            │
+            ▼
+    Input-specific initialization runs
+            │
+            ▼
+    HTML input becomes JS widget
+
+Initialization functions are stored inside a data structure attached to
+the form element:
+
+    $("#pfForm").data("PageForms")
+
+Structure:
+
+    PageForms
+       ├─ initFunctions
+       └─ validationFunctions
+
+Each input may register multiple handlers.
+
+------------------------------------------------------------------------
+
+# Dynamic Form Behaviour
+
+JavaScript implements many interactive form features including:
+
+-   show-on-select conditions
+-   dependent fields
+-   autocomplete
+-   multiple-instance templates
+
+Example logic:
+
+    $(this).showIfSelected(...)
+
+These mechanisms rely on configuration variables passed from the server
+to the browser through MediaWiki configuration.
+
+------------------------------------------------------------------------
+
+# Validation Framework
+
+PageForms provides a central validation pipeline.
+
+Validation functions are registered using:
+
+    PageForms_registerInputValidation()
+
+During form submission:
+
+    Run built-in validation
+    Run registered validators
+    Count errors
+    Block submission if necessary
+
+Common validation rules include:
+
+-   email validation
+-   numeric validation
+-   date validation
+-   start/end date consistency
+
+Custom input types may register additional validators.
+
+------------------------------------------------------------------------
+
+# Multiple-Instance Templates
+
+PageForms allows templates to be repeated within a form.
+
+When a new template instance is added dynamically:
+
+    Clone template block
+    Reinitialize JS inputs
+    Re-register validation handlers
+
+When an instance is removed, its associated initialization and
+validation handlers are unregistered to prevent duplication.
+
+------------------------------------------------------------------------
+
+# Implementing Custom Input Types
+
+Custom inputs can be implemented by creating a class extending
+`PFFormInput`.
+
+## Minimal example
+
+``` php
+class PFExampleInput extends PFFormInput {
+
+    public static function getName(): string {
+        return 'example';
+    }
+
+    public static function getDefaultPropTypes() {
+        return [];
+    }
+
+    public static function getDefaultPropTypeLists() {
+        return [];
+    }
+
+}
+```
+
+## Registering the input
+
+The input must be registered during extension initialization.
+
+Example:
+
+``` php
+$wgPageFormsFormPrinter->registerInputType(
+    PFExampleInput::class
+);
+```
+
+or via the hook:
+
+    PageForms::FormPrinterSetup
+
+## Using the input
+
+Once registered, the input can be used in forms:
+
+    {{{field|ExampleField|input type=example}}}
+
+------------------------------------------------------------------------
+
+# External Input Extensions
+
+Input types can be implemented in **separate MediaWiki extensions**.
+
+A common example is **SemanticFormsSelect**, which introduces the input
+type:
+
+    SF_Select
+
+Example usage:
+
+    {{{field|AllProtocols
+     |input type=SF_Select
+     |query=((Category:Protocol))
+    }}}
+
+The extension defines a class extending `PFFormInput`, registers it with
+PageForms, and optionally provides JavaScript behavior.
+
+This demonstrates the plugin architecture of the input system: new input
+types can be added without modifying PageForms core.
+
+------------------------------------------------------------------------
+
+# Architectural Summary
+
+The PageForms input system follows a **plugin-based architecture**.
+
+    Form definition
+            │
+            ▼
+    PFFormField (configuration)
+            │
+            ▼
+    PFFormPrinter (input registry)
+            │
+            ▼
+    Input class (PFFormInput subclass)
+            │
+            ▼
+    HTML widget generation
+            │
+            ▼
+    PageForms.js initialization
+            │
+            ▼
+    Interactive browser widget
+
+Key characteristics:
+
+-   dynamic input registry
+-   extension-friendly plugin system
+-   server/client separation
+-   progressive enhancement via JavaScript
+-   support for dynamic form structures
+
+This architecture allows PageForms to support a wide range of input
+widgets while remaining extensible for custom implementations.
