@@ -10,6 +10,9 @@ class PFTokensInputTest extends MediaWikiIntegrationTestCase {
 		$wgPageFormsEDSettings = [];
 	}
 
+	/**
+	 * @covers \PFTokensInput::getHTML
+	 */
 	public function testMappedPossibleValuesUseCanonicalOptionValues() {
 		$html = PFTokensInput::getHTML(
 			'',
@@ -33,6 +36,9 @@ class PFTokensInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertNotContains( 'Values From Category 3 (DisplayTitle)', $optionValues );
 	}
 
+	/**
+	 * @covers \PFTokensInput::getHTML
+	 */
 	public function testCurrentCanonicalValueDoesNotCreateDuplicateOption() {
 		$html = PFTokensInput::getHTML(
 			'Values From Category 3',
@@ -50,7 +56,7 @@ class PFTokensInputTest extends MediaWikiIntegrationTestCase {
 		);
 
 		$options = $this->extractOptions( $html );
-		$matchingOptions = array_values( array_filter( $options, static function( $option ) {
+		$matchingOptions = array_values( array_filter( $options, static function ( $option ) {
 			return $option['value'] === 'Values From Category 3';
 		} ) );
 
@@ -59,6 +65,9 @@ class PFTokensInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertTrue( $matchingOptions[0]['selected'] );
 	}
 
+	/**
+	 * @covers \PFTokensInput::getHTML
+	 */
 	public function testCurrentDisplayLabelValueMapsBackToCanonicalOption() {
 		$html = PFTokensInput::getHTML(
 			'Values From Category 3 (DisplayTitle)',
@@ -76,7 +85,7 @@ class PFTokensInputTest extends MediaWikiIntegrationTestCase {
 		);
 
 		$options = $this->extractOptions( $html );
-		$canonicalOptions = array_values( array_filter( $options, static function( $option ) {
+		$canonicalOptions = array_values( array_filter( $options, static function ( $option ) {
 			return $option['value'] === 'Values From Category 3';
 		} ) );
 
