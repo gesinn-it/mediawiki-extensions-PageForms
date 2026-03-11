@@ -113,5 +113,18 @@ git push origin feature/your-feature-name
 ----
 ====
 
+== Local testing notes
+
+For focused test runs (for example autocomplete-related API tests), use:
+
+[source,console]
+----
+make install composer-phpunit COMPOSER_PARAMS="-- --filter=autocomplete"
+----
+
+New or renamed test files are copied into the Docker image at build time.
+After changing test files, run commands via `make install ...` at least once,
+then you can use `make composer-phpunit ...` for repeated runs.
+
 ---
 This extension is part of https://semantic.wiki/core[*semantic::core*] - Enterprise Class MediaWiki distribution.
