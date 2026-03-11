@@ -40,7 +40,6 @@
 	 *
 	 */
 	tokens_proto.apply = function( element ) {
-		var cur_val = element.attr('value');
 		var existingValuesOnly = (element.attr("existingvaluesonly") == "true");
 		this.existingValuesOnly = existingValuesOnly;
 		this.id = element.attr( "id" );
@@ -132,22 +131,44 @@
 			}
 			if( e.keyCode === 9 ){
 				var rawValue = "";
+				var optionValue = "";
+				var optionLabel = "";
 				var checkIfPresent = false;
 				var valHighlighted = inputData.$results.find('.select2-results__option--highlighted')[0];
 				if( valHighlighted !== undefined ){
 					rawValue = valHighlighted.textContent;
+					optionValue = rawValue;
+					optionLabel = rawValue;
+					var highlightedData = $( valHighlighted ).data( 'data' );
+					if ( highlightedData !== undefined ) {
+						if ( highlightedData.id !== undefined ) {
+							optionValue = highlightedData.id;
+						}
+						if ( highlightedData.text !== undefined ) {
+							optionLabel = highlightedData.text;
+						}
+					}
+				}
+				if ( optionValue === '' ) {
+					optionValue = rawValue;
+				}
+				if ( optionLabel === '' ) {
+					optionLabel = rawValue;
 				}
 				var newValue = $.grep(inputData.val(), function (value) {
-					if( value === rawValue ){
+					if( value === optionValue ){
 						checkIfPresent = true;
 					}
-					return value !== rawValue;
+					return value !== optionValue;
 				});
-				if( checkIfPresent === false && rawValue !== "" ) {
-					newValue.push(rawValue);
+				if( checkIfPresent === false && optionValue !== "" ) {
+					newValue.push(optionValue);
 				}
-				if ( !$input.find( "option[value='" + rawValue + "']" ).length ) {
-					var newOption = new Option( rawValue, rawValue, false, false );
+				var hasOption = $input.find( 'option' ).filter( function() {
+					return this.value === optionValue;
+				} ).length > 0;
+				if ( !hasOption ) {
+					var newOption = new Option( optionLabel, optionValue, false, false );
 					$input.append(newOption).trigger( 'change' );
 				}
 				$input.val( newValue ).trigger( 'change' );
@@ -160,10 +181,9 @@
 				if ( $target.is( $("span.select2-match-entire") ) ) {
 					$target = $target.parent();
 				}
-				// get the text and id of the clicked value
-				var targetData = $target.data();
-				var clickedValue = $target[0].title;
-				var clickedValueId = targetData.select2Id;
+				var clickedData = $target.data( 'data' );
+				var clickedValue = clickedData && clickedData.id !== undefined ? clickedData.id : $target[0].title;
+				var clickedLabel = clickedData && clickedData.text !== undefined ? clickedData.text : $target[0].title;
 
 				// remove that value from select2 selection
 				var newValue = $.grep(inputData.val(), function (value) {
@@ -172,7 +192,7 @@
 				$input.val(newValue).trigger("change");
 
 				// set the currently entered text to equal the clicked value
-				inputData.$container.find(".select2-search__field").val(clickedValue).trigger("input").focus();
+				inputData.$container.find(".select2-search__field").val(clickedLabel).trigger("input").focus();
 			} );
 		}
 		var $loadingIcon = $( '<img src = "' + mw.config.get( 'wgPageFormsScriptPath' ) + '/skins/loading.gif'
@@ -249,6 +269,36 @@
 		opts.dropdownCssClass = 'pf-select2-dropdown';
 		if( !this.existingValuesOnly ){
 			opts.tags = true;
+			opts.insertTag = function( data, tag ) {
+				var normalizeValue = function( value ) {
+					if ( value === undefined || value === null ) {
+						return '';
+					}
+					return value.toString()
+						.replace( /_/g, ' ' )
+						.replace( /\u00A0/g, ' ' )
+						.replace( /\s+/g, ' ' )
+						.trim()
+						.toLowerCase();
+				};
+
+				var normalizedTagId = normalizeValue( tag.id );
+				var normalizedTagText = normalizeValue( tag.text );
+				var duplicateTag = false;
+				data.forEach( function( item ) {
+					var normalizedItemId = normalizeValue( item.id );
+					var normalizedItemText = normalizeValue( item.text );
+					if ( normalizedItemId === normalizedTagId ||
+						normalizedItemText === normalizedTagText ||
+						normalizedItemId === normalizedTagText ||
+						normalizedItemText === normalizedTagId ) {
+						duplicateTag = true;
+					}
+				} );
+				if ( !duplicateTag ) {
+					data.push( tag );
+				}
+			};
 		}
 		opts.multiple = true;
 		opts.width= NaN; // A helpful way to expand tokenbox horizontally
@@ -333,8 +383,10 @@
 				//Convert data into the format accepted by Select2
 				if ( data !== undefined && data !== null ) {
 					for (var key in data) {
+						var optionId = Array.isArray( data ) ? data[key] : key;
+						var localOptionText = data[key];
 						values.push({
-							id: data[key], text: data[key]
+							id: optionId, text: localOptionText
 						});
 					}
 				}
@@ -351,15 +403,11 @@
 				success: function(value) {
 					// Convert data into the format accepted by Select2.
 					value.pfautocomplete.forEach( function(item) {
-						if (item.displaytitle !== undefined) {
-							values.push({
-								id: item.displaytitle, text: item.displaytitle
-							});
-						} else {
-							values.push({
-								id: item.title, text: item.title
-							});
-						}
+						var dependentOptionText = item.displaytitle !== undefined ? item.displaytitle : item.title;
+						values.push({
+							id: item.title,
+							text: dependentOptionText
+						});
 					});
 					return values;
 				}

@@ -138,7 +138,6 @@ class PFTokensInput extends PFFormInput {
 			'class' => $className,
 			'style' => 'width:' . $size * 6 . 'px',
 			'multiple' => 'multiple',
-			'value' => $cur_value,
 			'size' => 1,
 			'data-size' => $size * 6 . 'px',
 			'tabindex' => $wgPageFormsTabIndex,
@@ -185,8 +184,40 @@ class PFTokensInput extends PFFormInput {
 			}
 		}
 
-		foreach ( $possible_values as $possible_value ) {
+		$possible_values_by_id = [];
+		$possible_value_id_by_label = [];
+		$possible_value_label_counts = [];
+		foreach ( $possible_values as $possible_key => $possible_value ) {
+			$optionValue = is_int( $possible_key ) ? $possible_value : $possible_key;
+			$possible_values_by_id[$optionValue] = true;
+			if ( !array_key_exists( $possible_value, $possible_value_label_counts ) ) {
+				$possible_value_label_counts[$possible_value] = 0;
+			}
+			$possible_value_label_counts[$possible_value]++;
+			if ( !array_key_exists( $possible_value, $possible_value_id_by_label ) ) {
+				$possible_value_id_by_label[$possible_value] = $optionValue;
+			}
+		}
+
+		foreach ( $cur_values as $key => $current_value ) {
+			if ( array_key_exists( $current_value, $possible_values_by_id ) ) {
+				continue;
+			}
+			if ( array_key_exists( $current_value, $possible_value_id_by_label ) &&
+				$possible_value_label_counts[$current_value] === 1 ) {
+				$cur_values[$key] = $possible_value_id_by_label[$current_value];
+			}
+		}
+
+		foreach ( $possible_values as $possible_key => $possible_value ) {
+			$optionValue = is_int( $possible_key ) ? $possible_value : $possible_key;
 			if (
+				array_key_exists( 'value_labels', $other_args ) &&
+				is_array( $other_args['value_labels'] ) &&
+				array_key_exists( $optionValue, $other_args['value_labels'] )
+			) {
+				$optionLabel = $other_args['value_labels'][$optionValue];
+			} elseif (
 				array_key_exists( 'value_labels', $other_args ) &&
 				is_array( $other_args['value_labels'] ) &&
 				array_key_exists( $possible_value, $other_args['value_labels'] )
@@ -195,14 +226,14 @@ class PFTokensInput extends PFFormInput {
 			} else {
 				$optionLabel = $possible_value;
 			}
-			$optionAttrs = [ 'value' => $possible_value ];
-			if ( in_array( $possible_value, $cur_values ) ) {
+			$optionAttrs = [ 'value' => $optionValue ];
+			if ( in_array( $optionValue, $cur_values, true ) ) {
 				$optionAttrs['selected'] = 'selected';
 			}
 			$optionsText .= Html::element( 'option', $optionAttrs, $optionLabel );
 		}
 		foreach ( $cur_values as $current_value ) {
-			if ( !in_array( $current_value, $possible_values ) && $current_value !== '' ) {
+			if ( !array_key_exists( $current_value, $possible_values_by_id ) && $current_value !== '' ) {
 				$optionAttrs = [ 'value' => $current_value ];
 				$optionAttrs['selected'] = 'selected';
 				$optionLabel = $current_value;
