@@ -20,6 +20,7 @@
     pf.ComboBoxInput = function (config) {
         this.config = config || {}
         this.titleByDisplayValue = {};
+        this.displayByTitle = {};
         OO.ui.ComboBoxInputWidget.call(this, config);
         OO.ui.mixin.PendingElement.call(this, { $pending: this.$input });
     };
@@ -90,14 +91,7 @@
             $( '.combobox_map_feed' ).val( this.$input.val() );
         });
 
-        const eventNamespace = '.pfCanonicalSubmit-' + this.getInputId();
-        const $form = this.$input.closest( 'form' );
-        if ( $form.length > 0 ) {
-            $form.off( 'submit' + eventNamespace ).on( 'submit' + eventNamespace, () => {
-                this.syncCanonicalValue();
-                this.$input.val( this.$input.attr( 'data-pf-canonical-value' ) || this.$input.val() );
-            } );
-        }
+        this.bindCanonicalSubmitHandler();
 
         var $loadingIcon = $( '<img src = "' + mw.config.get( 'wgPageFormsScriptPath' ) + '/skins/loading.gif'
             + '" id="loading-' + this.getInputId() + '">' );
@@ -118,6 +112,7 @@
             my_server,
             wgPageFormsAutocompleteOnAllChars = mw.config.get( 'wgPageFormsAutocompleteOnAllChars' );
         this.titleByDisplayValue = {};
+        this.displayByTitle = {};
 
         // First, handle "show on select" stuff.
         var $parentSpan = $(input_id).closest('span');
@@ -188,6 +183,7 @@
                                 const optionTitle = Data[i].title;
                                 const optionLabel = Data[i].displaytitle || Data[i].title;
                                 self.titleByDisplayValue[optionLabel] = optionTitle;
+                                self.displayByTitle[optionTitle] = optionLabel;
                                 if ( optionLabel === self.getValue() || optionTitle === self.getValue() ) {
                                     self.itemFound = true;
                                 }
@@ -202,6 +198,7 @@
                         });
                     }
                     self.setOptions(values);
+                    self.syncDisplayValueFromCanonical();
                     self.syncCanonicalValue();
                 },
                 complete: function() {
@@ -228,6 +225,7 @@
                                     self.itemFound = true;
                                 }
                                 self.titleByDisplayValue[data.title[i]] = data.title[i];
+                                self.displayByTitle[data.title[i]] = data.title[i];
                                 if (wgPageFormsAutocompleteOnAllChars) {
                                     if (self.getConditionForAutocompleteOnAllChars(data.title[i], curValue)) {
                                         values.push({
@@ -258,6 +256,7 @@
                                 const optionData = Array.isArray(data) ? data[key] : key;
                                 const optionLabel = data[key];
                                 this.titleByDisplayValue[optionLabel] = optionData;
+                                this.displayByTitle[optionData] = optionLabel;
                                 if ( optionData == curValue || optionLabel == curValue ) {
                                     self.itemFound = true;
                                 }
@@ -275,6 +274,7 @@
                                 const optionData = Array.isArray(data) ? data[key] : key;
                                 const optionLabel = data[key];
                                 this.titleByDisplayValue[optionLabel] = optionData;
+                                this.displayByTitle[optionData] = optionLabel;
                                 if ( optionData == curValue || optionLabel == curValue ) {
                                     self.itemFound = true;
                                 }
@@ -328,6 +328,7 @@
                                 const optionTitle = item.title;
                                 const optionLabel = item.displaytitle !== undefined ? item.displaytitle : item.title;
                                 self.titleByDisplayValue[optionLabel] = optionTitle;
+                                self.displayByTitle[optionTitle] = optionLabel;
                                 if ( optionLabel == curValue || optionTitle == curValue ) {
                                     self.itemFound = true;
                                 }
@@ -366,8 +367,9 @@
                     data:self.getValue(), label: mw.message('pf-autocomplete-no-matches').text(), disabled: true
                 });
             }
-            this.syncCanonicalValue();
             this.setOptions(values);
+            this.syncDisplayValueFromCanonical();
+            this.syncCanonicalValue();
         }
     };
 
@@ -381,12 +383,45 @@
         return value;
     };
 
+    pf.ComboBoxInput.prototype.getDisplayValueForCanonicalInput = function ( value ) {
+        if ( value === undefined || value === null ) {
+            return value;
+        }
+        if ( this.displayByTitle !== undefined && this.displayByTitle[value] !== undefined ) {
+            return this.displayByTitle[value];
+        }
+        return value;
+    };
+
+    pf.ComboBoxInput.prototype.syncDisplayValueFromCanonical = function ( inputValue ) {
+        var valueToSync = inputValue;
+        if ( valueToSync === undefined ) {
+            valueToSync = this.getValue();
+        }
+        var displayValue = this.getDisplayValueForCanonicalInput( valueToSync );
+        if ( displayValue !== undefined && displayValue !== null && displayValue !== valueToSync ) {
+            this.setValue( displayValue );
+        }
+    };
+
     pf.ComboBoxInput.prototype.syncCanonicalValue = function ( inputValue ) {
         var valueToSync = inputValue;
         if ( valueToSync === undefined ) {
             valueToSync = this.getValue();
         }
         this.$input.attr( 'data-pf-canonical-value', this.getCanonicalValueForInput( valueToSync ) );
+    };
+
+    pf.ComboBoxInput.prototype.bindCanonicalSubmitHandler = function () {
+        const eventNamespace = '.pfCanonicalSubmit-' + this.getInputId();
+        $( document ).off( 'submit' + eventNamespace ).on( 'submit' + eventNamespace, 'form', ( event ) => {
+            const $form = $( event.currentTarget );
+            if ( $form.find( this.$input ).length === 0 ) {
+                return;
+            }
+            this.syncCanonicalValue();
+            this.$input.val( this.$input.attr( 'data-pf-canonical-value' ) || this.$input.val() );
+        } );
     };
     /**
      * Returns the name attribute of the field depending on

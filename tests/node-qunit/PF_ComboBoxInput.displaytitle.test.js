@@ -7,7 +7,14 @@ function createComboBoxDouble( overrides ) {
 		config: {},
 		itemFound: false,
 		getInputId: () => 'input_1',
-		getValue: () => '',
+		_currentValue: '',
+		getValue: function() {
+			return this._currentValue;
+		},
+		setValue: function( value ) {
+			this._currentValue = value;
+			this.$input.val( value );
+		},
 		setOptions: sinon.spy(),
 		dependentOn: () => null,
 		getDependentFieldOpts: () => ( {
@@ -21,7 +28,10 @@ function createComboBoxDouble( overrides ) {
 		getConditionForAutocompleteOnAllChars: pageforms.ComboBoxInput.prototype.getConditionForAutocompleteOnAllChars,
 		checkIfAnyWordStartsWithInputValue: pageforms.ComboBoxInput.prototype.checkIfAnyWordStartsWithInputValue,
 		getCanonicalValueForInput: pageforms.ComboBoxInput.prototype.getCanonicalValueForInput,
+		getDisplayValueForCanonicalInput: pageforms.ComboBoxInput.prototype.getDisplayValueForCanonicalInput,
 		syncCanonicalValue: pageforms.ComboBoxInput.prototype.syncCanonicalValue,
+		syncDisplayValueFromCanonical: pageforms.ComboBoxInput.prototype.syncDisplayValueFromCanonical,
+		bindCanonicalSubmitHandler: pageforms.ComboBoxInput.prototype.bindCanonicalSubmitHandler,
 		$input: $( '#input_1' ),
 		$element: $( '<span>' )
 	};
@@ -63,7 +73,7 @@ QUnit.test( 'remote autocomplete keeps displaytitle visible and tracks canonical
 			autocompletedatatype: 'category',
 			autocompletesettings: 'Scientists'
 		},
-		getValue: () => 'Alb'
+		_currentValue: 'Alb'
 	} );
 
 	sinon.replace( $, 'ajax', ( options ) => {
@@ -98,7 +108,7 @@ QUnit.test( 'remote autocomplete accepts canonical title for itemFound', functio
 			autocompletedatatype: 'category',
 			autocompletesettings: 'Scientists'
 		},
-		getValue: () => 'Albert_Einstein'
+		_currentValue: 'Albert_Einstein'
 	} );
 
 	sinon.replace( $, 'ajax', ( options ) => {
@@ -133,7 +143,7 @@ QUnit.test( 'local autocomplete map keeps displaytitle visible and tracks canoni
 		config: {
 			autocompletesettings: 'Scientists'
 		},
-		getValue: () => 'Alb'
+		_currentValue: 'Alb'
 	} );
 
 	pageforms.ComboBoxInput.prototype.setValues.call( combo, false );
@@ -151,7 +161,7 @@ QUnit.test( 'dependent autocomplete keeps displaytitle visible and tracks canoni
 			autocompletesettings: 'City'
 		},
 		dependentOn: () => 'Country',
-		getValue: () => 'Ber'
+		_currentValue: 'Ber'
 	} );
 
 	sinon.replace( $, 'ajax', ( options ) => {
@@ -189,4 +199,44 @@ QUnit.test( 'dependent field lookup prefers canonical base value attribute', fun
 	const opts = pageforms.ComboBoxInput.prototype.getDependentFieldOpts.call( combo, 'Country' );
 
 	assert.strictEqual( opts.base_value, 'Germany' );
+} );
+
+QUnit.test( 'submit handler rewrites visible displaytitle to canonical title', function( assert ) {
+	const combo = createComboBoxDouble( {
+		getValue: function() {
+			return this.$input.val();
+		}
+	} );
+	combo.$input = $( '<input id="input_1" name="City" value="Albert Einstein">' );
+	const $form = $( '<form></form>' ).append( combo.$input ).appendTo( document.body );
+	combo.titleByDisplayValue = {
+		'Albert Einstein': 'Albert_Einstein'
+	};
+
+	combo.bindCanonicalSubmitHandler();
+	$form.on( 'submit', ( event ) => {
+		event.preventDefault();
+	} );
+	$form.trigger( 'submit' );
+
+	assert.strictEqual( combo.$input.val(), 'Albert_Einstein' );
+} );
+
+QUnit.test( 'existing canonical value is displayed as displaytitle after options load', function( assert ) {
+	this.configValues.wgPageFormsAutocompleteValues = {
+		Scientists: {
+			Albert_Einstein: 'Albert Einstein'
+		}
+	};
+	const combo = createComboBoxDouble( {
+		config: {
+			autocompletesettings: 'Scientists'
+		},
+		_currentValue: 'Albert_Einstein'
+	} );
+
+	pageforms.ComboBoxInput.prototype.setValues.call( combo, false );
+
+	assert.strictEqual( combo.getValue(), 'Albert Einstein' );
+	assert.strictEqual( combo.$input.attr( 'data-pf-canonical-value' ), 'Albert_Einstein' );
 } );
