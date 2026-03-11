@@ -1,0 +1,63 @@
+{
+	"description": "Test API `action=pfautocomplete` disambiguates duplicate display titles for category and concept search",
+	"setup": [
+		{
+			"page": "FooAlpha",
+			"contents": "[[Category:DisambiguationCategory]]{{DISPLAYTITLE:Paris}}"
+		},
+		{
+			"page": "FooBeta",
+			"contents": "[[Category:DisambiguationCategory]]{{DISPLAYTITLE:Paris}}"
+		},
+		{
+			"namespace": "SMW_NS_CONCEPT",
+			"page": "ConceptDisambiguation",
+			"contents": "{{#concept: [[Category:DisambiguationCategory]]}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "api",
+			"about": "category search disambiguates duplicate display titles",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"category": "DisambiguationCategory",
+					"substr": "Par"
+				}
+			},
+			"assert-output": {
+				"to-contain": "{\"pfautocomplete\":{\"0\":{\"title\":\"FooAlpha\",\"displaytitle\":\"Paris (FooAlpha)\"},\"1\":{\"title\":\"FooBeta\",\"displaytitle\":\"Paris (FooBeta)\"},\"_element\":\"p\"},\"_type\":\"assoc\"}"
+			}
+		},
+		{
+			"type": "api",
+			"about": "concept search disambiguates duplicate display titles",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"concept": "ConceptDisambiguation",
+					"substr": "Par"
+				}
+			},
+			"assert-output": {
+				"to-contain": "{\"pfautocomplete\":{\"0\":{\"title\":\"FooAlpha\",\"displaytitle\":\"Paris (FooAlpha)\"},\"1\":{\"title\":\"FooBeta\",\"displaytitle\":\"Paris (FooBeta)\"},\"_element\":\"p\"},\"_type\":\"assoc\"}"
+			}
+		}
+	],
+	"settings": {
+		"wgAllowDisplayTitle": true,
+		"wgRestrictDisplayTitle": false,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_CONCEPT": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

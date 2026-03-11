@@ -1,0 +1,42 @@
+{
+	"description": "Test API `action=pfautocomplete` disambiguates duplicate display titles for namespace search",
+	"setup": [
+		{
+			"page": "FooAlpha",
+			"contents": "[[Category:DisambiguationCategory]]{{DISPLAYTITLE:Paris}}"
+		},
+		{
+			"page": "FooBeta",
+			"contents": "[[Category:DisambiguationCategory]]{{DISPLAYTITLE:Paris}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "api",
+			"about": "namespace search disambiguates duplicate display titles",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"namespace": "",
+					"substr": "Par"
+				}
+			},
+			"assert-output": {
+				"to-contain": "{\"pfautocomplete\":{\"0\":{\"title\":\"FooAlpha\",\"displaytitle\":\"Paris (FooAlpha)\"},\"1\":{\"title\":\"FooBeta\",\"displaytitle\":\"Paris (FooBeta)\"},\"_element\":\"p\"},\"_type\":\"assoc\"}"
+			}
+		}
+	],
+	"settings": {
+		"wgAllowDisplayTitle": true,
+		"wgRestrictDisplayTitle": false,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

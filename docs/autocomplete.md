@@ -342,7 +342,7 @@ storing the page title.
 
 # Label Disambiguation
 
-When results come from **categories or concepts**, PageForms may apply
+When results come from **categories, concepts or namespaces**, PageForms may apply
 a label disambiguation step.
 
 This behavior is controlled by:
