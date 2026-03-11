@@ -20,6 +20,8 @@ include::docs/gesinn-it-docs-master-pub/contributing/contributing.adoc[]
 
 == Local testing notes
 
+=== PHP integration tests (PHPUnit/JSONScript)
+
 For focused test runs (for example autocomplete-related API tests), use:
 
 [source,console]
@@ -27,9 +29,40 @@ For focused test runs (for example autocomplete-related API tests), use:
 make install composer-phpunit COMPOSER_PARAMS="-- --filter=autocomplete"
 ----
 
+After the first run, you can use this faster variant for repeated runs:
+
+[source,console]
+----
+make composer-phpunit COMPOSER_PARAMS="-- --filter=autocomplete"
+----
+
+=== JavaScript tests (Node QUnit)
+
+Run the default JS test pipeline (ESLint + i18n + Node QUnit):
+
+[source,console]
+----
+make npm-test
+----
+
+Run only Node QUnit tests (faster feedback loop):
+
+[source,console]
+----
+docker compose -f build/docker-compose.yml --project-name pageforms-mysql --profile mysql exec -T wiki bash -lc "cd /var/www/html/extensions/PageForms && ./node_modules/.bin/qunit --require ./tests/node-qunit/setup.js 'tests/node-qunit/**/*.test.js'"
+----
+
+Run one specific JS test file:
+
+[source,console]
+----
+docker compose -f build/docker-compose.yml --project-name pageforms-mysql --profile mysql exec -T wiki bash -lc "cd /var/www/html/extensions/PageForms && ./node_modules/.bin/qunit --require ./tests/node-qunit/setup.js tests/node-qunit/simpleupload.test.js"
+----
+
 New or renamed test files are copied into the Docker image at build time.
 After changing test files, run commands via `make install ...` at least once,
-then you can use `make composer-phpunit ...` for repeated runs.
+then you can use `make composer-phpunit ...`, `make npm-test`, or direct
+`qunit` runs in the container for repeated runs.
 
 ---
 This extension is part of https://semantic.wiki/core[*semantic::core*] - Enterprise Class MediaWiki distribution.
