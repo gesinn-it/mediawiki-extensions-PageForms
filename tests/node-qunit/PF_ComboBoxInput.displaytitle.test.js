@@ -20,6 +20,8 @@ function createComboBoxDouble( overrides ) {
 		highlightText: ( text ) => text,
 		getConditionForAutocompleteOnAllChars: pageforms.ComboBoxInput.prototype.getConditionForAutocompleteOnAllChars,
 		checkIfAnyWordStartsWithInputValue: pageforms.ComboBoxInput.prototype.checkIfAnyWordStartsWithInputValue,
+		getCanonicalValueForInput: pageforms.ComboBoxInput.prototype.getCanonicalValueForInput,
+		syncCanonicalValue: pageforms.ComboBoxInput.prototype.syncCanonicalValue,
 		$input: $( '#input_1' ),
 		$element: $( '<span>' )
 	};
@@ -35,6 +37,7 @@ QUnit.module( 'PF_ComboBoxInput displaytitle handling', {
 		this.configValues = {
 			wgPageFormsAutocompleteOnAllChars: true,
 			wgPageFormsAutocompleteValues: {},
+			wgPageFormsFieldProperties: {},
 			wgScriptPath: '',
 			wgPageFormsScriptPath: ''
 		};
@@ -54,7 +57,7 @@ QUnit.module( 'PF_ComboBoxInput displaytitle handling', {
 	}
 } );
 
-QUnit.test( 'remote autocomplete stores title while showing displaytitle', function( assert ) {
+QUnit.test( 'remote autocomplete keeps displaytitle visible and tracks canonical title', function( assert ) {
 	const combo = createComboBoxDouble( {
 		config: {
 			autocompletedatatype: 'category',
@@ -83,8 +86,10 @@ QUnit.test( 'remote autocomplete stores title while showing displaytitle', funct
 	pageforms.ComboBoxInput.prototype.setValues.call( combo, false );
 
 	const options = combo.setOptions.firstCall.args[0];
-	assert.strictEqual( options[0].data, 'Albert_Einstein' );
+	assert.strictEqual( options[0].data, 'Albert Einstein' );
 	assert.strictEqual( options[0].label, 'Albert Einstein' );
+	combo.syncCanonicalValue( 'Albert Einstein' );
+	assert.strictEqual( combo.$input.attr( 'data-pf-canonical-value' ), 'Albert_Einstein' );
 } );
 
 QUnit.test( 'remote autocomplete accepts canonical title for itemFound', function( assert ) {
@@ -118,7 +123,7 @@ QUnit.test( 'remote autocomplete accepts canonical title for itemFound', functio
 	assert.true( combo.itemFound );
 } );
 
-QUnit.test( 'local autocomplete map uses title as data and displaytitle as label', function( assert ) {
+QUnit.test( 'local autocomplete map keeps displaytitle visible and tracks canonical title', function( assert ) {
 	this.configValues.wgPageFormsAutocompleteValues = {
 		Scientists: {
 			Albert_Einstein: 'Albert Einstein'
@@ -134,11 +139,13 @@ QUnit.test( 'local autocomplete map uses title as data and displaytitle as label
 	pageforms.ComboBoxInput.prototype.setValues.call( combo, false );
 
 	const options = combo.setOptions.firstCall.args[0];
-	assert.strictEqual( options[0].data, 'Albert_Einstein' );
+	assert.strictEqual( options[0].data, 'Albert Einstein' );
 	assert.strictEqual( options[0].label, 'Albert Einstein' );
+	combo.syncCanonicalValue( 'Albert Einstein' );
+	assert.strictEqual( combo.$input.attr( 'data-pf-canonical-value' ), 'Albert_Einstein' );
 } );
 
-QUnit.test( 'dependent autocomplete uses title as data and displaytitle as label', function( assert ) {
+QUnit.test( 'dependent autocomplete keeps displaytitle visible and tracks canonical title', function( assert ) {
 	const combo = createComboBoxDouble( {
 		config: {
 			autocompletesettings: 'City'
@@ -162,6 +169,24 @@ QUnit.test( 'dependent autocomplete uses title as data and displaytitle as label
 	pageforms.ComboBoxInput.prototype.setValues.call( combo, false );
 
 	const options = combo.setOptions.firstCall.args[0];
-	assert.strictEqual( options[0].data, 'Berlin_(DE)' );
+	assert.strictEqual( options[0].data, 'Berlin' );
 	assert.strictEqual( options[0].label, 'Berlin' );
+	combo.syncCanonicalValue( 'Berlin' );
+	assert.strictEqual( combo.$input.attr( 'data-pf-canonical-value' ), 'Berlin_(DE)' );
+} );
+
+QUnit.test( 'dependent field lookup prefers canonical base value attribute', function( assert ) {
+	$( '<input name="Country" value="Germany display" data-pf-canonical-value="Germany">' ).appendTo( document.body );
+	const combo = createComboBoxDouble( {
+		config: {
+			autocompletesettings: 'City'
+		},
+		partOfMultiple: () => false,
+		getInputId: () => 'input_1'
+	} );
+	combo.$input.attr( 'autocompletesettings', 'City' );
+
+	const opts = pageforms.ComboBoxInput.prototype.getDependentFieldOpts.call( combo, 'Country' );
+
+	assert.strictEqual( opts.base_value, 'Germany' );
 } );

@@ -19,6 +19,7 @@
     var apiRequest = null;
     pf.ComboBoxInput = function (config) {
         this.config = config || {}
+        this.titleByDisplayValue = {};
         OO.ui.ComboBoxInputWidget.call(this, config);
         OO.ui.mixin.PendingElement.call(this, { $pending: this.$input });
     };
@@ -51,6 +52,7 @@
 
         // Initialize values in the combobox
         this.setValues();
+        this.syncCanonicalValue();
 
         if (this.config.autocompletesettings == 'external data') {
             // this is especially set for dependent on settings
@@ -65,7 +67,9 @@
         this.$input.blur( () => {
             if ( !this.itemFound && this.config['existingvaluesonly'] ){
                 this.setValue("");
+                this.syncCanonicalValue( "" );
             } else {
+                this.syncCanonicalValue();
                 this.$element.css("width", this.getValue().length * 11);
             }
         });
@@ -73,6 +77,7 @@
             this.setValues();
         });
         this.$input.keyup( (event) => {
+            this.syncCanonicalValue();
             if (event.keyCode !== 38 && event.keyCode !== 40 && event.keyCode !== 37 && event.keyCode !== 39) {
                 this.setValues(false);
             }
@@ -81,8 +86,18 @@
             this.setValues(false);
         })
         this.$element.focusout( () =>{
+            this.syncCanonicalValue();
             $( '.combobox_map_feed' ).val( this.$input.val() );
         });
+
+        const eventNamespace = '.pfCanonicalSubmit-' + this.getInputId();
+        const $form = this.$input.closest( 'form' );
+        if ( $form.length > 0 ) {
+            $form.off( 'submit' + eventNamespace ).on( 'submit' + eventNamespace, () => {
+                this.syncCanonicalValue();
+                this.$input.val( this.$input.attr( 'data-pf-canonical-value' ) || this.$input.val() );
+            } );
+        }
 
         var $loadingIcon = $( '<img src = "' + mw.config.get( 'wgPageFormsScriptPath' ) + '/skins/loading.gif'
             + '" id="loading-' + this.getInputId() + '">' );
@@ -102,6 +117,7 @@
             curValue,
             my_server,
             wgPageFormsAutocompleteOnAllChars = mw.config.get( 'wgPageFormsAutocompleteOnAllChars' );
+        this.titleByDisplayValue = {};
 
         // First, handle "show on select" stuff.
         var $parentSpan = $(input_id).closest('span');
@@ -171,11 +187,12 @@
                             for ( i = 0; i < Data.length; i++ ) {
                                 const optionTitle = Data[i].title;
                                 const optionLabel = Data[i].displaytitle || Data[i].title;
+                                self.titleByDisplayValue[optionLabel] = optionTitle;
                                 if ( optionLabel === self.getValue() || optionTitle === self.getValue() ) {
                                     self.itemFound = true;
                                 }
                                 values.push({
-                                    data: optionTitle, label: self.highlightText(optionLabel)
+                                    data: optionLabel, label: self.highlightText(optionLabel)
                                 });
                             }
                         }
@@ -185,6 +202,7 @@
                         });
                     }
                     self.setOptions(values);
+                    self.syncCanonicalValue();
                 },
                 complete: function() {
                     self.popPending();
@@ -209,6 +227,7 @@
                                 if (data.title[i] == curValue ){
                                     self.itemFound = true;
                                 }
+                                self.titleByDisplayValue[data.title[i]] = data.title[i];
                                 if (wgPageFormsAutocompleteOnAllChars) {
                                     if (self.getConditionForAutocompleteOnAllChars(data.title[i], curValue)) {
                                         values.push({
@@ -238,6 +257,7 @@
                             for (let key in data) {
                                 const optionData = Array.isArray(data) ? data[key] : key;
                                 const optionLabel = data[key];
+                                this.titleByDisplayValue[optionLabel] = optionData;
                                 if ( optionData == curValue || optionLabel == curValue ) {
                                     self.itemFound = true;
                                 }
@@ -246,7 +266,7 @@
                                     this.getConditionForAutocompleteOnAllChars(optionData, curValue )
                                 ) {
                                     values.push({
-                                        data: optionData, label: this.highlightText(optionLabel)
+                                        data: optionLabel, label: this.highlightText(optionLabel)
                                     });
                                 }
                             }
@@ -254,6 +274,7 @@
                             for (let key in data) {
                                 const optionData = Array.isArray(data) ? data[key] : key;
                                 const optionLabel = data[key];
+                                this.titleByDisplayValue[optionLabel] = optionData;
                                 if ( optionData == curValue || optionLabel == curValue ) {
                                     self.itemFound = true;
                                 }
@@ -262,7 +283,7 @@
                                     this.checkIfAnyWordStartsWithInputValue(optionData, curValue)
                                 ) {
                                     values.push({
-                                        data: optionData, label: this.highlightText(optionLabel)
+                                        data: optionLabel, label: this.highlightText(optionLabel)
                                     });
                                 }
                             }
@@ -306,6 +327,7 @@
                                 curValue = self.getValue();
                                 const optionTitle = item.title;
                                 const optionLabel = item.displaytitle !== undefined ? item.displaytitle : item.title;
+                                self.titleByDisplayValue[optionLabel] = optionTitle;
                                 if ( optionLabel == curValue || optionTitle == curValue ) {
                                     self.itemFound = true;
                                 }
@@ -315,7 +337,7 @@
                                         self.getConditionForAutocompleteOnAllChars(optionTitle, curValue)
                                     ) {
                                         values.push({
-                                            data: optionTitle, label: self.highlightText(optionLabel)
+                                            data: optionLabel, label: self.highlightText(optionLabel)
                                         });
                                     }
                                 } else {
@@ -324,7 +346,7 @@
                                         self.checkIfAnyWordStartsWithInputValue(optionTitle, curValue)
                                     ) {
                                         values.push({
-                                            data: optionTitle, label: self.highlightText(optionLabel)
+                                            data: optionLabel, label: self.highlightText(optionLabel)
                                         });
                                     }
                                 }
@@ -344,8 +366,27 @@
                     data:self.getValue(), label: mw.message('pf-autocomplete-no-matches').text(), disabled: true
                 });
             }
+            this.syncCanonicalValue();
             this.setOptions(values);
         }
+    };
+
+    pf.ComboBoxInput.prototype.getCanonicalValueForInput = function ( value ) {
+        if ( value === undefined || value === null ) {
+            return value;
+        }
+        if ( this.titleByDisplayValue !== undefined && this.titleByDisplayValue[value] !== undefined ) {
+            return this.titleByDisplayValue[value];
+        }
+        return value;
+    };
+
+    pf.ComboBoxInput.prototype.syncCanonicalValue = function ( inputValue ) {
+        var valueToSync = inputValue;
+        if ( valueToSync === undefined ) {
+            valueToSync = this.getValue();
+        }
+        this.$input.attr( 'data-pf-canonical-value', this.getCanonicalValueForInput( valueToSync ) );
     };
     /**
      * Returns the name attribute of the field depending on
@@ -410,7 +451,7 @@
         } else {
             $baseElement = $('[name ="' + dep_on + '" ]');
         }
-        dep_field_opts.base_value = $baseElement.val();
+        dep_field_opts.base_value = $baseElement.attr( 'data-pf-canonical-value' ) || $baseElement.val();
         dep_field_opts.base_prop = mw.config.get('wgPageFormsFieldProperties')[dep_on] ||
             $baseElement.attr("autocompletesettings") == 'external data' ?
             $baseElement.attr("data-autocomplete") : $baseElement.attr("autocompletesettings");
