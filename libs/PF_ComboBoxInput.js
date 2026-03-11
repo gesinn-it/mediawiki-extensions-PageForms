@@ -169,12 +169,13 @@
                             });
                         } else {
                             for ( i = 0; i < Data.length; i++ ) {
-                                const title = Data[i].displaytitle || Data[i].title;
-                                if ( title === self.getValue() ){
+                                const optionTitle = Data[i].title;
+                                const optionLabel = Data[i].displaytitle || Data[i].title;
+                                if ( optionLabel === self.getValue() || optionTitle === self.getValue() ) {
                                     self.itemFound = true;
                                 }
                                 values.push({
-                                    data: title, label: self.highlightText(title)
+                                    data: optionTitle, label: self.highlightText(optionLabel)
                                 });
                             }
                         }
@@ -235,23 +236,33 @@
                     if (Array.isArray(data) || typeof data == 'object') {
                         if (wgPageFormsAutocompleteOnAllChars) {
                             for (let key in data) {
-                                if ( data[key] == curValue ) {
+                                const optionData = Array.isArray(data) ? data[key] : key;
+                                const optionLabel = data[key];
+                                if ( optionData == curValue || optionLabel == curValue ) {
                                     self.itemFound = true;
                                 }
-                                if (this.getConditionForAutocompleteOnAllChars(data[key], curValue )) {
+                                if (
+                                    this.getConditionForAutocompleteOnAllChars(optionLabel, curValue ) ||
+                                    this.getConditionForAutocompleteOnAllChars(optionData, curValue )
+                                ) {
                                     values.push({
-                                        data: data[key], label: this.highlightText(data[key])
+                                        data: optionData, label: this.highlightText(optionLabel)
                                     });
                                 }
                             }
                         } else {
                             for (let key in data) {
-                                if ( data[key] == curValue ) {
+                                const optionData = Array.isArray(data) ? data[key] : key;
+                                const optionLabel = data[key];
+                                if ( optionData == curValue || optionLabel == curValue ) {
                                     self.itemFound = true;
                                 }
-                                if (this.checkIfAnyWordStartsWithInputValue(data[key], curValue)) {
+                                if (
+                                    this.checkIfAnyWordStartsWithInputValue(optionLabel, curValue) ||
+                                    this.checkIfAnyWordStartsWithInputValue(optionData, curValue)
+                                ) {
                                     values.push({
-                                        data: data[key], label: this.highlightText(data[key])
+                                        data: optionData, label: this.highlightText(optionLabel)
                                     });
                                 }
                             }
@@ -293,36 +304,28 @@
                             }
                             response.pfautocomplete.forEach(function (item) {
                                 curValue = self.getValue();
-                                if ( item.displaytitle == curValue || item.title == curValue ) {
+                                const optionTitle = item.title;
+                                const optionLabel = item.displaytitle !== undefined ? item.displaytitle : item.title;
+                                if ( optionLabel == curValue || optionTitle == curValue ) {
                                     self.itemFound = true;
                                 }
                                 if (wgPageFormsAutocompleteOnAllChars) {
-                                    if (item.displaytitle !== undefined) {
-                                        if (self.getConditionForAutocompleteOnAllChars(item.displaytitle, curValue)){
-                                            values.push({
-                                                data: item.displaytitle, label: self.highlightText(item.displaytitle)
-                                            });
-                                        }
-                                    } else {
-                                        if (self.getConditionForAutocompleteOnAllChars(item.title,curValue)) {
-                                            values.push({
-                                                data: item.title, label: self.highlightText(item.title)
-                                            });
-                                        }
+                                    if (
+                                        self.getConditionForAutocompleteOnAllChars(optionLabel, curValue) ||
+                                        self.getConditionForAutocompleteOnAllChars(optionTitle, curValue)
+                                    ) {
+                                        values.push({
+                                            data: optionTitle, label: self.highlightText(optionLabel)
+                                        });
                                     }
                                 } else {
-                                    if (item.displaytitle !== undefined) {
-                                        if (self.checkIfAnyWordStartsWithInputValue(item.displaytitle, curValue)) {
-                                            values.push({
-                                                data: item.displaytitle, label: self.highlightText(item.displaytitle)
-                                            });
-                                        }
-                                    } else {
-                                        if (self.checkIfAnyWordStartsWithInputValue(item.title, curValue)) {
-                                            values.push({
-                                                data: item.title, label: self.highlightText(item.title)
-                                            });
-                                        }
+                                    if (
+                                        self.checkIfAnyWordStartsWithInputValue(optionLabel, curValue) ||
+                                        self.checkIfAnyWordStartsWithInputValue(optionTitle, curValue)
+                                    ) {
+                                        values.push({
+                                            data: optionTitle, label: self.highlightText(optionLabel)
+                                        });
                                     }
                                 }
                             });
