@@ -789,6 +789,11 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			$autocompleteValues = self::getAutocompleteValues( $autocompletionSource, $autocompleteFieldType );
 		}
 
+		$autocompleteValues = self::maybeDisambiguateAutocompleteLabels(
+			$autocompleteValues,
+			$autocompleteFieldType
+		);
+
 		if ( count( $autocompleteValues ) > $wgPageFormsMaxLocalAutocompleteValues &&
 			$autocompleteFieldType != 'values' &&
 			!array_key_exists( 'values dependent on', $field_args ) &&
@@ -800,6 +805,28 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			$wgPageFormsAutocompleteValues[$autocompleteSettings] = $autocompleteValues;
 			return null;
 		}
+	}
+
+	/**
+	 * For local autocomplete values, disambiguate duplicate displaytitle labels
+	 * for sources that map page titles to display titles.
+	 *
+	 * @param array $autocompleteValues
+	 * @param string|null $autocompleteFieldType
+	 * @return array
+	 */
+	public static function maybeDisambiguateAutocompleteLabels( array $autocompleteValues, $autocompleteFieldType ) {
+		global $wgPageFormsUseDisplayTitle;
+
+		if ( !$wgPageFormsUseDisplayTitle ) {
+			return $autocompleteValues;
+		}
+
+		if ( !in_array( $autocompleteFieldType, [ 'category', 'concept', 'namespace' ], true ) ) {
+			return $autocompleteValues;
+		}
+
+		return self::disambiguateLabels( $autocompleteValues );
 	}
 
 	/**
