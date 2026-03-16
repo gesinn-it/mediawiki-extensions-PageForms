@@ -34,4 +34,6 @@ jobs:
       - name: Commit readme
         uses: EndBug/add-and-commit@v8
         with:
+          with: 'readme.adoc'
+          pull: '--rebase --autostash'
           message: "Update generated README [skip ci]"

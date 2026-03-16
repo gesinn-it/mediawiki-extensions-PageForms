@@ -3,7 +3,8 @@ name: Build Copilot Instructions
 on:
   push:
     paths:
-      - docs-master/**
+      - docs/gesinn-it-docs-master-pub
+      - docs/gesinn-it-docs-master-pub/**
       - .github/copilot-instructions-source.adoc
     branches:
       - '**'
@@ -65,4 +66,5 @@ jobs:
         uses: EndBug/add-and-commit@v8
         with:
           add: '.github/copilot-instructions.md'
+          pull: '--rebase --autostash'
           message: "docs(ci): update generated Copilot instructions [skip ci]"
