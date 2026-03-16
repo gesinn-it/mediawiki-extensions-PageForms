@@ -30,8 +30,6 @@ container.
 make install
 ```
 
-## PHPUnit tests
-
 **PHPUnit tests**
 
 Run all PHPUnit tests:
@@ -58,8 +56,6 @@ For interactive use, bash into the running container:
 make bash
 > composer phpunit -- --filter YourTestName
 ```
-
-## Node QUnit tests
 
 **Node QUnit tests**
 
