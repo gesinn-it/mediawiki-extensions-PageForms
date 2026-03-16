@@ -1,5 +1,32 @@
 <!-- THIS FILE IS AUTO-GENERATED. Edit .github/copilot-instructions-source.adoc instead. -->
 
+# Project Notes
+
+## Deprecated integrations: Cargo and PageSchemas
+
+Support for the Cargo and PageSchemas extensions will be removed in a
+future version. The following rules apply immediately:
+
+- Do **not** write new tests for Cargo- or PageSchemas-related code
+  paths.
+
+- Do **not** document Cargo or PageSchemas behaviour in any new or
+  updated documentation.
+
+- When coverage gaps in existing code are caused solely by Cargo or
+  PageSchemas code paths, treat those gaps as irrelevant — do not create
+  tests to fill them.
+
+- Annotate Cargo- and PageSchemas-related code blocks with a PHPUnit
+  coverage ignore comment so that they are excluded from coverage
+  metrics:
+
+``` php
+// @codeCoverageIgnoreStart
+... Cargo / PageSchemas code ...
+// @codeCoverageIgnoreEnd
+```
+
 # Test Workflow
 
 Before making any code changes to fix a bug or implement a feature:
