@@ -1,0 +1,1 @@
+include::../docs/gesinn-it-docs-master-pub/snippets/semver.adoc[]
