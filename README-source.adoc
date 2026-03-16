@@ -14,9 +14,9 @@ Page Forms, previously known as Semantic Forms, is a MediaWiki extension aimed a
 == Documentation
 For documentation see: https://++www.mediawiki.org/wiki/Extension:Page Forms++
 
-include::docs/gesinn-it-docs-master-pub/general/semver.adoc[]
+include::docs/gesinn-it-docs-master-pub/snippets/semver.adoc[]
 
-include::docs/gesinn-it-docs-master-pub/contributing/contributing.adoc[]
+include::docs/gesinn-it-docs-master-pub/sections/contributing.adoc[]
 
 == Local testing notes
 

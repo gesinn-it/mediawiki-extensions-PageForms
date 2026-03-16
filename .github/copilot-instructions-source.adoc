@@ -1,5 +1,23 @@
-include::../docs/gesinn-it-docs-master-pub/snippets/semver-policy.adoc[]
+== Test Workflow
+
+include::../docs/gesinn-it-docs-master-pub/snippets/test-first-approach.adoc[]
+
+include::../docs/gesinn-it-docs-master-pub/snippets/docker-compose-ci-install.adoc[]
+
+=== PHPUnit tests
+
+include::../docs/gesinn-it-docs-master-pub/snippets/docker-compose-ci-phpunit.adoc[]
+
+=== Node QUnit tests
+
+include::../docs/gesinn-it-docs-master-pub/snippets/docker-compose-ci-npm.adoc[]
+
+include::../docs/gesinn-it-docs-master-pub/snippets/docker-compose-ci-pre-commit-validation-gate.adoc[]
 
 == Conventional Commits
 
-include::../docs/gesinn-it-docs-master-pub/snippets/conventional-commits-policy.adoc[]
+include::../docs/gesinn-it-docs-master-pub/sections/conventional-commits-policy.adoc[]
+
+// == SemVer Policy
+
+include::../docs/gesinn-it-docs-master-pub/sections/semver-policy.adoc[]
