@@ -123,6 +123,10 @@
 			// "Please enter..." message.
 			// There's probably a less hacky way to accomplish this.
 			$(this).parent().find('span.select2-selection').click().click();
+			var $searchField = inputData.$container.find( '.select2-search__field' );
+			if ( $searchField.length ) {
+				$searchField.val( '' ).trigger( 'input' );
+			}
 		});
 
 		$(inputData.$container[0]).on("keyup",function(e){

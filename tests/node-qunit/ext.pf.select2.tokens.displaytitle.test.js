@@ -103,3 +103,64 @@ QUnit.test( 'insertTag skips duplicate free tag for existing displaytitle result
 	assert.strictEqual( data.length, 2 );
 	assert.deepEqual( data[0], { id: 'Albert_Einstein', text: 'Albert Einstein' } );
 } );
+
+QUnit.test( 'selecting a suggestion clears inline search text', function( assert ) {
+	const $input = $( '<select id="input_2" name="Scientists[]" autocompletesettings="Scientists" multiple></select>' )
+		.append( '<option value="Albert_Einstein">Albert Einstein</option>' );
+	const $wrapper = $( '<span class="inputSpan"></span>' )
+		.append( $input )
+		.appendTo( document.body );
+	const $container = $( '<span class="select2-container"><span class="select2-selection"><ul class="select2-selection__rendered"><li class="select2-search select2-search--inline"><input class="select2-search__field" /></li></ul></span></span>' )
+		.appendTo( $wrapper );
+
+	this.configValues.wgPageFormsScriptPath = '/extensions/PageForms';
+	this.configValues.wgPageFormsAutocompleteValues = {
+		Scientists: {
+			Albert_Einstein: 'Albert Einstein'
+		}
+	};
+
+	const inputData = {
+		$container,
+		$results: $( '<ul></ul>' ),
+		val: () => [],
+		results: {},
+		dropdown: {
+			$searchContainer: $( '<span></span>' )
+		}
+	};
+
+	global.Sortable = {
+		create: () => ( {} )
+	};
+	if ( typeof $.fn.select2 !== 'function' ) {
+		$.fn.select2 = function() {
+			return this;
+		};
+	}
+
+	sinon.stub( $.fn, 'select2' ).callsFake( function() {
+		this.data( 'select2', inputData );
+		return this;
+	} );
+
+	const tokens = new pageforms.select2.tokens();
+	tokens.apply( $input );
+
+	const $searchField = inputData.$container.find( '.select2-search__field' );
+	$searchField.val( 'türe' );
+
+	$input.trigger( {
+		type: 'select2:select',
+		params: {
+			data: {
+				id: 'Albert_Einstein',
+				text: 'Albert Einstein',
+				element: $input.find( 'option[value="Albert_Einstein"]' )[0]
+			}
+		}
+	} );
+
+	assert.strictEqual( $searchField.val(), '' );
+	delete global.Sortable;
+} );
