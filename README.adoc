@@ -1,3 +1,6 @@
+// THIS FILE IS AUTO-GENERATED.
+// Edit README-source.adoc instead.
+
 :project_name: Page Forms
 = {project_name}
 
@@ -161,3 +164,5 @@ then you can use `make composer-phpunit ...`, `make npm-test`, or direct
 
 ---
 This extension is part of https://semantic.wiki/core[*semantic::core*] - Enterprise Class MediaWiki distribution.
+
+.
