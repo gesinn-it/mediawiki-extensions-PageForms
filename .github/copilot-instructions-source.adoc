@@ -4,11 +4,7 @@ include::../docs/gesinn-it-docs-master-pub/snippets/test-first-approach.adoc[]
 
 include::../docs/gesinn-it-docs-master-pub/snippets/docker-compose-ci-install.adoc[]
 
-=== PHPUnit tests
-
 include::../docs/gesinn-it-docs-master-pub/snippets/docker-compose-ci-phpunit.adoc[]
-
-=== Node QUnit tests
 
 include::../docs/gesinn-it-docs-master-pub/snippets/docker-compose-ci-npm.adoc[]
 
