@@ -10,6 +10,57 @@ include::../docs/gesinn-it-docs-master-pub/snippets/docker-compose-ci-npm.adoc[]
 
 include::../docs/gesinn-it-docs-master-pub/snippets/docker-compose-ci-pre-commit-validation-gate.adoc[]
 
+**Coverage analysis**
+
+Coverage reports require PHP 7.4 / MW 1.35, because PHPUnit 8.5 does not support
+code coverage on PHP 8. Always pass the matching versions explicitly.
+
+Run the full coverage suite (generates HTML + Clover XML under `build/coverage/php/`):
+
+[source,console]
+----
+make install composer-test-coverage MW_VERSION=1.35 PHP_VERSION=7.4 SMW_VERSION=4.2.0 DT_VERSION=3.1 PS_VERSION=0.6.1
+----
+
+The coverage output is mounted from the container to the host and is available at
+`build/coverage/php/` after the run:
+
+* `build/coverage/php/index.html` — browsable HTML report
+* `build/coverage/php/coverage.xml` — Clover XML (used by Codecov)
+
+To analyse coverage for a *specific file*, bash into the running container after
+the `make install` step and run PHPUnit directly with `--coverage-text` and a
+`--filter` matching the test class name:
+
+[source,console]
+----
+make install MW_VERSION=1.35 PHP_VERSION=7.4 SMW_VERSION=4.2.0 DT_VERSION=3.1 PS_VERSION=0.6.1
+make bash
+> XDEBUG_MODE=coverage composer phpunit -- --coverage-text --filter PFAutocompleteAPI
+----
+
+NOTE: `--filter` matches against test *class and method names*, not source file
+names. To cover `PF_AutocompleteAPI.php` filter for the test class
+`PFAutocompleteAPI`.
+
+To extract exact covered/missed line numbers from the generated Clover XML on
+the host:
+
+[source,console]
+----
+python3 - <<'EOF'
+import xml.etree.ElementTree as ET
+tree = ET.parse('build/coverage/php/coverage.xml')
+covered, missed = [], []
+for f in tree.getroot().iter('file'):
+    if 'PF_AutocompleteAPI' in f.get('name', ''):
+        for line in f.iter('line'):
+            (covered if int(line.get('count', 0)) > 0 else missed).append(int(line.get('num')))
+print(f'Covered ({len(covered)}): {covered}')
+print(f'Missed  ({len(missed)}):  {missed}')
+EOF
+----
+
 == Conventional Commits
 
 include::../docs/gesinn-it-docs-master-pub/sections/conventional-commits-policy.adoc[]
