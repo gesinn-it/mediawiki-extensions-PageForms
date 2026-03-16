@@ -1,0 +1,69 @@
+{
+	"description": "Test API `action=pfautocomplete` property search with page-type property returns page names filtered by substr",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestPagePropAC01",
+			"contents": "[[Has type::Page]]"
+		},
+		{
+			"page": "PFTestACPageTarget01",
+			"contents": ""
+		},
+		{
+			"page": "PFTestACPageTarget02",
+			"contents": ""
+		},
+		{
+			"page": "PFTestACPageSubject01",
+			"contents": "[[PFTestPagePropAC01::PFTestACPageTarget01]]"
+		},
+		{
+			"page": "PFTestACPageSubject02",
+			"contents": "[[PFTestPagePropAC01::PFTestACPageTarget02]]"
+		}
+	],
+	"tests": [
+		{
+			"type": "api",
+			"about": "page-type property search returns referenced page titles matching substr",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestPagePropAC01",
+					"substr": "PFTestACPageTarget"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"PFTestACPageTarget01\""
+			}
+		},
+		{
+			"type": "api",
+			"about": "page-type property search also returns second matching page title",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestPagePropAC01",
+					"substr": "PFTestACPageTarget"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"PFTestACPageTarget02\""
+			}
+		}
+	],
+	"settings": {
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

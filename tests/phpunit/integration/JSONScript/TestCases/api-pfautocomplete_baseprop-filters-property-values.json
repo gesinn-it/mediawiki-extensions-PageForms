@@ -1,0 +1,76 @@
+{
+	"description": "Test API `action=pfautocomplete` baseprop+property returns values filtered by base property value",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestPageBasePropAC01",
+			"contents": "[[Has type::Page]]"
+		},
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestTextMainPropAC01",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"page": "PFTestACGroupATarget01",
+			"contents": ""
+		},
+		{
+			"page": "PFTestACGroupBTarget01",
+			"contents": ""
+		},
+		{
+			"page": "PFTestACBasePropSubj01",
+			"contents": "[[PFTestPageBasePropAC01::PFTestACGroupATarget01]][[PFTestTextMainPropAC01::Alpha Value]]"
+		},
+		{
+			"page": "PFTestACBasePropSubj02",
+			"contents": "[[PFTestPageBasePropAC01::PFTestACGroupBTarget01]][[PFTestTextMainPropAC01::Beta Value]]"
+		}
+	],
+	"tests": [
+		{
+			"type": "api",
+			"about": "baseprop+property returns only values where base property matches basevalue",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestTextMainPropAC01",
+					"baseprop": "PFTestPageBasePropAC01",
+					"basevalue": "PFTestACGroupATarget01"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"Alpha Value\""
+			}
+		},
+		{
+			"type": "api",
+			"about": "baseprop+property does not return values where base property differs",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestTextMainPropAC01",
+					"baseprop": "PFTestPageBasePropAC01",
+					"basevalue": "PFTestACGroupATarget01"
+				}
+			},
+			"assert-output": {
+				"to-not-contain": "Beta Value"
+			}
+		}
+	],
+	"settings": {
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

@@ -1,0 +1,68 @@
+{
+	"description": "Test API `action=pfautocomplete` baseprop+property with text-type base property filters result correctly",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestTextBasePropAC02",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestTextMainPropAC02",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"page": "PFTestACTextBasePage01",
+			"contents": "[[PFTestTextBasePropAC02::groupalpha]][[PFTestTextMainPropAC02::Result Alpha]]"
+		},
+		{
+			"page": "PFTestACTextBasePage02",
+			"contents": "[[PFTestTextBasePropAC02::groupbeta]][[PFTestTextMainPropAC02::Result Beta]]"
+		}
+	],
+	"tests": [
+		{
+			"type": "api",
+			"about": "text-type baseprop+property returns only values where text base property matches basevalue",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestTextMainPropAC02",
+					"baseprop": "PFTestTextBasePropAC02",
+					"basevalue": "groupalpha"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"Result Alpha\""
+			}
+		},
+		{
+			"type": "api",
+			"about": "text-type baseprop+property does not return values where text base property differs",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestTextMainPropAC02",
+					"baseprop": "PFTestTextBasePropAC02",
+					"basevalue": "groupalpha"
+				}
+			},
+			"assert-output": {
+				"to-not-contain": "Result Beta"
+			}
+		}
+	],
+	"settings": {
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

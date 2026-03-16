@@ -4,6 +4,7 @@
  * @covers \PFAutocompleteAPI
  * @group PF
  * @group Database
+ * @group medium
  */
 class PFAutocompleteAPITest extends ApiTestCase {
 

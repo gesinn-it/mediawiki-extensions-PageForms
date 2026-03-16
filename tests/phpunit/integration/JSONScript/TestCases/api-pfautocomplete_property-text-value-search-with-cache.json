@@ -1,0 +1,62 @@
+{
+	"description": "Test API `action=pfautocomplete` property search works correctly when autocomplete cache is enabled",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestTextPropAC02",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"page": "PFTestACCachePage01",
+			"contents": "[[PFTestTextPropAC02::Cached Alpha]]"
+		},
+		{
+			"page": "PFTestACCachePage02",
+			"contents": "[[PFTestTextPropAC02::Cached Beta]]"
+		}
+	],
+	"tests": [
+		{
+			"type": "api",
+			"about": "property text search returns matching values when cache is enabled",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestTextPropAC02",
+					"substr": "Cached A"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"Cached Alpha\""
+			}
+		},
+		{
+			"type": "api",
+			"about": "property text search does not return non-matching values when cache is enabled",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestTextPropAC02",
+					"substr": "Cached A"
+				}
+			},
+			"assert-output": {
+				"to-not-contain": "Cached Beta"
+			}
+		}
+	],
+	"settings": {
+		"wgPageFormsCacheAutocompleteValues": true,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

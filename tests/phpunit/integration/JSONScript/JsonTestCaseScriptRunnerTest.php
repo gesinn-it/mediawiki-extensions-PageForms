@@ -59,6 +59,7 @@ class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 	protected function getPermittedSettings() {
 		return array_merge( parent::getPermittedSettings(), [
 			'wgPageFormsAutocompleteOnAllChars',
+			'wgPageFormsCacheAutocompleteValues',
 			'wgPageFormsUseDisplayTitle',
 			'wgAllowDisplayTitle',
 			'wgRestrictDisplayTitle',
