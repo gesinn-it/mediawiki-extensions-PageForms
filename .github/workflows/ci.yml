@@ -4,13 +4,11 @@ on:
   push:
     branches: [ master ]
     paths-ignore:
-      - README-source.adoc
-      - README.adoc
+      - '**/*.adoc'
   pull_request:
     branches: [ master ]
     paths-ignore:
-      - README-source.adoc
-      - README.adoc
+      - '**/*.adoc'
   workflow_dispatch:
 
 jobs:
