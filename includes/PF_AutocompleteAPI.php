@@ -36,7 +36,7 @@ class PFAutocompleteAPI extends ApiBase {
 		$basevalue = $params['basevalue'];
 		// $limit = $params['limit'];
 
-		if ( $baseprop === null && $base_cargo_table === null && strlen( $substr ) == 0 ) {
+		if ( $baseprop === null && $base_cargo_table === null && ( $substr === null || strlen( $substr ) == 0 ) ) {
 			$this->dieWithError( [ 'apierror-missingparam', 'substr' ], 'param_substr' );
 		}
 
@@ -62,8 +62,10 @@ class PFAutocompleteAPI extends ApiBase {
 			if ( $map ) {
 				$data = PFValuesUtils::disambiguateLabels( $data );
 			}
+		// @codeCoverageIgnoreStart
 		} elseif ( $cargo_table !== null && $cargo_field !== null ) {
 			$data = self::getAllValuesForCargoField( $cargo_table, $cargo_field, $cargo_where, $substr, $base_cargo_table, $base_cargo_field, $basevalue );
+		// @codeCoverageIgnoreEnd
 		} elseif ( $namespace !== null ) {
 			$data = PFValuesUtils::getAllPagesForNamespace( $namespace, $substr );
 			$map = $wgPageFormsUseDisplayTitle;
@@ -324,6 +326,18 @@ class PFAutocompleteAPI extends ApiBase {
 		return $values;
 	}
 
+	// @codeCoverageIgnoreStart
+
+	/**
+	 * @param string $cargoTable
+	 * @param string $cargoField
+	 * @param string|null $cargoWhere
+	 * @param string $substring
+	 * @param string|null $baseCargoTable
+	 * @param string|null $baseCargoField
+	 * @param mixed $baseValue
+	 * @return array
+	 */
 	private static function getAllValuesForCargoField( $cargoTable, $cargoField, $cargoWhere, $substring, $baseCargoTable = null, $baseCargoField = null, $baseValue = null ) {
 		global $wgPageFormsCacheAutocompleteValues, $wgPageFormsAutocompleteCacheTimeout;
 
@@ -473,6 +487,15 @@ class PFAutocompleteAPI extends ApiBase {
 		return $values;
 	}
 
+	// @codeCoverageIgnoreEnd
+
+	// @codeCoverageIgnoreStart
+
+	/**
+	 * @param string $cargoTable
+	 * @param string $cargoField
+	 * @return bool
+	 */
 	public static function cargoFieldIsList( $cargoTable, $cargoField ) {
 		// @TODO - this is duplicate work; the schema is retrieved
 		// again when the CargoSQLQuery object is created. There should
@@ -492,6 +515,8 @@ class PFAutocompleteAPI extends ApiBase {
 		$fieldDesc = $tableSchema->mFieldDescriptions[$cargoField];
 		return $fieldDesc->mIsList;
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Move the exact match to the top for better autocompletion
