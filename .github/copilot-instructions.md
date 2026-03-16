@@ -1,36 +1,96 @@
 <!-- THIS FILE IS AUTO-GENERATED. Edit .github/copilot-instructions-source.adoc instead. -->
 
-# Versioning and Releases
+# Test Workflow
 
-This project follows [Semantic Versioning](https://semver.org/).
+Before making any code changes to fix a bug or implement a feature:
 
-Version numbers follow the format:
+1.  Check whether an existing test already covers the described
+    behavior.
 
-`MAJOR.MINOR.PATCH`
+2.  If not, write or adapt a test that reproduces the issue — it must
+    fail first.
 
-Version increment rules:
+3.  Only after a failing test exists, make the code changes.
 
-- MAJOR — incompatible or breaking changes
+4.  Re-run the test to confirm it passes (green).
 
-- MINOR — backwards-compatible feature additions
+**Test-first approach**
 
-- PATCH — backwards-compatible bug fixes
+All tests run inside a containerized MediaWiki environment managed via
+[docker-compose-ci](https://github.com/gesinn-it-pub/docker-compose-ci)
+(the `build/` submodule). Never run tests directly against a local PHP
+or Node.js installation.
 
-Breaking changes include (but are not limited to):
+Always run `make install` before executing tests to ensure that the
+latest file changes are copied into the container. Changes to source or
+test files on the host are **not** automatically reflected in a running
+container.
 
-- incompatible API changes
+``` console
+make install
+```
 
-- removal or renaming of public interfaces
+## PHPUnit tests
 
-- behavior changes that may break existing integrations
+**PHPUnit tests**
 
-- increased minimum runtime or dependency requirements
+Run all PHPUnit tests:
 
-- incompatible configuration or data format changes
+``` console
+make install composer-phpunit
+```
 
-- dependency upgrades that introduce breaking changes for users
+Run a single test class or method (filtered):
 
-Breaking changes must always increment the MAJOR version.
+``` console
+make install composer-phpunit COMPOSER_PARAMS="-- --filter YourTestName"
+```
+
+Run a specific test suite:
+
+``` console
+make install composer-phpunit COMPOSER_PARAMS="-- --testsuite your-suite-name"
+```
+
+For interactive use, bash into the running container:
+
+``` console
+make bash
+> composer phpunit -- --filter YourTestName
+```
+
+## Node QUnit tests
+
+**Node QUnit tests**
+
+Run all JavaScript tests:
+
+``` console
+make install npm-test
+```
+
+There is no direct `make` target for filtering individual tests. Bash
+into the running container to run a specific test file or test case:
+
+``` console
+make bash
+> npm run node-qunit -- tests/node-qunit/yourtest.test.js
+```
+
+Filter by test description:
+
+``` console
+make bash
+> npx qunit --require ./tests/node-qunit/setup.js 'tests/node-qunit/**/*.test.js' --filter "your test description"
+```
+
+**Pre-commit validation gate**
+
+Before every commit, run the full CI suite to confirm nothing is broken:
+
+``` console
+make ci
+```
 
 # Conventional Commits
 
@@ -104,3 +164,35 @@ Guidelines:
 
 - Use `chore` only for repository maintenance tasks that do not affect
   runtime behavior, dependencies, CI configuration, or tests
+
+# Versioning and Releases
+
+This project follows [Semantic Versioning](https://semver.org/).
+
+Version numbers follow the format:
+
+`MAJOR.MINOR.PATCH`
+
+Version increment rules:
+
+- MAJOR — incompatible or breaking changes
+
+- MINOR — backwards-compatible feature additions
+
+- PATCH — backwards-compatible bug fixes
+
+Breaking changes include (but are not limited to):
+
+- incompatible API changes
+
+- removal or renaming of public interfaces
+
+- behavior changes that may break existing integrations
+
+- increased minimum runtime or dependency requirements
+
+- incompatible configuration or data format changes
+
+- dependency upgrades that introduce breaking changes for users
+
+Breaking changes must always increment the MAJOR version.
