@@ -19,7 +19,7 @@ jobs:
         run: sudo gem install asciidoctor-reducer --pre
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -33,3 +33,5 @@ jobs:
 
       - name: Commit readme
         uses: EndBug/add-and-commit@v8
+        with:
+          message: "Update generated README [skip ci]"
