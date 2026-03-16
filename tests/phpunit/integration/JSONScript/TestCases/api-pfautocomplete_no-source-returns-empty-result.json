@@ -1,0 +1,30 @@
+{
+	"description": "Test API `action=pfautocomplete` returns empty result when no source parameter is given",
+	"setup": [],
+	"tests": [
+		{
+			"type": "api",
+			"about": "no source parameter returns empty result without error",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"substr": "Foo"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"pfautocomplete\":"
+			}
+		}
+	],
+	"settings": {
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

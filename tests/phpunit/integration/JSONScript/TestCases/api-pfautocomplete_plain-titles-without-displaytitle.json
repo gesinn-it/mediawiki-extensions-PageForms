@@ -1,0 +1,41 @@
+{
+	"description": "Test API `action=pfautocomplete` returns plain titles (no displaytitle) when wgPageFormsUseDisplayTitle is false",
+	"setup": [
+		{
+			"page": "PlainTitle1",
+			"contents": "[[Category:PlainTitleCategory]]"
+		},
+		{
+			"page": "PlainTitle2",
+			"contents": "[[Category:PlainTitleCategory]]"
+		}
+	],
+	"tests": [
+		{
+			"type": "api",
+			"about": "result contains only title key when wgPageFormsUseDisplayTitle is false",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"category": "PlainTitleCategory",
+					"substr": "PlainTitle"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"0\":{\"title\":\"PlainTitle1\"}"
+			}
+		}
+	],
+	"settings": {
+		"wgPageFormsUseDisplayTitle": false,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
