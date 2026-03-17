@@ -4,6 +4,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * Adds and handles the 'pfautocomplete' action to the MediaWiki API.
  *
@@ -230,7 +232,11 @@ class PFAutocompleteAPI extends ApiBase {
 		global $wgPageFormsMaxAutocompleteValues;
 		global $smwgDefaultStore;
 
-		$db = wfGetDB( DB_REPLICA );
+		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
+			$db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
+		} else {
+			$db = wfGetDB( DB_REPLICA );
+		}
 		$sqlOptions = [];
 		$sqlOptions['LIMIT'] = $wgPageFormsMaxAutocompleteValues;
 
@@ -243,29 +249,39 @@ class PFAutocompleteAPI extends ApiBase {
 
 		$propertyHasTypePage = ( $property->getPropertyTypeID() == '_wpg' );
 		$conditions = [ 'p_ids.smw_title' => $property_name ];
+
+		// Use raw table names (without tableName()) so that $db->select() can
+		// properly quote and prefix them when tables are passed as an array.
 		if ( $propertyHasTypePage ) {
 			$valueField = 'o_ids.smw_title';
 			if ( $smwgDefaultStore === 'SMWSQLStore2' ) {
-				$idsTable = $db->tableName( 'smw_ids' );
-				$propsTable = $db->tableName( 'smw_rels2' );
+				$idsTableRaw = 'smw_ids';
+				$propsTableRaw = 'smw_rels2';
 			} else {
 				// SMWSQLStore3 - also the backup for SMWSPARQLStore
-				$idsTable = $db->tableName( 'smw_object_ids' );
-				$propsTable = $db->tableName( 'smw_di_wikipage' );
+				$idsTableRaw = 'smw_object_ids';
+				$propsTableRaw = 'smw_di_wikipage';
 			}
-			$fromClause = "$propsTable p JOIN $idsTable p_ids ON p.p_id = p_ids.smw_id JOIN $idsTable o_ids ON p.o_id = o_ids.smw_id";
+			$tables = [ 'p' => $propsTableRaw, 'p_ids' => $idsTableRaw, 'o_ids' => $idsTableRaw ];
+			$joinConds = [
+				'p_ids' => [ 'JOIN', 'p.p_id = p_ids.smw_id' ],
+				'o_ids' => [ 'JOIN', 'p.o_id = o_ids.smw_id' ],
+			];
 		} else {
 			if ( $smwgDefaultStore === 'SMWSQLStore2' ) {
 				$valueField = 'p.value_xsd';
-				$idsTable = $db->tableName( 'smw_ids' );
-				$propsTable = $db->tableName( 'smw_atts2' );
+				$idsTableRaw = 'smw_ids';
+				$propsTableRaw = 'smw_atts2';
 			} else {
 				// SMWSQLStore3 - also the backup for SMWSPARQLStore
 				$valueField = 'p.o_hash';
-				$idsTable = $db->tableName( 'smw_object_ids' );
-				$propsTable = $db->tableName( 'smw_di_blob' );
+				$idsTableRaw = 'smw_object_ids';
+				$propsTableRaw = 'smw_di_blob';
 			}
-			$fromClause = "$propsTable p JOIN $idsTable p_ids ON p.p_id = p_ids.smw_id";
+			$tables = [ 'p' => $propsTableRaw, 'p_ids' => $idsTableRaw ];
+			$joinConds = [
+				'p_ids' => [ 'JOIN', 'p.p_id = p_ids.smw_id' ],
+			];
 		}
 
 		if ( $basePropertyName !== null ) {
@@ -281,41 +297,47 @@ class PFAutocompleteAPI extends ApiBase {
 			$conditions['base_p_ids.smw_title'] = $basePropertyName;
 			if ( $basePropertyHasTypePage ) {
 				if ( $smwgDefaultStore === 'SMWSQLStore2' ) {
-					$idsTable = $db->tableName( 'smw_ids' );
-					$propsTable = $db->tableName( 'smw_rels2' );
+					$baseIdsTableRaw = 'smw_ids';
+					$basePropsTableRaw = 'smw_rels2';
 				} else {
-					$idsTable = $db->tableName( 'smw_object_ids' );
-					$propsTable = $db->tableName( 'smw_di_wikipage' );
+					$baseIdsTableRaw = 'smw_object_ids';
+					$basePropsTableRaw = 'smw_di_wikipage';
 				}
-				$fromClause .= " JOIN $propsTable p_base ON p.s_id = p_base.s_id";
-				$fromClause .= " JOIN $idsTable base_p_ids ON p_base.p_id = base_p_ids.smw_id JOIN $idsTable base_o_ids ON p_base.o_id = base_o_ids.smw_id";
+				$tables['p_base'] = $basePropsTableRaw;
+				$tables['base_p_ids'] = $baseIdsTableRaw;
+				$tables['base_o_ids'] = $baseIdsTableRaw;
+				$joinConds['p_base'] = [ 'JOIN', 'p.s_id = p_base.s_id' ];
+				$joinConds['base_p_ids'] = [ 'JOIN', 'p_base.p_id = base_p_ids.smw_id' ];
+				$joinConds['base_o_ids'] = [ 'JOIN', 'p_base.o_id = base_o_ids.smw_id' ];
 				$baseValue = str_replace( ' ', '_', $baseValue );
 				$conditions['base_o_ids.smw_title'] = $baseValue;
 			} else {
 				if ( $smwgDefaultStore === 'SMWSQLStore2' ) {
 					$baseValueField = 'p_base.value_xsd';
-					$idsTable = $db->tableName( 'smw_ids' );
-					$propsTable = $db->tableName( 'smw_atts2' );
+					$baseIdsTableRaw = 'smw_ids';
+					$basePropsTableRaw = 'smw_atts2';
 				} else {
 					$baseValueField = 'p_base.o_hash';
-					$idsTable = $db->tableName( 'smw_object_ids' );
-					$propsTable = $db->tableName( 'smw_di_blob' );
+					$baseIdsTableRaw = 'smw_object_ids';
+					$basePropsTableRaw = 'smw_di_blob';
 				}
-				$fromClause .= " JOIN $propsTable p_base ON p.s_id = p_base.s_id";
-				$fromClause .= " JOIN $idsTable base_p_ids ON p_base.p_id = base_p_ids.smw_id";
+				$tables['p_base'] = $basePropsTableRaw;
+				$tables['base_p_ids'] = $baseIdsTableRaw;
+				$joinConds['p_base'] = [ 'JOIN', 'p.s_id = p_base.s_id' ];
+				$joinConds['base_p_ids'] = [ 'JOIN', 'p_base.p_id = base_p_ids.smw_id' ];
 				$conditions[$baseValueField] = $baseValue;
 			}
 		}
 
 		if ( $substring !== null ) {
-			// "Page" type property valeus are stored differently
+			// "Page" type property values are stored differently
 			// in the DB, i.e. underlines instead of spaces.
 			$conditions[] = PFValuesUtils::getSQLConditionForAutocompleteInColumn( $valueField, $substring, $propertyHasTypePage );
 		}
 
 		$sqlOptions['ORDER BY'] = $valueField;
-		$res = $db->select( $fromClause, "DISTINCT $valueField",
-			$conditions, __METHOD__, $sqlOptions );
+		$res = $db->select( $tables, "DISTINCT $valueField",
+			$conditions, __METHOD__, $sqlOptions, $joinConds );
 
 		$values = [];
 		while ( $row = $res->fetchRow() ) {

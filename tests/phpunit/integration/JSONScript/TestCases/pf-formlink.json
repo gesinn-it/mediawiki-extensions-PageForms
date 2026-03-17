@@ -71,6 +71,7 @@
 		}
 	],
 	"settings": {
+		"wgArticlePath": "/index.php/$1"
 	},
 	"meta": {
 		"version": "2",

@@ -63,6 +63,7 @@ class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 			'wgPageFormsUseDisplayTitle',
 			'wgAllowDisplayTitle',
 			'wgRestrictDisplayTitle',
+			'wgArticlePath',
 		] );
 	}
 

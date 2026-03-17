@@ -190,7 +190,7 @@ class PFTemplateField {
 	 * @param string $semantic_property
 	 */
 	public function setSemanticProperty( $semantic_property ) {
-		$this->mSemanticProperty = str_replace( '\\', '', $semantic_property );
+		$this->mSemanticProperty = str_replace( '\\', '', $semantic_property ?? '' );
 		$this->mPossibleValues = [];
 		// set field type and possible values, if any
 		$this->setTypeAndPossibleValues();

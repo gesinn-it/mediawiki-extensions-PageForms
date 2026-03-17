@@ -960,8 +960,17 @@ END;
 				Html::element( 'a', [ 'href' => '#' ], 'Expand all collapsed parts of the form' ) ) . "\n";
 		}
 
-		$parser = PFUtils::getParser()->getFreshParser();
-		if ( !$parser->getOptions() ) {
+		// getFreshParser() was removed in MW 1.43; use the factory on newer versions.
+		$globalParser = PFUtils::getParser();
+		if ( method_exists( $globalParser, 'getFreshParser' ) ) {
+			// MW < 1.43: reset the global parser instance in-place
+			$parser = $globalParser->getFreshParser();
+			if ( !$parser->getOptions() ) {
+				$parser->setOptions( ParserOptions::newFromUser( $user ) );
+			}
+		} else {
+			// MW 1.43+: create a fresh parser via the factory
+			$parser = MediaWikiServices::getInstance()->getParserFactory()->create();
 			$parser->setOptions( ParserOptions::newFromUser( $user ) );
 		}
 		$parser->setTitle( $this->mPageTitle );
@@ -1899,7 +1908,7 @@ END;
 		$page_text = $wiki_page->createPageText();
 
 		// Also substitute the free text into the form.
-		$escaped_free_text = Sanitizer::safeEncodeAttribute( $free_text );
+		$escaped_free_text = Sanitizer::safeEncodeAttribute( $free_text ?? '' );
 		$form_text = str_replace( '!free_text!', $escaped_free_text, $form_text );
 
 		// Add a warning in, if we're editing an existing page and that

@@ -41,7 +41,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		// assign user minor edit right for test case no 6
 		if ( strpos( $form_def, 'section 6' ) !== false || strpos( $form_def, 'section 7' ) !== false ) {
 			$user = $this->getTestUser()->getUser();
-			$user->addGroup( 'autoconfirmed' );
+			MediaWikiServices::getInstance()->getUserGroupManager()->addUserToGroup( $user, 'autoconfirmed' );
 			RequestContext::getMain()->setUser( $user );
 			$form_submitted = false;
 		}

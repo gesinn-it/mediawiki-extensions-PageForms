@@ -66,10 +66,10 @@ class PFHooks {
 	 *
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ResourceLoaderRegisterModules
 	 *
-	 * @param ResourceLoader &$resourceLoader The ResourceLoader object
+	 * @param \MediaWiki\ResourceLoader\ResourceLoader &$resourceLoader The ResourceLoader object
 	 * @return bool Always true
 	 */
-	public static function registerModules( ResourceLoader &$resourceLoader ) {
+	public static function registerModules( &$resourceLoader ) {
 		// These used to use a value of __DIR__ for 'localBasePath',
 		// but apparently in some installations that had a value of
 		// /PageForms/libs and in others just /PageForms, so we'll set

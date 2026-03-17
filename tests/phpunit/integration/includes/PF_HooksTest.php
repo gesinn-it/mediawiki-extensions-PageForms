@@ -20,7 +20,10 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 		PFHooks::registerExtension();
 		PFHooks::initialize();
 
-		$resourceLoader = $this->createStub( ResourceLoader::class );
+		$resourceLoaderClass = class_exists( 'MediaWiki\\ResourceLoader\\ResourceLoader' )
+			? \MediaWiki\ResourceLoader\ResourceLoader::class
+			: \ResourceLoader::class;
+		$resourceLoader = $this->createStub( $resourceLoaderClass );
 		PFHooks::registerModules( $resourceLoader );
 
 		$list = [];
