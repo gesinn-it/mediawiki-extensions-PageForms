@@ -63,11 +63,9 @@
 		}
 	],
 	"beforeTest": {
-		"maintenance-run": {
-			"rebuildData": {
-				"page": "Property:PFTestPageBasePropAC01|Property:PFTestTextMainPropAC01|PFTestACBasePropSubj01|PFTestACBasePropSubj02"
-			}
-		}
+		"job-run": [
+			"smw.update"
+		]
 	},
 	"settings": {
 		"smwgNamespacesWithSemanticLinks": {
