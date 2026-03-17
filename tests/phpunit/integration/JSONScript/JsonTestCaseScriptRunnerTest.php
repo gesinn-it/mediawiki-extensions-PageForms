@@ -52,11 +52,11 @@ class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 		return MediaWikiServices::getInstance()->getParser();
 	}
 
-	protected function getTestCaseLocation() {
+	protected function getTestCaseLocation(): string {
 		return __DIR__ . '/TestCases';
 	}
 
-	protected function getPermittedSettings() {
+	protected function getPermittedSettings(): array {
 		return array_merge( parent::getPermittedSettings(), [
 			'wgPageFormsAutocompleteOnAllChars',
 			'wgPageFormsCacheAutocompleteValues',
@@ -69,7 +69,7 @@ class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 		] );
 	}
 
-	protected function getDependencyDefinitions() {
+	protected function getDependencyDefinitions(): array {
 		return [
 			'DisplayTitle' => static function ( $val, &$reason ) {
 				if ( !ExtensionRegistry::getInstance()->isLoaded( 'DisplayTitle' ) ) {
