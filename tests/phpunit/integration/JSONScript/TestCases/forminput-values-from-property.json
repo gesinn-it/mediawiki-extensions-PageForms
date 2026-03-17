@@ -1,0 +1,86 @@
+{
+	"description": "form inputs combobox and tokens with values from property (local autocomplete mode)",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestVFProp01",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"page": "PFTestVFPage01",
+			"contents": "[[PFTestVFProp01::AlphaVFP]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFForm01",
+			"contents": "{{{field|Field|input type=combobox|values from property=PFTestVFProp01}}}"
+		},
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestVFProp02",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"page": "PFTestVFPage02",
+			"contents": "[[PFTestVFProp02::BetaVFP]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFForm02",
+			"contents": "{{{field|Field|input type=tokens|values from property=PFTestVFProp02}}}"
+		}
+	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
+	"tests": [
+		{
+			"type": "special",
+			"about": "Combobox with values from property sets autocompletesettings to the property name",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFForm01/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"autocompletesettings=\"PFTestVFProp01\""
+				],
+				"not-contain": [
+					"autocompletedatatype=\"property\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Tokens with values from property sets autocompletesettings to the property name",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFForm02/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"autocompletesettings=\"PFTestVFProp02,list"
+				],
+				"not-contain": [
+					"autocompletedatatype=\"property\""
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en",
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

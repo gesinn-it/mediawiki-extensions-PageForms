@@ -1,0 +1,83 @@
+{
+	"description": "form inputs combobox and tokens with values from property (remote autocomplete mode)",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestVFProp03",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"page": "PFTestVFPage03",
+			"contents": "[[PFTestVFProp03::GammaVFP]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFForm03",
+			"contents": "{{{field|Field|input type=combobox|values from property=PFTestVFProp03}}}"
+		},
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestVFProp04",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"page": "PFTestVFPage04",
+			"contents": "[[PFTestVFProp04::DeltaVFP]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFForm04",
+			"contents": "{{{field|Field|input type=tokens|values from property=PFTestVFProp04}}}"
+		}
+	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
+	"tests": [
+		{
+			"type": "special",
+			"about": "Combobox with values from property sets autocompletedatatype=property when above threshold",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFForm03/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"autocompletesettings=\"PFTestVFProp03\"",
+					"autocompletedatatype=\"property\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Tokens with values from property sets autocompletedatatype=property when above threshold",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFForm04/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"autocompletesettings=\"PFTestVFProp04,list",
+					"autocompletedatatype=\"property\""
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en",
+		"wgPageFormsMaxLocalAutocompleteValues": 0,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

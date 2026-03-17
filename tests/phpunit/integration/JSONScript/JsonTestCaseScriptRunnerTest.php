@@ -60,6 +60,7 @@ class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 		return array_merge( parent::getPermittedSettings(), [
 			'wgPageFormsAutocompleteOnAllChars',
 			'wgPageFormsCacheAutocompleteValues',
+			'wgPageFormsMaxLocalAutocompleteValues',
 			'wgPageFormsUseDisplayTitle',
 			'wgAllowDisplayTitle',
 			'wgRestrictDisplayTitle',
