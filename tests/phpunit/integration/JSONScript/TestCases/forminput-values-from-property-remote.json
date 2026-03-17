@@ -28,6 +28,16 @@
 			"namespace": "PF_NS_FORM",
 			"page": "PFTestVFForm04",
 			"contents": "{{{field|Field|input type=tokens|values from property=PFTestVFProp04}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFForm05",
+			"contents": "{{{field|Field|input type=combobox|values from property=PFTestVFProp03|existing values only}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFForm06",
+			"contents": "{{{field|Field|input type=tokens|values from property=PFTestVFProp04|existing values only}}}"
 		}
 	],
 	"beforeTest": {
@@ -63,6 +73,38 @@
 				"to-contain": [
 					"autocompletesettings=\"PFTestVFProp04,list",
 					"autocompletedatatype=\"property\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Combobox with values from property and existing values only sets both autocompletedatatype and existingvaluesonly",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFForm05/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"autocompletesettings=\"PFTestVFProp03\"",
+					"autocompletedatatype=\"property\"",
+					"existingvaluesonly=\"true\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Tokens with values from property and existing values only sets both autocompletedatatype and existingvaluesonly",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFForm06/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"autocompletesettings=\"PFTestVFProp04,list",
+					"autocompletedatatype=\"property\"",
+					"existingvaluesonly=\"true\""
 				]
 			}
 		}
