@@ -1,0 +1,76 @@
+{
+	"description": "Test API `action=pfautocomplete` wgPageFormsAutocompleteOnAllChars is respected for property search",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestACPropAllCharsOnText01",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"page": "PFTestACPropAllCharsOnTextPage01",
+			"contents": "[[PFTestACPropAllCharsOnText01::FooBar]]"
+		},
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestACPropAllCharsOnPage01",
+			"contents": "[[Has type::Page]]"
+		},
+		{
+			"page": "PFTestACPropAllCharsOnTarget FooBar",
+			"contents": ""
+		},
+		{
+			"page": "PFTestACPropAllCharsOnPageSubjA",
+			"contents": "[[PFTestACPropAllCharsOnPage01::PFTestACPropAllCharsOnTarget FooBar]]"
+		}
+	],
+	"tests": [
+		{
+			"type": "api",
+			"about": "text property search finds values matching in the middle of a word",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestACPropAllCharsOnText01",
+					"substr": "Bar"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"FooBar\""
+			}
+		},
+		{
+			"type": "api",
+			"about": "page-type property search finds values matching in the middle of a word",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestACPropAllCharsOnPage01",
+					"substr": "Bar"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"PFTestACPropAllCharsOnTarget FooBar\""
+			}
+		}
+	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
+	"settings": {
+		"wgPageFormsAutocompleteOnAllChars": true,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

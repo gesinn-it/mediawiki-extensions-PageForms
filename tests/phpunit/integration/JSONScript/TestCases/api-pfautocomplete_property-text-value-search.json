@@ -47,6 +47,11 @@
 			}
 		}
 	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
 	"settings": {
 		"smwgNamespacesWithSemanticLinks": {
 			"NS_MAIN": true,

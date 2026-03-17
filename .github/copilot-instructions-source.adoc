@@ -162,6 +162,57 @@ no longer provides a built-in fallback label. Any test that checks for a button
 label rendered by this widget must mock `mw.message()` in `beforeEach` to
 return the expected string.
 
+=== SMW property-based JSONScript tests — deferred update isolation on MW 1.43
+
+On MW 1.43 + SMW 6.0.1, `LinksUpdate` (which writes SMW property annotations)
+is a `TransactionRoundAwareUpdate`. It only executes after
+`LBFactory::commitPrimaryChanges()` is called to close a database transaction
+round. In a fresh PHPUnit process, this commit never happens automatically for
+the very first test case, so property annotations are not written to the SMW
+store before the test assertions run.
+
+**Effect**: The first property-dependent JSONScript test file run in isolation
+(e.g. via `--filter`) on a fresh MW 1.43 container returns empty API results.
+Subsequent test files in the same PHPUnit process pass because the transaction
+round was committed by the MW test framework in the meantime.
+
+**Full suite unaffected**: When the full test suite runs (as in GH CI), earlier
+test files warm up the SMW store, so property tests always pass. This is the
+authoritative validation gate.
+
+**Mitigation applied**: Add `"beforeTest": { "job-run": ["smw.update"] }` to
+every JSONScript test file that creates pages with SMW property annotations.
+This flushes any jobs that may be enqueued and triggers
+`executePendingDeferredUpdates()`, which is the closest we can get to forcing
+a store update from outside SMW's internal transaction management.
+
+[source,json]
+----
+"beforeTest": {
+    "job-run": [
+        "smw.update"
+    ]
+},
+----
+
+**For local development**: Use MW 1.39 (the default `make install` target)
+for filtered/isolated test runs — the deferred update issue does not occur
+there. Only validate against MW 1.43 via the full suite:
+
+[source,console]
+----
+make install composer-phpunit MW_VERSION=1.43 SMW_VERSION=6.0.1 PHP_VERSION=8.3 DT_VERSION=4.0.3 PS_VERSION=0.9.1
+----
+
+**Test naming**: Property-based test files must be named with a prefix that
+sorts alphabetically *after* all other property-based test files (e.g.
+`api-pfautocomplete_property-value-*`). This prevents accidental ordering
+dependencies in the full suite.
+
+**Test data naming**: Always use long, test-case-specific names for pages,
+properties, and categories (e.g. `PFTestACPropAllCharsOffText01` rather than
+`FooBar`). This prevents cross-test data pollution within the shared SMW store.
+
 == Conventional Commits
 
 include::../docs/gesinn-it-docs-master-pub/sections/conventional-commits-policy.adoc[]

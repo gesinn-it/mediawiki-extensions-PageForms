@@ -1,0 +1,117 @@
+{
+	"description": "Test API `action=pfautocomplete` AutocompleteOnAllChars is disabled by default for property search",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestACPropAllCharsOffText01",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"page": "PFTestACPropAllCharsOffTextPage01",
+			"contents": "[[PFTestACPropAllCharsOffText01::FooBar]]"
+		},
+		{
+			"page": "PFTestACPropAllCharsOffTextPage02",
+			"contents": "[[PFTestACPropAllCharsOffText01::BazQux]]"
+		},
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestACPropAllCharsOffPage01",
+			"contents": "[[Has type::Page]]"
+		},
+		{
+			"page": "PFTestACPropAllCharsOffTarget FooBar",
+			"contents": ""
+		},
+		{
+			"page": "PFTestACPropAllCharsOffTarget BazQux",
+			"contents": ""
+		},
+		{
+			"page": "PFTestACPropAllCharsOffPageSubjA",
+			"contents": "[[PFTestACPropAllCharsOffPage01::PFTestACPropAllCharsOffTarget FooBar]]"
+		},
+		{
+			"page": "PFTestACPropAllCharsOffPageSubjB",
+			"contents": "[[PFTestACPropAllCharsOffPage01::PFTestACPropAllCharsOffTarget BazQux]]"
+		}
+	],
+	"tests": [
+		{
+			"type": "api",
+			"about": "text property search finds values matching at the beginning of the string",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestACPropAllCharsOffText01",
+					"substr": "Foo"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"FooBar\""
+			}
+		},
+		{
+			"type": "api",
+			"about": "text property search does not find values matching only in the middle of a word",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestACPropAllCharsOffText01",
+					"substr": "Bar"
+				}
+			},
+			"assert-output": {
+				"to-not-contain": "\"title\":\"FooBar\""
+			}
+		},
+		{
+			"type": "api",
+			"about": "page-type property search finds values matching at a word boundary",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestACPropAllCharsOffPage01",
+					"substr": "FooBar"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"PFTestACPropAllCharsOffTarget FooBar\""
+			}
+		},
+		{
+			"type": "api",
+			"about": "page-type property search does not find values matching only in the middle of a word",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestACPropAllCharsOffPage01",
+					"substr": "Bar"
+				}
+			},
+			"assert-output": {
+				"to-not-contain": "\"title\":\"PFTestACPropAllCharsOffTarget FooBar\""
+			}
+		}
+	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
+	"settings": {
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

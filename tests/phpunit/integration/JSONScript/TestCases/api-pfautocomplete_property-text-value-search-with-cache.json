@@ -47,6 +47,11 @@
 			}
 		}
 	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
 	"settings": {
 		"wgPageFormsCacheAutocompleteValues": true,
 		"smwgNamespacesWithSemanticLinks": {

@@ -62,6 +62,13 @@
 			}
 		}
 	],
+	"beforeTest": {
+		"maintenance-run": {
+			"rebuildData": {
+				"page": "Property:PFTestPageBasePropAC01|Property:PFTestTextMainPropAC01|PFTestACBasePropSubj01|PFTestACBasePropSubj02"
+			}
+		}
+	},
 	"settings": {
 		"smwgNamespacesWithSemanticLinks": {
 			"NS_MAIN": true,

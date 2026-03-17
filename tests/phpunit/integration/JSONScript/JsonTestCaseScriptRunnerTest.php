@@ -64,6 +64,7 @@ class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 			'wgAllowDisplayTitle',
 			'wgRestrictDisplayTitle',
 			'wgArticlePath',
+			'smwgEnabledDeferredUpdate',
 		] );
 	}
 
