@@ -164,17 +164,28 @@ return the expected string.
 
 === SMW property-based JSONScript tests — deferred update isolation on MW 1.43
 
-On MW 1.43 + SMW 6.0.1, `LinksUpdate` (which writes SMW property annotations)
-is a `TransactionRoundAwareUpdate`. It only executes after
-`LBFactory::commitPrimaryChanges()` is called to close a database transaction
-round. In a fresh PHPUnit process, this commit never happens automatically for
-the very first test case, so property annotations are not written to the SMW
-store before the test assertions run.
+On MW 1.43 + SMW 6.0.1, the SMW store is empty when the first property-dependent
+test file runs in isolation (e.g. via `--filter` on a fresh PHPUnit process).
 
-**Effect**: The first property-dependent JSONScript test file run in isolation
-(e.g. via `--filter`) on a fresh MW 1.43 container returns empty API results.
-Subsequent test files in the same PHPUnit process pass because the transaction
-round was committed by the MW test framework in the meantime.
+**Root cause**: `SMWIntegrationTestCase::resetGlobalInstance()` destroys MW's
+test-scoped LBFactory and replaces it with SMW's own LBFactory. This creates two
+separate DB connections. Page writes go through SMW's connection; MW's `tearDown`
+truncates only its own tables. On the very first test file in a fresh process
+the SMW store table therefore contains no data when assertions run.
+
+NOTE: An earlier diagnosis blamed `LinksUpdate` being a
+`TransactionRoundAwareUpdate` that requires `LBFactory::commitPrimaryChanges()`.
+That was incorrect — the real cause is the dual-LBFactory split described above.
+
+**Fixed in SMW 7.0.0**: Commit `7dcedd8b8` ("Align test DB lifecycle with MW",
+2026-03-16) removes the separate `TestDatabaseTableBuilder` /
+`TestDatabaseConnectionProvider` infrastructure entirely and uses MW's native
+test lifecycle. Once the CI matrix is upgraded to SMW 7.0.0 the issue is gone.
+
+**Effect until then**: The first property-dependent JSONScript test file run in
+isolation (e.g. via `--filter`) on a fresh MW 1.43 container returns empty API
+results. Subsequent test files in the same PHPUnit process pass because the
+SMW store is warmed up by earlier tests.
 
 **Full suite unaffected**: When the full test suite runs (as in GH CI), earlier
 test files warm up the SMW store, so property tests always pass. This is the
