@@ -170,6 +170,87 @@ print(f'Missed  ({len(missed)}):  {missed}')
 EOF
 ```
 
+# MediaWiki Version Compatibility
+
+This section documents recurring patterns that must be applied whenever
+a new MediaWiki version is added to the CI matrix.
+
+## PHP 8 — null safety and deprecation warnings
+
+`phpunit.xml.dist` sets `convertWarningsToExceptions="true"`. This means
+any `E_WARNING` or `E_DEPRECATED` thrown at PHP 8+ becomes a test
+exception that kills the test silently (empty output, no assertion
+failures).
+
+Common culprits to check when a test produces an empty form body or
+crashes without an obvious assertion failure:
+
+- Passing `null` to functions that require a string:
+  `Language::ucfirst(null)`, `str_replace('…​', '…​', null)`,
+  `Sanitizer::safeEncodeAttribute(null)`. Fix: add a `!== null` guard or
+  `?? ''` null-coalescing before the call.
+
+- Pattern to search for:
+  `grep -rn 'ucfirst\|str_replace\|safeEncodeAttribute' includes/` and
+  check every call site for missing null guards.
+
+## MW DB API — deprecated `wfGetDB()` and raw JOIN strings
+
+`wfGetDB()` is deprecated since MW 1.39. For MW ≥ 1.42, use:
+
+``` php
+MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase()
+```
+
+Keep a `version_compare( MW_VERSION, '1.42', '>=' )` guard to maintain
+backward compatibility with MW 1.35–1.41.
+
+Raw SQL JOIN strings passed as the table name to `$db→select()` fail on
+MW 1.43’s `SQLPlatform::tableName()` with a `DBLanguageError`. Use the
+proper array form with table aliases and a `$joinConds` parameter
+instead:
+
+``` php
+$tables = [ 'a' => $tableA, 'b' => $tableB ];
+$joinConds = [ 'b' => [ 'JOIN', 'a.col = b.col' ] ];
+$db->select( $tables, $fields, $conds, __METHOD__, $opts, $joinConds );
+```
+
+## Test context URL paths — `wgArticlePath`
+
+MW 1.43’s `tests/common/TestSetup::applyInitialConfig()` sets
+`$wgArticlePath = '/wiki/$1'`. Older versions (≤ 1.39) do not set this
+variable in the test bootstrap, so the runtime value (`/index.php/$1`)
+is used.
+
+Any JSONScript test case that asserts URL paths (e.g. `Special:FormEdit`
+links) must pin `wgArticlePath` explicitly in its `settings` block:
+
+``` json
+"settings": {
+    "wgArticlePath": "/index.php/$1"
+}
+```
+
+For this key to be honoured, it must be listed in
+`JsonTestCaseScriptRunnerTest::getPermittedSettings()`.
+
+## Node QUnit — ooui Web Components and `HTMLElement`
+
+MW 1.43’s ooui uses the Web Components API
+(`class extends HTMLElement`). The jsdom window exposes `HTMLElement`,
+but it is not automatically a Node.js global. Add it once in
+`tests/node-qunit/setup.js` after `global.window` is assigned:
+
+``` javascript
+global.HTMLElement = window.HTMLElement;
+```
+
+`SelectFileWidget` was renamed to `SelectFileInputWidget` in MW 1.43
+ooui and no longer provides a built-in fallback label. Any test that
+checks for a button label rendered by this widget must mock
+`mw.message()` in `beforeEach` to return the expected string.
+
 # Conventional Commits
 
 Commit messages follow the [Conventional Commits
