@@ -5,6 +5,7 @@ QUnit.module('simpleupload', {
 	beforeEach: assert => {
 		mw.config = { get: key => key === 'wgArticlePath' ? 'article-path/$1' : null }
 		mw.util.wikiScript = () => "https://example.com/api.php";
+		mw.message = () => ({ text: () => 'Select a file' });
 	}
 });
 
