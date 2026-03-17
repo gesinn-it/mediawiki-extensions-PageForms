@@ -293,6 +293,41 @@ These hooks enable PageForms to integrate with the MediaWiki editing workflow.
 
 ---
 
+# MediaWiki Version Compatibility
+
+PageForms supports a range of MediaWiki versions. Where the MW or PHP API
+differs between versions, the code uses a version gate:
+
+```php
+if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
+    $db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
+} else {
+    $db = wfGetDB( DB_REPLICA );
+}
+```
+
+Key compatibility boundaries:
+
+| Boundary | Older API | Newer API | Since |
+|----------|-----------|-----------|-------|
+| DB replica connection | `wfGetDB( DB_REPLICA )` | `getConnectionProvider()->getReplicaDatabase()` | MW 1.42 |
+| DB table JOIN | Raw SQL string as table name | Array form with `$joinConds` | MW 1.43 |
+| Parser instance | `$parser->getFreshParser()` | `$parser` directly (removed) | MW 1.43 |
+| ResourceLoader type hint | `ResourceLoader $rl` | No type hint | MW 1.43 |
+| Add user to group | `User::addGroup()` | `UserGroupManager::addUserToGroup()` | MW 1.41 |
+
+Test infrastructure notes:
+
+* `phpunit.xml.dist` sets `convertWarningsToExceptions="true"` — any
+  `E_WARNING` or `E_DEPRECATED` on PHP 8 becomes a test exception. Null values
+  passed to string functions must be guarded before reaching PHP 8 code.
+* MW 1.43 test bootstrap sets `$wgArticlePath = '/wiki/$1'`. JSONScript tests
+  that assert URL paths must pin `wgArticlePath` in their `settings` block.
+* MW 1.43 ooui uses Web Components — `global.HTMLElement = window.HTMLElement`
+  must be set in the node-qunit `setup.js`.
+
+---
+
 # Extension Points
 
 PageForms is designed to be extensible.
