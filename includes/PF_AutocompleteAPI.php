@@ -42,11 +42,13 @@ class PFAutocompleteAPI extends ApiBase {
 		if ( $baseprop !== null ) {
 			if ( $property !== null ) {
 				$data = $this->getAllValuesForProperty( $property, null, $baseprop, $basevalue );
+				$map = is_string( array_key_first( $data ) );
 			} else {
 				$data = [];
 			}
 		} elseif ( $property !== null ) {
 			$data = $this->getAllValuesForProperty( $property, $substr );
+			$map = is_string( array_key_first( $data ) );
 		} elseif ( $wikidata !== null ) {
 			$data = PFValuesUtils::getAllValuesFromWikidata( urlencode( $wikidata ), $substr );
 		} elseif ( $category !== null ) {
@@ -204,7 +206,7 @@ class PFAutocompleteAPI extends ApiBase {
 		$basePropertyName = null,
 		$baseValue = null
 	) {
-		global $wgPageFormsMaxAutocompleteValues;
+		global $wgPageFormsMaxAutocompleteValues, $wgPageFormsUseDisplayTitle;
 		global $smwgDefaultStore;
 
 		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
@@ -237,6 +239,18 @@ class PFAutocompleteAPI extends ApiBase {
 				'p_ids' => [ 'JOIN', 'p.p_id = p_ids.smw_id' ],
 				'o_ids' => [ 'JOIN', 'p.o_id = o_ids.smw_id' ],
 			];
+			if ( $wgPageFormsUseDisplayTitle ) {
+				$tables['pg'] = 'page';
+				$tables['pp_displaytitle'] = 'page_props';
+				$joinConds['pg'] = [ 'JOIN', [
+					'pg.page_title = o_ids.smw_title',
+					'pg.page_namespace = o_ids.smw_namespace'
+				] ];
+				$joinConds['pp_displaytitle'] = [ 'LEFT JOIN', [
+					'pp_displaytitle.pp_page = pg.page_id',
+					"pp_displaytitle.pp_propname = 'displaytitle'"
+				] ];
+			}
 		} else {
 			if ( $smwgDefaultStore === 'SMWSQLStore2' ) {
 				$valueField = 'p.value_xsd';
@@ -297,10 +311,43 @@ class PFAutocompleteAPI extends ApiBase {
 		if ( $substring !== null ) {
 			// "Page" type property values are stored differently
 			// in the DB, i.e. underlines instead of spaces.
-			$conditions[] = PFValuesUtils::getSQLConditionForAutocompleteInColumn( $valueField, $substring, $propertyHasTypePage );
+			if ( $wgPageFormsUseDisplayTitle && $propertyHasTypePage ) {
+				// Search in displaytitle when set, fall back to internal title.
+				$conditions[] =
+					'((pp_displaytitle.pp_value IS NULL OR pp_displaytitle.pp_value = \'\') AND (' .
+					PFValuesUtils::getSQLConditionForAutocompleteInColumn( $valueField, $substring, true ) .
+					')) OR (' .
+					PFValuesUtils::getSQLConditionForAutocompleteInColumn( 'pp_displaytitle.pp_value', $substring, false ) .
+					')';
+			} else {
+				$conditions[] = PFValuesUtils::getSQLConditionForAutocompleteInColumn( $valueField, $substring, $propertyHasTypePage );
+			}
 		}
 
 		$sqlOptions['ORDER BY'] = $valueField;
+		if ( $propertyHasTypePage && $wgPageFormsUseDisplayTitle ) {
+			$sqlOptions[] = 'DISTINCT';
+			$res = $db->select( $tables,
+				[ $valueField, 'o_ids.smw_namespace', 'pp_displaytitle.pp_value' ],
+				$conditions, __METHOD__, $sqlOptions, $joinConds );
+			$values = [];
+			while ( $row = $res->fetchRow() ) {
+				$smwTitle = str_replace( '_', ' ', $row[0] );
+				$smwNamespace = (int)$row[1];
+				if ( $smwNamespace === NS_MAIN ) {
+					$prefixedTitle = $smwTitle;
+				} else {
+					$nsText = MediaWikiServices::getInstance()->getNamespaceInfo()
+						->getCanonicalName( $smwNamespace );
+					$prefixedTitle = $nsText . ':' . $smwTitle;
+				}
+				$displayTitle = PFValuesUtils::resolveDisplayTitle( $row[2], $prefixedTitle );
+				$values[$prefixedTitle] = $displayTitle;
+			}
+			$res->free();
+			return $values;
+		}
+
 		$res = $db->select( $tables, "DISTINCT $valueField",
 			$conditions, __METHOD__, $sqlOptions, $joinConds );
 

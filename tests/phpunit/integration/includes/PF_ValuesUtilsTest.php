@@ -52,11 +52,9 @@ class PFValuesUtilsTest extends TestCase {
 			'FooBeta' => 'Paris (FooBeta)'
 		];
 
-		foreach ( [ 'category', 'concept', 'namespace' ] as $sourceType ) {
+		foreach ( [ 'category', 'concept', 'namespace', 'property' ] as $sourceType ) {
 			$this->assertSame( $expected, PFValuesUtils::maybeDisambiguateAutocompleteLabels( $labels, $sourceType ) );
 		}
-
-		$this->assertSame( $labels, PFValuesUtils::maybeDisambiguateAutocompleteLabels( $labels, 'property' ) );
 
 		$GLOBALS['wgPageFormsUseDisplayTitle'] = false;
 		$this->assertSame( $labels, PFValuesUtils::maybeDisambiguateAutocompleteLabels( $labels, 'category' ) );

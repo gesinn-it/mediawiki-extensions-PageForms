@@ -1,0 +1,99 @@
+{
+	"description": "Test API `action=pfautocomplete` returns displaytitle for page-type property values when wgPageFormsUseDisplayTitle is true",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestACPropDTPageProp01",
+			"contents": "[[Has type::Page]]"
+		},
+		{
+			"page": "PFTestACPropDTTarget01",
+			"contents": "{{DISPLAYTITLE:PFTestACPropDTTarget01 Display Title}}"
+		},
+		{
+			"page": "PFTestACPropDTTarget02",
+			"contents": ""
+		},
+		{
+			"page": "PFTestACPropDTTargetDTOnly01",
+			"contents": "{{DISPLAYTITLE:PFTestACPropDTDisplaySearch01 Label}}"
+		},
+		{
+			"page": "PFTestACPropDTSubject01",
+			"contents": "[[PFTestACPropDTPageProp01::PFTestACPropDTTarget01]]"
+		},
+		{
+			"page": "PFTestACPropDTSubject02",
+			"contents": "[[PFTestACPropDTPageProp01::PFTestACPropDTTarget02]]"
+		},
+		{
+			"page": "PFTestACPropDTSubject03",
+			"contents": "[[PFTestACPropDTPageProp01::PFTestACPropDTTargetDTOnly01]]"
+		}
+	],
+	"tests": [
+		{
+			"type": "api",
+			"about": "page-type property returns displaytitle in result when page has DISPLAYTITLE set",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestACPropDTPageProp01",
+					"substr": "PFTestACPropDTTarget01"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"PFTestACPropDTTarget01\",\"displaytitle\":\"PFTestACPropDTTarget01 Display Title\""
+			}
+		},
+		{
+			"type": "api",
+			"about": "page-type property falls back to title as displaytitle when page has no DISPLAYTITLE",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestACPropDTPageProp01",
+					"substr": "PFTestACPropDTTarget02"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"PFTestACPropDTTarget02\",\"displaytitle\":\"PFTestACPropDTTarget02\""
+			}
+		},
+		{
+			"type": "api",
+			"about": "autocomplete finds page when substr matches displaytitle but not internal title",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"property": "PFTestACPropDTPageProp01",
+					"substr": "PFTestACPropDTDisplaySearch01"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"PFTestACPropDTTargetDTOnly01\""
+			}
+		}
+	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
+	"settings": {
+		"wgAllowDisplayTitle": true,
+		"wgRestrictDisplayTitle": false,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

@@ -120,7 +120,7 @@ class PFValuesUtils {
 	 * @return array
 	 */
 	public static function getAllValuesForProperty( $property_name ) {
-		global $wgPageFormsMaxAutocompleteValues;
+		global $wgPageFormsMaxAutocompleteValues, $wgPageFormsUseDisplayTitle;
 
 		$store = PFUtils::getSMWStore();
 		if ( $store == null ) {
@@ -131,7 +131,75 @@ class PFValuesUtils {
 		$values = self::getSMWPropertyValues( $store, null, $property_name, $requestoptions );
 		sort( $values );
 		$values = self::shiftShortestMatch( $values );
-		return $values;
+
+		if ( !$wgPageFormsUseDisplayTitle || empty( $values ) ) {
+			return $values;
+		}
+
+		$property = SMW\DataValueFactory::getInstance()->newPropertyValueByLabel( $property_name );
+		if ( $property->getPropertyTypeID() !== '_wpg' ) {
+			return $values;
+		}
+
+		return self::addDisplayTitlesForPageValues( $values );
+	}
+
+	/**
+	 * Returns the decoded display title if it is non-empty after stripping
+	 * HTML tags and non-breaking spaces, or $fallback otherwise.
+	 *
+	 * @param string|null $raw Raw pp_value or PageProps value
+	 * @param string $fallback Value to return when $raw is absent or blank
+	 * @return string
+	 */
+	public static function resolveDisplayTitle( ?string $raw, string $fallback ): string {
+		if ( $raw !== null && trim( str_replace( '&#160;', '', strip_tags( $raw ) ) ) !== '' ) {
+			return htmlspecialchars_decode( $raw );
+		}
+		return $fallback;
+	}
+
+	/**
+	 * Given an array of page title strings (possibly namespace-prefixed),
+	 * returns a map of [pageTitle => displayTitle], falling back to the
+	 * title itself when no display title is set.
+	 *
+	 * @param string[] $pageTitles
+	 * @return array
+	 */
+	public static function addDisplayTitlesForPageValues( array $pageTitles ): array {
+		if ( empty( $pageTitles ) ) {
+			return [];
+		}
+
+		$titleMap = [];
+		foreach ( $pageTitles as $titleText ) {
+			$t = Title::newFromText( $titleText );
+			if ( $t !== null ) {
+				$titleMap[$titleText] = $t;
+			}
+		}
+
+		$services = MediaWikiServices::getInstance();
+		if ( method_exists( $services, 'getPageProps' ) ) {
+			$pageProps = $services->getPageProps();
+		} else {
+			$pageProps = PageProps::getInstance();
+		}
+		$properties = $pageProps->getProperties( array_values( $titleMap ), [ 'displaytitle' ] );
+
+		$result = [];
+		foreach ( $pageTitles as $titleText ) {
+			if ( !isset( $titleMap[$titleText] ) ) {
+				$result[$titleText] = $titleText;
+				continue;
+			}
+			$articleId = $titleMap[$titleText]->getArticleID();
+			$displayTitle = $properties[$articleId]['displaytitle'] ?? null;
+			$result[$titleText] = self::resolveDisplayTitle( $displayTitle, $titleText );
+		}
+
+		return $result;
 	}
 
 	/**
@@ -373,13 +441,8 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 							}
 							$cur_value = $cur_title->getPrefixedText();
 							if ( !in_array( $cur_value, $pages ) ) {
-								if ( array_key_exists( 'pp_displaytitle_value', $row ) &&
-									( $row[ 'pp_displaytitle_value' ] ) !== null &&
-									trim( str_replace( '&#160;', '', strip_tags( $row[ 'pp_displaytitle_value' ] ) ) ) !== '' ) {
-									$pages[ $cur_value . '@' ] = htmlspecialchars_decode( $row[ 'pp_displaytitle_value'] );
-								} else {
-									$pages[ $cur_value . '@' ] = $cur_value;
-								}
+								$pages[ $cur_value . '@' ] = self::resolveDisplayTitle(
+									$row['pp_displaytitle_value'] ?? null, $cur_value );
 								if ( array_key_exists( 'pp_defaultsort_value', $row ) &&
 									( $row[ 'pp_defaultsort_value' ] ) !== null ) {
 									$sortkeys[ $cur_value ] = $row[ 'pp_defaultsort_value'];
@@ -490,12 +553,8 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 				}
 
 				$titleText = $title->getPrefixedText();
-				if ( array_key_exists( 'displaytitle', $titleprops ) &&
-					trim( str_replace( '&#160;', '', strip_tags( $titleprops['displaytitle'] ) ) ) !== '' ) {
-					$pages[$titleText] = htmlspecialchars_decode( $titleprops['displaytitle'] );
-				} else {
-					$pages[$titleText] = $titleText;
-				}
+				$pages[$titleText] = self::resolveDisplayTitle(
+					$titleprops['displaytitle'] ?? null, $titleText );
 				if ( array_key_exists( 'defaultsort', $titleprops ) ) {
 					$sortkeys[$titleText] = $titleprops['defaultsort'];
 				} else {
@@ -650,13 +709,8 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			} else {
 				$title = str_replace( '_', ' ', $row['page_title'] );
 			}
-			if ( array_key_exists( 'pp_displaytitle_value', $row ) &&
-				( $row[ 'pp_displaytitle_value' ] ) !== null &&
-				trim( str_replace( '&#160;', '', strip_tags( $row[ 'pp_displaytitle_value' ] ) ) ) !== '' ) {
-				$pages[ $title ] = htmlspecialchars_decode( $row[ 'pp_displaytitle_value'], ENT_QUOTES );
-			} else {
-				$pages[ $title ] = $title;
-			}
+			$pages[ $title ] = self::resolveDisplayTitle(
+				$row['pp_displaytitle_value'] ?? null, $title );
 			if ( array_key_exists( 'pp_defaultsort_value', $row ) &&
 				( $row[ 'pp_defaultsort_value' ] ) !== null ) {
 				$sortkeys[ $title ] = $row[ 'pp_defaultsort_value'];
@@ -822,7 +876,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			return $autocompleteValues;
 		}
 
-		if ( !in_array( $autocompleteFieldType, [ 'category', 'concept', 'namespace' ], true ) ) {
+		if ( !in_array( $autocompleteFieldType, [ 'category', 'concept', 'namespace', 'property' ], true ) ) {
 			return $autocompleteValues;
 		}
 

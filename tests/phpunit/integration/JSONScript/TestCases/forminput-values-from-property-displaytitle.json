@@ -1,0 +1,60 @@
+{
+	"description": "form input dropdown with values from Page-type property renders display title and emits map_field hidden input",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestVFPropDTPage01",
+			"contents": "[[Has type::Page]]"
+		},
+		{
+			"page": "PFTestVFDTTarget01",
+			"contents": "{{DISPLAYTITLE:PFTestVFDTTarget01 Display Title}}"
+		},
+		{
+			"page": "PFTestVFDTSubject01",
+			"contents": "[[PFTestVFPropDTPage01::PFTestVFDTTarget01]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFDTForm01",
+			"contents": "{{{for template|PFTestVFDTTempl01}}}\n{{{field|PFTestVFDTField01|input type=dropdown|values from property=PFTestVFPropDTPage01}}}\n{{{end template}}}"
+		}
+	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
+	"tests": [
+		{
+			"type": "special",
+			"about": "dropdown with Page-type property and UseDisplayTitle shows display title and emits map_field",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFDTForm01/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"PFTestVFDTTarget01 Display Title",
+					"map_field"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en",
+		"wgAllowDisplayTitle": true,
+		"wgRestrictDisplayTitle": false,
+		"wgPageFormsUseDisplayTitle": true,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
