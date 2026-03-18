@@ -40,7 +40,7 @@
 		$(this).rateYo(ratingsSettings)
 		.on("rateyo.set", function (e, data) {
 
-			$(this).parent().children(":hidden").attr("value", data.rating);
+			$(this).parent().children('[type="hidden"]').attr("value", data.rating);
 		});
 	};
 

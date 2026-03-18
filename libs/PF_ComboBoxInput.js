@@ -100,6 +100,8 @@
     };
     /**
      * Sets the values for combobox
+     *
+     * @param {boolean} [showAllValues=true]
      */
     pf.ComboBoxInput.prototype.setValues = function ( showAllValues = true ) {
         var input_id = "#" + this.getInputId(),

@@ -371,7 +371,7 @@ window.ext.popupform = ( function () {
 
 		var $anchor = jQuery( "<div class='popupform-anchor' >" );
 
-		container = jQuery( "<div class='popupform-container' >" );
+		container = jQuery( "<div class='popupform-container' >" ); // eslint-disable-line no-jquery/variable-pattern
 		$innerContainer = jQuery( "<div class='popupform-innercontainer' >" );
 		$iframe = jQuery( "<iframe class='popupform-innerdocument' name='popupform-iframe" + instance + "' id='popupform-iframe" + instance + "' >");
 

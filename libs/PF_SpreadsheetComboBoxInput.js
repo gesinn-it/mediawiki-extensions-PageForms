@@ -129,7 +129,7 @@ pf.SpreadsheetComboBoxInput.prototype.setValues = function() {
 /**
  *
  * @param {string} suggestion
- * @return HtmlSnippet
+ * @return {OO.ui.HtmlSnippet}
  */
 pf.SpreadsheetComboBoxInput.prototype.highlightText = function ( suggestion ) {
 	var searchTerm = this.getValue();
@@ -188,17 +188,16 @@ pf.SpreadsheetComboBoxInput.prototype.getConditionForAutocompleteOnAllChars = fu
  * Gives dependent field options which include
  * property, base property and base value
  *
- * @param {integer} data_y
+ * @param {number} data_y
  * @param {string} dep_on_field
  * @return {Object} dep_field_opts
  */
 pf.SpreadsheetComboBoxInput.prototype.getDependentFieldOpts = function( data_y, dep_on_field ) {
 	var dep_field_opts = {};
-	var baseElement;
-	baseElement = $('td[data-y="'+data_y+'"][origname="'+dep_on_field+'"]');
-	dep_field_opts.base_value = baseElement.html();
+	var $baseElement = $('td[data-y="'+data_y+'"][origname="'+dep_on_field+'"]');
+	dep_field_opts.base_value = $baseElement.html();
 	dep_field_opts.base_prop = mw.config.get('wgPageFormsFieldProperties')[dep_on_field] ||
-		baseElement.attr('name');
+		$baseElement.attr('name');
 	dep_field_opts.prop = this.config['autocompletesettings'];
 	return dep_field_opts;
 }

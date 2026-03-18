@@ -238,7 +238,7 @@ function hideDiv( div_id, $instanceWrapperDiv, initPage ) {
 
 			// if 'display' is not 'hidden', but the element is hidden otherwise
 			// (e.g. by having height = 0), just hide it, else animate the hiding
-			if ( $(this).is(':hidden') ) {
+			if ( this.offsetWidth === 0 || this.offsetHeight === 0 ) {
 				$(this).hide();
 			} else {
 				$(this).fadeTo(speed, 0, function() {
@@ -403,7 +403,7 @@ $.fn.showIfCheckedCheckbox = function( partOfMultiple, initPage ) {
 // Set the error message for an input.
 $.fn.setErrorMessage = function(msg, val) {
 	var container = this.find('.pfErrorMessages');
-	container.html($('<div>').addClass( 'errorMessage' ).text( mw.msg( msg, val ) ));
+	container.html($('<div>').addClass( 'errorMessage' ).text( mw.msg( msg, val ) )); // eslint-disable-line mediawiki/msg-doc
 };
 
 // Append an error message to the end of an input.
@@ -414,7 +414,7 @@ $.fn.addErrorMessage = function(msg, val, $incorrectElements) {
 
 	// Set input error and show message
 	($incorrectElements || $relevantElements).addClass('inputError');
-	this.append($('<div>').addClass( 'errorMessage' ).text( mw.msg( msg, val ) ));
+	this.append($('<div>').addClass( 'errorMessage' ).text( mw.msg( msg, val ) )); // eslint-disable-line mediawiki/msg-doc
 
 	// If this is part of a minimized multiple-template instance, add a
 	// red border around the instance rectangle to make it easier to find.
@@ -1086,17 +1086,17 @@ window.validateAll = function () {
 		num_errors += 1;
 	});
 
-	var startDateInput = $("span.startDateInput").not(".hiddenByPF")
-	var endDateInput = $("span.endDateInput").not(".hiddenByPF")
+	var $startDateInput = $("span.startDateInput").not(".hiddenByPF")
+	var $endDateInput = $("span.endDateInput").not(".hiddenByPF")
 
-	if ( !validateStartEndDateField( startDateInput, endDateInput ) ) {
+	if ( !validateStartEndDateField( $startDateInput, $endDateInput ) ) {
 		num_errors += 1;
 	}
 
-	var startDateTimeInput = $("span.startDateTimeInput").not(".hiddenByPF")
-	var endDateTimeInput = $("span.endDateTimeInput").not(".hiddenByPF")
+	var $startDateTimeInput = $("span.startDateTimeInput").not(".hiddenByPF")
+	var $endDateTimeInput = $("span.endDateTimeInput").not(".hiddenByPF")
 
-	if ( !validateStartEndDateTimeField( startDateTimeInput, endDateTimeInput ) ) {
+	if ( !validateStartEndDateTimeField( $startDateTimeInput, $endDateTimeInput ) ) {
 		num_errors += 1;
 	}
 	// call registered validation functions
@@ -1297,15 +1297,15 @@ $.fn.displayWizardScreen = function( screenNum, $wizardNav ) {
 		$wizardNav.append( progressBarLayout.$element );
 	} else {
 		$( '.pf-wizard-buttons' ).addClass( 'pf-wizard-buttons-circle' );
-		var progressCiclesUL = $( '<ul class="pfWizardCircles"></ul>' );
+		var $progressCiclesUL = $( '<ul class="pfWizardCircles"></ul>' );
 		for( let i = 1; i <= numScreens; i++ ) {
 			var circle = '<li>' + i + '</li>';
 			if ( i == screenNum ) {
 				circle = '<li class="active">' + i + '</li>';
 			}
-			progressCiclesUL.append( $( circle ) );
+			$progressCiclesUL.append( $( circle ) );
 		}
-		$wizardNav.append( progressCiclesUL );
+		$wizardNav.append( $progressCiclesUL );
 	}
 };
 
@@ -1724,21 +1724,21 @@ $.fn.initializeJSElements = function( partOfMultiple ) {
 
 	// Set the end date input to the value selected in start date
 	this.find("span.startDateInput").not(".hiddenByPF").find("input").last().blur( () => {
-		var endInput = $(this).find("span.endDateInput").not(".hiddenByPF");
-		var endYearInput = endInput.find(".yearInput");
-		var endMonthInput = endInput.find(".monthInput");
-		var endDayInput = endInput.find(".dayInput");
+		var $endInput = $(this).find("span.endDateInput").not(".hiddenByPF");
+		var $endYearInput = $endInput.find(".yearInput");
+		var $endMonthInput = $endInput.find(".monthInput");
+		var $endDayInput = $endInput.find(".dayInput");
 
 		// Update end date value only if it is not set
-		if (endYearInput.val() == '' && endMonthInput.val() == '' && endDayInput.val() == ''){
-			var startInput = $(this);
-			var startYearVal = startInput.find(".yearInput").val();
-			var startMonthVal = startInput.find(".monthInput").val();
-			var startDayVal = startInput.find(".dayInput").val();
+		if ($endYearInput.val() == '' && $endMonthInput.val() == '' && $endDayInput.val() == ''){
+			var $startInput = $(this);
+			var startYearVal = $startInput.find(".yearInput").val();
+			var startMonthVal = $startInput.find(".monthInput").val();
+			var startDayVal = $startInput.find(".dayInput").val();
 
-			endYearInput.val(startYearVal);
-			endMonthInput.val(startMonthVal);
-			endDayInput.val(startDayVal);
+			$endYearInput.val(startYearVal);
+			$endMonthInput.val(startMonthVal);
+			$endDayInput.val(startDayVal);
 		}
 	});
 

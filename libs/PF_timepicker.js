@@ -61,7 +61,7 @@ window.PF_TP_init = function( inputID, params ) { // minTime, maxTime, interval,
 	} else {
 
 		$button.click( function(){
-			if ( jQuery( '#' + inputID + '_tree>ul' ).is(':visible') ) {
+			if ( jQuery( '#' + inputID + '_tree>ul' ).css('display') !== 'none' ) {
 				$inputShow.blur();
 			} else {
 				$inputShow.focus();

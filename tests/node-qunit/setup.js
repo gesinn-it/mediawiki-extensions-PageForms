@@ -138,6 +138,7 @@ QUnit.test('body is cleaned up between tests: 2', assert => {
 QUnit.test(':input selector works', assert => {
 	document.body.innerHTML = '<div><input></div>';
 
+	// eslint-disable-next-line no-jquery/no-sizzle
 	const $inputs = $('body').find(':input');
 
 	assert.equal($inputs.length, 1);
