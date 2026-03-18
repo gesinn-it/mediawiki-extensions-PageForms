@@ -50,10 +50,11 @@ pf.SpreadsheetComboBoxInput.prototype.setValues = function() {
 				var i = 0;
 				data.title.forEach( function () {
 					var wgPageFormsAutocompleteOnAllChars = mw.config.get( 'wgPageFormsAutocompleteOnAllChars' );
-					if ( wgPageFormsAutocompleteOnAllChars ) {
-						var valueFilter = self.getConditionForAutocompleteOnAllChars( data.title[i], curValue.toLowerCase() )
-					} else {
-						var valueFilter = self.checkIfAnyWordStartsWithInputValue( data.title[i], curValue );
+				var valueFilter;
+				if ( wgPageFormsAutocompleteOnAllChars ) {
+					valueFilter = self.getConditionForAutocompleteOnAllChars( data.title[i], curValue.toLowerCase() )
+				} else {
+					valueFilter = self.checkIfAnyWordStartsWithInputValue( data.title[i], curValue );
 					}
 					if ( valueFilter ) {
 						values.push( {
@@ -111,7 +112,7 @@ pf.SpreadsheetComboBoxInput.prototype.setValues = function() {
 					if ( data.length == 0 ) {
 						values.push( self.getNoMatchesOption() )
 					} else {
-						for ( i = 0; i < data.length; i++ ) {
+						for ( var i = 0; i < data.length; i++ ) {
 							values.push( {
 								data: data[i].title, label: self.highlightText( data[i].title )
 							} );

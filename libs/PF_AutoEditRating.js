@@ -110,7 +110,7 @@
 	};
 
 	jQuery( document )
-		.ready( function( $ ) {
+		.ready( function() {
 			$( this )
 				.find( '.pfRating' )
 				.each( function() {

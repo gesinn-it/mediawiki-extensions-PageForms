@@ -88,7 +88,10 @@
 	}
 
 	$.fn.initializeSimpleUpload = function() {
-		const uploadWidget = new OO.ui.SelectFileWidget( {
+		// SelectFileInputWidget is the canonical name since MW 1.43; fall back to
+		// the deprecated SelectFileWidget alias for compatibility with MW < 1.43.
+		const SelectFileWidgetClass = OO.ui.SelectFileInputWidget || OO.ui.SelectFileWidget;
+		const uploadWidget = new SelectFileWidgetClass( {
 			buttonOnly: true,
 			button: {
 				flags: [

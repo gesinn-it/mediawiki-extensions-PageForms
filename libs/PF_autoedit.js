@@ -105,7 +105,7 @@
 		}
 	};
 
-	jQuery( document ).ready( function ( $ ) {
+	JQuery( document ).ready( function () {
 		$( '.autoedit-trigger' ).click( autoEditHandler );
 		$( '.autoedit-trigger-instant' ).each( function() {
 			autoEditHandler.call( this, {

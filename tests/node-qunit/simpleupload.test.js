@@ -20,7 +20,10 @@ QUnit.test('adds upload button to input with empty value', assert => {
 
 QUnit.test('sets input value and creates preview after selecting a file', assert => {
 	let selectedFileCallback;
-	sinon.replace(OO.ui, 'SelectFileWidget', function() {
+	// Mock whichever widget class the production code will use:
+	// SelectFileInputWidget on MW ≥ 1.43, SelectFileWidget on older versions.
+	const widgetProp = OO.ui.SelectFileInputWidget ? 'SelectFileInputWidget' : 'SelectFileWidget';
+	sinon.replace(OO.ui, widgetProp, function() {
 		this.on = function(trigger, callback) {
 			if (trigger === "change") {
 				selectedFileCallback = callback;

@@ -876,7 +876,7 @@ function leftPad( number, targetLength ) {
 	var negative = false;
 	if ( number < 0 ) {
 		number = number * -1;
-		var negative = true;
+		negative = true;
 	}
 	var output = number + '';
 	while ( output.length < targetLength ) {

@@ -77,7 +77,7 @@ function prepareMediaWiki() {
 	require('../../../../resources/lib/ooui/oojs-ui-widgets.js');
 	require('../../../../resources/lib/ooui/oojs-ui-wikimediaui.js');
 
-	const resetMediaWiki = () => {
+	const doReset = () => {
 		if ( global.mw === undefined ) {
 			global.mw = global.mediaWiki = {};
 		}
@@ -102,8 +102,8 @@ function prepareMediaWiki() {
 		mw.util = {};
 	}
 
-	resetMediaWiki();
-	return resetMediaWiki;
+	doReset();
+	return doReset;
 }
 
 

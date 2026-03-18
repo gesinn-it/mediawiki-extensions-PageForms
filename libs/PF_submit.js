@@ -171,7 +171,7 @@
 			.addClass( 'pf-save_and_continue-wait' )
 			.removeClass( 'pf-save_and_continue-changed' );
 
-			var $form = $( '#pfForm' );
+			$form = $( '#pfForm' );
 
 			var data = {
 				action: 'pfautoedit',
