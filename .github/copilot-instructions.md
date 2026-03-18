@@ -117,15 +117,15 @@ make ci
 
 **Coverage analysis**
 
-Coverage reports require PHP 7.4 / MW 1.35, because PHPUnit 8.5 does not
-support code coverage on PHP 8. Always pass the matching versions
-explicitly.
+Look up the matrix entry with `coverage: true` in
+`.github/workflows/ci.yml` and use exactly those version parameters for
+all local coverage commands.
 
 Run the full coverage suite (generates HTML + Clover XML under
 `build/coverage/php/`):
 
 ``` console
-make install composer-test-coverage MW_VERSION=1.35 PHP_VERSION=7.4 SMW_VERSION=4.2.0 DT_VERSION=3.1 PS_VERSION=0.6.1
+make install composer-test-coverage MW_VERSION=<mw> PHP_VERSION=<php> SMW_VERSION=<smw> DT_VERSION=<dt> PS_VERSION=<ps>
 ```
 
 The coverage output is mounted from the container to the host and is
@@ -140,7 +140,7 @@ container after the `make install` step and run PHPUnit directly with
 `--coverage-text` and a `--filter` matching the test class name:
 
 ``` console
-make install MW_VERSION=1.35 PHP_VERSION=7.4 SMW_VERSION=4.2.0 DT_VERSION=3.1 PS_VERSION=0.6.1
+make install MW_VERSION=<mw> PHP_VERSION=<php> SMW_VERSION=<smw> DT_VERSION=<dt> PS_VERSION=<ps>
 make bash
 > XDEBUG_MODE=coverage composer phpunit -- --coverage-text --filter PFAutocompleteAPI
 ```
