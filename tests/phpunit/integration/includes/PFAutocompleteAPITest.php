@@ -53,4 +53,16 @@ class PFAutocompleteAPITest extends ApiTestCase {
 		] );
 	}
 
+	/**
+	 * @covers \PFAutocompleteAPI::execute
+	 */
+	public function testExecuteReturnsEmptyResultWhenBasepropSetButPropertyOmitted() {
+		[ $result ] = $this->doApiRequest( [
+			'action' => 'pfautocomplete',
+			'baseprop' => 'SomeProperty',
+			'basevalue' => 'SomeValue',
+		] );
+		$this->assertSame( [], $result['pfautocomplete'] );
+	}
+
 }

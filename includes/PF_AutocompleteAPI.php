@@ -16,10 +16,6 @@ use MediaWiki\MediaWikiServices;
  */
 class PFAutocompleteAPI extends ApiBase {
 
-	public function __construct( $query, $moduleName ) {
-		parent::__construct( $query, $moduleName );
-	}
-
 	public function execute() {
 		$params = $this->extractRequestParams();
 		$substr = $params['substr'];
@@ -36,7 +32,6 @@ class PFAutocompleteAPI extends ApiBase {
 		$base_cargo_table = $params['base_cargo_table'];
 		$base_cargo_field = $params['base_cargo_field'];
 		$basevalue = $params['basevalue'];
-		// $limit = $params['limit'];
 
 		if ( $baseprop === null && $base_cargo_table === null && ( $substr === null || strlen( $substr ) == 0 ) ) {
 			$this->dieWithError( [ 'apierror-missingparam', 'substr' ], 'param_substr' );
@@ -47,6 +42,8 @@ class PFAutocompleteAPI extends ApiBase {
 		if ( $baseprop !== null ) {
 			if ( $property !== null ) {
 				$data = $this->getAllValuesForProperty( $property, null, $baseprop, $basevalue );
+			} else {
+				$data = [];
 			}
 		} elseif ( $property !== null ) {
 			$data = $this->getAllValuesForProperty( $property, $substr );
@@ -55,15 +52,9 @@ class PFAutocompleteAPI extends ApiBase {
 		} elseif ( $category !== null ) {
 			$data = PFValuesUtils::getAllPagesForCategory( $category, 3, $substr );
 			$map = $wgPageFormsUseDisplayTitle;
-			if ( $map ) {
-				$data = PFValuesUtils::disambiguateLabels( $data );
-			}
 		} elseif ( $concept !== null ) {
 			$data = PFValuesUtils::getAllPagesForConcept( $concept, $substr );
 			$map = $wgPageFormsUseDisplayTitle;
-			if ( $map ) {
-				$data = PFValuesUtils::disambiguateLabels( $data );
-			}
 		// @codeCoverageIgnoreStart
 		} elseif ( $cargo_table !== null && $cargo_field !== null ) {
 			$data = self::getAllValuesForCargoField( $cargo_table, $cargo_field, $cargo_where, $substr, $base_cargo_table, $base_cargo_field, $basevalue );
@@ -71,9 +62,6 @@ class PFAutocompleteAPI extends ApiBase {
 		} elseif ( $namespace !== null ) {
 			$data = PFValuesUtils::getAllPagesForNamespace( $namespace, $substr );
 			$map = $wgPageFormsUseDisplayTitle;
-			if ( $map ) {
-				$data = PFValuesUtils::disambiguateLabels( $data );
-			}
 		} elseif ( $external_url !== null ) {
 			$data = PFValuesUtils::getValuesFromExternalURL( $external_url, $substr );
 		} else {
@@ -82,28 +70,15 @@ class PFAutocompleteAPI extends ApiBase {
 
 		// If we got back an error message, exit with that message.
 		if ( !is_array( $data ) ) {
-			if ( is_callable( [ $this, 'dieWithError' ] ) ) {
-				if ( !$data instanceof Message ) {
-					$data = ApiMessage::create( new RawMessage( '$1', [ $data ] ), 'unknownerror' );
-				}
-				$this->dieWithError( $data );
-			} else {
-				$code = 'unknownerror';
-				if ( $data instanceof Message ) {
-					$code = $data instanceof IApiMessage ? $data->getApiCode() : $data->getKey();
-					$data = $data->inLanguage( 'en' )->useDatabase( false )->text();
-				}
-				$this->dieWithError( $data, $code );
+			if ( !$data instanceof Message ) {
+				$data = ApiMessage::create( new RawMessage( '$1', [ $data ] ), 'unknownerror' );
 			}
+			$this->dieWithError( $data );
 		}
 
-		// to prevent JS parsing problems, display should be the same
-		// even if there are no results
-		/*
-		if ( count( $data ) <= 0 ) {
-			return;
+		if ( $map ) {
+			$data = PFValuesUtils::disambiguateLabels( $data );
 		}
-		*/
 
 		// Format data as the API requires it - this is not needed
 		// for "values from url", where the data is already formatted
@@ -538,7 +513,7 @@ class PFAutocompleteAPI extends ApiBase {
 	 */
 	public static function shiftExactMatch( $substring, $values ) {
 		$firstMatchIdx = array_search( $substring, $values );
-		if ( $firstMatchIdx ) {
+		if ( $firstMatchIdx !== false && $firstMatchIdx !== 0 ) {
 			unset( $values[ $firstMatchIdx ] );
 			array_unshift( $values, $substring );
 		}
