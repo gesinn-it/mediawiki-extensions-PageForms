@@ -39,6 +39,23 @@ include::../docs/gesinn-it-docs-master-pub/snippets/docker-compose-ci-npm.adoc[]
 
 include::../docs/gesinn-it-docs-master-pub/snippets/docker-compose-ci-pre-commit-validation-gate.adoc[]
 
+IMPORTANT: Always pipe every `make` invocation through `tee` to capture the
+full output in a log file — never pipe directly into `grep`. Log first,
+analyse after:
+
+[source,console]
+----
+make ci 2>&1 | tee /tmp/ci.log; echo "EXIT:$?"
+make install npm-test 2>&1 | tee /tmp/npm-test.log; echo "EXIT:$?"
+----
+
+Then analyse the log:
+
+[source,console]
+----
+grep -E "OK$|FAILURES|Tests:|pass|fail" /tmp/ci.log | tail -10
+----
+
 **Coverage analysis**
 
 Look up the matrix entry with `coverage: true` in `.github/workflows/ci.yml`
