@@ -1,4 +1,4 @@
-( function( $, mw, pf ) {
+( function( $, mw ) {
         'use strict';
 
 	jQuery.fn.applyRatingInput = function( fromCalendar ) {
@@ -44,4 +44,4 @@
 		});
 	};
 
-}( jQuery, mediaWiki, pf ) );
+}( jQuery, mediaWiki ) );
