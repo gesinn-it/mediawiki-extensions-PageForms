@@ -31,3 +31,24 @@ QUnit.test( 'form chooser DropdownInputWidget menu uses the OOUI default overlay
 		'form chooser dropdown menu is appended to OO.ui.getDefaultOverlay()'
 	);
 } );
+
+// Regression test: the namespace DropdownInputWidget must also render its menu
+// in OO.ui.getDefaultOverlay() for the same z-index reason.
+QUnit.test( 'namespace DropdownInputWidget menu uses the OOUI default overlay', ( assert ) => {
+	const $overlay = OO.ui.getDefaultOverlay();
+	const menusBefore = $overlay.children( '.oo-ui-menuSelectWidget' ).length;
+
+	const $wrapper = $( '<div>' )
+		.addClass( 'pfFormInputWrapper' )
+		.attr( 'data-possible-namespaces', 'NS_A|NS_B' )
+		.attr( 'data-button-label', 'Go' )
+		.appendTo( document.body );
+
+	$wrapper.displayPFFormInput();
+
+	assert.strictEqual(
+		$overlay.children( '.oo-ui-menuSelectWidget' ).length,
+		menusBefore + 1,
+		'namespace dropdown menu is appended to OO.ui.getDefaultOverlay()'
+	);
+} );
