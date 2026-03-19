@@ -92,7 +92,8 @@
 			const namespaceDropdown = new OO.ui.DropdownInputWidget( {
 				name: 'namespace',
 				options: menuOptions,
-				classes: [ 'pfNamespaceDropdown' ]
+				classes: [ 'pfNamespaceDropdown' ],
+				$overlay: true
 			} );
 			pageWithNamespaceItems.push( namespaceDropdown );
 			const colonLabel = new OO.ui.LabelWidget( {
