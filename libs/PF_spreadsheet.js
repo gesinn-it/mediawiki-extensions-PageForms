@@ -749,9 +749,9 @@ const dataValues = [];
 
 				function rowAdded2( $instance, spreadsheetId ) {
 					const $newRow = $instance.find("tr").last();
-					const columnParams = gridParams[templateName];
-					for ( columnNum = 0; columnNum < columnParams.length; columnNum++ ) {
-						const defaultValue = columnParams[columnNum]['default'];
+					const defaultColumnParams = gridParams[templateName];
+					for ( columnNum = 0; columnNum < defaultColumnParams.length; columnNum++ ) {
+						const defaultValue = defaultColumnParams[columnNum]['default'];
 						if ( defaultValue == undefined ) {
 							continue;
 						}

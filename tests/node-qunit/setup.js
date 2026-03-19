@@ -64,9 +64,13 @@ function createDom() {
  */
 function prepareMediaWiki() {
 	// Check if oojs.js exists (for MW 1.39+), otherwise use oojs.jquery.js (for MW 1.35)
+	// eslint-disable-next-line security/detect-non-literal-fs-filename
 	if (fs.existsSync(oojsPath)) {
+		// eslint-disable-next-line security/detect-non-literal-require
 		global.OO = require(oojsPath);
+		// eslint-disable-next-line security/detect-non-literal-fs-filename
 	} else if (fs.existsSync(oojsJqueryPath)) {
+		// eslint-disable-next-line security/detect-non-literal-require
 		global.OO = require(oojsJqueryPath);
 	} else {
 		throw new Error('Neither oojs.js nor oojs.jquery.js could be found.');

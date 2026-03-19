@@ -3,9 +3,9 @@
  *
  * JavaScript code to use OOUI ComboBoxInput widget for comboBox.
  *
- * @param $
- * @param mw
- * @param pf
+ * @param {jQuery} $
+ * @param {mw} mw
+ * @param {Object} pf
  * @class
  * @extends OO.ui.ComboBoxInputWidget
  * @mixin OO.ui.mixin.PendingElement

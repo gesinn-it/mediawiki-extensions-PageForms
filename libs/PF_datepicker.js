@@ -1,10 +1,10 @@
 /**
  * JavaScript code to be used with input type datepicker.
  *
- * @param $
- * @param oo
- * @param mw
- * @param pf
+ * @param {jQuery} $
+ * @param {OO} oo
+ * @param {mw} mw
+ * @param {Object} pf
  * @author Sam Wilson
  * @author Yaron Koren
  */

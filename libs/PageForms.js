@@ -1313,7 +1313,7 @@ let num_elements = 0;
  * Functions for multiple-instance templates.
  *
  * @param {Mixed} addAboveCurInstance
- * @return {Mixed}
+ * @return {boolean|undefined}
  */
 $.fn.addInstance = function( addAboveCurInstance ) {
 	const wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' );
@@ -1824,6 +1824,8 @@ $.fn.initializeJSElements = function( partOfMultiple ) {
 		const tooltipText = '<p style="font-weight: normal;">' + $(this).attr('data-tooltip') + '</p>';
 		const tooltip = new OO.ui.PopupButtonWidget( {
 			icon: 'info',
+			label: mw.msg( 'pf-field-info-button' ),
+			invisibleLabel: true,
 			framed: false,
 			popup: {
 				padded: true,

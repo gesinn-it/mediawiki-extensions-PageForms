@@ -2,8 +2,8 @@
  * Javascript Code to enable simple upload functionality using OOUI's SelectFileInputWidget
  * for "combobox" and "text" input types
  *
- * @param $
- * @param mw
+ * @param {jQuery} $
+ * @param {mw} mw
  * @author Nischay Nahata
  * @author Yaron Koren
  * @author Yash Varshney

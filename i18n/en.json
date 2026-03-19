@@ -297,5 +297,6 @@
 	"pf-blankexturl": "Blank external URL value.",
 	"pf-externalpageempty": "External page contains no contents.",
 	"pf-externalpagebadjson": "Could not parse JSON in external page.",
-	"pf-simpleupload-unspecified-upload-error": "The file could not be uploaded! (Maybe it is too large?) Please check the log for errors."
+	"pf-simpleupload-unspecified-upload-error": "The file could not be uploaded! (Maybe it is too large?) Please check the log for errors.",
+	"pf-field-info-button": "Field information"
 }

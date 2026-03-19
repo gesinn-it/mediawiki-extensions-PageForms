@@ -1,8 +1,8 @@
 /**
  * Javascript handler for the checkboxes input type
  *
- * @param $
- * @param mw
+ * @param {jQuery} $
+ * @param {mw} mw
  * @author Stephan Gambke
  */
 

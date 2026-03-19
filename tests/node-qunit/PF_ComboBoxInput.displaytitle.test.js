@@ -76,8 +76,8 @@ QUnit.test( 'remote autocomplete keeps displaytitle visible and tracks canonical
 		_currentValue: 'Alb'
 	} );
 
-	sinon.replace( $, 'ajax', ( options ) => {
-		options.success( {
+	sinon.replace( $, 'ajax', ( ajaxParams ) => {
+		ajaxParams.success( {
 			pfautocomplete: [
 				{
 					title: 'Albert_Einstein',
@@ -85,8 +85,8 @@ QUnit.test( 'remote autocomplete keeps displaytitle visible and tracks canonical
 				}
 			]
 		} );
-		if ( options.complete ) {
-			options.complete();
+		if ( ajaxParams.complete ) {
+			ajaxParams.complete();
 		}
 		return {
 			abort: () => {}
@@ -164,8 +164,8 @@ QUnit.test( 'dependent autocomplete keeps displaytitle visible and tracks canoni
 		_currentValue: 'Ber'
 	} );
 
-	sinon.replace( $, 'ajax', ( options ) => {
-		options.success( {
+	sinon.replace( $, 'ajax', ( ajaxParams ) => {
+		ajaxParams.success( {
 			pfautocomplete: [
 				{
 					title: 'Berlin_(DE)',
