@@ -21,22 +21,19 @@
 /* global Uint8Array */
 
 //( function ( $, jQuery, mw ) {
-	var uploadWarning, $license = $( '#wpLicense' );
+	let uploadWarning;
+	const $license = $( '#wpLicense' );
 
-	$( function () {
+	$( () => {
 		// fillDestFile setup
 		//mw.config.get( 'wgUploadSourceIds' ).forEach( function ( sourceId ) {
-		var sourceIDs = [ 'wpUploadFile' ];
-		sourceIDs.forEach( function ( sourceId ) {
+		const sourceIDs = [ 'wpUploadFile' ];
+		sourceIDs.forEach( ( sourceId ) => {
 			$( '#' + sourceId ).on( 'change', function () {
-				var path, slash, backslash, fname;
-				// Remove any previously flagged errors
-				$( '#mw-upload-permitted, #mw-upload-prohibited' ).removeClass();
-
-				path = $( this ).val();
-				// Find trailing part
-				slash = path.lastIndexOf( '/' );
-				backslash = path.lastIndexOf( '\\' );
+				const path = $( this ).val();
+				const slash = path.lastIndexOf( '/' );
+				const backslash = path.lastIndexOf( '\\' );
+				let fname;
 				if ( slash === -1 && backslash === -1 ) {
 					fname = path;
 				} else if ( slash > backslash ) {

@@ -67,7 +67,7 @@ QUnit.module( 'PF_ComboBoxInput displaytitle handling', {
 	}
 } );
 
-QUnit.test( 'remote autocomplete keeps displaytitle visible and tracks canonical title', function( assert ) {
+QUnit.test( 'remote autocomplete keeps displaytitle visible and tracks canonical title', ( assert ) => {
 	const combo = createComboBoxDouble( {
 		config: {
 			autocompletedatatype: 'category',
@@ -102,7 +102,7 @@ QUnit.test( 'remote autocomplete keeps displaytitle visible and tracks canonical
 	assert.strictEqual( combo.$input.attr( 'data-pf-canonical-value' ), 'Albert_Einstein' );
 } );
 
-QUnit.test( 'remote autocomplete accepts canonical title for itemFound', function( assert ) {
+QUnit.test( 'remote autocomplete accepts canonical title for itemFound', ( assert ) => {
 	const combo = createComboBoxDouble( {
 		config: {
 			autocompletedatatype: 'category',
@@ -155,7 +155,7 @@ QUnit.test( 'local autocomplete map keeps displaytitle visible and tracks canoni
 	assert.strictEqual( combo.$input.attr( 'data-pf-canonical-value' ), 'Albert_Einstein' );
 } );
 
-QUnit.test( 'dependent autocomplete keeps displaytitle visible and tracks canonical title', function( assert ) {
+QUnit.test( 'dependent autocomplete keeps displaytitle visible and tracks canonical title', ( assert ) => {
 	const combo = createComboBoxDouble( {
 		config: {
 			autocompletesettings: 'City'
@@ -185,7 +185,7 @@ QUnit.test( 'dependent autocomplete keeps displaytitle visible and tracks canoni
 	assert.strictEqual( combo.$input.attr( 'data-pf-canonical-value' ), 'Berlin_(DE)' );
 } );
 
-QUnit.test( 'dependent field lookup prefers canonical base value attribute', function( assert ) {
+QUnit.test( 'dependent field lookup prefers canonical base value attribute', ( assert ) => {
 	$( '<input name="Country" value="Germany display" data-pf-canonical-value="Germany">' ).appendTo( document.body );
 	const combo = createComboBoxDouble( {
 		config: {
@@ -201,7 +201,7 @@ QUnit.test( 'dependent field lookup prefers canonical base value attribute', fun
 	assert.strictEqual( opts.base_value, 'Germany' );
 } );
 
-QUnit.test( 'submit handler rewrites visible displaytitle to canonical title', function( assert ) {
+QUnit.test( 'submit handler rewrites visible displaytitle to canonical title', ( assert ) => {
 	const combo = createComboBoxDouble( {
 		getValue: function() {
 			return this.$input.val();

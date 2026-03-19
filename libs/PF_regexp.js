@@ -2,7 +2,6 @@
  * Javascript code to be used with input type regexp.
  *
  * @author Stephan Gambke
- *
  */
 
 /**
@@ -18,10 +17,10 @@
  */
 window.PF_RE_validate = function( inputId, params ) { //input_number, retext, inverse, message, multiple
 
-	var match;
-	var message;
+	let match;
+	let message;
 	try {
-		var re = new RegExp( params.retext );
+		const re = new RegExp( params.retext );
 		match = re.test( jQuery('#' + inputId).val() );
 		message = params.message;
 	} catch (e) {

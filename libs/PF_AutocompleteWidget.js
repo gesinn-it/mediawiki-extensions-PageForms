@@ -14,7 +14,7 @@
 
 pf.AutocompleteWidget = function( config ) {
 	// Parent constructor
-	var textInputConfig = {
+	const textInputConfig = {
 		name: 'page_name',
 		// The following classes are used here:
 		// * pfPageNameWithNamespace
@@ -64,14 +64,10 @@ OO.mixinClass( pf.AutocompleteWidget, OO.ui.mixin.LookupElement );
  * @inheritdoc
  */
 pf.AutocompleteWidget.prototype.getLookupRequest = function () {
-	var
-		value = this.getValue(),
-		deferred = $.Deferred(),
-		api,
-		requestParams;
-
-	api = new mw.Api();
-	requestParams = {
+	const value = this.getValue();
+	const deferred = $.Deferred();
+	const api = new mw.Api();
+	const requestParams = {
 		action: 'pfautocomplete',
 		format: 'json',
 		substr: value
@@ -95,9 +91,9 @@ pf.AutocompleteWidget.prototype.getLookupCacheDataFromResponse = function ( resp
  * @inheritdoc
  */
 pf.AutocompleteWidget.prototype.getLookupMenuOptionsFromData = function ( data ) {
-	var i,
-		item,
-		items = [];
+	let i,
+		item;
+	const items = [];
 
 	data = data.pfautocomplete;
 	if ( this.maxSuggestions !== undefined ) {
@@ -126,18 +122,18 @@ pf.AutocompleteWidget.prototype.getLookupMenuOptionsFromData = function ( data )
 };
 
 pf.AutocompleteWidget.prototype.highlightText = function ( suggestion ) {
-	var searchTerm = this.getValue();
-	var searchRegexp = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
+	const searchTerm = this.getValue();
+	const searchRegexp = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
 		searchTerm.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1") +
 		")(?![^<>]*>)(?![^&;]+;)", "gi");
-	var itemLabel = suggestion;
-	var loc = itemLabel.search(searchRegexp);
-	var t;
+	const itemLabel = suggestion;
+	const loc = itemLabel.search(searchRegexp);
+	let t;
 
 	if (loc >= 0) {
-		t = itemLabel.substr(0, loc) +
-			 '<strong>' + itemLabel.substr(loc, searchTerm.length) + '</strong>' +
-			itemLabel.substr(loc + searchTerm.length);
+		t = itemLabel.slice(0, Math.max(0, loc)) +
+			 '<strong>' + itemLabel.slice(loc, loc + searchTerm.length) + '</strong>' +
+			itemLabel.slice(loc + searchTerm.length);
 	} else {
 		t = itemLabel;
 	}

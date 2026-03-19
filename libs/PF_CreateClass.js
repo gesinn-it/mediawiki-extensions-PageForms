@@ -18,31 +18,29 @@ function disableFormAndCategoryInputs() {
 	}
 }
 
-var toggleSwitch = new OO.ui.ToggleSwitchWidget( {
+const toggleSwitch = new OO.ui.ToggleSwitchWidget( {
 	id: 'template_multiple',
 	classes: [ 'disableFormAndCategoryInputs' ],
 } );
 $( '#template_multiple_p' ).prepend( toggleSwitch.$element );
 $( '#template_mutliple' ).attr( 'name','template_multiple' );
-$( ".disableFormAndCategoryInputs" ).click( function () {
+$( ".disableFormAndCategoryInputs" ).click( () => {
 	disableFormAndCategoryInputs();
 } );
-$( '#createClassForm' ).submit( function () {
-
-	var num_errors = 0;
+$( '#createClassForm' ).submit( () => {
 
 	// Remove all old error messages.
 	$(".errorMessage").remove();
 	$("input").removeClass("inputError");
 
-	var num_errors = 0;
+	let num_errors = 0;
 
-	var $templateName = $( "input[name='template_name']" );
-	var $form_name = $( '#form_name' );
-	var $category = $( '#category_name' );
-	var $cargoTableName = $( '#cargo_table' );
-	var isMultipleInstanceAllowed = $( "input[name='multiple_template']" ).val();
-	var isCargoBased = $( "input[name='use_cargo']" ).val();
+	const $templateName = $( "input[name='template_name']" );
+	const $form_name = $( '#form_name' );
+	const $category = $( '#category_name' );
+	const $cargoTableName = $( '#cargo_table' );
+	let isMultipleInstanceAllowed = $( "input[name='multiple_template']" ).val();
+	let isCargoBased = $( "input[name='use_cargo']" ).val();
 	if ( isMultipleInstanceAllowed ) {
 		isMultipleInstanceAllowed = parseInt( isMultipleInstanceAllowed );
 	}
@@ -85,8 +83,8 @@ $( '#createClassForm' ).submit( function () {
 } );
 
 $.fn.validateField = function () {
-	var isEmpty;
-	var target = $( this ).val();
+	let isEmpty;
+	const target = $( this ).val();
 
 	if (target === null) {
 		isEmpty = true;

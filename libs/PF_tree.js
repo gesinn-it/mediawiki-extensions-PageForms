@@ -3,6 +3,9 @@
  * checkboxes or radiobuttons into a dynamic and collapsible tree of options
  * using the jsTree JS library.
  *
+ * @param $
+ * @param mw
+ * @param pf
  * @author Mathias Lidal
  * @author Yaron Koren
  * @author Priyanshu Varshney
@@ -23,19 +26,19 @@
 		// ==== GESINN PATCH END ====
 	};
 
-	var TreeInput_proto = new pf.TreeInput();
+	const TreeInput_proto = new pf.TreeInput();
 
 	TreeInput_proto.setOptions = function () {
-		var data = $(this.element).attr('data');
+		const data = $(this.element).attr('data');
 		this.data = JSON.parse(data);
-		var params = $(this.element).attr('params');
+		const params = $(this.element).attr('params');
 		this.params = JSON.parse(params);
 		this.delimiter = this.params.delimiter;
 		this.multiple = this.params.multiple;
 		this.values = [];
 		this.cur_value = this.params.cur_value;
 
-		var options = {
+		const options = {
 			'plugins' :  [ 'checkbox' ],
 			'core' : {
 				'data' : this.data,
@@ -58,16 +61,16 @@
 	};
 
 	TreeInput_proto.handleSearch = function ( tree, jsTree ) {
-		var escapedId = tree.id.replace('[','\\[')
+		const escapedId = tree.id.replace('[','\\[')
 			.replace(']','\\]');
 
-		$(`#${escapedId}_searchinput`).keyup(function () {
-			var searchString = $(this).val();
-			var skip_async = true;
-			var show_only_matches = true;
-			var inside = null;
-			var append = false;
-			var show_only_matches_children = false;
+		$(`#${ escapedId }_searchinput`).keyup(function () {
+			const searchString = $(this).val();
+			const skip_async = true;
+			const show_only_matches = true;
+			const inside = null;
+			const append = false;
+			const show_only_matches_children = false;
 
 			jsTree.jstree('search',
 				searchString,
@@ -81,11 +84,11 @@
 	};
 
 	TreeInput_proto.check = function( data ) {
-		var $input = $(this.element).next('input.PFTree_data');
+		const $input = $(this.element).next('input.PFTree_data');
 
 		if ( this.multiple ) {
 			this.values.push( data );
-			var data_string = this.values.join( this.delimiter );
+			const data_string = this.values.join( this.delimiter );
 			$input.attr( 'value', data_string );
 		} else {
 			this.values.push( data );
@@ -94,16 +97,16 @@
 	};
 
 	TreeInput_proto.uncheck = function( data ) {
-		var $input = $( this.element ).next( 'input.PFTree_data' );
+		const $input = $( this.element ).next( 'input.PFTree_data' );
 
 		this.values.splice( this.values.indexOf( data ), 1 );
-		var data_string = this.values.join( this.delimiter );
+		const data_string = this.values.join( this.delimiter );
 		$input.attr( 'value', data_string );
 	};
 
 	TreeInput_proto.setCurValue = function () {
 		if ( this.cur_value !== null && this.cur_value !== undefined && this.cur_value !== "" ) {
-			var $input = $( this.element ).next( 'input.PFTree_data' );
+			const $input = $( this.element ).next( 'input.PFTree_data' );
 
 			$input.attr( 'value', this.cur_value );
 			this.values = this.cur_value.split( this.delimiter );
@@ -116,21 +119,21 @@
 
 $.fn.extend({
 	applyJSTree: function () {
-		var tree = new pf.TreeInput(this);
-		var options = tree.setOptions();
+		const tree = new pf.TreeInput(this);
+		const options = tree.setOptions();
 
-		var jsTree = $(this).jstree(options);
+		const jsTree = $(this).jstree(options);
 
 		tree.handleSearch( tree, jsTree );
 		// ==== GESINN PATCH BEGIN ====
 		// handle disabled state when the field is disabled in the form definition
 		// we need to prevent clicks on checkboxes
         if (tree.isDisabled) {
-			$(this).on('before_open.jstree', function(e) {
+			$(this).on('before_open.jstree', (e) => {
 				e.stopImmediatePropagation();
 				return false;
 			});
-            $(this).on('click.jstree-disabled', '.jstree-anchor, .jstree-checkbox, .jstree-ocl', function(e) {
+            $(this).on('click.jstree-disabled', '.jstree-anchor, .jstree-checkbox, .jstree-ocl', (e) => {
 				e.stopImmediatePropagation();
 				e.preventDefault();
 				return false;
@@ -142,10 +145,10 @@ $.fn.extend({
 				return false;
 			});
         } else {
-            $(this).bind('select_node.jstree', function (evt, data) {
+            $(this).bind('select_node.jstree', (evt, data) => {
                 tree.check(data.node.text);
             });
-            $(this).bind('deselect_node.jstree', function (evt, data) {
+            $(this).bind('deselect_node.jstree', (evt, data) => {
                 tree.uncheck(data.node.text);
             });
         }

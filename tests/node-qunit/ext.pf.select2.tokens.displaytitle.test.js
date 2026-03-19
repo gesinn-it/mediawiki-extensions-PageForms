@@ -37,7 +37,7 @@ QUnit.test( 'local autocomplete map uses title as id and displaytitle as text', 
 	assert.strictEqual( values[0].text, 'Albert Einstein' );
 } );
 
-QUnit.test( 'dependent autocomplete uses title as id and displaytitle as text', function( assert ) {
+QUnit.test( 'dependent autocomplete uses title as id and displaytitle as text', ( assert ) => {
 	const tokens = new pageforms.select2.tokens();
 	tokens.id = 'input_1';
 	tokens.dependentOn = () => 'Country';
@@ -65,7 +65,7 @@ QUnit.test( 'dependent autocomplete uses title as id and displaytitle as text', 
 	assert.strictEqual( values[0].text, 'Berlin' );
 } );
 
-QUnit.test( 'remote autocomplete processResults uses title as id and displaytitle as text', function( assert ) {
+QUnit.test( 'remote autocomplete processResults uses title as id and displaytitle as text', ( assert ) => {
 	const tokens = new pageforms.select2.tokens();
 	tokens.id = 'input_1';
 	$( '#input_1' )
@@ -86,7 +86,7 @@ QUnit.test( 'remote autocomplete processResults uses title as id and displaytitl
 	assert.strictEqual( processed.results[0].text, 'Albert Einstein' );
 } );
 
-QUnit.test( 'insertTag skips duplicate free tag for existing displaytitle result', function( assert ) {
+QUnit.test( 'insertTag skips duplicate free tag for existing displaytitle result', ( assert ) => {
 	const tokens = new pageforms.select2.tokens();
 	tokens.id = 'input_1';
 	tokens.existingValuesOnly = false;

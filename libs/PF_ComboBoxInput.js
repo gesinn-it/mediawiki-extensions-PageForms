@@ -3,6 +3,9 @@
  *
  * JavaScript code to use OOUI ComboBoxInput widget for comboBox.
  *
+ * @param $
+ * @param mw
+ * @param pf
  * @class
  * @extends OO.ui.ComboBoxInputWidget
  * @mixin OO.ui.mixin.PendingElement
@@ -16,7 +19,7 @@
  */
 
 (function ($, mw, pf) {
-    var apiRequest = null;
+    let apiRequest = null;
     pf.ComboBoxInput = function (config) {
         this.config = config || {}
         this.titleByDisplayValue = {};
@@ -58,10 +61,10 @@
         if (this.config.autocompletesettings == 'external data') {
             // this is especially set for dependent on settings
             // when the source field has external data autocompletion
-            var input_id = "#" + this.getInputId();
-            var name = $(input_id).attr(this.nameAttr($(input_id)));
-            var positionOfBracket = name.indexOf('[');
-            var data_autocomplete = name.substring(0,positionOfBracket)+'|'+name.substring(positionOfBracket+1,name.length-1);
+            const input_id = "#" + this.getInputId();
+            const name = $(input_id).attr(this.nameAttr($(input_id)));
+            const positionOfBracket = name.indexOf('[');
+            const data_autocomplete = name.slice(0,Math.max(0, positionOfBracket))+'|'+name.slice(positionOfBracket+1,name.length-1);
             this.setInputAttribute('data-autocomplete',data_autocomplete);
         }
         // Bind the blur event to resize input according to the value
@@ -83,17 +86,17 @@
                 this.setValues(false);
             }
         });
-        this.$element.mouseup( () =>{
+        this.$element.mouseup( () => {
             this.setValues(false);
         })
-        this.$element.focusout( () =>{
+        this.$element.focusout( () => {
             this.syncCanonicalValue();
             $( '.combobox_map_feed' ).val( this.$input.val() );
         });
 
         this.bindCanonicalSubmitHandler();
 
-        var $loadingIcon = $( '<img src = "' + mw.config.get( 'wgPageFormsScriptPath' ) + '/skins/loading.gif'
+        const $loadingIcon = $( '<img src = "' + mw.config.get( 'wgPageFormsScriptPath' ) + '/skins/loading.gif'
             + '" id="loading-' + this.getInputId() + '">' );
         $loadingIcon.hide();
         $( '#' + element.attr('id') ).parent().append( $loadingIcon );
@@ -104,28 +107,28 @@
      * @param {boolean} [showAllValues=true]
      */
     pf.ComboBoxInput.prototype.setValues = function ( showAllValues = true ) {
-        var input_id = "#" + this.getInputId(),
-            values = [],
-            dep_on = this.dependentOn(),
-            self = this,
-            data,
+        const input_id = "#" + this.getInputId();
+        const values = [];
+        let data,
             i,
             curValue,
-            my_server,
-            wgPageFormsAutocompleteOnAllChars = mw.config.get( 'wgPageFormsAutocompleteOnAllChars' );
+            my_server;
+        const dep_on = this.dependentOn();
+        const self = this;
+        const wgPageFormsAutocompleteOnAllChars = mw.config.get( 'wgPageFormsAutocompleteOnAllChars' );
         this.titleByDisplayValue = {};
         this.displayByTitle = {};
 
         // First, handle "show on select" stuff.
-        var $parentSpan = $(input_id).closest('span');
+        const $parentSpan = $(input_id).closest('span');
         if ( $parentSpan.hasClass('pfShowIfSelected') ) {
             mw.hook('pf.comboboxChange').fire($parentSpan);
         }
 
         this.itemFound = false;
         if (this.config.autocompletedatatype !== undefined) {
-            var data_source = this.config.autocompletesettings,
-                data_type = this.config.autocompletedatatype;
+            let data_source = this.config.autocompletesettings;
+            const data_type = this.config.autocompletedatatype;
             curValue = this.getValue();
             if (curValue.length == 0) {
                 values.push({
@@ -138,7 +141,7 @@
 		    my_server = mw.util.wikiScript( 'api' );
 
             if (data_type === 'cargo field') {
-                var table_and_field = data_source.split('|');
+                const table_and_field = data_source.split('|');
                 my_server += "?action=pfautocomplete&format=json&cargo_table=" + table_and_field[0] + "&cargo_field=" + table_and_field[1] + "&substr=" + curValue;
                 if ( table_and_field.length > 2 ) {
                     my_server += '&cargo_where=' + table_and_field[2];
@@ -146,12 +149,12 @@
             } else {
                 if ( data_type === 'wikidata' ) {
                     // Support for getting query values from an existing field in the form
-                    var terms = data_source.split( "&" );
-                    terms.forEach( element => {
-                        var subTerms = element.split( "=" );
-                        var matches = subTerms[1].match( /\[(.*?)\]/ );
+                    const terms = data_source.split( "&" );
+                    terms.forEach( (element) => {
+                        const subTerms = element.split( "=" );
+                        const matches = subTerms[1].match( /\[(.*?)\]/ );
                         if ( matches ) {
-                            var dep_value = $( '[name="' + subTerms[1] + '"]' ).val();
+                            const dep_value = $( '[name="' + subTerms[1] + '"]' ).val();
                             if ( dep_value && dep_value.trim().length ) {
                                 data_source = data_source.replace( subTerms[1], dep_value );
                             }
@@ -214,15 +217,15 @@
                     if ( showAllValues ) {
                         curValue = "";
                     }
-                    var name = $(input_id).attr(this.nameAttr($(input_id)));
-                    var wgPageFormsEDSettings = mw.config.get('wgPageFormsEDSettings');
-                    var edgValues = mw.config.get('edgValues');
+                    const name = $(input_id).attr(this.nameAttr($(input_id)));
+                    const wgPageFormsEDSettings = mw.config.get('wgPageFormsEDSettings');
+                    const edgValues = mw.config.get('edgValues');
                     data = {};
                     if (wgPageFormsEDSettings[name].title !== undefined && wgPageFormsEDSettings[name].title !== "") {
                         data.title = edgValues[wgPageFormsEDSettings[name].title];
                         if (data.title !== undefined && data.title !== null) {
                             i = 0;
-                            data.title.forEach(function () {
+                            data.title.forEach(() => {
                                 if (data.title[i] == curValue ){
                                     self.itemFound = true;
                                 }
@@ -246,7 +249,7 @@
                         }
                     }
                 } else {
-                    var wgPageFormsAutocompleteValues = mw.config.get('wgPageFormsAutocompleteValues');
+                    const wgPageFormsAutocompleteValues = mw.config.get('wgPageFormsAutocompleteValues');
                     data = wgPageFormsAutocompleteValues[this.config['autocompletesettings']];
                     curValue = this.getValue();
                     if ( showAllValues ) {
@@ -254,7 +257,7 @@
                     }
                     if (Array.isArray(data) || typeof data == 'object') {
                         if (wgPageFormsAutocompleteOnAllChars) {
-                            for (let key in data) {
+                            for (const key in data) {
                                 const optionData = Array.isArray(data) ? data[key] : key;
                                 const optionLabel = data[key];
                                 this.titleByDisplayValue[optionLabel] = optionData;
@@ -272,7 +275,7 @@
                                 }
                             }
                         } else {
-                            for (let key in data) {
+                            for (const key in data) {
                                 const optionData = Array.isArray(data) ? data[key] : key;
                                 const optionLabel = data[key];
                                 this.titleByDisplayValue[optionLabel] = optionData;
@@ -293,25 +296,25 @@
                     }
                 }
             } else { // Dependent field autocompletion
-                var dep_field_opts = this.getDependentFieldOpts(dep_on);
+                const dep_field_opts = this.getDependentFieldOpts(dep_on);
                 my_server = mw.config.get('wgScriptPath') + "/api.php";
                 my_server += "?action=pfautocomplete&format=json";
                 // URL depends on whether Cargo or Semantic MediaWiki
                 // is being used.
                 if (dep_field_opts.prop !== undefined && dep_field_opts.base_prop !== undefined && dep_field_opts.base_value !== undefined) {
-                    if (dep_field_opts.prop.indexOf('|') === -1) {
+                    if (!dep_field_opts.prop.includes('|')) {
                         // SMW
                         my_server += "&property=" + dep_field_opts.prop + "&baseprop=" + dep_field_opts.base_prop + "&basevalue=" + dep_field_opts.base_value;
                     } else {
                         // Cargo
-                        var cargoTableAndFieldStr = dep_field_opts.prop;
-                        var cargoTableAndField = cargoTableAndFieldStr.split('|');
-                        var cargoTable = cargoTableAndField[0];
-                        var cargoField = cargoTableAndField[1];
-                        var baseCargoTableAndFieldStr = dep_field_opts.base_prop;
-                        var baseCargoTableAndField = baseCargoTableAndFieldStr.split('|');
-                        var baseCargoTable = baseCargoTableAndField[0];
-                        var baseCargoField = baseCargoTableAndField[1];
+                        const cargoTableAndFieldStr = dep_field_opts.prop;
+                        const cargoTableAndField = cargoTableAndFieldStr.split('|');
+                        const cargoTable = cargoTableAndField[0];
+                        const cargoField = cargoTableAndField[1];
+                        const baseCargoTableAndFieldStr = dep_field_opts.base_prop;
+                        const baseCargoTableAndField = baseCargoTableAndFieldStr.split('|');
+                        const baseCargoTable = baseCargoTableAndField[0];
+                        const baseCargoField = baseCargoTableAndField[1];
                         my_server += "&cargo_table=" + cargoTable + "&cargo_field=" + cargoField + "&base_cargo_table=" + baseCargoTable + "&base_cargo_field=" + baseCargoField + "&basevalue=" + dep_field_opts.base_value;
                     }
                     $.ajax({
@@ -325,7 +328,7 @@
                                 });
                                 return values;
                             }
-                            response.pfautocomplete.forEach(function (item) {
+                            response.pfautocomplete.forEach((item) => {
                                 curValue = self.getValue();
                                 const optionTitle = item.title;
                                 const optionLabel = item.displaytitle !== undefined ? item.displaytitle : item.title;
@@ -396,18 +399,18 @@
     };
 
     pf.ComboBoxInput.prototype.syncDisplayValueFromCanonical = function ( inputValue ) {
-        var valueToSync = inputValue;
+        let valueToSync = inputValue;
         if ( valueToSync === undefined ) {
             valueToSync = this.getValue();
         }
-        var displayValue = this.getDisplayValueForCanonicalInput( valueToSync );
+        const displayValue = this.getDisplayValueForCanonicalInput( valueToSync );
         if ( displayValue !== undefined && displayValue !== null && displayValue !== valueToSync ) {
             this.setValue( displayValue );
         }
     };
 
     pf.ComboBoxInput.prototype.syncCanonicalValue = function ( inputValue ) {
-        var valueToSync = inputValue;
+        let valueToSync = inputValue;
         if ( valueToSync === undefined ) {
             valueToSync = this.getValue();
         }
@@ -432,7 +435,6 @@
      * @param {HTMLElement} element
      *
      * @return {string}
-     *
      */
     pf.ComboBoxInput.prototype.nameAttr = function (element) {
         return this.partOfMultiple(element) ? "origname" : "name";
@@ -443,7 +445,6 @@
      * @param {HTMLElement} element
      *
      * @return {boolean}
-     *
      */
     pf.ComboBoxInput.prototype.partOfMultiple = function (element) {
         return element.attr("origname") !== undefined ? true : false;
@@ -453,16 +454,15 @@
      * then it returns its name.
      *
      * @return {string}
-     *
      */
     pf.ComboBoxInput.prototype.dependentOn = function () {
-        var input_id = "#" + this.getInputId();
-        var name_attr = this.nameAttr($(input_id));
-        var name = $(input_id).attr(name_attr);
+        const input_id = "#" + this.getInputId();
+        const name_attr = this.nameAttr($(input_id));
+        const name = $(input_id).attr(name_attr);
 
-        var wgPageFormsDependentFields = mw.config.get('wgPageFormsDependentFields');
-        for (var i = 0; i < wgPageFormsDependentFields.length; i++) {
-            var dependentFieldPair = wgPageFormsDependentFields[i];
+        const wgPageFormsDependentFields = mw.config.get('wgPageFormsDependentFields');
+        for (let i = 0; i < wgPageFormsDependentFields.length; i++) {
+            const dependentFieldPair = wgPageFormsDependentFields[i];
             if (dependentFieldPair[1] === name) {
                 return dependentFieldPair[0];
             }
@@ -476,12 +476,11 @@
      * @param {string} dep_on
      *
      * @return {Object} dep_field_opts
-     *
      */
     pf.ComboBoxInput.prototype.getDependentFieldOpts = function (dep_on) {
-        var input_id = "#" + this.getInputId();
-        var dep_field_opts = {};
-        var $baseElement;
+        const input_id = "#" + this.getInputId();
+        const dep_field_opts = {};
+        let $baseElement;
         if (this.partOfMultiple($(input_id))) {
             $baseElement = $(input_id).closest(".multipleTemplateInstance")
                 .find('[origname ="' + dep_on + '" ]');
@@ -503,16 +502,15 @@
      * @param {HTMLElement} element
      *
      * @return {Array} dependent_on_me (associative array)
-     *
      */
     pf.ComboBoxInput.prototype.dependentOnMe = function () {
-        var input_id = "#" + this.getInputId();
-        var name_attr = this.nameAttr($(input_id));
-        var name = $(input_id).attr(name_attr);
-        var dependent_on_me = [];
-        var wgPageFormsDependentFields = mw.config.get('wgPageFormsDependentFields');
-        for (var i = 0; i < wgPageFormsDependentFields.length; i++) {
-            var dependentFieldPair = wgPageFormsDependentFields[i];
+        const input_id = "#" + this.getInputId();
+        const name_attr = this.nameAttr($(input_id));
+        const name = $(input_id).attr(name_attr);
+        const dependent_on_me = [];
+        const wgPageFormsDependentFields = mw.config.get('wgPageFormsDependentFields');
+        for (let i = 0; i < wgPageFormsDependentFields.length; i++) {
+            const dependentFieldPair = wgPageFormsDependentFields[i];
             if (dependentFieldPair[0] === name) {
                 dependent_on_me.push(dependentFieldPair[1]);
             }
@@ -522,18 +520,18 @@
     };
 
     pf.ComboBoxInput.prototype.highlightText = function (suggestion) {
-        var searchTerm = this.getValue();
-        var searchRegexp = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
+        const searchTerm = this.getValue();
+        const searchRegexp = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
             searchTerm.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1") +
             ")(?![^<>]*>)(?![^&;]+;)", "gi");
-        var itemLabel = suggestion;
-        var loc = itemLabel.search(searchRegexp);
-        var t;
+        const itemLabel = suggestion;
+        const loc = itemLabel.search(searchRegexp);
+        let t;
 
         if (loc >= 0) {
-            t = itemLabel.substr(0, loc) +
-                '<strong>' + itemLabel.substr(loc, searchTerm.length) + '</strong>' +
-                itemLabel.substr(loc + searchTerm.length);
+            t = itemLabel.slice(0, Math.max(0, loc)) +
+                '<strong>' + itemLabel.slice(loc, loc + searchTerm.length) + '</strong>' +
+                itemLabel.slice(loc + searchTerm.length);
         } else {
             t = itemLabel;
         }
@@ -541,10 +539,10 @@
     };
 
     pf.ComboBoxInput.prototype.checkIfAnyWordStartsWithInputValue = function(string, curValue) {
-        let wordSeparators = [
+        const wordSeparators = [
             '/', '(', ')', '|', 's'
-        ].map( p => "\\" + p).concat('^', '-', "'",'"');
-        let regex = new RegExp('(' + wordSeparators.join('|') + ')' + curValue.toLowerCase());
+        ].map( (p) => "\\" + p).concat('^', '-', "'",'"');
+        const regex = new RegExp('(' + wordSeparators.join('|') + ')' + curValue.toLowerCase());
         return string.toLowerCase().match(regex) !== null;
     }
 

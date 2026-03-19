@@ -95,9 +95,9 @@ $.fn.PageForms_registerInputInit = function( initFunction, param, noexecute ) {
 	// execute initialization if input is not part of multipleTemplateStarter
 	// and if not forbidden
 	if ( this.closest(".multipleTemplateStarter").length === 0 && !noexecute) {
-		var $input = this;
+		const $input = this;
 		// ensure initFunction is only executed after doc structure is complete
-		$(function() {
+		$(() => {
 			if ( initFunction !== undefined ) {
 				initFunction ( $input.attr("id"), param );
 			}
@@ -110,11 +110,11 @@ $.fn.PageForms_registerInputInit = function( initFunction, param, noexecute ) {
 // Unregister all validation methods for the element referenced by /this/
 $.fn.PageForms_unregisterInputValidation = function() {
 
-	var pfdata = $("#pfForm").data("PageForms");
+	const pfdata = $("#pfForm").data("PageForms");
 
 	if ( this.attr("id") && pfdata ) {
 		// delete every validation method for this input
-		for ( var i = 0; i < pfdata.validationFunctions.length; i++ ) {
+		for ( let i = 0; i < pfdata.validationFunctions.length; i++ ) {
 			if ( typeof pfdata.validationFunctions[i] !== 'undefined' &&
 				pfdata.validationFunctions[i].input === this.attr("id") ) {
 				delete pfdata.validationFunctions[i];
@@ -148,8 +148,8 @@ mw.hook('pf.comboboxChange').add( ( $parentSpan ) => {
 
 // Display a div that would otherwise be hidden by "show on select".
 function showDiv( div_id, $instanceWrapperDiv, initPage ) {
-	var speed = initPage ? 0 : 'fast';
-	var $elem;
+	const speed = initPage ? 0 : 'fast';
+	let $elem;
 	if ( $instanceWrapperDiv !== null ) {
 		$elem = $('[data-origID="' + div_id + '"]', $instanceWrapperDiv);
 	} else {
@@ -180,22 +180,22 @@ function showDiv( div_id, $instanceWrapperDiv, initPage ) {
 	// Now re-show any form elements that are meant to be shown due
 	// to the current value of form inputs in this div that are now
 	// being uncovered.
-	var wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' );
+	const wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' );
 	$elem.find(".pfShowIfSelected, .pfShowIfChecked").each( function() {
-		var $uncoveredInput = $(this);
-		var uncoveredInputID = null;
+		const $uncoveredInput = $(this);
+		let uncoveredInputID = null;
 		if ( $instanceWrapperDiv === null ) {
 			uncoveredInputID = $uncoveredInput.attr("id");
 		} else {
 			uncoveredInputID = $uncoveredInput.attr("data-origID");
 		}
-		var showOnSelectVals = wgPageFormsShowOnSelect[uncoveredInputID];
+		const showOnSelectVals = wgPageFormsShowOnSelect[uncoveredInputID];
 
 		if ( showOnSelectVals !== undefined ) {
-			var inputVal = $uncoveredInput.val();
-			for ( var i = 0; i < showOnSelectVals.length; i++ ) {
-				var options = showOnSelectVals[i][0];
-				var div_id2 = showOnSelectVals[i][1];
+			const inputVal = $uncoveredInput.val();
+			for ( let i = 0; i < showOnSelectVals.length; i++ ) {
+				const options = showOnSelectVals[i][0];
+				const div_id2 = showOnSelectVals[i][1];
 				if ( $uncoveredInput.hasClass( 'pfShowIfSelected' ) ) {
 					showDivIfSelected( options, div_id2, inputVal, $instanceWrapperDiv, initPage );
 				} else {
@@ -209,11 +209,11 @@ function showDiv( div_id, $instanceWrapperDiv, initPage ) {
 // Hide a div due to "show on select". The CSS class is there so that PF can
 // ignore the div's contents when the form is submitted.
 function hideDiv( div_id, $instanceWrapperDiv, initPage ) {
-	var speed = initPage ? 0 : 'fast';
-	var $elem;
+	const speed = initPage ? 0 : 'fast';
+	let $elem;
 	// IDs can't contain spaces, and jQuery won't work with such IDs - if
 	// this one has a space, display an alert.
-	if ( div_id.indexOf( ' ' ) > -1 ) {
+	if ( div_id.includes(' ') ) {
 		// TODO - this should probably be a language value, instead of
 		// hardcoded in English.
 		alert( "Warning: this form has \"show on select\" pointing to an invalid element ID (\"" + div_id + "\") - IDs in HTML cannot contain spaces." );
@@ -250,9 +250,9 @@ function hideDiv( div_id, $instanceWrapperDiv, initPage ) {
 
 	// Also, recursively hide further elements that are only shown because
 	// inputs within this now-hidden div were checked/selected.
-	var wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' );
+	const wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' );
 	$elem.find(".pfShowIfSelected, .pfShowIfChecked").each( function() {
-		var showOnSelectVals;
+		let showOnSelectVals;
 		if ( $instanceWrapperDiv === null ) {
 			showOnSelectVals = wgPageFormsShowOnSelect[$(this).attr("id")];
 		} else {
@@ -260,9 +260,9 @@ function hideDiv( div_id, $instanceWrapperDiv, initPage ) {
 		}
 
 		if ( showOnSelectVals !== undefined ) {
-			for ( var i = 0; i < showOnSelectVals.length; i++ ) {
+			for ( let i = 0; i < showOnSelectVals.length; i++ ) {
 				//var options = showOnSelectVals[i][0];
-				var div_id2 = showOnSelectVals[i][1];
+				const div_id2 = showOnSelectVals[i][1];
 				hideDiv( div_id2, $instanceWrapperDiv, initPage );
 			}
 		}
@@ -272,7 +272,7 @@ function hideDiv( div_id, $instanceWrapperDiv, initPage ) {
 // Show this div if the current value is any of the relevant options -
 // otherwise, hide it.
 function showDivIfSelected(options, div_id, inputVal, $instanceWrapperDiv, initPage) {
-	for ( var i = 0; i < options.length; i++ ) {
+	for ( let i = 0; i < options.length; i++ ) {
 		// If it's a listbox and the user has selected more than one
 		// value, it'll be an array - handle either case.
 		if (($.isArray(inputVal) && $.inArray(options[i], inputVal) >= 0) ||
@@ -287,10 +287,10 @@ function showDivIfSelected(options, div_id, inputVal, $instanceWrapperDiv, initP
 // Used for handling 'show on select' for the 'dropdown', 'listbox',
 // 'combobox' and 'tokens' input types.
 $.fn.showIfSelected = function(partOfMultiple, initPage) {
-	var inputVal,
-		wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' ),
+	let inputVal,
 		showOnSelectVals,
 		$instanceWrapperDiv;
+	const wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' );
 
 		if ( this.attr( 'data-input-type' ) == 'combobox' ) {
 			if ( initPage ) {
@@ -320,9 +320,9 @@ $.fn.showIfSelected = function(partOfMultiple, initPage) {
 	}
 
 	if ( showOnSelectVals !== undefined ) {
-		for ( var i = 0; i < showOnSelectVals.length; i++ ) {
-			var options = showOnSelectVals[i][0];
-			var div_id = showOnSelectVals[i][1];
+		for ( let i = 0; i < showOnSelectVals.length; i++ ) {
+			const options = showOnSelectVals[i][0];
+			const div_id = showOnSelectVals[i][1];
 			showDivIfSelected( options, div_id, inputVal, $instanceWrapperDiv, initPage );
 		}
 	}
@@ -333,7 +333,7 @@ $.fn.showIfSelected = function(partOfMultiple, initPage) {
 // Show this div if any of the relevant selections are checked -
 // otherwise, hide it.
 $.fn.showDivIfChecked = function(options, div_id, $instanceWrapperDiv, initPage ) {
-	for ( var i = 0; i < options.length; i++ ) {
+	for ( let i = 0; i < options.length; i++ ) {
 		if ($(this).find('[value="' + options[i] + '"]').is(":checked")) {
 			showDiv( div_id, $instanceWrapperDiv, initPage );
 			return this;
@@ -347,8 +347,8 @@ $.fn.showDivIfChecked = function(options, div_id, $instanceWrapperDiv, initPage 
 // Used for handling 'show on select' for the 'checkboxes' and 'radiobutton'
 // inputs.
 $.fn.showIfChecked = function(partOfMultiple, initPage) {
-	var wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' ),
-		showOnSelectVals,
+	const wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' );
+	let showOnSelectVals,
 		$instanceWrapperDiv,
 		i;
 
@@ -362,8 +362,8 @@ $.fn.showIfChecked = function(partOfMultiple, initPage) {
 
 	if ( showOnSelectVals !== undefined ) {
 		for ( i = 0; i < showOnSelectVals.length; i++ ) {
-			var options = showOnSelectVals[i][0];
-			var div_id = showOnSelectVals[i][1];
+			const options = showOnSelectVals[i][0];
+			const div_id = showOnSelectVals[i][1];
 			this.showDivIfChecked( options, div_id, $instanceWrapperDiv, initPage );
 		}
 	}
@@ -373,8 +373,8 @@ $.fn.showIfChecked = function(partOfMultiple, initPage) {
 
 // Used for handling 'show on select' for the 'checkbox' input.
 $.fn.showIfCheckedCheckbox = function( partOfMultiple, initPage ) {
-	var wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' ),
-		divIDs,
+	const wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' );
+	let divIDs,
 		$instanceWrapperDiv = null,
 		i;
 	if ( partOfMultiple ) {
@@ -385,7 +385,7 @@ $.fn.showIfCheckedCheckbox = function( partOfMultiple, initPage ) {
 		divIDs = wgPageFormsShowOnSelect[this.attr( "id" )];
 	}
 	for ( i = 0; i < divIDs.length; i++ ) {
-		var divID = divIDs[i];
+		const divID = divIDs[i];
 		if ( $( this ).find( '[value]' ).is( ":checked" ) ) {
 			showDiv( divID, $instanceWrapperDiv, initPage );
 		} else {
@@ -402,7 +402,7 @@ $.fn.showIfCheckedCheckbox = function( partOfMultiple, initPage ) {
 
 // Set the error message for an input.
 $.fn.setErrorMessage = function(msg, val) {
-	var container = this.find('.pfErrorMessages');
+	const container = this.find('.pfErrorMessages');
 	container.html($('<div>').addClass( 'errorMessage' ).text( mw.msg( msg, val ) )); // eslint-disable-line mediawiki/msg-doc
 };
 
@@ -422,8 +422,8 @@ $.fn.addErrorMessage = function(msg, val, $incorrectElements) {
 };
 
 $.fn.isAtMaxInstances = function() {
-	var numInstances = this.find("div.multipleTemplateInstance").length;
-	var maximumInstances = this.attr("maximumInstances");
+	const numInstances = this.find("div.multipleTemplateInstance").length;
+	const maximumInstances = this.attr("maximumInstances");
 	if ( numInstances >= maximumInstances ) {
 		this.parent().setErrorMessage( 'pf_too_many_instances_error', maximumInstances );
 		return true;
@@ -432,9 +432,9 @@ $.fn.isAtMaxInstances = function() {
 };
 
 $.fn.validateNumInstances = function() {
-	var minimumInstances = this.attr("minimumInstances");
-	var maximumInstances = this.attr("maximumInstances");
-	var numInstances = this.find("div.multipleTemplateInstance").length;
+	const minimumInstances = this.attr("minimumInstances");
+	const maximumInstances = this.attr("maximumInstances");
+	const numInstances = this.find("div.multipleTemplateInstance").length;
 	if ( numInstances < minimumInstances ) {
 		this.parent().addErrorMessage( 'pf_too_few_instances_error', minimumInstances );
 		return false;
@@ -447,8 +447,8 @@ $.fn.validateNumInstances = function() {
 };
 
 $.fn.validateMandatoryField = function() {
-	var fieldVal = this.find(".mandatoryField").val();
-	var isEmpty;
+	const fieldVal = this.find(".mandatoryField").val();
+	let isEmpty;
 
 	if (fieldVal === null) {
 		isEmpty = true;
@@ -467,34 +467,34 @@ $.fn.validateMandatoryField = function() {
 
 $.fn.validateUniqueField = function() {
 
-	var UNDEFINED = "undefined";
-	var field = this.find(".uniqueField");
-	var fieldVal = field.val();
+	const UNDEFINED = "undefined";
+	const field = this.find(".uniqueField");
+	const fieldVal = field.val();
 
 	if (typeof fieldVal === UNDEFINED || fieldVal.replace(/\s+/, '') === '') {
 		return true;
 	}
 
-	var fieldOrigVal = field.prop("defaultValue");
+	const fieldOrigVal = field.prop("defaultValue");
 	if (fieldVal === fieldOrigVal) {
 		return true;
 	}
 
-	var categoryFieldName = field.prop("id") + "_unique_for_category";
-	var $categoryField = $("[name=" + categoryFieldName + "]");
-	var category = $categoryField.val();
+	const categoryFieldName = field.prop("id") + "_unique_for_category";
+	const $categoryField = $("[name=" + categoryFieldName + "]");
+	let category = $categoryField.val();
 
-	var namespaceFieldName = field.prop("id") + "_unique_for_namespace";
-	var $namespaceField = $("[name=" + namespaceFieldName + "]");
-	var namespace = $namespaceField.val();
+	const namespaceFieldName = field.prop("id") + "_unique_for_namespace";
+	const $namespaceField = $("[name=" + namespaceFieldName + "]");
+	const namespace = $namespaceField.val();
 
-	var url = mw.config.get( 'wgScriptPath' ) + "/api.php?format=json&action=";
+	let url = mw.config.get( 'wgScriptPath' ) + "/api.php?format=json&action=";
 
-	var query,
+	let query,
 		isNotUnique;
 
 	// SMW
-	var propertyFieldName = field.prop("id") + "_unique_property",
+	const propertyFieldName = field.prop("id") + "_unique_property",
 		$propertyField = $("[name=" + propertyFieldName + "]"),
 		property = $propertyField.val();
 	if (typeof property !== UNDEFINED && property.replace(/\s+/, '') !== '') {
@@ -514,9 +514,9 @@ $.fn.validateUniqueField = function() {
 			}
 		}
 
-		var conceptFieldName = field.prop("id") + "_unique_for_concept";
-		var $conceptField = $("[name=" + conceptFieldName + "]");
-		var concept = $conceptField.val();
+		const conceptFieldName = field.prop("id") + "_unique_for_concept";
+		const $conceptField = $("[name=" + conceptFieldName + "]");
+		const concept = $conceptField.val();
 		if (typeof concept !== UNDEFINED &&
 			concept.replace(/\s+/, '') !== '') {
 			query += "[[Concept:" + concept + "]]";
@@ -546,12 +546,12 @@ $.fn.validateUniqueField = function() {
 	}
 
 	// Cargo
-	var cargoTableFieldName = field.prop("id") + "_unique_cargo_table";
-	var $cargoTableField = $("[name=" + cargoTableFieldName + "]");
-	var cargoTable = $cargoTableField.val();
-	var cargoFieldFieldName = field.prop("id") + "_unique_cargo_field";
-	var $cargoFieldField = $("[name=" + cargoFieldFieldName + "]");
-	var cargoField = $cargoFieldField.val();
+	const cargoTableFieldName = field.prop("id") + "_unique_cargo_table";
+	const $cargoTableField = $("[name=" + cargoTableFieldName + "]");
+	let cargoTable = $cargoTableField.val();
+	const cargoFieldFieldName = field.prop("id") + "_unique_cargo_field";
+	const $cargoFieldField = $("[name=" + cargoFieldFieldName + "]");
+	const cargoField = $cargoFieldField.val();
 	if (typeof cargoTable !== UNDEFINED && cargoTable.replace(/\s+/, '') !== ''
 		&& typeof cargoField !== UNDEFINED
 		&& cargoField.replace(/\s+/, '') !== '') {
@@ -568,7 +568,7 @@ $.fn.validateUniqueField = function() {
 		if (typeof namespace !== UNDEFINED) {
 			query += "+AND+_pageNamespace=";
 			if (namespace.replace(/\s+/, '') !== '') {
-				var ns = mw.config.get('wgNamespaceIds')[namespace.toLowerCase()];
+				const ns = mw.config.get('wgNamespaceIds')[namespace.toLowerCase()];
 				if (typeof ns !== UNDEFINED) {
 					query += ns;
 				}
@@ -605,7 +605,7 @@ $.fn.validateUniqueField = function() {
 };
 
 $.fn.validateMandatoryComboBox = function() {
-	var $combobox = this.find('.mandatoryField');
+	const $combobox = this.find('.mandatoryField');
 	if ($combobox.val() === null || $combobox.val() === '') {
 		this.addErrorMessage( 'pf_blank_error' );
 		return false;
@@ -634,12 +634,12 @@ $.fn.validateMandatoryDateField = function() {
 // Added custom validation function for mandatory datetime fields
 $.fn.validateMandatoryDateTimeField = function() {
 	// validate that all fields are filled in
-    var day = this.find(".dayInput").val();
-    var month = this.find(".monthInput").val();
-    var year = this.find(".yearInput").val();
-    var hour = this.find(".hoursInput").val();
-    var minute = this.find(".minutesInput").val();
-    var second = this.find(".secondsInput").val();
+    const day = this.find(".dayInput").val();
+    const month = this.find(".monthInput").val();
+    const year = this.find(".yearInput").val();
+    const hour = this.find(".hoursInput").val();
+    const minute = this.find(".minutesInput").val();
+    const second = this.find(".secondsInput").val();
 
 	// if any field is blank, return false and mandatory error
     if (day === "" || month === "" || year === "" || hour === "" || minute === "") {
@@ -651,7 +651,7 @@ $.fn.validateMandatoryDateTimeField = function() {
 // ==== GESINN PATCH END ====
 
 $.fn.validateMandatoryRadioButton = function() {
-	var checkedValue = this.find("input:checked").val();
+	const checkedValue = this.find("input:checked").val();
 	if (!checkedValue || checkedValue == '') {
 		this.addErrorMessage('pf_blank_error');
 		return false;
@@ -663,7 +663,7 @@ $.fn.validateMandatoryRadioButton = function() {
 $.fn.validateMandatoryCheckboxes = function() {
 	// Get the number of checked checkboxes within this span - must
 	// be at least one.
-	var numChecked = this.find("input:checked").length;
+	const numChecked = this.find("input:checked").length;
 	if (numChecked === 0) {
 		this.addErrorMessage('pf_blank_error');
 		return false;
@@ -684,7 +684,7 @@ $.fn.validateMandatoryGeoCoordinatesMaps = function() {
 // ==== GESINN PATCH END ====
 
 $.fn.validateMandatoryTree = function() {
-	var input_value = this.find( 'input' ).attr( 'value' );
+	const input_value = this.find( 'input' ).attr( 'value' );
 	if ( input_value === undefined || input_value === '' ) {
 		this.addErrorMessage( 'pf_blank_error' );
 		return false;
@@ -694,7 +694,7 @@ $.fn.validateMandatoryTree = function() {
 };
 
 $.fn.validateMandatoryDatePicker = function() {
-	var input = this.find('input');
+	const input = this.find('input');
 	if (input.val() === null || input.val() === '') {
 		this.addErrorMessage( 'pf_blank_error' );
 		return false;
@@ -708,13 +708,13 @@ $.fn.validateMandatoryDatePicker = function() {
  */
 
 $.fn.validateURLField = function() {
-	var fieldVal = this.find("input").val();
-	var url_protocol = mw.config.get( 'wgUrlProtocols' );
+	const fieldVal = this.find("input").val();
+	let url_protocol = mw.config.get( 'wgUrlProtocols' );
 	//removing backslash before colon from url_protocol string
 	url_protocol = url_protocol.replace( /\\:/, ':' );
 	//removing '//' from wgUrlProtocols as this causes to match any protocol in regexp
 	url_protocol = url_protocol.replace( /\|\\\/\\\//, '' );
-	var url_regexp = new RegExp( '(' + url_protocol + ')' + '(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(\/|\/([\\w#!:.?+=&%@!\\-\/]))?' );
+	const url_regexp = new RegExp( '(' + url_protocol + ')' + '(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(\/|\/([\\w#!:.?+=&%@!\\-\/]))?' );
 	if (fieldVal === "" || url_regexp.test(fieldVal)) {
 		return true;
 	} else {
@@ -724,9 +724,9 @@ $.fn.validateURLField = function() {
 };
 
 $.fn.validateEmailField = function() {
-	var fieldVal = this.find("input").val();
+	const fieldVal = this.find("input").val();
 	// code borrowed from http://javascript.internet.com/forms/email-validation---basic.html
-	var email_regexp = /^\s*\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,6})+\s*$/;
+	const email_regexp = /^\s*\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,6})+\s*$/;
 	if (fieldVal === '' || email_regexp.test(fieldVal)) {
 		return true;
 	} else {
@@ -736,7 +736,7 @@ $.fn.validateEmailField = function() {
 };
 
 $.fn.validateNumberField = function() {
-	var fieldVal = this.find("input").val();
+	const fieldVal = this.find("input").val();
 	// Handle "E notation"/scientific notation ("1.2e-3") in addition
 	// to regular numbers
 	if (fieldVal === '' ||
@@ -749,7 +749,7 @@ $.fn.validateNumberField = function() {
 };
 
 $.fn.validateIntegerField = function() {
-	var fieldVal = this.find("input").val();
+	const fieldVal = this.find("input").val();
 	if ( fieldVal === '' || fieldVal == parseInt( fieldVal, 10 ) ) {
 		return true;
 	} else {
@@ -760,8 +760,8 @@ $.fn.validateIntegerField = function() {
 
 $.fn.validateDateField = function() {
 	// validate only if day and year fields are both filled in
-	var dayVal = this.find(".dayInput").val();
-	var yearVal = this.find(".yearInput").val();
+	const dayVal = this.find(".dayInput").val();
+	const yearVal = this.find(".yearInput").val();
 	if (dayVal === '' || yearVal === '') {
 		return true;
 	} else if (dayVal.match(/^\d+$/) && dayVal <= 31) {
@@ -777,7 +777,7 @@ $.fn.validateDateField = function() {
 // Standalone pipes are not allowed, because they mess up the template
 // parsing; unless they're part of a call to a template or a parser function.
 $.fn.checkForPipes = function() {
-	var fieldVal = this.find("input, textarea").val();
+	let fieldVal = this.find("input, textarea").val();
 	// We need to check for a few different things because this is
 	// called for a variety of different input types.
 	if ( fieldVal === undefined || fieldVal === '' ) {
@@ -786,24 +786,24 @@ $.fn.checkForPipes = function() {
 	if ( fieldVal === undefined || fieldVal === '' ) {
 		return true;
 	}
-	if ( fieldVal.indexOf( '|' ) < 0 ) {
+	if ( !fieldVal.includes('|') ) {
 		return true;
 	}
 
 	// Also allow pipes within special tags, like <pre> or <syntaxhighlight>.
 	// Code copied, more or less, from PFTemplateInForm::escapeNonTemplatePipes().
-	var startAndEndTags = [
+	const startAndEndTags = [
 		[ '<pre', 'pre>' ],
 		[ '<syntaxhighlight', 'syntaxhighlight>' ],
 		[ '<source', 'source>' ],
 		[ '<ref', 'ref>' ]
 	];
 
-	for ( var i in startAndEndTags ) {
-		var startTag = startAndEndTags[i][0];
-		var endTag = startAndEndTags[i][1];
-		var pattern = RegExp( "(" + startTag + "[^]*?)\\|([^]*?" + endTag + ")", 'i' );
-		var matches;
+	for ( const i in startAndEndTags ) {
+		const startTag = startAndEndTags[i][0];
+		const endTag = startAndEndTags[i][1];
+		const pattern = RegExp( "(" + startTag + "[^]*?)\\|([^]*?" + endTag + ")", 'i' );
+	let matches;
 		while ( ( matches = fieldVal.match( pattern ) ) !== null ) {
 			// Special handling, to avoid escaping pipes
 			// within a string that looks like:
@@ -819,7 +819,7 @@ $.fn.checkForPipes = function() {
 	fieldVal = fieldVal.replace( "\2", '|' );
 
 	// Now check for pipes outside of brackets.
-	var nextPipe,
+	let nextPipe,
 		nextDoubleBracketsStart,
 		nextDoubleBracketsEnd;
 
@@ -833,8 +833,8 @@ $.fn.checkForPipes = function() {
 	// that's not a major problem.
 	fieldVal = fieldVal.replace( /{{/g, '[[' );
 	fieldVal = fieldVal.replace( /}}/g, ']]' );
-	var curIndex = 0;
-	var numUnclosedBrackets = 0;
+	let curIndex = 0;
+	let numUnclosedBrackets = 0;
 	while ( true ) {
 		nextDoubleBracketsStart = fieldVal.indexOf( '[[', curIndex );
 
@@ -873,12 +873,12 @@ $.fn.checkForPipes = function() {
 };
 
 function leftPad( number, targetLength ) {
-	var negative = false;
+	let negative = false;
 	if ( number < 0 ) {
 		number = number * -1;
 		negative = true;
 	}
-	var output = number + '';
+	let output = number + '';
 	while ( output.length < targetLength ) {
 		output = '0' + output;
 	}
@@ -892,17 +892,17 @@ function validateStartEndDateField( startInput, endInput ) {
 	if ( !startInput.length || !endInput.length ) {
 		return true;
 	}
-	var startYearVal = leftPad( startInput.find(".yearInput").val(),4 );
-	var startMonthVal = leftPad( startInput.find(".monthInput").val(),2 );
-	var startDayVal = leftPad( startInput.find(".dayInput").val(),2 );
+	const startYearVal = leftPad( startInput.find(".yearInput").val(),4 );
+	const startMonthVal = leftPad( startInput.find(".monthInput").val(),2 );
+	const startDayVal = leftPad( startInput.find(".dayInput").val(),2 );
 
-	var endYearVal = leftPad( endInput.find(".yearInput").val(),4 );
-	var endMonthVal = leftPad( endInput.find(".monthInput").val(),2 );
-	var endDayVal = leftPad( endInput.find(".dayInput").val(),2 );
+	const endYearVal = leftPad( endInput.find(".yearInput").val(),4 );
+	const endMonthVal = leftPad( endInput.find(".monthInput").val(),2 );
+	const endDayVal = leftPad( endInput.find(".dayInput").val(),2 );
 
-	var startDate = startYearVal + "/" + startMonthVal + "/" + startDayVal;
+	const startDate = startYearVal + "/" + startMonthVal + "/" + startDayVal;
 
-	var endDate = endYearVal + "/" + endMonthVal + "/" + endDayVal;
+	const endDate = endYearVal + "/" + endMonthVal + "/" + endDayVal;
 
 	if ( startDate <= endDate || endDate == "0000/00/00") {
 		return true;
@@ -920,26 +920,26 @@ function validateStartEndDateTimeField( startInput, endInput ) {
 	if ( !startInput.length || !endInput.length ) {
 		return true;
 	}
-	var startYearVal = leftPad( startInput.find(".yearInput").val(),4 );
-	var startMonthVal = leftPad( startInput.find(".monthInput").val(),2 );
-	var startDayVal = leftPad( startInput.find(".dayInput").val(),2 );
-	var startHoursVal = leftPad( startInput.find(".hoursInput").val(),2 );
-	var startMinutesVal = leftPad( startInput.find(".minutesInput").val(),2 );
-	var startSecondsVal = leftPad( startInput.find(".secondsInput").val(),2 );
-	var startAmPmVal = startInput.find(".ampmInput").val();
+	const startYearVal = leftPad( startInput.find(".yearInput").val(),4 );
+	const startMonthVal = leftPad( startInput.find(".monthInput").val(),2 );
+	const startDayVal = leftPad( startInput.find(".dayInput").val(),2 );
+	const startHoursVal = leftPad( startInput.find(".hoursInput").val(),2 );
+	const startMinutesVal = leftPad( startInput.find(".minutesInput").val(),2 );
+	const startSecondsVal = leftPad( startInput.find(".secondsInput").val(),2 );
+	const startAmPmVal = startInput.find(".ampmInput").val();
 
-	var endYearVal = leftPad( endInput.find(".yearInput").val(),4 );
-	var endMonthVal = leftPad( endInput.find(".monthInput").val(),2 );
-	var endDayVal = leftPad( endInput.find(".dayInput").val(),2 );
-	var endHoursVal = leftPad( endInput.find(".hoursInput").val(),2 );
-	var endMinutesVal = leftPad( endInput.find(".minutesInput").val(),2 );
-	var endSecondsVal = leftPad( endInput.find(".secondsInput").val(),2 );
-	var endAmPmVal = endInput.find(".ampmInput").val();
+	const endYearVal = leftPad( endInput.find(".yearInput").val(),4 );
+	const endMonthVal = leftPad( endInput.find(".monthInput").val(),2 );
+	const endDayVal = leftPad( endInput.find(".dayInput").val(),2 );
+	const endHoursVal = leftPad( endInput.find(".hoursInput").val(),2 );
+	const endMinutesVal = leftPad( endInput.find(".minutesInput").val(),2 );
+	const endSecondsVal = leftPad( endInput.find(".secondsInput").val(),2 );
+	const endAmPmVal = endInput.find(".ampmInput").val();
 
-	var startDateTime = startYearVal + "/" + startMonthVal + "/" + startDayVal + " " +
+	const startDateTime = startYearVal + "/" + startMonthVal + "/" + startDayVal + " " +
 	startHoursVal + ":" + startMinutesVal + ":" + startSecondsVal + " " + startAmPmVal;
 
-	var endDateTime = endYearVal + "/" + endMonthVal + "/" + endDayVal + " " +
+	const endDateTime = endYearVal + "/" + endMonthVal + "/" + endDayVal + " " +
 		endHoursVal + ":" + endMinutesVal + ":" + endSecondsVal + " " + endAmPmVal;
 
 	if ( startDateTime <= endDateTime || endDateTime == "0000/00/00 00:00:00 " ) {
@@ -960,9 +960,9 @@ window.validateAll = function () {
 	// Hook that fires on form submission, before the validation.
 	mw.hook('pf.formValidationBefore').fire();
 
-	var args = {numErrors: 0};
+	const args = {numErrors: 0};
 	mw.hook('pf.formValidation').fire( args );
-	var num_errors = args.numErrors;
+	let num_errors = args.numErrors;
 
 	// Remove all old error messages.
 	$(".errorMessage").remove();
@@ -1086,26 +1086,26 @@ window.validateAll = function () {
 		num_errors += 1;
 	});
 
-	var $startDateInput = $("span.startDateInput").not(".hiddenByPF")
-	var $endDateInput = $("span.endDateInput").not(".hiddenByPF")
+	const $startDateInput = $("span.startDateInput").not(".hiddenByPF")
+	const $endDateInput = $("span.endDateInput").not(".hiddenByPF")
 
 	if ( !validateStartEndDateField( $startDateInput, $endDateInput ) ) {
 		num_errors += 1;
 	}
 
-	var $startDateTimeInput = $("span.startDateTimeInput").not(".hiddenByPF")
-	var $endDateTimeInput = $("span.endDateTimeInput").not(".hiddenByPF")
+	const $startDateTimeInput = $("span.startDateTimeInput").not(".hiddenByPF")
+	const $endDateTimeInput = $("span.endDateTimeInput").not(".hiddenByPF")
 
 	if ( !validateStartEndDateTimeField( $startDateTimeInput, $endDateTimeInput ) ) {
 		num_errors += 1;
 	}
 	// call registered validation functions
-	var pfdata = $("#pfForm").data('PageForms');
+	const pfdata = $("#pfForm").data('PageForms');
 
 	if ( pfdata && pfdata.validationFunctions.length > 0 ) { // found data object?
 
 		// for every registered input
-		for ( var i = 0; i < pfdata.validationFunctions.length; i++ ) {
+		for ( let i = 0; i < pfdata.validationFunctions.length; i++ ) {
 
 			// if input is not part of multipleTemplateStarter
 			if ( typeof pfdata.validationFunctions[i] !== 'undefined' &&
@@ -1162,34 +1162,32 @@ $.fn.possiblyMinimizeAllOpenInstances = function() {
 		return;
 	}
 
-	var displayedFieldsWhenMinimized = this.attr('data-displayed-fields-when-minimized');
-	var allDisplayedFields = null;
+	const displayedFieldsWhenMinimized = this.attr('data-displayed-fields-when-minimized');
+	let allDisplayedFields = null;
 	if ( displayedFieldsWhenMinimized ) {
-		allDisplayedFields = displayedFieldsWhenMinimized.split(',').map(function(item) {
-			return item.trim().toLowerCase();
-		});
+		allDisplayedFields = displayedFieldsWhenMinimized.split(',').map((item) => item.trim().toLowerCase());
 	}
 
 	this.find('.multipleTemplateInstance').not('.minimized').each( function() {
-		var $instance = $(this);
+		const $instance = $(this);
 		$instance.addClass('minimized');
-		var valuesStr = '';
+		let valuesStr = '';
 		$instance.find( "input[type != 'hidden'][type != 'button'], select, textarea, div.ve-ce-surface" ).each( function() {
 			// If the set of fields to be displayed was specified in
 			// the form definition, check against that list.
 			if ( allDisplayedFields !== null ) {
-				var fieldFullName = $(this).attr('name');
+				const fieldFullName = $(this).attr('name');
 				if ( !fieldFullName ) {
 					return;
 				}
-				var matches = fieldFullName.match(/.*\[.*\]\[(.*)\]/);
-				var fieldRealName = matches[1].toLowerCase();
+				const matches = fieldFullName.match(/.*\[.*\]\[(.*)\]/);
+				const fieldRealName = matches[1].toLowerCase();
 				if ( !allDisplayedFields.includes( fieldRealName ) ) {
 					return;
 				}
 			}
 
-			var curVal = $(this).val();
+			let curVal = $(this).val();
 			if ( $(this).hasClass('ve-ce-surface') ) {
 				// Special handling for VisualEditor/VEForAll textareas.
 				curVal = $(this).text();
@@ -1197,14 +1195,14 @@ $.fn.possiblyMinimizeAllOpenInstances = function() {
 			if ( typeof curVal !== 'string' || curVal === '' ) {
 				return;
 			}
-			var inputType = $(this).attr('type');
+			const inputType = $(this).attr('type');
 			if ( inputType === 'checkbox' || inputType === 'radio' ) {
 				if ( ! $(this).is(':checked') ) {
 					return;
 				}
 			}
 			if ( curVal.length > 70 ) {
-				curVal = curVal.substring(0, 70) + "...";
+				curVal = curVal.slice(0, 70) + "...";
 			}
 			if ( valuesStr !== '' ) {
 				valuesStr += ' &middot; ';
@@ -1214,15 +1212,15 @@ $.fn.possiblyMinimizeAllOpenInstances = function() {
 		if ( valuesStr === '' ) {
 			valuesStr = '<em>No data</em>';
 		}
-		$instance.find('.instanceMain').fadeOut( "medium", function() {
+		$instance.find('.instanceMain').fadeOut( "medium", () => {
 			$instance.find('.instanceRearranger').after('<td class="fieldValuesDisplay">' + valuesStr + '</td>');
 		});
 	});
 };
 
 $.fn.displayWizardScreen = function( screenNum, $wizardNav ) {
-	var $wizardScreens = $(this);
-	var $curScreen;
+	const $wizardScreens = $(this);
+	let $curScreen;
 
 	$wizardScreens.each( function(i) {
 		// screenNum starts at 1, not 0.
@@ -1236,34 +1234,34 @@ $.fn.displayWizardScreen = function( screenNum, $wizardNav ) {
 
 	// The rest of this function is taken up with displaying the
 	// navigation to the next and previous wizard screens.
-	var numScreens = $wizardScreens.length;
+	const numScreens = $wizardScreens.length;
 
 	$wizardNav.empty();
 
-	var $navButtons = $('<div class="pf-wizard-buttons"></div>');
+	const $navButtons = $('<div class="pf-wizard-buttons"></div>');
 
 	if ( screenNum > 1 ) {
-		var backText = $curScreen.attr('data-back-text');
+		let backText = $curScreen.attr('data-back-text');
 		if ( backText == undefined ) {
 			backText = mw.msg('pf-wizard-back');
 		}
-		var prevButton = new OO.ui.ButtonWidget( {
+		const prevButton = new OO.ui.ButtonWidget( {
 			label: 'backText',
 			icon: 'previous',
 			classes: [ 'pf-wizard-back-button' ]
 		} );
-		prevButton.$element.click( function() {
+		prevButton.$element.click( () => {
 			$wizardScreens.displayWizardScreen( screenNum - 1, $wizardNav );
 		});
 		$navButtons.append( prevButton.$element );
 	}
 
 	if ( screenNum < numScreens ) {
-		var continueText = $curScreen.attr('data-continue-text');
+		let continueText = $curScreen.attr('data-continue-text');
 		if ( continueText == undefined ) {
 			continueText = mw.msg('pf-wizard-continue');
 		}
-		var continueButton = new OO.ui.ButtonWidget( {
+		const continueButton = new OO.ui.ButtonWidget( {
 			label: continueText,
 			flags: [
 				'primary',
@@ -1272,7 +1270,7 @@ $.fn.displayWizardScreen = function( screenNum, $wizardNav ) {
 			icon: 'next',
 			classes: [ 'pf-wizard-continue-button' ]
 		} );
-		continueButton.$element.click( function() {
+		continueButton.$element.click( () => {
 			$wizardScreens.displayWizardScreen( screenNum + 1, $wizardNav );
 		});
 		$navButtons.append( continueButton.$element );
@@ -1284,10 +1282,10 @@ $.fn.displayWizardScreen = function( screenNum, $wizardNav ) {
 
 	// Use progress bar if the number of screens is greater than 10 and circles in the other case
 	if ( numScreens > 10 ) {
-		var progressBar = new OO.ui.ProgressBarWidget( {
+		const progressBar = new OO.ui.ProgressBarWidget( {
 			progress: 100 * screenNum / numScreens
 		} );
-		var progressBarLayout = new OO.ui.FieldLayout(
+		const progressBarLayout = new OO.ui.FieldLayout(
 			progressBar,
 			{
 				label: 'Step ' + screenNum + ' of ' + numScreens,
@@ -1297,9 +1295,9 @@ $.fn.displayWizardScreen = function( screenNum, $wizardNav ) {
 		$wizardNav.append( progressBarLayout.$element );
 	} else {
 		$( '.pf-wizard-buttons' ).addClass( 'pf-wizard-buttons-circle' );
-		var $progressCiclesUL = $( '<ul class="pfWizardCircles"></ul>' );
+		const $progressCiclesUL = $( '<ul class="pfWizardCircles"></ul>' );
 		for( let i = 1; i <= numScreens; i++ ) {
-			var circle = '<li>' + i + '</li>';
+			let circle = '<li>' + i + '</li>';
 			if ( i == screenNum ) {
 				circle = '<li class="active">' + i + '</li>';
 			}
@@ -1309,7 +1307,7 @@ $.fn.displayWizardScreen = function( screenNum, $wizardNav ) {
 	}
 };
 
-var num_elements = 0;
+let num_elements = 0;
 
 /**
  * Functions for multiple-instance templates.
@@ -1318,10 +1316,10 @@ var num_elements = 0;
  * @return {Mixed}
  */
 $.fn.addInstance = function( addAboveCurInstance ) {
-	var wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' );
-	var wgPageFormsHeightForMinimizingInstances = mw.config.get( 'wgPageFormsHeightForMinimizingInstances' );
-	var $wrapper = this.closest(".multipleTemplateWrapper");
-	var $multipleTemplateList = $wrapper.find('.multipleTemplateList');
+	const wgPageFormsShowOnSelect = mw.config.get( 'wgPageFormsShowOnSelect' );
+	const wgPageFormsHeightForMinimizingInstances = mw.config.get( 'wgPageFormsHeightForMinimizingInstances' );
+	const $wrapper = this.closest(".multipleTemplateWrapper");
+	const $multipleTemplateList = $wrapper.find('.multipleTemplateList');
 
 	// If the nubmer of instances is already at the maximum allowed,
 	// exit here.
@@ -1344,7 +1342,7 @@ $.fn.addInstance = function( addAboveCurInstance ) {
 	// Global variable.
 	num_elements++;
 	// Create the new instance
-	var $new_div = $wrapper
+	const $new_div = $wrapper
 		.find(".multipleTemplateStarter")
 		.clone()
 		.removeClass('multipleTemplateStarter')
@@ -1361,7 +1359,9 @@ $.fn.addInstance = function( addAboveCurInstance ) {
 	// of any divs and spans (presumably, these exist only for the
 	// sake of "show on select"). We do the deletions because no two
 	// elements on the page are allowed to have the same ID.
-	$new_div.find('[id!=""]').attr('data-origID', function() { return this.id; });
+	$new_div.find('[id!=""]').attr('data-origID', function() {
+ return this.id;
+});
 	$new_div.find('div[id!=""], span[id!=""]').removeAttr('id');
 
 	$new_div.find('.hiddenByPF')
@@ -1378,21 +1378,21 @@ $.fn.addInstance = function( addAboveCurInstance ) {
 			// Add in a 'b' at the end of the name to reduce the
 			// chance of name collision with another field
 			if (this.name) {
-				var old_name = this.name.replace(/\[num\]/g, '');
+				const old_name = this.name.replace(/\[num\]/g, '');
 				$(this).attr('origName', old_name);
 				this.name = this.name.replace(/\[num\]/g, '[' + num_elements + 'b]');
 			}
 
 			// Do the same thing with "feeds to map", which also
 			// needs to be modified for each instance.
-			var feedsToMap = $(this).attr('data-feeds-to-map');
+			const feedsToMap = $(this).attr('data-feeds-to-map');
 			if ( feedsToMap !== undefined && feedsToMap !== false ) {
 				$(this).attr('data-feeds-to-map', feedsToMap.replace(/\[num\]/g, '[' + num_elements + 'b]') );
 			}
 
 			if (this.id) {
 
-				var old_id = this.id;
+				const old_id = this.id;
 
 				this.id = this.id.replace(/input_/g, 'input_' + num_elements + '_');
 
@@ -1404,9 +1404,9 @@ $.fn.addInstance = function( addAboveCurInstance ) {
 
 				// register initialization and validation methods for new inputs
 
-				var pfdata = $("#pfForm").data('PageForms');
+				const pfdata = $("#pfForm").data('PageForms');
 				if ( pfdata ) { // found data object?
-					var i;
+					let i;
 					if ( pfdata.initFunctions[old_id] ) {
 
 						// For every initialization method for
@@ -1476,21 +1476,21 @@ $.fn.addInstance = function( addAboveCurInstance ) {
 			return;
 		}
 
-		var pfdata = $("#pfForm").data('PageForms');
+		const pfdata = $("#pfForm").data('PageForms');
 		if ( ! pfdata ) {
 			return;
 		}
 
 		// have to store data array: the id attribute
 		// of 'this' might be changed in the init function
-		var thatData = pfdata.initFunctions[this.id] ;
+		const thatData = pfdata.initFunctions[this.id] ;
 		if ( !thatData ) {
 			return;
 		}
 
 		// Call every initialization method for this input.
-		for ( var i = 0; i < thatData.length; i++ ) {
-			var initFunction = thatData[i].initFunction;
+		for ( let i = 0; i < thatData.length; i++ ) {
+			let initFunction = thatData[i].initFunction;
 			if ( initFunction === undefined ) {
 				continue;
 			}
@@ -1521,27 +1521,27 @@ $.fn.addInstance = function( addAboveCurInstance ) {
 // templates.
 $.fn.setDependentAutocompletion = function( dependentField, baseField, baseValue ) {
 	// Get data from either Cargo or Semantic MediaWiki.
-	var myServer = mw.config.get( 'wgScriptPath' ) + "/api.php",
-		wgPageFormsCargoFields = mw.config.get( 'wgPageFormsCargoFields' ),
+	let myServer = mw.config.get( 'wgScriptPath' ) + "/api.php";
+	const wgPageFormsCargoFields = mw.config.get( 'wgPageFormsCargoFields' ),
 		wgPageFormsFieldProperties = mw.config.get( 'wgPageFormsFieldProperties' );
 	myServer += "?action=pfautocomplete&format=json";
 	if ( wgPageFormsCargoFields.hasOwnProperty( dependentField ) ) {
-		var cargoTableAndFieldStr = wgPageFormsCargoFields[dependentField];
-		var cargoTableAndField = cargoTableAndFieldStr.split('|');
-		var cargoTable = cargoTableAndField[0];
-		var cargoField = cargoTableAndField[1];
-		var baseCargoTableAndFieldStr = wgPageFormsCargoFields[baseField];
-		var baseCargoTableAndField = baseCargoTableAndFieldStr.split('|');
-		var baseCargoTable = baseCargoTableAndField[0];
-		var baseCargoField = baseCargoTableAndField[1];
+		const cargoTableAndFieldStr = wgPageFormsCargoFields[dependentField];
+		const cargoTableAndField = cargoTableAndFieldStr.split('|');
+		const cargoTable = cargoTableAndField[0];
+		const cargoField = cargoTableAndField[1];
+		const baseCargoTableAndFieldStr = wgPageFormsCargoFields[baseField];
+		const baseCargoTableAndField = baseCargoTableAndFieldStr.split('|');
+		const baseCargoTable = baseCargoTableAndField[0];
+		const baseCargoField = baseCargoTableAndField[1];
 		myServer += "&cargo_table=" + cargoTable + "&cargo_field=" + cargoField + "&is_array=true" + "&base_cargo_table=" + baseCargoTable + "&base_cargo_field=" + baseCargoField + "&basevalue=" + baseValue;
 	} else {
-		var propName = wgPageFormsFieldProperties[dependentField];
-		var baseProp = wgPageFormsFieldProperties[baseField];
+		const propName = wgPageFormsFieldProperties[dependentField];
+		const baseProp = wgPageFormsFieldProperties[baseField];
 		myServer += "&property=" + propName + "&baseprop=" + baseProp + "&basevalue=" + baseValue;
 	}
-	var dependentValues = [];
-	var $thisInput = $(this);
+	const dependentValues = [];
+	const $thisInput = $(this);
 	// We use $.ajax() here instead of $.getJSON() so that the
 	// 'async' parameter can be set. That, in turn, is set because
 	// if the 2nd, "dependent" field is a combo box, it can have weird
@@ -1560,8 +1560,8 @@ $.fn.setDependentAutocompletion = function( dependentField, baseField, baseValue
 		dataType: 'json',
 		async: false,
 		success: function(data) {
-			var realData = data.pfautocomplete;
-			$.each(realData, function(key, val) {
+			const realData = data.pfautocomplete;
+			$.each(realData, (key, val) => {
 				dependentValues.push(val.title);
 			});
 			$thisInput.data('autocompletevalues', dependentValues);
@@ -1577,25 +1577,27 @@ $.fn.setDependentAutocompletion = function( dependentField, baseField, baseValue
  * @return {Mixed}
  */
 $.fn.setAutocompleteForDependentField = function( partOfMultiple ) {
-	var curValue = $(this).val();
-	if ( curValue === null ) { return this; }
+	const curValue = $(this).val();
+	if ( curValue === null ) {
+ return this;
+}
 
-	var nameAttr = partOfMultiple ? 'origName' : 'name';
-	var name = $(this).attr(nameAttr);
-	var wgPageFormsDependentFields = mw.config.get( 'wgPageFormsDependentFields' );
-	var dependent_on_me = [];
-	for ( var i = 0; i < wgPageFormsDependentFields.length; i++ ) {
-		var dependentFieldPair = wgPageFormsDependentFields[i];
+	const nameAttr = partOfMultiple ? 'origName' : 'name';
+	const name = $(this).attr(nameAttr);
+	const wgPageFormsDependentFields = mw.config.get( 'wgPageFormsDependentFields' );
+	let dependent_on_me = [];
+	for ( let i = 0; i < wgPageFormsDependentFields.length; i++ ) {
+		const dependentFieldPair = wgPageFormsDependentFields[i];
 		if ( dependentFieldPair[0] === name ) {
 			dependent_on_me.push(dependentFieldPair[1]);
 		}
 	}
 	dependent_on_me = $.uniqueSort(dependent_on_me);
 
-	var self = this;
+	const self = this;
 	$.each( dependent_on_me, function() {
-		var $element, cmbox, tokens,
-			dependentField = this;
+		let $element, cmbox, tokens;
+		const dependentField = this;
 
 		if ( partOfMultiple ) {
 			$element = $( self ).closest( '.multipleTemplateInstance' )
@@ -1624,8 +1626,6 @@ $.fn.setAutocompleteForDependentField = function( partOfMultiple ) {
  * @param {Mixed} partOfMultiple
  */
 $.fn.initializeJSElements = function( partOfMultiple ) {
-	var fancyBoxSettings;
-
 	this.find(".pfShowIfSelected").each( function() {
 		// Avoid duplicate calls on any one element.
 		if ( !partOfMultiple && $(this).parents('.multipleTemplateWrapper').length > 0 ) {
@@ -1701,14 +1701,14 @@ $.fn.initializeJSElements = function( partOfMultiple ) {
 	}
 
 	this.find('.pfComboBox').not('.multipleTemplateStarter .pfComboBox').each(function(){
-		var min_width = $(this).data('size');
+		const min_width = $(this).data('size');
 		//check min_witdth - issue #53 -comboBox with two dropdowns if value present
 		//link: https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/issues/53
 		if (min_width == null) {
 			return;
 		}
-		var input_width = $(this).val().length*11;
-		var inputType = new pf.ComboBoxInput({});
+		const input_width = $(this).val().length*11;
+		const inputType = new pf.ComboBoxInput({});
 		inputType.apply($(this));
 		inputType.$element.css("width", input_width > min_width ? input_width : min_width);
 		inputType.$element.css("min-width", min_width);
@@ -1717,24 +1717,24 @@ $.fn.initializeJSElements = function( partOfMultiple ) {
 		$(this).remove();
 	});
 
-	var tokens = new pf.select2.tokens();
+	const tokens = new pf.select2.tokens();
 	this.find('.pfTokens').not('.multipleTemplateStarter .pfTokens, .select2-container').each( function() {
 		tokens.apply($(this));
 	});
 
 	// Set the end date input to the value selected in start date
 	this.find("span.startDateInput").not(".hiddenByPF").find("input").last().blur( () => {
-		var $endInput = $(this).find("span.endDateInput").not(".hiddenByPF");
-		var $endYearInput = $endInput.find(".yearInput");
-		var $endMonthInput = $endInput.find(".monthInput");
-		var $endDayInput = $endInput.find(".dayInput");
+		const $endInput = $(this).find("span.endDateInput").not(".hiddenByPF");
+		const $endYearInput = $endInput.find(".yearInput");
+		const $endMonthInput = $endInput.find(".monthInput");
+		const $endDayInput = $endInput.find(".dayInput");
 
 		// Update end date value only if it is not set
 		if ($endYearInput.val() == '' && $endMonthInput.val() == '' && $endDayInput.val() == ''){
-			var $startInput = $(this);
-			var startYearVal = $startInput.find(".yearInput").val();
-			var startMonthVal = $startInput.find(".monthInput").val();
-			var startDayVal = $startInput.find(".dayInput").val();
+			const $startInput = $(this);
+			const startYearVal = $startInput.find(".yearInput").val();
+			const startMonthVal = $startInput.find(".monthInput").val();
+			const startDayVal = $startInput.find(".dayInput").val();
 
 			$endYearInput.val(startYearVal);
 			$endMonthInput.val(startMonthVal);
@@ -1742,7 +1742,7 @@ $.fn.initializeJSElements = function( partOfMultiple ) {
 		}
 	});
 
-	fancyBoxSettings = {
+	const fancyBoxSettings = {
 		toolbar : false,
 		smallBtn : true,
 		iframe : {
@@ -1821,8 +1821,8 @@ $.fn.initializeJSElements = function( partOfMultiple ) {
 
 	this.find('[data-tooltip]').not('.multipleTemplateStarter [data-tooltip]').each( function() {
 		// Even if it's within a <th>, display the text unbolded.
-		var tooltipText = '<p style="font-weight: normal;">' + $(this).attr('data-tooltip') + '</p>';
-		var tooltip = new OO.ui.PopupButtonWidget( {
+		const tooltipText = '<p style="font-weight: normal;">' + $(this).attr('data-tooltip') + '</p>';
+		const tooltip = new OO.ui.PopupButtonWidget( {
 			icon: 'info',
 			framed: false,
 			popup: {
@@ -1833,7 +1833,7 @@ $.fn.initializeJSElements = function( partOfMultiple ) {
 		$(this).append( tooltip.$element )
 	});
 
-	var $myThis = this;
+	const $myThis = this;
 	if ( $.fn.applyVisualEditor ) {
 		if ( partOfMultiple ) {
 			$myThis.find(".visualeditor").applyVisualEditor();
@@ -1841,7 +1841,7 @@ $.fn.initializeJSElements = function( partOfMultiple ) {
 			$myThis.find(".visualeditor").not(".multipleTemplateWrapper .visualeditor").applyVisualEditor();
 		}
 	} else {
-		$(document).on('VEForAllLoaded', function(e) {
+		$(document).on('VEForAllLoaded', (e) => {
 			if ( partOfMultiple ) {
 				$myThis.find(".visualeditor").applyVisualEditor();
 			} else {
@@ -1862,7 +1862,7 @@ $.fn.initializeJSElements = function( partOfMultiple ) {
 			});
 		}
 	} else {
-		$(document).on('TinyMCELoaded', function(e) {
+		$(document).on('TinyMCELoaded', (e) => {
 			if ( partOfMultiple ) {
 				$myThis.find(".tinymce").each( function() {
 					mwTinyMCEInit( '#' + $(this).attr('id') );
@@ -1880,10 +1880,10 @@ $.fn.initializeJSElements = function( partOfMultiple ) {
 // Copied from https://stackoverflow.com/a/8809472
 // License: public domain/MIT
 window.pfGenerateUUID = function() {
-	var d = new Date().getTime();
-	var d2 = (performance && performance.now && (performance.now() * 1000)) || 0; // Time in microseconds since page-load or 0 if unsupported
-	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-		var r = Math.random() * 16; // random number between 0 and 16
+	let d = Date.now();
+	let d2 = (performance && performance.now && (performance.now() * 1000)) || 0; // Time in microseconds since page-load or 0 if unsupported
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+		let r = Math.random() * 16; // random number between 0 and 16
 		if (d > 0) { // Use timestamp until depleted
 			r = (d + r) % 16 | 0; // eslint-disable-line no-bitwise
 			d = Math.floor(d / 16);
@@ -1896,15 +1896,15 @@ window.pfGenerateUUID = function() {
 }
 
 // Once the document has finished loading, set up everything!
-$(document).ready( function() {
-	var i,
+$(document).ready( () => {
+	let i,
 		inputID,
 		validationFunctionData;
 
 	function getFunctionFromName( functionName ) {
-		var func = window;
-		var namespaces = functionName.split( "." );
-		for ( var nsNum = 0; nsNum < namespaces.length; nsNum++ ) {
+		let func = window;
+		const namespaces = functionName.split( "." );
+		for ( let nsNum = 0; nsNum < namespaces.length; nsNum++ ) {
 			func = func[ namespaces[ nsNum ] ];
 		}
 		// If this gets called before the function is defined, just
@@ -1922,12 +1922,12 @@ $(document).ready( function() {
 
 	// jQuery's .ready() function is being called before the resource was actually loaded.
 	// This is a workaround for https://phabricator.wikimedia.org/T216805.
-	setTimeout( function(){
+	setTimeout( () => {
 		// "Mask" to prevent users from clicking while form is still loading.
 		$('#loadingMask').css({'width': $(document).width(),'height': $(document).height()});
 
 		// register init functions
-		var initFunctionData = mw.config.get( 'ext.pf.initFunctionData' );
+		const initFunctionData = mw.config.get( 'ext.pf.initFunctionData' );
 		for ( inputID in initFunctionData ) {
 			for ( i in initFunctionData[inputID] ) {
 				/*jshint -W069 */
@@ -1953,7 +1953,7 @@ $(document).ready( function() {
 		$('.multipleTemplateAdder').click( function() {
 			$(this).addInstance( false );
 		});
-		var wgPageFormsHeightForMinimizingInstances = mw.config.get( 'wgPageFormsHeightForMinimizingInstances' );
+		const wgPageFormsHeightForMinimizingInstances = mw.config.get( 'wgPageFormsHeightForMinimizingInstances' );
 		if ( wgPageFormsHeightForMinimizingInstances >= 0) {
 			$('.multipleTemplateList').each( function() {
 				if ( $(this).height() > wgPageFormsHeightForMinimizingInstances ) {
@@ -1963,8 +1963,8 @@ $(document).ready( function() {
 			});
 		}
 		$('.multipleTemplateList').each( function() {
-			var $list = $(this);
-			var sortable = Sortable.create($list[0], {
+			const $list = $(this);
+			const sortable = Sortable.create($list[0], {
 				handle: '.instanceRearranger',
 				onStart: function (/**Event*/evt) {
 					$list.possiblyMinimizeAllOpenInstances();
@@ -1975,17 +1975,15 @@ $(document).ready( function() {
 		// If there are any "wizard screen" elements defined in the
 		// form, turn the whole form into a wizard, with successive
 		// screens for each element.
-		var $wizardScreens = $('form#pfForm').find('div.pf-wizard-screen');
+		const $wizardScreens = $('form#pfForm').find('div.pf-wizard-screen');
 		if ( $wizardScreens.length > 0 ) {
-			var $wizardNav = $('<div class="pf-wizard-navigation"></div>');
+			const $wizardNav = $('<div class="pf-wizard-navigation"></div>');
 			$('form#pfForm').append( $wizardNav );
 			$wizardScreens.displayWizardScreen( 1, $wizardNav );
 		}
 
 		// If the form is submitted, validate everything!
-		$('#pfForm').submit( function() {
-			return validateAll();
-		} );
+		$('#pfForm').submit( () => validateAll() );
 
 		// We are all done - remove the loading spinner.
 		$('.loadingImage').remove();
@@ -2001,15 +1999,15 @@ $(document).ready( function() {
 // We make only the form itself clickable, instead of the whole screen, to
 // try to avoid a click on a popup, like the "Upload file" window, minimizing
 // the current open instance.
-$('form#pfForm').click( function(e) {
-	var $target = $(e.target);
+$('form#pfForm').click( (e) => {
+	const $target = $(e.target);
 	// Ignore the "add instance" buttons - those get handling of their own.
-	var clickedOnAddAnother = $target.parents('.multipleTemplateAdder').length > 0;
+	const clickedOnAddAnother = $target.parents('.multipleTemplateAdder').length > 0;
 	if ( clickedOnAddAnother || $target.hasClass('addAboveButton') ) {
 		return;
 	}
 
-	var $instance = $target.closest('.multipleTemplateInstance');
+	const $instance = $target.closest('.multipleTemplateInstance');
 	if ( $instance === null ) {
 		$('.multipleTemplateList.currentFocus')
 			.removeClass('currentFocus')
@@ -2017,7 +2015,7 @@ $('form#pfForm').click( function(e) {
 		return;
 	}
 
-	var $instancesList = $instance.closest('.multipleTemplateList');
+	const $instancesList = $instance.closest('.multipleTemplateList');
 	if ( !$instancesList.hasClass('currentFocus') ) {
 		$('.multipleTemplateList.currentFocus')
 			.removeClass('currentFocus')
@@ -2039,7 +2037,7 @@ $('form#pfForm').click( function(e) {
 	}
 });
 
-$('#pf-expand-all a').click(function( event ) {
+$('#pf-expand-all a').click(( event ) => {
 	event.preventDefault();
 
 	// Page Forms minimized template instances.
@@ -2057,7 +2055,7 @@ $('#pf-expand-all a').click(function( event ) {
 	$('div.mw-collapsed a.mw-collapsible-text').click();
 });
 
-$('.pfSendBack').click( function() {
+$('.pfSendBack').click( () => {
 	window.history.back();
 });
 

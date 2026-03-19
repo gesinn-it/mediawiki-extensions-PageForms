@@ -9,13 +9,13 @@ if ( window.ext === null || typeof( window.ext ) === "undefined" ) {
 window.ext.wikieditor = {
 	// initialize the wikieditor on the specified element
 	init: function init(inputId, params) {
-		$( function() {
+		$( () => {
 			if ( mw ) {
-				var $input = $( '#' + inputId );
+				const $input = $( '#' + inputId );
 
-				$.when(mw.loader.using('ext.wikiEditor'), $.ready).then(function () {
+				$.when(mw.loader.using('ext.wikiEditor'), $.ready).then(() => {
 					if (typeof (mw.addWikiEditor) == 'function') {
-						mw.loader.using([ 'ext.wikiEditor' ], function () {
+						mw.loader.using([ 'ext.wikiEditor' ], () => {
 							mw.addWikiEditor($input);
 						});
 						return;

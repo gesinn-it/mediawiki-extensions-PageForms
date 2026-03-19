@@ -2,6 +2,8 @@
  * Javascript Code to enable simple upload functionality using OOUI's SelectFileInputWidget
  * for "combobox" and "text" input types
  *
+ * @param $
+ * @param mw
  * @author Nischay Nahata
  * @author Yaron Koren
  * @author Yash Varshney
@@ -35,7 +37,7 @@
 		const input = isTokenInput
 			? {
 				filenames: function(value) {
-					return value.map(s => s.trim());
+					return value.map((s) => s.trim());
 				},
 				addFile: function(filename) {
 					$input.append('<option value="' + filename + '">' + filename + '</option>');
@@ -79,7 +81,7 @@
 
 		handleFilenamesChanged();
 		// Register for change event
-		$input.change( function() {
+		$input.change( () => {
 			// Have to wait when removing a file in the pfTokens case
 			setTimeout(() => handleFilenamesChanged(), 0);
 		});
@@ -109,7 +111,7 @@
 		inputSpan.find('span.simpleUploadInterface').append(uploadWidget.$element);
 
 		const input = inputFor(this);
-		uploadWidget.on('change', function(files) {
+		uploadWidget.on('change', (files) => {
 			const file = files[0];
 
 			const formdata = new FormData(); // see https://developer.mozilla.org/en-US/docs/Web/API/FormData/Using_FormData_Objects

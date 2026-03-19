@@ -9,11 +9,9 @@ const oojsPath = path.resolve(__dirname, '../../../../resources/lib/oojs/oojs.js
 
 const resetMediaWiki = prepareMediaWiki();
 
-QUnit.hooks.beforeEach(assert => {
-	sinon.assert.pass = message =>
-		assert.pushResult({ result: true, expected: true, actual: true, message });
-	sinon.assert.fail = message =>
-		assert.pushResult({ result: false, expected: true, actual: false, message });
+QUnit.hooks.beforeEach((assert) => {
+	sinon.assert.pass = (message) => assert.pushResult({ result: true, expected: true, actual: true, message });
+	sinon.assert.fail = (message) => assert.pushResult({ result: false, expected: true, actual: false, message });
 });
 
 QUnit.hooks.afterEach(() => {
@@ -112,18 +110,18 @@ function prepareMediaWiki() {
  */
 QUnit.module('setup');
 
-QUnit.test('body is cleaned up between tests: 1', assert => {
+QUnit.test('body is cleaned up between tests: 1', (assert) => {
 	$('<div>', { id: 1 }).appendTo(document.body);
 	assert.equal($('div').length, 1);
 });
 
-QUnit.test('body is cleaned up between tests: 2', assert => {
+QUnit.test('body is cleaned up between tests: 2', (assert) => {
 	$('<div>', { id: 2 }).appendTo(document.body);
 	assert.equal($('div').length, 1);
 });
 
-[ 'click', 'mouseup', 'invalid-trigger' ].forEach(event => {
-	QUnit.test('can trigger events with jQuery: ' + event, assert => {
+[ 'click', 'mouseup', 'invalid-trigger' ].forEach((event) => {
+	QUnit.test('can trigger events with jQuery: ' + event, (assert) => {
 		const triggered = sinon.fake();
 		$('<div>').appendTo(document.body);
 		const $target = $('div');
@@ -135,7 +133,7 @@ QUnit.test('body is cleaned up between tests: 2', assert => {
 	});
 });
 
-QUnit.test(':input selector works', assert => {
+QUnit.test(':input selector works', (assert) => {
 	document.body.innerHTML = '<div><input></div>';
 
 	// eslint-disable-next-line no-jquery/no-sizzle

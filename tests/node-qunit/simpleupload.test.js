@@ -2,14 +2,14 @@ require('../../libs/PF_simpleupload.js');
 const sinon = require('sinon');
 
 QUnit.module('simpleupload', {
-	beforeEach: assert => {
-		mw.config = { get: key => key === 'wgArticlePath' ? 'article-path/$1' : null }
+	beforeEach: (assert) => {
+		mw.config = { get: (key) => key === 'wgArticlePath' ? 'article-path/$1' : null }
 		mw.util.wikiScript = () => "https://example.com/api.php";
 		mw.message = () => ({ text: () => 'Select a file' });
 	}
 });
 
-QUnit.test('adds upload button to input with empty value', assert => {
+QUnit.test('adds upload button to input with empty value', (assert) => {
 	const { $starter, $parent } = createInput();
 
 	$starter.initializeSimpleUpload();
@@ -18,7 +18,7 @@ QUnit.test('adds upload button to input with empty value', assert => {
 	assert.true(html.includes("Select a file"));
 });
 
-QUnit.test('sets input value and creates preview after selecting a file', assert => {
+QUnit.test('sets input value and creates preview after selecting a file', (assert) => {
 	let selectedFileCallback;
 	// Mock whichever widget class the production code will use:
 	// SelectFileInputWidget on MW ≥ 1.43, SelectFileWidget on older versions.
@@ -30,7 +30,7 @@ QUnit.test('sets input value and creates preview after selecting a file', assert
 			}
 		}
 	});
-	sinon.replace($, 'ajax', function ({data, success}) {
+	sinon.replace($, 'ajax', ({data, success}) => {
 		success({
 			upload: { filename: data.get("filename") }
 		});

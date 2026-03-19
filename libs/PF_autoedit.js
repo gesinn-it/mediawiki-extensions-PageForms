@@ -10,9 +10,9 @@
 
 	'use strict';
 	function sendData( $jtrigger ){
-		var $jautoedit = $jtrigger.closest( '.autoedit' );
-		var $jresult = $jautoedit.find( '.autoedit-result' );
-		var reload = $jtrigger.hasClass( 'reload' );
+		const $jautoedit = $jtrigger.closest( '.autoedit' );
+		const $jresult = $jautoedit.find( '.autoedit-result' );
+		const reload = $jtrigger.hasClass( 'reload' );
 
 		$jtrigger.attr( 'class', 'autoedit-trigger autoedit-trigger-wait' );
 		$jresult.attr( 'class', 'autoedit-result autoedit-result-wait' );
@@ -21,7 +21,7 @@
 
 
 		// data array to be sent to the server
-		var data = {
+		const data = {
 			action: 'pfautoedit',
 			format: 'json'
 		};
@@ -52,10 +52,10 @@
 				}
 			}, // function to be called if the request succeeds
 			error:  function ( jqXHR, textStatus, errorThrown ) {
-				var result = jQuery.parseJSON(jqXHR.responseText);
-				var text = result.responseText;
+				const result = jQuery.parseJSON(jqXHR.responseText);
+				let text = result.responseText;
 
-				for ( var i = 0; i < result.errors.length; i++ ) {
+				for ( let i = 0; i < result.errors.length; i++ ) {
 					text += ' ' + result.errors[i].message;
 				}
 
@@ -66,7 +66,7 @@
 		} );
 	}
 
-	var autoEditHandler = function handleAutoEdit( e ){
+	const autoEditHandler = function handleAutoEdit( e ){
 
 		// Normalize event
 		const event =
@@ -89,13 +89,13 @@
 			! confirm( mw.msg( 'pf_autoedit_anoneditwarning' ) ) ) {
 			return;
 		}
-		var $jtrigger = jQuery( this );
-		var $jautoedit = $jtrigger.closest( '.autoedit' );
-		var $jeditdata = $jautoedit.find( 'form.autoedit-data' );
-		var targetpage = $jeditdata.find( 'input[name=target]' ).val();
-		var confirmEdit = $jeditdata.hasClass( 'confirm-edit' );
+		const $jtrigger = jQuery( this );
+		const $jautoedit = $jtrigger.closest( '.autoedit' );
+		const $jeditdata = $jautoedit.find( 'form.autoedit-data' );
+		const targetpage = $jeditdata.find( 'input[name=target]' ).val();
+		const confirmEdit = $jeditdata.hasClass( 'confirm-edit' );
 		if ( confirmEdit ) {
-			OO.ui.confirm( mw.msg( 'pf_autoedit_confirm', targetpage ) ).done( confirmed => {
+			OO.ui.confirm( mw.msg( 'pf_autoedit_confirm', targetpage ) ).then( (confirmed) => {
 				if ( confirmed ) {
 					sendData( $jtrigger );
 				}
@@ -105,7 +105,7 @@
 		}
 	};
 
-	JQuery( document ).ready( function () {
+	JQuery( document ).ready( () => {
 		$( '.autoedit-trigger' ).click( autoEditHandler );
 		$( '.autoedit-trigger-instant' ).each( function() {
 			autoEditHandler.call( this, {

@@ -27,30 +27,30 @@ OO.inheritClass( pf.SpreadsheetComboBoxInput, OO.ui.ComboBoxInputWidget );
  * A function for setting the options for combobox whenever something is typed
  */
 pf.SpreadsheetComboBoxInput.prototype.setValues = function() {
-	var data_source = this.config.autocompletesettings,
+	const data_source = this.config.autocompletesettings,
 		data_type = this.config.autocompletedatatype,
-		curValue = this.getValue(),
 		self = this,
 		values = [];
+	let curValue = this.getValue();
 	// sometimes it happens that on double clicking the cell
 	// a space is automatically added to the value inside the
 	// editor and hence we get "No Matches found" so we can
 	// simply remove that space.
 	if ( curValue[0] == ' ' ) {
-		curValue = curValue.substring(1);
+		curValue = curValue.slice(1);
 	}
 	if ( data_type == 'external data' ) { // External Data Autocompletion
-		var	wgPageFormsEDSettings = mw.config.get( 'wgPageFormsEDSettings' ),
+		const	wgPageFormsEDSettings = mw.config.get( 'wgPageFormsEDSettings' ),
 			name = data_source,
 			edgValues = mw.config.get( 'edgValues' ),
 			data = {};
 		if ( wgPageFormsEDSettings !== null && wgPageFormsEDSettings[name].title !== undefined && wgPageFormsEDSettings[name].title !== "" ) {
 			data.title = edgValues[ wgPageFormsEDSettings[ name ].title ];
 			if ( data.title !== undefined && data.title !== null ) {
-				var i = 0;
-				data.title.forEach( function () {
-					var wgPageFormsAutocompleteOnAllChars = mw.config.get( 'wgPageFormsAutocompleteOnAllChars' );
-				var valueFilter;
+				let i = 0;
+				data.title.forEach( () => {
+					const wgPageFormsAutocompleteOnAllChars = mw.config.get( 'wgPageFormsAutocompleteOnAllChars' );
+				let valueFilter;
 				if ( wgPageFormsAutocompleteOnAllChars ) {
 					valueFilter = self.getConditionForAutocompleteOnAllChars( data.title[i], curValue.toLowerCase() )
 				} else {
@@ -80,24 +80,24 @@ pf.SpreadsheetComboBoxInput.prototype.setValues = function() {
 			this.setOptions(values);
 			return;
 		}
-		var my_server = mw.util.wikiScript( 'api' );
+		let my_server = mw.util.wikiScript( 'api' );
 		my_server += "?action=pfautocomplete&format=json";
 		if ( data_type == 'cargo field' ) {
-			var table_and_field = data_source.split('|');
+			const table_and_field = data_source.split('|');
 			my_server += "&cargo_table=" + table_and_field[0] + "&cargo_field=" + table_and_field[1] + "&substr=" + curValue;
 		} else if ( data_type == 'dep_on' ) {
-			var dep_field_opts = this.getDependentFieldOpts( this.config.data_y, this.config.dep_on_field );
-			if (dep_field_opts.prop.indexOf('|') === -1) {
+			const dep_field_opts = this.getDependentFieldOpts( this.config.data_y, this.config.dep_on_field );
+			if (!dep_field_opts.prop.includes('|')) {
 				my_server += "&property=" + dep_field_opts.prop + "&baseprop=" + dep_field_opts.base_prop + "&basevalue=" + dep_field_opts.base_value + "&substr=" + curValue;
 			} else {
-				var cargoTableAndFieldStr = dep_field_opts.prop;
-				var cargoTableAndField = cargoTableAndFieldStr.split('|');
-				var cargoTable = cargoTableAndField[0];
-				var cargoField = cargoTableAndField[1];
-				var baseCargoTableAndFieldStr = dep_field_opts.base_prop;
-				var baseCargoTableAndField = baseCargoTableAndFieldStr.split('|');
-				var baseCargoTable = baseCargoTableAndField[0];
-				var baseCargoField = baseCargoTableAndField[1];
+				const cargoTableAndFieldStr = dep_field_opts.prop;
+				const cargoTableAndField = cargoTableAndFieldStr.split('|');
+				const cargoTable = cargoTableAndField[0];
+				const cargoField = cargoTableAndField[1];
+				const baseCargoTableAndFieldStr = dep_field_opts.base_prop;
+				const baseCargoTableAndField = baseCargoTableAndFieldStr.split('|');
+				const baseCargoTable = baseCargoTableAndField[0];
+				const baseCargoField = baseCargoTableAndField[1];
 				my_server += "&cargo_table=" + cargoTable + "&cargo_field=" + cargoField + "&base_cargo_table=" + baseCargoTable + "&base_cargo_field=" + baseCargoField + "&basevalue=" + dep_field_opts.base_value + "&substr=" + curValue;
 			}
 		} else {
@@ -112,7 +112,7 @@ pf.SpreadsheetComboBoxInput.prototype.setValues = function() {
 					if ( data.length == 0 ) {
 						values.push( self.getNoMatchesOption() )
 					} else {
-						for ( var i = 0; i < data.length; i++ ) {
+						for ( let i = 0; i < data.length; i++ ) {
 							values.push( {
 								data: data[i].title, label: self.highlightText( data[i].title )
 							} );
@@ -127,25 +127,24 @@ pf.SpreadsheetComboBoxInput.prototype.setValues = function() {
 	}
 }
 /**
- *
  * @param {string} suggestion
  * @return {OO.ui.HtmlSnippet}
  */
 pf.SpreadsheetComboBoxInput.prototype.highlightText = function ( suggestion ) {
-	var searchTerm = this.getValue();
+	let searchTerm = this.getValue();
 	if ( searchTerm[0] == ' ' ) {
-		searchTerm = searchTerm.substring(1);
+		searchTerm = searchTerm.slice(1);
 	}
-    var searchRegexp = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
+    const searchRegexp = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
         searchTerm.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1") +
         ")(?![^<>]*>)(?![^&;]+;)", "gi");
-    var itemLabel = suggestion;
-    var loc = itemLabel.search(searchRegexp);
-    var t;
+    const itemLabel = suggestion;
+    const loc = itemLabel.search(searchRegexp);
+    let t;
     if (loc >= 0) {
-        t = itemLabel.substr(0, loc) +
-            '<strong>' + itemLabel.substr(loc, searchTerm.length) + '</strong>' +
-            itemLabel.substr(loc + searchTerm.length);
+        t = itemLabel.slice(0, Math.max(0, loc)) +
+            '<strong>' + itemLabel.slice(loc, loc + searchTerm.length) + '</strong>' +
+            itemLabel.slice(loc + searchTerm.length);
     } else {
         t = itemLabel;
     }
@@ -171,7 +170,7 @@ pf.SpreadsheetComboBoxInput.prototype.getNoMatchesOption = function() {
  * @return {boolean}
  */
 pf.SpreadsheetComboBoxInput.prototype.checkIfAnyWordStartsWithInputValue = function( string, curValue ) {
-	var regex = new RegExp('\\b' + curValue.toLowerCase());
+	const regex = new RegExp('\\b' + curValue.toLowerCase());
 	return string.toLowerCase().match(regex) !== null;
 }
 /**
@@ -193,8 +192,8 @@ pf.SpreadsheetComboBoxInput.prototype.getConditionForAutocompleteOnAllChars = fu
  * @return {Object} dep_field_opts
  */
 pf.SpreadsheetComboBoxInput.prototype.getDependentFieldOpts = function( data_y, dep_on_field ) {
-	var dep_field_opts = {};
-	var $baseElement = $('td[data-y="'+data_y+'"][origname="'+dep_on_field+'"]');
+	const dep_field_opts = {};
+	const $baseElement = $('td[data-y="'+data_y+'"][origname="'+dep_on_field+'"]');
 	dep_field_opts.base_value = $baseElement.html();
 	dep_field_opts.base_prop = mw.config.get('wgPageFormsFieldProperties')[dep_on_field] ||
 		$baseElement.attr('name');
