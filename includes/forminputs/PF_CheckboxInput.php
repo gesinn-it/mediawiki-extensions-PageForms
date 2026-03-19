@@ -50,7 +50,7 @@ class PFCheckboxInput extends PFFormInput {
 		} else {
 			// Default to false - no need to check if it matches
 			// a 'false' word.
-			$lowercaseCurValue = strtolower( trim( $cur_value ) );
+			$lowercaseCurValue = strtolower( trim( $cur_value ?? '' ) );
 
 			$possibleYesMessages = [
 				strtolower( wfMessage( 'htmlform-yes' )->inContentLanguage()->text() ),

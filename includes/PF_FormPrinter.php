@@ -1312,9 +1312,9 @@ END;
 						if ( $form_submitted && $generated_page_name !== '' ) {
 							// This line appears to be unnecessary.
 							// $generated_page_name = str_replace('.', '_', $generated_page_name);
-							$generated_page_name = str_replace( ' ', '_', $generated_page_name );
-							$escaped_input_name = str_replace( ' ', '_', $form_field->getInputName() );
-							$generated_page_name = str_ireplace( "<$escaped_input_name>", $cur_value_in_template, $generated_page_name );
+							$generated_page_name = str_replace( ' ', '_', $generated_page_name ?? '' );
+							$escaped_input_name = str_replace( ' ', '_', $form_field->getInputName() ?? '' );
+							$generated_page_name = str_ireplace( "<$escaped_input_name>", $cur_value_in_template ?? '', $generated_page_name );
 							// Once the substitution is done, replace underlines back
 							// with spaces.
 							$generated_page_name = str_replace( '_', ' ', $generated_page_name );
@@ -1958,7 +1958,7 @@ END;
 		// If doing a replace, the page text is actually the modified
 		// original page.
 		if ( !$is_embedded ) {
-			$form_page_title = $parser->recursiveTagParse( str_replace( "{{!}}", "|", $form_page_title ) );
+			$form_page_title = $parser->recursiveTagParse( str_replace( "{{!}}", "|", $form_page_title ?? '' ) );
 		} else {
 			$form_page_title = null;
 		}
