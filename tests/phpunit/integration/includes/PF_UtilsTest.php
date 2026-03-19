@@ -5,10 +5,6 @@
  */
 class PFUtilsTest extends MediaWikiIntegrationTestCase {
 
-	// ---------------------------------------------------------------------------
-	// convertBackToPipes
-	// ---------------------------------------------------------------------------
-
 	public function testConvertBackToPipesReplacesControlChar() {
 		$this->assertSame( 'a|b|c', PFUtils::convertBackToPipes( "a\1b\1c" ) );
 	}
@@ -16,10 +12,6 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 	public function testConvertBackToPipesNoopWhenNothingToReplace() {
 		$this->assertSame( 'abc', PFUtils::convertBackToPipes( 'abc' ) );
 	}
-
-	// ---------------------------------------------------------------------------
-	// smartSplitFormTag
-	// ---------------------------------------------------------------------------
 
 	public function testSmartSplitFormTagEmptyStringReturnsEmptyArray() {
 		$this->assertSame( [], PFUtils::smartSplitFormTag( '' ) );
@@ -51,10 +43,6 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
-	// ---------------------------------------------------------------------------
-	// getFormTagComponents
-	// ---------------------------------------------------------------------------
-
 	public function testGetFormTagComponentsSimple() {
 		$this->assertSame( [ 'a', 'b', 'c' ], PFUtils::getFormTagComponents( 'a|b|c' ) );
 	}
@@ -68,10 +56,6 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 		$result = PFUtils::getFormTagComponents( 'x|{{f|{{g|y}}}}|z' );
 		$this->assertSame( [ 'x', '{{f|{{g|y}}}}', 'z' ], $result );
 	}
-
-	// ---------------------------------------------------------------------------
-	// arrayMergeRecursiveDistinct
-	// ---------------------------------------------------------------------------
 
 	public function testArrayMergeRecursiveDistinctOverwritesScalar() {
 		$a = [ 'key' => 'old' ];
@@ -99,10 +83,6 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [ 'a' => 1 ], PFUtils::arrayMergeRecursiveDistinct( $a, $b ) );
 	}
 
-	// ---------------------------------------------------------------------------
-	// ignoreFormName
-	// ---------------------------------------------------------------------------
-
 	public function testIgnoreFormNameReturnsFalseWhenNoPatternsSet() {
 		$this->setMwGlobals( 'wgPageFormsIgnoreTitlePattern', [] );
 		$this->assertFalse( PFUtils::ignoreFormName( 'MyForm' ) );
@@ -124,10 +104,6 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 		$this->assertTrue( PFUtils::ignoreFormName( 'IgnoreMe' ) );
 	}
 
-	// ---------------------------------------------------------------------------
-	// getWordForYesOrNo
-	// ---------------------------------------------------------------------------
-
 	public function testGetWordForYesOrNoReturnsNonEmptyStringForTrue() {
 		$result = PFUtils::getWordForYesOrNo( true );
 		$this->assertIsString( $result );
@@ -146,10 +122,6 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 			PFUtils::getWordForYesOrNo( false )
 		);
 	}
-
-	// ---------------------------------------------------------------------------
-	// linkText
-	// ---------------------------------------------------------------------------
 
 	public function testLinkTextWithoutExplicitText() {
 		$result = PFUtils::linkText( NS_MAIN, 'SomePage' );
@@ -170,10 +142,6 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 		$result = PFUtils::linkText( NS_MAIN, 'ValidPage' );
 		$this->assertIsString( $result );
 	}
-
-	// ---------------------------------------------------------------------------
-	// getNsText
-	// ---------------------------------------------------------------------------
 
 	public function testGetNsTextReturnsStringForMainNs() {
 		// NS_MAIN (0) typically returns empty string in content language
