@@ -115,6 +115,25 @@ Before every commit, run the full CI suite to confirm nothing is broken:
 make ci
 ```
 
+<div class="important">
+
+Always pipe every `make` invocation through `tee` to capture the full
+output in a log file — never pipe directly into `grep`. Log first,
+analyse after:
+
+</div>
+
+``` console
+make ci 2>&1 | tee /tmp/ci.log; echo "EXIT:$?"
+make install npm-test 2>&1 | tee /tmp/npm-test.log; echo "EXIT:$?"
+```
+
+Then analyse the log:
+
+``` console
+grep -E "OK$|FAILURES|Tests:|pass|fail" /tmp/ci.log | tail -10
+```
+
 **Coverage analysis**
 
 Look up the matrix entry with `coverage: true` in
