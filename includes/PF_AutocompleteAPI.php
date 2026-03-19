@@ -24,16 +24,11 @@ class PFAutocompleteAPI extends ApiBase {
 		$category = $params['category'];
 		$wikidata = $params['wikidata'];
 		$concept = $params['concept'];
-		$cargo_table = $params['cargo_table'];
-		$cargo_field = $params['cargo_field'];
-		$cargo_where = $params['cargo_where'];
 		$external_url = $params['external_url'];
 		$baseprop = $params['baseprop'];
-		$base_cargo_table = $params['base_cargo_table'];
-		$base_cargo_field = $params['base_cargo_field'];
 		$basevalue = $params['basevalue'];
 
-		if ( $baseprop === null && $base_cargo_table === null && ( $substr === null || strlen( $substr ) == 0 ) ) {
+		if ( $baseprop === null && ( $substr === null || strlen( $substr ) == 0 ) ) {
 			$this->dieWithError( [ 'apierror-missingparam', 'substr' ], 'param_substr' );
 		}
 
@@ -57,10 +52,6 @@ class PFAutocompleteAPI extends ApiBase {
 		} elseif ( $concept !== null ) {
 			$data = PFValuesUtils::getAllPagesForConcept( $concept, $substr );
 			$map = $wgPageFormsUseDisplayTitle;
-		// @codeCoverageIgnoreStart
-		} elseif ( $cargo_table !== null && $cargo_field !== null ) {
-			$data = self::getAllValuesForCargoField( $cargo_table, $cargo_field, $cargo_where, $substr, $base_cargo_table, $base_cargo_field, $basevalue );
-		// @codeCoverageIgnoreEnd
 		} elseif ( $namespace !== null ) {
 			$data = PFValuesUtils::getAllPagesForNamespace( $namespace, $substr );
 			$map = $wgPageFormsUseDisplayTitle;
@@ -118,14 +109,9 @@ class PFAutocompleteAPI extends ApiBase {
 			'category' => null,
 			'concept' => null,
 			'wikidata' => null,
-			'cargo_table' => null,
-			'cargo_field' => null,
-			'cargo_where' => null,
 			'namespace' => null,
 			'external_url' => null,
 			'baseprop' => null,
-			'base_cargo_table' => null,
-			'base_cargo_field' => null,
 			'basevalue' => null,
 		];
 	}
@@ -359,198 +345,6 @@ class PFAutocompleteAPI extends ApiBase {
 		$values = self::shiftExactMatch( $substring, $values );
 		return $values;
 	}
-
-	// @codeCoverageIgnoreStart
-
-	/**
-	 * @param string $cargoTable
-	 * @param string $cargoField
-	 * @param string|null $cargoWhere
-	 * @param string $substring
-	 * @param string|null $baseCargoTable
-	 * @param string|null $baseCargoField
-	 * @param mixed $baseValue
-	 * @return array
-	 */
-	private static function getAllValuesForCargoField( $cargoTable, $cargoField, $cargoWhere, $substring, $baseCargoTable = null, $baseCargoField = null, $baseValue = null ) {
-		global $wgPageFormsCacheAutocompleteValues, $wgPageFormsAutocompleteCacheTimeout;
-
-		if ( !$wgPageFormsCacheAutocompleteValues ) {
-			return self::computeAllValuesForCargoField(
-				$cargoTable, $cargoField, $cargoWhere, $substring, $baseCargoTable, $baseCargoField, $baseValue );
-		}
-
-		$cache = PFFormUtils::getFormCache();
-		// Remove trailing whitespace to avoid unnecessary database selects
-		$cacheKeyString = $cargoTable . '|' . $cargoField . '|' . rtrim( $substring );
-		if ( $baseCargoTable !== null ) {
-			$cacheKeyString .= '|' . $baseCargoTable . '|' . $baseCargoField . '|' . $baseValue;
-		}
-		$cacheKey = $cache->makeKey( 'pf-autocomplete', md5( $cacheKeyString ) );
-		return $cache->getWithSetCallback(
-			$cacheKey,
-			$wgPageFormsAutocompleteCacheTimeout,
-			function () use ( $cargoTable, $cargoField, $cargoWhere, $substring, $baseCargoTable, $baseCargoField, $baseValue ) {
-				return self::computeAllValuesForCargoField(
-					$cargoTable, $cargoField, $cargoWhere, $substring, $baseCargoTable, $baseCargoField, $baseValue );
-			}
-		);
-	}
-
-	private static function computeAllValuesForCargoField(
-		$cargoTable,
-		$cargoField,
-		$cargoWhere,
-		$substring,
-		$baseCargoTable,
-		$baseCargoField,
-		$baseValue
-	) {
-		global $wgPageFormsMaxAutocompleteValues, $wgPageFormsAutocompleteOnAllChars;
-
-		$tablesStr = $cargoTable;
-		$fieldsStr = $cargoField;
-		$joinOnStr = '';
-		$whereStr = '';
-
-		if ( $cargoWhere !== null ) {
-			$whereStr = '(' . stripslashes( $cargoWhere ) . ')';
-		}
-
-		if ( $baseCargoTable !== null && $baseCargoField !== null ) {
-			if ( $whereStr != '' ) {
-				$whereStr .= " AND ";
-			}
-			if ( $baseCargoTable != $cargoTable ) {
-				$tablesStr .= ", $baseCargoTable";
-				$joinOnStr = "$cargoTable._pageName = $baseCargoTable._pageName";
-			}
-			$whereStr .= "$baseCargoTable.$baseCargoField = \"$baseValue\"";
-		}
-
-		if ( $substring !== null ) {
-			if ( $whereStr != '' ) {
-				$whereStr .= " AND ";
-			}
-			$fieldIsList = self::cargoFieldIsList( $cargoTable, $cargoField );
-
-			if ( $fieldIsList ) {
-				// If it's a list field, we query directly on
-				// the "helper table" for that field. We could
-				// instead use "HOLDS LIKE", but this would
-				// return false positives - other values that
-				// have been listed alongside the values we're
-				// looking for - at least for Cargo >= 2.6.
-				$fieldTableName = $cargoTable . '__' . $cargoField;
-				// Because of the way Cargo querying works, the
-				// field table has to be listed first for only
-				// the right values to show up.
-				$tablesStr = $fieldTableName . ', ' . $tablesStr;
-				if ( $joinOnStr != '' ) {
-					$joinOnStr = ', ' . $joinOnStr;
-				}
-				$joinOnStr = $fieldTableName . '._rowID=' .
-					$cargoTable . '._ID' . $joinOnStr;
-
-				$fieldsStr = $cargoField = '_value';
-			}
-
-			$cdb = CargoUtils::getDB();
-			$quotedCargoField = $cdb->addIdentifierQuotes( $cargoField );
-
-			// LIKE is almost always case-insensitive for MySQL,
-			// usually (?) case-sensitive for PostgreSQL, and
-			// case-insensitive (though only for ASCII characters)
-			// in SQLite. In order to make this check consistenly
-			// case-sensitive everywhere, we call LOWER() on all
-			// the fields. There are other ways to accomplish this,
-			// but this one works consistently across the different
-			// DB systems.
-			if ( $wgPageFormsAutocompleteOnAllChars ) {
-				$whereStr .= "(LOWER($quotedCargoField) LIKE LOWER('%$substring%'))";
-			} else {
-				$whereStr .= "(LOWER($quotedCargoField) LIKE LOWER('$substring%')";
-				// Also look for the substring after any word
-				// separator (most commonly, a space). In theory,
-				// any punctuation can be a word separator,
-				// but we will just look for the most common
-				// ones.
-				// This would be much easier to do with the
-				// REGEXP operator, but its presence is
-				// inconsistent between MySQL, PostgreSQL and
-				// SQLite.
-				$wordSeparators = [ ' ', '/', '(', ')', '-', '|', "\'", '"' ];
-				foreach ( $wordSeparators as $wordSeparator ) {
-					$whereStr .= " OR LOWER($quotedCargoField) LIKE LOWER('%$wordSeparator$substring%')";
-				}
-				$whereStr .= ')';
-			}
-		}
-
-		$sqlQuery = CargoSQLQuery::newFromValues(
-			$tablesStr,
-			$fieldsStr,
-			$whereStr,
-			$joinOnStr,
-			$cargoField,
-			$havingStr = null,
-			$cargoField,
-			$wgPageFormsMaxAutocompleteValues,
-			$offsetStr = 0
-		);
-		$queryResults = $sqlQuery->run();
-
-		if ( $cargoField[0] != '_' ) {
-			$cargoFieldAlias = str_replace( '_', ' ', $cargoField );
-		} else {
-			$cargoFieldAlias = $cargoField;
-		}
-
-		$values = [];
-		foreach ( $queryResults as $row ) {
-			$value = $row[$cargoFieldAlias];
-			// @TODO - this check should not be necessary.
-			if ( $value == '' ) {
-				continue;
-			}
-			// Cargo HTML-encodes everything - let's decode double
-			// quotes, at least.
-			$values[] = str_replace( '&quot;', '"', $value );
-		}
-		$values = self::shiftExactMatch( $substring, $values );
-		return $values;
-	}
-
-	// @codeCoverageIgnoreEnd
-
-	// @codeCoverageIgnoreStart
-
-	/**
-	 * @param string $cargoTable
-	 * @param string $cargoField
-	 * @return bool
-	 */
-	public static function cargoFieldIsList( $cargoTable, $cargoField ) {
-		// @TODO - this is duplicate work; the schema is retrieved
-		// again when the CargoSQLQuery object is created. There should
-		// be some way of avoiding that duplicate retrieval.
-		try {
-			$tableSchemas = CargoUtils::getTableSchemas( [ $cargoTable ] );
-		} catch ( MWException $e ) {
-			return false;
-		}
-		if ( !array_key_exists( $cargoTable, $tableSchemas ) ) {
-			return false;
-		}
-		$tableSchema = $tableSchemas[$cargoTable];
-		if ( !array_key_exists( $cargoField, $tableSchema->mFieldDescriptions ) ) {
-			return false;
-		}
-		$fieldDesc = $tableSchema->mFieldDescriptions[$cargoField];
-		return $fieldDesc->mIsList;
-	}
-
-	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Move the exact match to the top for better autocompletion
