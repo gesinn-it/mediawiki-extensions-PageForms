@@ -8,6 +8,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * @ingroup PFSpecialPages
  */
@@ -40,7 +42,11 @@ class PFCreateForm extends SpecialPage {
 	public function doSpecialCreateForm( $query ) {
 		$out = $this->getOutput();
 		$req = $this->getRequest();
-		$db = wfGetDB( DB_REPLICA );
+		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
+			$db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
+		} else {
+			$db = wfGetDB( DB_REPLICA );
+		}
 
 		if ( $query !== null ) {
 			$presetFormName = str_replace( '_', ' ', $query );

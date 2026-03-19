@@ -12,6 +12,7 @@
  * @author Yaron Koren
  */
 
+use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
 
 /**
@@ -176,7 +177,11 @@ class PFMultiPageEdit extends QueryPage {
 	 * form names in an array using helper functions.
 	 */
 	public function setTemplateList() {
-		$dbr = wfGetDB( DB_REPLICA );
+		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
+			$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
+		} else {
+			$dbr = wfGetDB( DB_REPLICA );
+		}
 		$res = $dbr->select(
 			[ 'page' ],
 			[ 'page_title' ],

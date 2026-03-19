@@ -8,6 +8,8 @@
  * @author Yaron Koren
  * @author Amr El-Absy
  */
+use MediaWiki\MediaWikiServices;
+
 class PFTree {
 	/**
 	 * This property stores title value
@@ -250,7 +252,11 @@ class PFTree {
 	 * @return array
 	 */
 	private static function getSubcategories( $categoryName ) {
-		$dbr = wfGetDB( DB_REPLICA );
+		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
+			$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
+		} else {
+			$dbr = wfGetDB( DB_REPLICA );
+		}
 
 		$tables = [ 'page', 'categorylinks' ];
 		$fields = [ 'page_id', 'page_namespace', 'page_title',
