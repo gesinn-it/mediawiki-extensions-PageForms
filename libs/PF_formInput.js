@@ -30,7 +30,11 @@
 			const formChooserDropdown = new OO.ui.DropdownInputWidget( {
 				name: 'form',
 				options: menuOptions,
-				classes: [ 'pfFormChooserDropdown' ]
+				classes: [ 'pfFormChooserDropdown' ],
+				// Render the menu in OO.ui.getDefaultOverlay() (z-index 101 in
+				// Vector), above #mw-head (z-index 100), so it is not obscured
+				// on short pages like Special:FormStart.
+				$overlay: true
 			} );
 			const formChooserHorizontalLayout = new OO.ui.HorizontalLayout( {
 				items: [ formChooserText,  formChooserDropdown ],
