@@ -61,6 +61,8 @@ jobs:
       DT_VERSION: ${{ matrix.dt_version }}
       DB_TYPE: ${{ matrix.database_type }}
       DB_IMAGE: ${{ matrix.database_image }}
+      # Run JS tests only for the coverage entry (MW 1.43): older base images
+      # ship a Node version too old for eslint-plugin-jsdoc (requires Node ≥ 14.6).
       NODE_JS: ${{ matrix.coverage && '1' || '' }}
     steps:
       - name: Checkout
