@@ -288,6 +288,8 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		return $results;
 	}
 
+	// @codeCoverageIgnoreStart
+
 	/**
 	 * Used with the Cargo extension.
 	 * @param string $tableName
@@ -342,6 +344,8 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		$values = self::shiftShortestMatch( $values );
 		return $values;
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Get all the pages that belong to a category and all its
@@ -739,6 +743,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 
 		// The query depends on whether this is a Cargo field, SMW
 		// property, category, SMW concept or namespace.
+		// @codeCoverageIgnoreStart
 		if ( $source_type == 'cargo field' ) {
 			$arr = explode( '|', $source_name );
 			if ( count( $arr ) == 3 ) {
@@ -749,6 +754,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			}
 			// Remove blank/null values from the array.
 			$names_array = array_values( array_filter( $names_array ) );
+		// @codeCoverageIgnoreEnd
 		} elseif ( $source_type == 'property' ) {
 			$names_array = self::getAllValuesForProperty( $source_name );
 		} elseif ( $source_type == 'category' ) {
@@ -795,6 +801,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		} elseif ( array_key_exists( 'autocomplete field type', $field_args ) ) {
 			$autocompleteFieldType = $field_args['autocomplete field type'];
 			$autocompletionSource = $field_args['autocompletion source'];
+		// @codeCoverageIgnoreStart
 		} elseif ( array_key_exists( 'full_cargo_field', $field_args ) ) {
 			$autocompletionSource = $field_args['full_cargo_field'];
 			$autocompleteFieldType = 'cargo field';
@@ -807,6 +814,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 				$whereStr = $field_args['cargo where'];
 				$autocompletionSource .= "|$whereStr";
 			}
+		// @codeCoverageIgnoreEnd
 		} elseif ( array_key_exists( 'semantic_property', $field_args ) ) {
 			$autocompletionSource = $field_args['semantic_property'];
 			$autocompleteFieldType = 'property';
