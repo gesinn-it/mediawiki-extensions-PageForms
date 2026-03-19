@@ -61,8 +61,7 @@ jobs:
       DT_VERSION: ${{ matrix.dt_version }}
       DB_TYPE: ${{ matrix.database_type }}
       DB_IMAGE: ${{ matrix.database_image }}
-
-      
+      NODE_JS: ${{ matrix.coverage && '1' || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
