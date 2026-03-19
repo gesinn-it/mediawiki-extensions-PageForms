@@ -9,7 +9,7 @@
 		"eslint:fix": "npm run eslint -- --fix",
 		"banana-checker": "banana-checker i18n",
 		"node-qunit": "qunit --require ./tests/node-qunit/setup.js 'tests/node-qunit/**/*.test.js'",
-		"node-qunit-coverage": "nyc --reporter=text --reporter=html --reporter=clover --all --include='libs/**' npm run node-qunit"
+		"node-qunit-coverage": "nyc --reporter=text --reporter=html --reporter=clover --report-dir=coverage/js --all --include='libs/**' npm run node-qunit"
 	},
 	"devDependencies": {
 		"eslint-config-wikimedia": "0.20.0",
