@@ -74,8 +74,6 @@
 	"uploadwindow": "پەنجەرەی بارکردن",
 	"pf_deletionlog": "لۆگی سڕینەوە",
 	"pf-preview-header": "پێشبینینی فۆرم",
-	"pf-pageschemas-createtitle": "سەرناوی فۆرم بۆ پەڕە نوێکان:",
-	"pf-pageschemas-edittitle": "سەرناوی فۆرم بۆ ئەو پەڕانەی کە ھەن:",
 	"pf_form_freetextlabel": "دەقی ئازاد",
 	"pf_category_hasdefaultform": "ئەم پۆلە، فۆرمی $1 بە کار دەبات.",
 	"pf_category_desc": "ئەم پۆلی $1 ـە.",

@@ -180,16 +180,6 @@ class PFFormLinker {
 			$default_forms = [];
 			$categories = PFValuesUtils::getCategoriesForPage( $title );
 			foreach ( $categories as $category ) {
-				if ( class_exists( 'PSSchema' ) ) {
-					// Check the Page Schema, if one exists.
-					$psSchema = new PSSchema( $category );
-					if ( $psSchema->isPSDefined() ) {
-						$formName = PFPageSchemas::getFormName( $psSchema );
-						if ( $formName !== null ) {
-							$default_forms[] = $formName;
-						}
-					}
-				}
 				$categoryPage = Title::makeTitleSafe( NS_CATEGORY, $category );
 				$defaultFormForCategory = self::getDefaultForm( $categoryPage );
 				if ( $defaultFormForCategory != '' ) {

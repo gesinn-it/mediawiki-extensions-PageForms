@@ -109,7 +109,6 @@
 		"PFValuesUtils": "includes/PF_ValuesUtils.php",
 		"PFHooks": "includes/PF_Hooks.php",
 		"PFFormLinker": "includes/PF_FormLinker.php",
-		"PFPageSchemas": "includes/PF_PageSchemas.php",
 		"PFParserFunctionHelpers": "includes/parserfunctions/PF_ParserFunctionHelpers.php",
 		"PFArrayMap": "includes/parserfunctions/PF_ArrayMap.php",
 		"PFArrayMapTemplate": "includes/parserfunctions/PF_ArrayMapTemplate.php",
@@ -599,11 +598,6 @@
 				"mobile"
 			]
 		},
-		"ext.pageforms.PF_PageSchemas": {
-			"scripts": [
-				"libs/PF_PageSchemas.js"
-			]
-		},
 		"ext.pageforms.PF_CreateTemplate": {
 			"scripts": [
 				"libs/PF_CreateTemplate.js"
@@ -674,7 +668,6 @@
 		"ArticlePurge": "PFFormUtils::purgeCache",
 		"ParserFirstCallInit": "PFHooks::registerFunctions",
 		"MakeGlobalVariablesScript": "PFHooks::setGlobalJSVariables",
-		"PageSchemasRegisterHandlers": "PFPageSchemas::registerClass",
 		"EditPage::importFormData": "PFHooks::showFormPreview",
 		"PageSaveComplete": "PFHooks::setPostEditCookie",
 		"MultiContentSave": "PFFormUtils::purgeCacheOnSave",

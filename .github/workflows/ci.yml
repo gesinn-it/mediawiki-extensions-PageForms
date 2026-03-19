@@ -25,7 +25,6 @@ jobs:
             smw_version: '4.2.0'    # SemanticMediaWiki
             php_version: 7.4        # PHP
             dt_version: 3.1         # DisplayTitle
-            ps_version: 0.6.1       # PageSchemas
             database_type: mysql
             database_image: "mysql:5.7"
             coverage: false
@@ -34,7 +33,6 @@ jobs:
             smw_version: '5.1.0'
             php_version: 8.1
             dt_version: 4.0.3
-            ps_version: 0.9.1
             database_type: mysql
             database_image: "mysql:8"
             coverage: false
@@ -43,7 +41,6 @@ jobs:
             smw_version: '6.0.1'
             php_version: 8.3
             dt_version: 4.0.3
-            ps_version: 0.9.1
             database_type: mysql
             database_image: "mysql:8"
             coverage: true
@@ -52,7 +49,6 @@ jobs:
             smw_version: 'dev-master'
             php_version: 8.3
             dt_version: 4.0.3
-            ps_version: 0.9.1
             database_type: mysql
             database_image: "mysql:8"
             coverage: false
@@ -63,7 +59,6 @@ jobs:
       SMW_VERSION: ${{ matrix.smw_version }}
       PHP_VERSION: ${{ matrix.php_version }}
       DT_VERSION: ${{ matrix.dt_version }}
-      PS_VERSION: ${{ matrix.ps_version }}
       DB_TYPE: ${{ matrix.database_type }}
       DB_IMAGE: ${{ matrix.database_image }}
 
