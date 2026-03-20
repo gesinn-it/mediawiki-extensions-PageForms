@@ -111,8 +111,16 @@
 		inputSpan.find('span.simpleUploadInterface').append(uploadWidget.$element);
 
 		const input = inputFor(this);
-		uploadWidget.on('change', (files) => {
-			const file = files[0];
+		uploadWidget.on('change', () => {
+			// SelectFileInputWidget (MW ≥ 1.43) emits 'change' with the raw
+			// $input.val() string (e.g. "C:\fakepath\image.jpg") via the
+			// InputWidget.onEdit → setValue path, not with a File[].
+			// Always read the actual File from currentFiles to avoid sending a
+			// single character of the fake path as the "file" API parameter.
+			const file = uploadWidget.currentFiles[ 0 ];
+			if ( !file ) {
+				return;
+			}
 
 			const formdata = new FormData(); // see https://developer.mozilla.org/en-US/docs/Web/API/FormData/Using_FormData_Objects
 			formdata.append("action", "upload");
