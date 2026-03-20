@@ -141,7 +141,10 @@
 					if ( data.upload ) {
 						input.addFile(data.upload.filename);
 					} else {
-						const error = (data.error && data.error.info) || mw.msg( 'pf-simpleupload-unspecified-upload-error' );
+						const rawError = (data.error && data.error.info) || mw.msg( 'pf-simpleupload-unspecified-upload-error' );
+						// Strip wiki link syntax ([[:File:foo.png]] → foo.png) so the
+						// plain-text alert does not show raw markup.
+						const error = rawError.replace( /\[\[:?[^|#\]]*?:([^\]|]+)[^\]]*\]\]/g, '$1' );
 						window.alert("Error: " + error);
 					}
 					loadingImage.hide();

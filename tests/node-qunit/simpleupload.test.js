@@ -53,6 +53,37 @@ QUnit.test('sets input value and creates preview after selecting a file', (asser
 	assert.true(html.includes('<div class="simpleupload_prv"><img src="article-path/Special:Redirect/file/file.txt?width=150"></div>'));
 });
 
+QUnit.test('strips wiki link syntax from duplicate-upload error message', (assert) => {
+	// The MW upload API returns error.info containing raw wiki markup such as
+	// "[[:Datei:1.png]]" or "[[:File:1.png]]". The alert must show plain text.
+	let successCallback;
+	sinon.replace($, 'ajax', ({success}) => {
+ successCallback = success;
+});
+
+	const widgetProp = OO.ui.SelectFileInputWidget ? 'SelectFileInputWidget' : 'SelectFileWidget';
+	sinon.replace(OO.ui, widgetProp, function() {
+		this.currentFiles = [ { name: 'image.jpg' } ];
+		this.on = function(trigger, cb) {
+ if (trigger === 'change') {
+ cb();
+}
+};
+	});
+
+	const alerts = [];
+	sinon.replace(window, 'alert', (msg) => alerts.push(msg));
+
+	const { $starter } = createInput();
+	$starter.initializeSimpleUpload();
+
+	successCallback({ error: { info: "The upload is an exact duplicate of the current version of [[:Datei:1.png]]." } });
+
+	assert.strictEqual( alerts.length, 1, 'alert should have been called once' );
+	assert.false( alerts[0].includes('[['), 'alert must not contain raw wiki link brackets' );
+	assert.true( alerts[0].includes('1.png'), 'alert must contain the plain filename' );
+});
+
 QUnit.test('sends the actual File object when SelectFileInputWidget emits change with a string value', (assert) => {
 	// Regression test: SelectFileInputWidget (MW ≥ 1.43) emits 'change' with the
 	// raw $input.val() string (e.g. "C:\fakepath\image.jpg"), not a File[].
