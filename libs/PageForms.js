@@ -1987,8 +1987,38 @@ $(document).ready( () => {
 		// If the form is submitted, validate everything!
 		$('#pfForm').submit( () => validateAll() );
 
-		// We are all done - remove the loading spinner.
-		$('.loadingImage').remove();
+		// We are all done with synchronous init. Reveal the form once the DOM
+		// has settled after all async post-init work (e.g. VEForAll's Parsoid
+		// API call).  MutationObserver + debounce handles any async initializer
+		// without requiring explicit per-extension checks: each DOM mutation
+		// resets the debounce timer, so the form is revealed only after the DOM
+		// is quiet.  On simple forms with no async mutations the initial
+		// setTimeout(0) fires immediately.
+		const form = document.getElementById( 'pfForm' );
+		const revealForm = () => {
+			$( '#pfForm' ).css( 'visibility', 'visible' );
+			$( '.loadingImage' ).remove();
+		};
+		let pfInitDebounce;
+		// Declared before doReveal so it can be const.  doReveal is only called
+		// later; the closure captures pfInitSafety / doReveal by binding, so
+		// forward references are resolved at call-time, not at definition-time.
+		const pfInitObserver = new MutationObserver( () => {
+			clearTimeout( pfInitDebounce );
+			pfInitDebounce = setTimeout( doReveal, 150 );
+		} );
+		const doReveal = () => {
+			clearTimeout( pfInitDebounce );
+			clearTimeout( pfInitSafety );
+			pfInitObserver.disconnect();
+			revealForm();
+		};
+		// Absolute fallback: reveal after 3 s even if mutations never stop
+		// (e.g. a broken extension keeps mutating the DOM indefinitely).
+		const pfInitSafety = setTimeout( doReveal, 3000 );
+		pfInitObserver.observe( form, { childList: true, subtree: true, attributes: true } );
+		// Fast path: no mutations → reveal on next event-loop tick.
+		pfInitDebounce = setTimeout( doReveal, 0 );
 	}, 0 );
 
 	mw.hook('pf.formSetupAfter').fire();

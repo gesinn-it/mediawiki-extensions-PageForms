@@ -15,6 +15,14 @@ textarea.mandatoryField {
 	z-index: 100;
 }
 
+/* The spinner lives inside <form style="visibility:hidden">.
+ * Explicitly set visibility so the spinner is always reliably shown while
+ * the form is hidden, regardless of browser handling of position:fixed inside
+ * a visibility:hidden ancestor.  Both are removed together by revealForm(). */
+.loadingImage {
+	visibility: visible;
+}
+
 /* Used in 'create template' page */
 .fieldBox {
 	border: 1px black solid;
@@ -27,6 +35,8 @@ textarea.mandatoryField {
 /* Used in form pages */
 table.formtable {
 }
+
+
 
 table.formtable th {
 	text-align: left;
@@ -79,6 +89,13 @@ span.mandatoryFieldsSpan {
 
 #pfForm span.simpleUploadInterface > label {
 	margin-bottom: 0;
+}
+
+/* SelectFileInputWidget (MW ≥ 1.43) always renders an info search-input and its
+   ActionFieldLayout container; hide both since PF uses button-only mode. */
+#pfForm span.simpleUploadInterface .oo-ui-selectFileInputWidget-info,
+#pfForm span.simpleUploadInterface .oo-ui-actionFieldLayout-input {
+	display: none;
 }
 
 #pfForm div.simpleupload_prv {
