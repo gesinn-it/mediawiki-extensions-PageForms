@@ -80,11 +80,20 @@
 		};
 
 		handleFilenamesChanged();
-		// Register for change event
-		$input.change( () => {
+		// DOM 'change' fires on blur (manual typing confirmed).
+		// Do NOT listen on 'input': that fires on every keystroke and would
+		// attempt to load a preview for partial text, causing 404 errors.
+		// Dropdown selections are handled by the OOUI widget event below.
+		$input.on( 'change', () => {
 			// Have to wait when removing a file in the pfTokens case
 			setTimeout(() => handleFilenamesChanged(), 0);
 		});
+		// pf.ComboBoxInput fires a 'pf-combobox-choose' jQuery event on the
+		// native input when a dropdown item is selected (see onMenuChoose
+		// override in PF_ComboBoxInput.js).  This is the only reliable signal
+		// that a complete value was chosen; the OOUI 'change' event also fires
+		// on every keystroke and cannot be used here.
+		$input.on( 'pf-combobox-choose', () => setTimeout( handleFilenamesChanged, 0 ) );
 
 		return { addFile };
 	}

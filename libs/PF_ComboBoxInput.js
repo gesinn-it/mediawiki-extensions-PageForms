@@ -30,6 +30,15 @@
     OO.inheritClass(pf.ComboBoxInput, OO.ui.ComboBoxInputWidget);
     OO.mixinClass(pf.ComboBoxInput, OO.ui.mixin.PendingElement);
 
+    // Override onMenuChoose to fire a targeted jQuery event on the native
+    // input element when the user confirms a dropdown selection.  The OOUI
+    // 'change' event cannot be used for this purpose because it also fires on
+    // every keystroke (setValue() is called by onEdit during typing).
+    pf.ComboBoxInput.prototype.onMenuChoose = function ( item ) {
+        pf.ComboBoxInput.super.prototype.onMenuChoose.call( this, item );
+        this.$input.trigger( 'pf-combobox-choose' );
+    };
+
     pf.ComboBoxInput.prototype.apply = function (element) {
         // Apply ComboBoxInput to the element
         this.setInputAttribute('name', element.attr('name'));

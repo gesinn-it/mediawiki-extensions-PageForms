@@ -19,6 +19,51 @@ QUnit.test('adds upload button to input with empty value', (assert) => {
 });
 
 
+QUnit.test('does not show preview while typing (input event must not trigger preview)', (assert) => {
+	// Typing partial text fires DOM 'input' on every keystroke. Loading a
+	// preview for partial text causes 404s. Only confirmed values (blur→change
+	// or dropdown selection→OOUI change) should trigger the preview.
+	const clock = sinon.useFakeTimers();
+	sinon.replace(OO.ui, OO.ui.SelectFileInputWidget ? 'SelectFileInputWidget' : 'SelectFileWidget', function() {
+		this.currentFiles = [];
+		this.on = function() {};
+	});
+
+	const { $starter, $input, $parent } = createInput();
+	$starter.initializeSimpleUpload();
+
+	$input.val( 'hel' );
+	$input.trigger( 'input' );
+	clock.tick( 10 );
+	clock.restore();
+
+	const html = $parent.get(0).innerHTML;
+	assert.false( html.includes( 'file/hel' ), 'no preview for partial text must be loaded' );
+});
+
+QUnit.test('updates preview when combobox fires pf-combobox-choose event (dropdown selection)', (assert) => {
+	// pf.ComboBoxInput overrides onMenuChoose() to fire a 'pf-combobox-choose'
+	// jQuery event on the native input.  simpleupload listens to this event to
+	// update the preview only on confirmed selection, not while typing.
+	const clock = sinon.useFakeTimers();
+	sinon.replace(OO.ui, OO.ui.SelectFileInputWidget ? 'SelectFileInputWidget' : 'SelectFileWidget', function() {
+		this.currentFiles = [];
+		this.on = function() {};
+	});
+
+	const { $starter, $input, $parent } = createInput();
+	$starter.initializeSimpleUpload();
+
+	// Simulate pf.ComboBoxInput.onMenuChoose() triggering the custom event.
+	$input.val( '1.png' );
+	$input.trigger( 'pf-combobox-choose' );
+	clock.tick( 1 );
+	clock.restore();
+
+	const html = $parent.get(0).innerHTML;
+	assert.true( html.includes( 'Special:Redirect/file/1.png' ), 'preview must update on pf-combobox-choose' );
+});
+
 QUnit.test('sets input value and creates preview after selecting a file', (assert) => {
 	let selectedFileCallback;
 	let mockWidget;
