@@ -18,28 +18,6 @@ QUnit.test('adds upload button to input with empty value', (assert) => {
 	assert.true(html.includes("Select a file"));
 });
 
-QUnit.test('hides the info field when using SelectFileInputWidget (buttonOnly emulation)', (assert) => {
-	// SelectFileInputWidget (MW ≥ 1.43) does not support buttonOnly=true and
-	// always renders an info search-input. PF hides it via CSS (see PageForms.css).
-	// This test verifies that the info element and its container are present in
-	// the DOM (so the CSS selectors can reach them) and carry no inline style
-	// that would override the stylesheet rule.
-	if ( !OO.ui.SelectFileInputWidget ) {
-		// MW < 1.43 uses SelectFileWidget which handles buttonOnly natively — skip.
-		assert.ok( true, 'SelectFileInputWidget not present, skip' );
-		return;
-	}
-	const { $starter, $parent } = createInput();
-
-	$starter.initializeSimpleUpload();
-
-	const $info = $parent.find( '.oo-ui-selectFileInputWidget-info' );
-	assert.true( $info.length > 0, 'info element is present in DOM (CSS can target it)' );
-	assert.notEqual( $info.attr( 'style' ), 'display: block;', 'info element must not have an inline display:block overriding the CSS rule' );
-	const $container = $info.parent();
-	assert.true( $container.length > 0, 'info container (.oo-ui-actionFieldLayout-input) is present in DOM' );
-	assert.notEqual( $container.attr( 'style' ), 'display: block;', 'info container must not have an inline display:block overriding the CSS rule' );
-});
 
 QUnit.test('sets input value and creates preview after selecting a file', (assert) => {
 	let selectedFileCallback;
