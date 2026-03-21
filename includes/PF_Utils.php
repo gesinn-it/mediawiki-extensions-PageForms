@@ -312,7 +312,7 @@ END;
 			__METHOD__,
 			[ 'ORDER BY' => 'page_title' ] );
 		$form_names = [];
-		while ( $row = $res->fetchRow() ) {
+		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
 			$form_names[] = str_replace( '_', ' ', $row[0] );
 		}
 		$res->free();

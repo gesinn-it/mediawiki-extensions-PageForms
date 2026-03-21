@@ -255,7 +255,7 @@ class PFFormEditAction extends Action {
 		);
 
 		$pagesPerForm = [];
-		while ( $row = $res->fetchRow() ) {
+		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
 			$formName = $row['pp_value'];
 			$pagesPerForm[$formName] = $row['total_pages'];
 		}

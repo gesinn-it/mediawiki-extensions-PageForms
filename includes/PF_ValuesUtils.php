@@ -79,7 +79,7 @@ class PFValuesUtils {
 			$conditions,
 			__METHOD__
 		);
-		while ( $row = $res->fetchRow() ) {
+		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
 			$categories[] = $row['cl_to'];
 		}
 		$res->free();
@@ -103,7 +103,7 @@ class PFValuesUtils {
 			 null,
 			__METHOD__
 		);
-		while ( $row = $res->fetchRow() ) {
+		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
 			$categories[] = $row['cat_title'];
 		}
 		$res->free();
@@ -425,7 +425,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 					],
 					$join );
 				if ( $res ) {
-					while ( $res && $row = $res->fetchRow() ) {
+					for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
 						if ( !array_key_exists( 'page_title', $row ) ) {
 							continue;
 						}
@@ -526,7 +526,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		$pages = [];
 		$sortkeys = [];
 		$titles = [];
-		while ( $res = $query_result->getNext() ) {
+		for ( $res = $query_result->getNext(); $res; $res = $query_result->getNext() ) {
 			$page = $res[0]->getNextText( SMW_OUTPUT_WIKI );
 			if ( $wgPageFormsUseDisplayTitle ) {
 				$title = Title::newFromText( $page );
@@ -704,7 +704,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 
 		$pages = [];
 		$sortkeys = [];
-		while ( $row = $res->fetchRow() ) {
+		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
 			// If there's more than one namespace, include the
 			// namespace prefix in the results - otherwise, don't.
 			if ( array_key_exists( 'page_namespace', $row ) ) {

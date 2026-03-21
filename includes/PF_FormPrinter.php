@@ -1003,7 +1003,8 @@ END;
 		// @HACK - replace the 'free text' standard input with a
 		// field declaration to get it to be handled as a field.
 		$form_def = str_replace( 'standard input|free text', 'field|#freetext#', $form_def );
-		while ( $brackets_loc = strpos( $form_def, "{{{", $start_position ) ) {
+		$brackets_loc = strpos( $form_def, "{{{", $start_position );
+		while ( $brackets_loc !== false ) {
 			$brackets_end_loc = strpos( $form_def, "}}}", $brackets_loc );
 			$bracketed_string = substr( $form_def, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 ) );
 			$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
@@ -1015,6 +1016,7 @@ END;
 				$section_start = $brackets_loc;
 			}
 			$start_position = $brackets_loc + 1;
+			$brackets_loc = strpos( $form_def, "{{{", $start_position );
 		}
 		// end while
 		$form_def_sections[] = trim( substr( $form_def, $section_start ) );
@@ -1035,7 +1037,11 @@ END;
 			// array doesn't get modified; is it necessary?
 			$section = " " . $form_def_sections[$section_num];
 
-			while ( $brackets_loc = strpos( $section, '{{{', $start_position ) ) {
+			while ( true ) {
+				$brackets_loc = strpos( $section, '{{{', $start_position );
+				if ( $brackets_loc === false ) {
+					break;
+				}
 				$brackets_end_loc = strpos( $section, "}}}", $brackets_loc );
 				// For cases with more than 3 ending brackets,
 				// take the last 3 ones as the tag end.

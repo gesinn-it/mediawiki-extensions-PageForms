@@ -317,7 +317,7 @@ class PFAutocompleteAPI extends ApiBase {
 				[ $valueField, 'o_ids.smw_namespace', 'pp_displaytitle.pp_value' ],
 				$conditions, __METHOD__, $sqlOptions, $joinConds );
 			$values = [];
-			while ( $row = $res->fetchRow() ) {
+			for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
 				$smwTitle = str_replace( '_', ' ', $row[0] );
 				$smwNamespace = (int)$row[1];
 				if ( $smwNamespace === NS_MAIN ) {
@@ -338,7 +338,7 @@ class PFAutocompleteAPI extends ApiBase {
 			$conditions, __METHOD__, $sqlOptions, $joinConds );
 
 		$values = [];
-		while ( $row = $res->fetchRow() ) {
+		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
 			$values[] = str_replace( '_', ' ', $row[0] );
 		}
 		$res->free();

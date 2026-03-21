@@ -192,7 +192,7 @@ class PFMultiPageEdit extends QueryPage {
 			[],
 			[]
 		);
-		while ( $row = $res->fetchRow() ) {
+		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
 			$this->findTemplatesForForm( $row['page_title'] );
 		}
 	}
@@ -232,7 +232,8 @@ class PFMultiPageEdit extends QueryPage {
 		$formTitle = Title::makeTitle( PF_NS_FORM, $formName );
 		$formContent = PFUtils::getPageText( $formTitle, RevisionRecord::RAW );
 		$start_position = 0;
-		while ( $brackets_loc = strpos( $formContent, '{{{', $start_position ) ) {
+		$brackets_loc = strpos( $formContent, '{{{', $start_position );
+		while ( $brackets_loc !== false ) {
 			$brackets_end_loc = strpos( $formContent, "}}}", $brackets_loc );
 			$bracketed_string = substr( $formContent, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 ) );
 			$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
@@ -249,6 +250,7 @@ class PFMultiPageEdit extends QueryPage {
 				}
 			}
 			$start_position = $brackets_loc + 1;
+			$brackets_loc = strpos( $formContent, '{{{', $start_position );
 		}
 	}
 

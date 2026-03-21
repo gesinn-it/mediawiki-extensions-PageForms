@@ -442,8 +442,14 @@ class PFTemplateInForm {
 			[ $startTag, $endTag ] = $tags;
 
 			$startTagLoc = -1;
-			while ( ( $startTagLoc + strlen( $startTag ) < strlen( $str ) ) &&
-				( ( $startTagLoc = strpos( $str, $startTag, $startTagLoc + strlen( $startTag ) ) ) !== false ) ) {
+			while ( true ) {
+				if ( $startTagLoc + strlen( $startTag ) >= strlen( $str ) ) {
+					break;
+				}
+				$startTagLoc = strpos( $str, $startTag, $startTagLoc + strlen( $startTag ) );
+				if ( $startTagLoc === false ) {
+					break;
+				}
 				// Ignore "singleton" tags, like '<ref name="abc" />'.
 				$possibleSingletonTagEnd = strpos( $str, '/>', $startTagLoc );
 				if ( $possibleSingletonTagEnd !== false && $possibleSingletonTagEnd < strpos( $str, '>', $startTagLoc ) ) {
