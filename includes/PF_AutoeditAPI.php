@@ -324,7 +324,6 @@ class PFAutoeditAPI extends ApiBase {
 	}
 
 	protected function setupEditPage( $targetContent ) {
-		global $wgRequest;
 		// Find existing target article if it exists, or create a new one.
 		$targetTitle = Title::newFromText( $this->mOptions['target'] );
 
@@ -354,12 +353,12 @@ class PFAutoeditAPI extends ApiBase {
 		);
 
 		// Checks if the "Watch this page" checkbox is checked
-		if ( $wgRequest->getCheck( 'wpWatchthis' ) ) {
+		if ( $this->getRequest()->getCheck( 'wpWatchthis' ) ) {
 			$data[ 'wpWatchthis' ] = true;
 		}
 
 		// Checks if the "Minor edit" checkbox is checked
-		if ( $wgRequest->getCheck( 'wpMinoredit' ) ) {
+		if ( $this->getRequest()->getCheck( 'wpMinoredit' ) ) {
 			$data[ 'wpMinoredit' ] = true;
 		}
 
@@ -862,7 +861,7 @@ class PFAutoeditAPI extends ApiBase {
 	 * @throws MWException
 	 */
 	public function doAction() {
-		global $wgRequest, $wgPageFormsFormPrinter;
+		$formPrinter = $this->getConfig()->get( 'PageFormsFormPrinter' );
 
 		// If the wiki is read-only, do not save.
 		if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
@@ -912,8 +911,8 @@ class PFAutoeditAPI extends ApiBase {
 
 		$preloadContent = '';
 
-		// save $wgRequest for later restoration
-		$oldRequest = $wgRequest;
+// save request for later restoration
+			$oldRequest = RequestContext::getMain()->getRequest();
 		$pageExists = false;
 
 		// preload data if not explicitly excluded and if the preload page exists
@@ -953,13 +952,13 @@ class PFAutoeditAPI extends ApiBase {
 			// effect in the form.
 			$pageExists = true;
 
-			// Spoof $wgRequest for PFFormPrinter::formHTML().
+			// Spoof request context for PFFormPrinter::formHTML().
 			$session = RequestContext::getMain()->getRequest()->getSession();
-			$wgRequest = new FauxRequest( $this->mOptions, true, $session );
+			RequestContext::getMain()->setRequest( new FauxRequest( $this->mOptions, true, $session ) );
 			// Call PFFormPrinter::formHTML() to get at the form
 			// HTML of the existing page.
 			[ $formHTML, $targetContent, $form_page_title, $generatedTargetNameFormula ] =
-				$wgPageFormsFormPrinter->formHTML(
+				$formPrinter->formHTML(
 					// Special handling for autoedit edits -
 					// otherwise, multi-instance templates
 					// don't get saved, for some convoluted
@@ -992,18 +991,18 @@ class PFAutoeditAPI extends ApiBase {
 		// Get wikitext for submitted data and form - call formHTML(),
 		// if we haven't called it already.
 		if ( $preloadContent == '' ) {
-			// Spoof $wgRequest for PFFormPrinter::formHTML().
+			// Spoof request context for PFFormPrinter::formHTML().
 			$session = RequestContext::getMain()->getRequest()->getSession();
-			$wgRequest = new FauxRequest( $this->mOptions, true, $session );
+			RequestContext::getMain()->setRequest( new FauxRequest( $this->mOptions, true, $session ) );
 			[ $formHTML, $targetContent, $generatedFormName, $generatedTargetNameFormula ] =
-				$wgPageFormsFormPrinter->formHTML(
+				$formPrinter->formHTML(
 					$formContent, $isFormSubmitted, $pageExists,
 					$formArticleId, $preloadContent, $targetName, $targetNameFormula,
 					$is_query = false, $is_embedded = false, $is_autocreate = false,
 					$autocreate_query = [], $this->getUser()
 				);
 			// Restore original request.
-			$wgRequest = $oldRequest;
+			RequestContext::getMain()->setRequest( $oldRequest );
 		} else {
 			$generatedFormName = $form_page_title;
 		}
@@ -1358,8 +1357,7 @@ END;
 	 * @return string
 	 */
 	public function getVersion() {
-		global $wgPageFormsIP;
-		$gitSha1 = SpecialVersion::getGitHeadSha1( $wgPageFormsIP );
+		$gitSha1 = SpecialVersion::getGitHeadSha1( $this->getConfig()->get( 'PageFormsIP' ) );
 		return __CLASS__ . '-' . PF_VERSION . ( $gitSha1 !== false ) ? ' (' . substr( $gitSha1, 0, 7 ) . ')' : '';
 	}
 

@@ -210,8 +210,8 @@ END;
 
 		// Show "loading" animated image while people wait for the
 		// redirect.
-		global $wgPageFormsScriptPath;
-		$loadingImage = Html::element( 'img', [ 'src' => "$wgPageFormsScriptPath/skins/loading.gif" ] );
+		$pageFormsScriptPath = $this->getConfig()->get( 'PageFormsScriptPath' );
+		$loadingImage = Html::element( 'img', [ 'src' => "$pageFormsScriptPath/skins/loading.gif" ] );
 		$text = "\t" . Html::rawElement( 'p', [ 'style' => "position: absolute; left: 45%; top: 45%;" ], $loadingImage );
 		$text .= "\t" . Html::element( 'meta', [ 'http-equiv' => 'refresh', 'content' => "0; url=$redirect_url" ] );
 		$out->addHTML( $text );

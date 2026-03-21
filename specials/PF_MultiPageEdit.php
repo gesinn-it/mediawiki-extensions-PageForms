@@ -68,7 +68,7 @@ class PFMultiPageEdit extends QueryPage {
 	 * @param string $form_name
 	 */
 	private function displaySpreadsheet( $template_name, $form_name ) {
-		global $wgPageFormsGridParams, $wgPageFormsScriptPath;
+		$pageFormsScriptPath = $this->getConfig()->get( 'PageFormsScriptPath' );
 
 		$out = $this->getOutput();
 		$req = $this->getRequest();
@@ -160,11 +160,11 @@ class PFMultiPageEdit extends QueryPage {
 			'editMultiplePages' => true
 		];
 		$text .= Html::element( 'p', null, $this->msg( 'pf-spreadsheet-addrowinstructions' )->parse() );
-		$loadingImage = Html::element( 'img', [ 'src' => "$wgPageFormsScriptPath/skins/loading.gif" ] );
+		$loadingImage = Html::element( 'img', [ 'src' => "$pageFormsScriptPath/skins/loading.gif" ] );
 		$loadingImageDiv = '<div class="loadingImage">' . $loadingImage . '</div>';
 		$text .= Html::rawElement( 'div', $templateDivAttrs, $loadingImageDiv );
 
-		$wgPageFormsGridParams[$template_name] = $gridParams;
+		$GLOBALS['wgPageFormsGridParams'][$template_name] = $gridParams;
 
 		PFFormUtils::setGlobalVarsForSpreadsheet();
 

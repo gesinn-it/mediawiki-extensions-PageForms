@@ -627,7 +627,7 @@ END;
 	 * @throws MWException
 	 */
 	protected function processVerificationError( $details ) {
-		global $wgFileExtensions;
+		$fileExtensions = $this->getConfig()->get( 'FileExtensions' );
 
 		switch ( $details['status'] ) {
 			/** Statuses that only require name changing */
@@ -660,9 +660,9 @@ END;
 						htmlspecialchars( $finalExt ),
 						implode(
 							$this->msg( 'comma-separator' )->text(),
-							$wgFileExtensions
+							$fileExtensions
 						)
-					)->numParams( count( $wgFileExtensions ) )->parse()
+					)->numParams( count( $fileExtensions ) )->parse()
 				);
 				break;
 			case UploadBase::VERIFICATION_ERROR:

@@ -136,14 +136,14 @@ class PFUploadForm extends HTMLForm {
 
 		$maxUploadSizeFile = ini_get( 'upload_max_filesize' );
 		$maxUploadSizeURL = ini_get( 'upload_max_filesize' );
-		global $wgMaxUploadSize;
-		if ( isset( $wgMaxUploadSize ) ) {
-			if ( gettype( $wgMaxUploadSize ) == "array" ) {
-				$maxUploadSizeFile = $wgMaxUploadSize['*'];
-				$maxUploadSizeURL = $wgMaxUploadSize['url'];
+		$maxUploadSize = $this->getConfig()->get( 'MaxUploadSize' );
+		if ( isset( $maxUploadSize ) ) {
+			if ( gettype( $maxUploadSize ) == "array" ) {
+				$maxUploadSizeFile = $maxUploadSize['*'];
+				$maxUploadSizeURL = $maxUploadSize['url'];
 			} else {
-				$maxUploadSizeFile = $wgMaxUploadSize;
-				$maxUploadSizeURL = $wgMaxUploadSize;
+				$maxUploadSizeFile = $maxUploadSize;
+				$maxUploadSizeURL = $maxUploadSize;
 			}
 		}
 
@@ -195,24 +195,27 @@ class PFUploadForm extends HTMLForm {
 	protected function getExtensionsMessage() {
 		# Print a list of allowed file extensions, if so configured. We ignore
 		# MIME type here, it's incomprehensible to most people and too long.
-		global $wgCheckFileExtensions, $wgStrictFileExtensions,
-		$wgFileExtensions, $wgFileBlacklist;
+		$config = $this->getConfig();
+		$checkFileExtensions = $config->get( 'CheckFileExtensions' );
+		$strictFileExtensions = $config->get( 'StrictFileExtensions' );
+		$fileExtensions = $config->get( 'FileExtensions' );
+		$fileBlacklist = $config->get( 'FileBlacklist' );
 
-		if ( $wgCheckFileExtensions ) {
-			if ( $wgStrictFileExtensions ) {
+		if ( $checkFileExtensions ) {
+			if ( $strictFileExtensions ) {
 				# Everything not permitted is banned
 				$extensionsList =
 					'<div id="mw-upload-permitted">' .
-						$this->msg( 'upload-permitted', $this->getLanguage()->commaList( $wgFileExtensions ) )->parse() .
+						$this->msg( 'upload-permitted', $this->getLanguage()->commaList( $fileExtensions ) )->parse() .
 					"</div>\n";
 			} else {
 				# We have to list both preferred and prohibited
 				$extensionsList =
 					'<div id="mw-upload-preferred">' .
-						$this->msg( 'upload-preferred', $this->getLanguage()->commaList( $wgFileExtensions ) )->parse() .
+						$this->msg( 'upload-preferred', $this->getLanguage()->commaList( $fileExtensions ) )->parse() .
 					"</div>\n" .
 					'<div id="mw-upload-prohibited">' .
-						$this->msg( 'upload-prohibited', $this->getLanguage()->commaList( $wgFileBlacklist ) )->parse() .
+						$this->msg( 'upload-prohibited', $this->getLanguage()->commaList( $fileBlacklist ) )->parse() .
 					"</div>\n";
 			}
 		} else {
@@ -278,8 +281,8 @@ class PFUploadForm extends HTMLForm {
 			$descriptor['DestFile']['readonly'] = true;
 		}
 
-		global $wgUseCopyrightUpload;
-		if ( $wgUseCopyrightUpload ) {
+		$useCopyrightUpload = $this->getConfig()->get( 'UseCopyrightUpload' );
+		if ( $useCopyrightUpload ) {
 			$descriptor['UploadCopyStatus'] = [
 				'type' => 'text',
 				'section' => 'description',
@@ -339,9 +342,12 @@ class PFUploadForm extends HTMLForm {
 		// disable output - we'll print out the page manually,
 		// taking the body created by the form, plus the necessary
 		// Javascript files, and turning them into an HTML page
-		global $wgLanguageCode, $wgScriptPath,
-			$wgPageFormsScriptPath,
-			$wgXhtmlDefaultNamespace, $wgXhtmlNamespaces;
+		$config = $this->getConfig();
+		$languageCode = $config->get( 'LanguageCode' );
+		$scriptPath = $config->get( 'ScriptPath' );
+		$pageFormsScriptPath = $config->get( 'PageFormsScriptPath' );
+		$xhtmlDefaultNamespace = $config->get( 'XhtmlDefaultNamespace' );
+		$xhtmlNamespaces = $config->get( 'XhtmlNamespaces' );
 		$titleGlobal = RequestContext::getMain()->getTitle();
 
 		$out = $this->getOutput();
@@ -351,20 +357,20 @@ class PFUploadForm extends HTMLForm {
 
 		$text = <<<END
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="{$wgXhtmlDefaultNamespace}"
+<html xmlns="{$xhtmlDefaultNamespace}"
 END;
-		foreach ( $wgXhtmlNamespaces as $tag => $ns ) {
+		foreach ( $xhtmlNamespaces as $tag => $ns ) {
 			$text .= "xmlns:{$tag}=\"{$ns}\" ";
 		}
 		$dir = PFUtils::getContLang()->isRTL() ? "rtl" : "ltr";
-		$text .= "xml:lang=\"{$wgLanguageCode}\" lang=\"{$wgLanguageCode}\" dir=\"{$dir}\">";
+		$text .= "xml:lang=\"{$languageCode}\" lang=\"{$languageCode}\" dir=\"{$dir}\">";
 
 		$text .= <<<END
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <head>
-<script src="{$wgScriptPath}/resources/lib/jquery/jquery.js"></script>
-<script src="{$wgPageFormsScriptPath}/libs/PF_upload.js"></script>
+<script src="{$scriptPath}/resources/lib/jquery/jquery.js"></script>
+<script src="{$pageFormsScriptPath}/libs/PF_upload.js"></script>
 </head>
 <body>
 {$out->getHTML()}

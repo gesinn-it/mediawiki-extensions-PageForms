@@ -29,7 +29,8 @@ class PFRunQuery extends IncludableSpecialPage {
 	}
 
 	public function printPage( $form_name, $embedded = false ) {
-		global $wgPageFormsFormPrinter, $wgPageFormsRunQueryFormAtTop;
+		$formPrinter = $this->getConfig()->get( 'PageFormsFormPrinter' );
+		$runQueryFormAtTop = $this->getConfig()->get( 'PageFormsRunQueryFormAtTop' );
 
 		$out = $this->getOutput();
 		$req = $this->getRequest();
@@ -60,11 +61,10 @@ class PFRunQuery extends IncludableSpecialPage {
 		$form_definition = PFUtils::getPageText( $form_title );
 		if ( $embedded ) {
 			$req = $this->getUser()->getRequest();
-			// @HACK - set $wgRequest so that FormPrinter::formHTML()
+			// @HACK - set request context so that FormPrinter::formHTML()
 			// can have the right data. Much better would be to
 			// pass this in as a parameter to formHTML().
-			global $wgRequest;
-			$wgRequest = $req;
+			RequestContext::getMain()->setRequest( $req );
 		} else {
 			$req = $this->getRequest();
 		}
@@ -85,7 +85,7 @@ class PFRunQuery extends IncludableSpecialPage {
 		}
 
 		[ $form_text, $data_text, $form_page_title ] =
-			$wgPageFormsFormPrinter->formHTML(
+			$formPrinter->formHTML(
 				$form_definition, $form_submitted, false, $form_title->getArticleID(),
 				$content, null, null, true, $embedded, false, [], $user
 			);
@@ -163,7 +163,7 @@ END;
 		// other way around, depending on the settings.
 		if ( $req->getVal( 'additionalquery' ) == 'false' ) {
 			$text .= $resultsText;
-		} elseif ( $wgPageFormsRunQueryFormAtTop ) {
+		} elseif ( $runQueryFormAtTop ) {
 			$text .= Html::openElement( 'div', [ 'class' => 'pf-runquery-formcontent' ] );
 			$text .= $fullFormText;
 			$text .= $dividerText;
@@ -213,8 +213,7 @@ END;
 	 * @return int
 	 */
 	public function maxIncludeCacheTime() {
-		global $wgPageFormsEmbedQueryCacheTTL;
-		return $wgPageFormsEmbedQueryCacheTTL;
+		return $this->getConfig()->get( 'PageFormsEmbedQueryCacheTTL' );
 	}
 
 	protected function getGroupName() {

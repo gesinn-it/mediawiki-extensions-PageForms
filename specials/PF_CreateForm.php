@@ -643,13 +643,13 @@ END;
 		$form_label_text = $this->msg( 'pf_createform_formlabel' )->escaped();
 		$input_type_text = $this->msg( 'pf_createform_inputtype' )->escaped();
 
-		global $wgPageFormsFormPrinter;
+		$formPrinter = $this->getConfig()->get( 'PageFormsFormPrinter' );
 		if ( $template_field->getPropertyType() !== null ) {
-			$default_input_type = $wgPageFormsFormPrinter->getDefaultInputTypeSMW( $template_field->isList(), $template_field->getPropertyType() );
-			$possible_input_types = $wgPageFormsFormPrinter->getPossibleInputTypesSMW( $template_field->isList(), $template_field->getPropertyType() );
+			$default_input_type = $formPrinter->getDefaultInputTypeSMW( $template_field->isList(), $template_field->getPropertyType() );
+			$possible_input_types = $formPrinter->getPossibleInputTypesSMW( $template_field->isList(), $template_field->getPropertyType() );
 		} elseif ( $template_field->getFieldType() !== null ) {
-			$default_input_type = $wgPageFormsFormPrinter->getDefaultInputTypeCargo( $template_field->isList(), $template_field->getFieldType() );
-			$possible_input_types = $wgPageFormsFormPrinter->getPossibleInputTypesCargo( $template_field->isList(), $template_field->getFieldType() );
+			$default_input_type = $formPrinter->getDefaultInputTypeCargo( $template_field->isList(), $template_field->getFieldType() );
+			$possible_input_types = $formPrinter->getPossibleInputTypesCargo( $template_field->isList(), $template_field->getFieldType() );
 		} else {
 			// Most likely, template uses neither SMW nor Cargo.
 			$default_input_type = null;
@@ -658,7 +658,7 @@ END;
 
 		if ( $default_input_type == null && count( $possible_input_types ) == 0 ) {
 			$default_input_type = null;
-			$possible_input_types = $wgPageFormsFormPrinter->getAllInputTypes();
+			$possible_input_types = $formPrinter->getAllInputTypes();
 		}
 
 		if ( $field->getInputType() !== null ) {
@@ -819,7 +819,7 @@ END;
 	 * @return string
 	 */
 	public function showInputTypeOptions( $inputType, $fieldFormText, $paramValues ) {
-		global $wgPageFormsFormPrinter;
+		$formPrinter = $this->getConfig()->get( 'PageFormsFormPrinter' );
 
 		$text = '';
 
@@ -828,7 +828,7 @@ END;
 		if ( substr( $inputType, 0, 1 ) == '.' ) {
 			$inputType = substr( $inputType, 1 );
 		}
-		$inputTypeClass = $wgPageFormsFormPrinter->getInputType( $inputType );
+		$inputTypeClass = $formPrinter->getInputType( $inputType );
 
 		$params = method_exists( $inputTypeClass, 'getParameters' ) ? call_user_func( [ $inputTypeClass, 'getParameters' ] ) : [];
 

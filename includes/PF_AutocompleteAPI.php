@@ -32,7 +32,7 @@ class PFAutocompleteAPI extends ApiBase {
 			$this->dieWithError( [ 'apierror-missingparam', 'substr' ], 'param_substr' );
 		}
 
-		global $wgPageFormsUseDisplayTitle;
+		$useDisplayTitle = $this->getConfig()->get( 'PageFormsUseDisplayTitle' );
 		$map = false;
 		if ( $baseprop !== null ) {
 			if ( $property !== null ) {
@@ -48,13 +48,13 @@ class PFAutocompleteAPI extends ApiBase {
 			$data = PFValuesUtils::getAllValuesFromWikidata( urlencode( $wikidata ), $substr );
 		} elseif ( $category !== null ) {
 			$data = PFValuesUtils::getAllPagesForCategory( $category, 3, $substr );
-			$map = $wgPageFormsUseDisplayTitle;
+			$map = $useDisplayTitle;
 		} elseif ( $concept !== null ) {
 			$data = PFValuesUtils::getAllPagesForConcept( $concept, $substr );
-			$map = $wgPageFormsUseDisplayTitle;
+			$map = $useDisplayTitle;
 		} elseif ( $namespace !== null ) {
 			$data = PFValuesUtils::getAllPagesForNamespace( $namespace, $substr );
-			$map = $wgPageFormsUseDisplayTitle;
+			$map = $useDisplayTitle;
 		} elseif ( $external_url !== null ) {
 			$data = PFValuesUtils::getValuesFromExternalURL( $external_url, $substr );
 		} else {
@@ -149,8 +149,9 @@ class PFAutocompleteAPI extends ApiBase {
 		$basePropertyName = null,
 		$baseValue = null
 	) {
-		global $wgPageFormsCacheAutocompleteValues, $wgPageFormsAutocompleteCacheTimeout;
-		global $smwgDefaultStore;
+		$cacheAutocompleteValues = $this->getConfig()->get( 'PageFormsCacheAutocompleteValues' );
+		$autocompleteCacheTimeout = $this->getConfig()->get( 'PageFormsAutocompleteCacheTimeout' );
+		$smwgDefaultStore = $GLOBALS['smwgDefaultStore'] ?? null;
 
 		if ( $smwgDefaultStore == null ) {
 			$this->dieWithError( 'Semantic MediaWiki must be installed to query on "property"', 'param_property' );
@@ -159,7 +160,7 @@ class PFAutocompleteAPI extends ApiBase {
 		$property_name = str_replace( ' ', '_', $property_name );
 
 		// Use cache if allowed
-		if ( !$wgPageFormsCacheAutocompleteValues ) {
+		if ( !$cacheAutocompleteValues ) {
 			return $this->computeAllValuesForProperty( $property_name, $substring, $basePropertyName, $baseValue );
 		}
 
@@ -172,7 +173,7 @@ class PFAutocompleteAPI extends ApiBase {
 		$cacheKey = $cache->makeKey( 'pf-autocomplete', md5( $cacheKeyString ) );
 		return $cache->getWithSetCallback(
 			$cacheKey,
-			$wgPageFormsAutocompleteCacheTimeout,
+			$autocompleteCacheTimeout,
 			function () use ( $property_name, $substring, $basePropertyName, $baseValue ) {
 				return $this->computeAllValuesForProperty( $property_name, $substring, $basePropertyName, $baseValue );
 			}
@@ -192,8 +193,9 @@ class PFAutocompleteAPI extends ApiBase {
 		$basePropertyName = null,
 		$baseValue = null
 	) {
-		global $wgPageFormsMaxAutocompleteValues, $wgPageFormsUseDisplayTitle;
-		global $smwgDefaultStore;
+		$maxAutocompleteValues = $this->getConfig()->get( 'PageFormsMaxAutocompleteValues' );
+		$useDisplayTitle = $this->getConfig()->get( 'PageFormsUseDisplayTitle' );
+		$smwgDefaultStore = $GLOBALS['smwgDefaultStore'] ?? null;
 
 		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
 			$db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
@@ -201,7 +203,7 @@ class PFAutocompleteAPI extends ApiBase {
 			$db = wfGetDB( DB_REPLICA );
 		}
 		$sqlOptions = [];
-		$sqlOptions['LIMIT'] = $wgPageFormsMaxAutocompleteValues;
+		$sqlOptions['LIMIT'] = $maxAutocompleteValues;
 
 		$property = SMW\DataValueFactory::getInstance()->newPropertyValueByLabel( $property_name );
 
@@ -225,7 +227,7 @@ class PFAutocompleteAPI extends ApiBase {
 				'p_ids' => [ 'JOIN', 'p.p_id = p_ids.smw_id' ],
 				'o_ids' => [ 'JOIN', 'p.o_id = o_ids.smw_id' ],
 			];
-			if ( $wgPageFormsUseDisplayTitle ) {
+			if ( $useDisplayTitle ) {
 				$tables['pg'] = 'page';
 				$tables['pp_displaytitle'] = 'page_props';
 				$joinConds['pg'] = [ 'JOIN', [
@@ -297,7 +299,7 @@ class PFAutocompleteAPI extends ApiBase {
 		if ( $substring !== null ) {
 			// "Page" type property values are stored differently
 			// in the DB, i.e. underlines instead of spaces.
-			if ( $wgPageFormsUseDisplayTitle && $propertyHasTypePage ) {
+			if ( $useDisplayTitle && $propertyHasTypePage ) {
 				// Search in displaytitle when set, fall back to internal title.
 				$conditions[] =
 					'((pp_displaytitle.pp_value IS NULL OR pp_displaytitle.pp_value = \'\') AND (' .
@@ -311,7 +313,7 @@ class PFAutocompleteAPI extends ApiBase {
 		}
 
 		$sqlOptions['ORDER BY'] = $valueField;
-		if ( $propertyHasTypePage && $wgPageFormsUseDisplayTitle ) {
+		if ( $propertyHasTypePage && $useDisplayTitle ) {
 			$sqlOptions[] = 'DISTINCT';
 			$res = $db->select( $tables,
 				[ $valueField, 'o_ids.smw_namespace', 'pp_displaytitle.pp_value' ],

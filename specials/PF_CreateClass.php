@@ -279,8 +279,7 @@ class PFCreateClass extends SpecialPage {
 		// Either #set_internal or #subobject will be added to the
 		// template, depending on whether Semantic Internal Objects is
 		// installed.
-		global $smwgDefaultStore;
-		if ( defined( 'SIO_VERSION' ) || $smwgDefaultStore == "SMWSQLStore3" ) {
+		if ( defined( 'SIO_VERSION' ) || ( $GLOBALS['smwgDefaultStore'] ?? null ) == "SMWSQLStore3" ) {
 			$templateInfo .= Html::rawElement( 'div',
 				[
 					'id' => 'connecting_property_div',

@@ -97,8 +97,7 @@ class PFCreateTemplate extends SpecialPage {
 		if ( defined( 'SMW_VERSION' ) ) {
 			$possibleTypes = PFUtils::getSMWContLang()->getDatatypeLabels();
 		} elseif ( defined( 'CARGO_VERSION' ) ) {
-			global $wgCargoFieldTypes;
-			$possibleTypes = $wgCargoFieldTypes;
+			$possibleTypes = $GLOBALS['wgCargoFieldTypes'];
 		} else {
 			$possibleTypes = [];
 		}
