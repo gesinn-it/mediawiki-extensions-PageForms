@@ -1,4 +1,6 @@
 <?php
+declare( strict_types=1 );
+
 /**
  * @author Stephan Gambke
  * @file
@@ -38,18 +40,10 @@ class PFAutoeditAPI extends ApiBase {
 	 */
 	public const DEBUG = 3;
 
-	private $mOptions = [];
-
-	/**
-	 * @var int|null
-	 */
-	private $mAction;
-
-	/**
-	 * @var int|null
-	 */
-	private $mStatus;
-	private $mIsAutoEdit = false;
+	private array $mOptions = [];
+	private ?int $mAction = null;
+	private ?int $mStatus = null;
+	private bool $mIsAutoEdit = false;
 
 	/**
 	 * Converts an options string into an options array and stores it
@@ -444,23 +438,12 @@ class PFAutoeditAPI extends ApiBase {
 
 		$user = $this->getUser();
 
-		if ( class_exists( 'MediaWiki\Permissions\PermissionManager' ) ) {
-			// MW 1.33+
-			$permManager = MediaWikiServices::getInstance()->getPermissionManager();
-			$permErrors = $permManager->getPermissionErrors( 'edit', $user, $title );
-		} else {
-			$permManager = null;
-			$permErrors = $title->getUserPermissionsErrors( 'edit', $user );
-		}
+		$permManager = MediaWikiServices::getInstance()->getPermissionManager();
+		$permErrors = $permManager->getPermissionErrors( 'edit', $user, $title );
 
 		// if this title needs to be created, user needs create rights
 		if ( !$title->exists() ) {
-			if ( $permManager != null ) {
-				// MW 1.33+
-				$permErrorsForCreate = $permManager->getPermissionErrors( 'create', $user, $title );
-			} else {
-				$permErrorsForCreate = $title->getUserPermissionsErrors( 'create', $user );
-			}
+			$permErrorsForCreate = $permManager->getPermissionErrors( 'create', $user, $title );
 			$permErrors = array_merge( $permErrors, wfArrayDiff2( $permErrorsForCreate, $permErrors ) );
 		}
 
@@ -469,7 +452,7 @@ class PFAutoeditAPI extends ApiBase {
 			$user->spreadAnyEditBlock();
 
 			foreach ( $permErrors as $error ) {
-				$this->logMessage( call_user_func_array( 'wfMessage', $error )->parse() );
+				$this->logMessage( $this->msg( ...$error )->parse() );
 			}
 
 			return;
@@ -688,7 +671,7 @@ class PFAutoeditAPI extends ApiBase {
 			if ( array_key_exists( 'ok text', $this->mOptions ) ) {
 				$targetTitle = Title::newFromText( $this->mOptions['target'] );
 				$responseText = $this->getMessageCache()->parse(
-					$this->mOptions['error text'], $targetTitle
+					$this->mOptions['ok text'], $targetTitle
 				)->getText();
 			} elseif ( $this->mAction === self::ACTION_SAVE ) {
 				// We turn this into a link of the form [[:A|A]]
@@ -864,14 +847,11 @@ class PFAutoeditAPI extends ApiBase {
 	 * @param bool $hasPadding should the number should be padded with zeros instead of spaces?
 	 * @return string
 	 */
-	public static function makeRandomNumber( $numDigits = 1, $hasPadding = false ) {
-		$maxValue = pow( 10, $numDigits ) - 1;
-		if ( $maxValue > getrandmax() ) {
-			$maxValue = getrandmax();
-		}
-		$value = rand( 0, $maxValue );
+	public static function makeRandomNumber( int $numDigits = 1, bool $hasPadding = false ): string {
+		$maxValue = (int)min( 10 ** $numDigits - 1, PHP_INT_MAX );
+		$value = random_int( 0, $maxValue );
 		$format = '%' . ( $hasPadding ? '0' : '' ) . $numDigits . 'd';
-		// trim() is needed, when $hasPadding == false
+		// trim() removes leading spaces when padding is disabled
 		return trim( sprintf( $format, $value ) );
 	}
 
@@ -946,8 +926,8 @@ class PFAutoeditAPI extends ApiBase {
 
 		$preloadContent = '';
 
-// save request for later restoration
-			$oldRequest = RequestContext::getMain()->getRequest();
+		// Save request for later restoration after formHTML() spoofing.
+		$oldRequest = RequestContext::getMain()->getRequest();
 		$pageExists = false;
 
 		// preload data if not explicitly excluded and if the preload page exists
@@ -985,9 +965,6 @@ class PFAutoeditAPI extends ApiBase {
 			);
 		}
 
-		// Flag to keep track of formHTML() runs.
-		$formHtmlHasRun = false;
-
 		if ( $preloadContent !== '' ) {
 			// @HACK - we need to set this for the preload to take
 			// effect in the form.
@@ -1009,7 +986,9 @@ class PFAutoeditAPI extends ApiBase {
 					$is_query = false, $is_embedded = false, $is_autocreate = false,
 					$autocreate_query = [], $this->getUser()
 				);
-			$formHtmlHasRun = true;
+			// Restore original request immediately after formHTML() to prevent
+			// the global context from staying spoofed when action is FORMEDIT.
+			RequestContext::getMain()->setRequest( $oldRequest );
 
 			// Parse the data to be preloaded from the form HTML of
 			// the existing page.
@@ -1026,11 +1005,10 @@ class PFAutoeditAPI extends ApiBase {
 			$pageExists = false;
 		} else {
 			// Source of the data is a page.
-			$pageExists = ( is_a( $targetTitle, 'Title' ) && $targetTitle->exists() );
+			$pageExists = ( $targetTitle instanceof Title && $targetTitle->exists() );
 		}
 
-		// Get wikitext for submitted data and form - call formHTML(),
-		// if we haven't called it already.
+		// Get wikitext for submitted data and form.
 		if ( $preloadContent == '' ) {
 			// Spoof request context for PFFormPrinter::formHTML().
 			$session = RequestContext::getMain()->getRequest()->getSession();
@@ -1228,12 +1206,11 @@ class PFAutoeditAPI extends ApiBase {
 	 * @param string $queryString
 	 * @return array
 	 */
-	private function parseDataFromQueryString( &$data, $queryString ) {
-		// ==== GESINN PATCH BEGIN ====
-		// https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/commit/ba07ccfeb19797135d1d5a3e3e80515ea1571235
-		// Fix + character not getting replaced in AutoeditAPI
+	private function parseDataFromQueryString( array &$data, string $queryString ): array {
+		// Pre-encode literal '+' as '%2B' before urldecode() so that plus signs
+		// in field values survive decoding as '+' rather than being collapsed to
+		// spaces (the standard URL-encoded-form meaning of '+').
 		$queryString = str_replace( '+', '%2B', $queryString );
-		// ==== GESINN PATCH END ====
 		$params = explode( '&', $queryString );
 
 		foreach ( $params as $param ) {
@@ -1406,9 +1383,9 @@ END;
 	 *
 	 * @return string
 	 */
-	public function getVersion() {
+	public function getVersion(): string {
 		$gitSha1 = SpecialVersion::getGitHeadSha1( $this->getConfig()->get( 'PageFormsIP' ) );
-		return __CLASS__ . '-' . PF_VERSION . ( $gitSha1 !== false ) ? ' (' . substr( $gitSha1, 0, 7 ) . ')' : '';
+		return __CLASS__ . '-' . PF_VERSION . ( $gitSha1 !== false ? ' (' . substr( $gitSha1, 0, 7 ) . ')' : '' );
 	}
 
 }
