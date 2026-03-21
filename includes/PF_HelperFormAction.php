@@ -141,21 +141,6 @@ class PFHelperFormAction extends Action {
 	 * @return false
 	 */
 	private static function displayForm( $article ) {
-		$title = $article->getTitle();
-		if ( defined( 'SMW_NS_PROPERTY' ) && $title->getNamespace() == SMW_NS_PROPERTY ) {
-			$createPropertyPage = new PFCreateProperty();
-			$createPropertyPage->execute( $title->getText() );
-		} elseif ( $title->getNamespace() == NS_TEMPLATE ) {
-			$createTemplatePage = new PFCreateTemplate();
-			$createTemplatePage->execute( $title->getText() );
-		} elseif ( $title->getNamespace() == PF_NS_FORM ) {
-			$createFormPage = new PFCreateForm();
-			$createFormPage->execute( $title->getText() );
-		} elseif ( $title->getNamespace() == NS_CATEGORY ) {
-			$createCategoryPage = new PFCreateCategory();
-			$createCategoryPage->execute( $title->getText() );
-		}
-
 		return false;
 	}
 }

@@ -40,14 +40,12 @@
 			"editrestrictedfields": true
 		},
 		"user": {
-			"createclass": true,
 			"multipageedit": true
 		}
 	},
 	"AvailableRights": [
 		"viewedittab",
 		"editrestrictedfields",
-		"createclass",
 		"multipageedit"
 	],
 	"Actions": {
@@ -56,12 +54,8 @@
 	},
 	"SpecialPages": {
 		"Forms": "PFForms",
-		"CreateForm": "PFCreateForm",
 		"Templates": "PFTemplates",
 		"MultiPageEdit": "PFMultiPageEdit",
-		"CreateTemplate": "PFCreateTemplate",
-		"CreateClass": "PFCreateClass",
-		"CreateCategory": "PFCreateCategory",
 		"FormStart": "PFFormStart",
 		"FormEdit": "PFFormEdit",
 		"RunQuery": "PFRunQuery",
@@ -87,12 +81,8 @@
 	},
 	"AutoloadClasses": {
 		"PFForms": "specials/PF_Forms.php",
-		"PFCreateForm": "specials/PF_CreateForm.php",
 		"PFTemplates": "specials/PF_Templates.php",
 		"PFMultiPageEdit": "specials/PF_MultiPageEdit.php",
-		"PFCreateTemplate": "specials/PF_CreateTemplate.php",
-		"PFCreateClass": "specials/PF_CreateClass.php",
-		"PFCreateCategory": "specials/PF_CreateCategory.php",
 		"PFFormStart": "specials/PF_FormStart.php",
 		"PFFormEdit": "specials/PF_FormEdit.php",
 		"PFRunQuery": "specials/PF_RunQuery.php",
@@ -616,65 +606,6 @@
 			"dependencies": [
 				"mediawiki.confirmCloseWindow",
 				"jquery.textSelection"
-			],
-			"targets": [
-				"desktop",
-				"mobile"
-			]
-		},
-		"ext.pageforms.PF_CreateProperty": {
-			"scripts": [
-				"libs/PF_CreateProperty.js"
-			],
-			"targets": [
-				"desktop",
-				"mobile"
-			]
-		},
-		"ext.pageforms.PF_CreateTemplate": {
-			"scripts": [
-				"libs/PF_CreateTemplate.js"
-			],
-			"styles": "skins/PF_CreateTemplate.css",
-			"dependencies": [
-				"oojs-ui-widgets",
-				"ext.pageforms.ooui.combobox"
-			],
-			"messages": [
-				"pf_blank_error",
-				"pf_createtemplate_hierarchystructureplaceholder"
-			],
-			"targets": [
-				"desktop",
-				"mobile"
-			]
-		},
-		"ext.pageforms.PF_CreateClass": {
-			"scripts": [
-				"libs/PF_CreateClass.js"
-			],
-			"dependencies": [
-				"oojs-ui-widgets"
-			],
-			"messages": [
-				"pf_createtemplate_hierarchystructureplaceholder",
-				"pf_blank_error"
-			],
-			"targets": [
-				"desktop",
-				"mobile"
-			]
-		},
-		"ext.pageforms.PF_CreateForm": {
-			"scripts": [
-				"libs/PF_CreateForm.js"
-			],
-			"styles": "skins/PF_CreateForm.css",
-			"dependencies": [
-				"oojs-ui-widgets"
-			],
-			"messages": [
-				"pf_blank_error"
 			],
 			"targets": [
 				"desktop",

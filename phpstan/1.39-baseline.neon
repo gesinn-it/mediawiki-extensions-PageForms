@@ -131,36 +131,6 @@ parameters:
 			path: ../includes/parserfunctions/PF_FormLink.php
 
 		-
-			message: "#^Variable \\$allowed_values might not be defined\\.$#"
-			count: 1
-			path: ../specials/PF_CreateClass.php
-
-		-
-			message: "#^Method PFCreateForm\\:\\:inputTypeParamInput\\(\\) should return string but return statement is missing\\.$#"
-			count: 1
-			path: ../specials/PF_CreateForm.php
-
-		-
-			message: "#^Variable \\$optionAttrs might not be defined\\.$#"
-			count: 1
-			path: ../specials/PF_CreateForm.php
-
-		-
-			message: "#^Class OOUI\\\\HtmlSnippet referenced with incorrect case\\: OOUi\\\\HtmlSnippet\\.$#"
-			count: 2
-			path: ../specials/PF_CreateTemplate.php
-
-		-
-			message: "#^Class SMW\\\\SQLStore\\\\PropertiesCollector not found\\.$#"
-			count: 1
-			path: ../specials/PF_CreateTemplate.php
-
-		-
-			message: "#^Class SMW\\\\SQLStore\\\\UnusedPropertiesCollector not found\\.$#"
-			count: 1
-			path: ../specials/PF_CreateTemplate.php
-
-		-
 			message: "#^Call to an undefined static method HTMLTextField\\:\\:userCanExecute\\(\\)\\.$#"
 			count: 1
 			path: ../specials/PF_UploadSourceField.php

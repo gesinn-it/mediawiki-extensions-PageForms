@@ -32,11 +32,6 @@ class PFHooks {
 		 * up properly before we add our stuff.
 		 */
 
-		if ( defined( 'SMW_VERSION' ) || ExtensionRegistry::getInstance()->isLoaded( 'SemanticMediaWiki' ) ) {
-			$GLOBALS['wgSpecialPages']['CreateProperty'] = 'PFCreateProperty';
-			$GLOBALS['wgAutoloadClasses']['PFCreateProperty'] = __DIR__ . '/../specials/PF_CreateProperty.php';
-		}
-
 		// Allow for popup windows for file upload
 		$GLOBALS['wgEditPageFrameOptions'] = 'SAMEORIGIN';
 
@@ -209,13 +204,6 @@ class PFHooks {
 		$smw_row->addItem( ALItem::newFromSpecialPage( 'Templates' ), 'Properties' );
 		$smw_row->addItem( ALItem::newFromSpecialPage( 'Forms' ), 'SemanticStatistics' );
 		$smw_row->addItem( ALItem::newFromSpecialPage( 'MultiPageEdit' ) );
-		$smw_admin_row->addItem( ALItem::newFromSpecialPage( 'CreateClass' ), 'SMWAdmin' );
-		if ( class_exists( 'PFCreateProperty' ) ) {
-			$smw_admin_row->addItem( ALItem::newFromSpecialPage( 'CreateProperty' ), 'SMWAdmin' );
-		}
-		$smw_admin_row->addItem( ALItem::newFromSpecialPage( 'CreateTemplate' ), 'SMWAdmin' );
-		$smw_admin_row->addItem( ALItem::newFromSpecialPage( 'CreateForm' ), 'SMWAdmin' );
-		$smw_admin_row->addItem( ALItem::newFromSpecialPage( 'CreateCategory' ), 'SMWAdmin' );
 		if ( isset( $smw_docu_row ) ) {
 			$pf_name = wfMessage( 'specialpages-group-pf_group' )->text();
 			$pf_docu_label = wfMessage( 'adminlinks_documentation', $pf_name )->text();
