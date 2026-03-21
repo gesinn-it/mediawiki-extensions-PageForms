@@ -16,7 +16,7 @@
 		"eslint-config-wikimedia": "0.32.3",
 		"fetch-blob": "^3.2.0",
 		"grunt-banana-checker": "0.9.0",
-		"jsdom": "^19.0.0",
+		"jsdom": "^29.0.1",
 		"nyc": "^15.1.0",
 		"qunit": "^2.19.1",
 		"sinon": "^14.0.0"
