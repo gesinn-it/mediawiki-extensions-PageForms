@@ -87,7 +87,8 @@ class PFCreateProperty extends SpecialPage {
 				$out->setArticleBodyOnly( true );
 				$title = Title::makeTitleSafe( SMW_NS_PROPERTY, $property_name );
 				$full_text = self::createPropertyText( $property_type, $allowed_values );
-				$edit_summary = $this->msg( 'pf_createproperty_editsummary', $property_type )->inContentLanguage()->text();
+					$edit_summary = $this->msg( 'pf_createproperty_editsummary', $property_type )
+						->inContentLanguage()->text();
 				$text = PFUtils::printRedirectForm( $title, $full_text, $edit_summary, $save_page, $this->getUser() );
 				$out->addHTML( $text );
 				return;
@@ -124,7 +125,9 @@ END;
 		foreach ( $datatypeLabels as $label ) {
 			$select_body .= "\t" . Html::element( 'option', null, $label ) . "\n";
 		}
-		$text .= Html::rawElement( 'select', [ 'id' => 'property_dropdown', 'name' => 'property_type' ], $select_body ) . "\n";
+		$text .= Html::rawElement(
+			'select', [ 'id' => 'property_dropdown', 'name' => 'property_type' ], $select_body
+		) . "\n";
 
 		$values_input = $this->msg( 'pf_createproperty_allowedvalsinput' )->escaped();
 		$text .= <<<END

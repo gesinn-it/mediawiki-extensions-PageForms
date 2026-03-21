@@ -318,7 +318,10 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		$limitStr = max( 100, $wgPageFormsMaxLocalAutocompleteValues + 10 );
 
 		try {
-			$sqlQuery = CargoSQLQuery::newFromValues( $tableName, $fieldName, $whereStr, $joinOnStr = null, $fieldName, $havingStr = null, $fieldName, $limitStr, $offsetStr = 0 );
+			$sqlQuery = CargoSQLQuery::newFromValues(
+				$tableName, $fieldName, $whereStr, $joinOnStr = null, $fieldName,
+				$havingStr = null, $fieldName, $limitStr, $offsetStr = 0
+			);
 		} catch ( Exception $e ) {
 			return [];
 		}
@@ -404,13 +407,17 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 						$conditions[] = '((pp_displaytitle.pp_value IS NULL OR pp_displaytitle.pp_value = \'\') AND (' .
 							self::getSQLConditionForAutocompleteInColumn( 'page_title', $substring ) .
 							')) OR ' .
-							self::getSQLConditionForAutocompleteInColumn( 'pp_displaytitle.pp_value', $substring, false ) .
+							self::getSQLConditionForAutocompleteInColumn(
+								'pp_displaytitle.pp_value', $substring, false
+							) .
 							' OR page_namespace = ' . NS_CATEGORY;
 					}
 				} else {
 					$join = [];
 					if ( $substring != null ) {
-						$conditions[] = self::getSQLConditionForAutocompleteInColumn( 'page_title', $substring ) . ' OR page_namespace = ' . NS_CATEGORY;
+						$conditions[] = self::getSQLConditionForAutocompleteInColumn(
+							'page_title', $substring
+						) . ' OR page_namespace = ' . NS_CATEGORY;
 					}
 				}
 				// Make the query.
@@ -824,14 +831,17 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			$autocompletionSource = null;
 		}
 
-		if ( $autocompletionSource !== null && $wgCapitalLinks && $autocompleteFieldType != 'external_url' && $autocompleteFieldType != 'cargo field' ) {
+		if ( $autocompletionSource !== null && $wgCapitalLinks &&
+			$autocompleteFieldType != 'external_url' && $autocompleteFieldType != 'cargo field' ) {
 			$autocompletionSource = PFUtils::getContLang()->ucfirst( $autocompletionSource );
 		}
 
 		return [ $autocompleteFieldType, $autocompletionSource ];
 	}
 
-	public static function getRemoteDataTypeAndPossiblySetAutocompleteValues( $autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings ) {
+	public static function getRemoteDataTypeAndPossiblySetAutocompleteValues(
+		$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings
+	) {
 		global $wgPageFormsMaxLocalAutocompleteValues, $wgPageFormsAutocompleteValues;
 
 		if ( $autocompleteFieldType == 'external_url' || $autocompleteFieldType == 'wikidata' ) {
@@ -916,7 +926,9 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			$delimiter = null;
 		}
 
-		$remoteDataType = self::getRemoteDataTypeAndPossiblySetAutocompleteValues( $autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings );
+		$remoteDataType = self::getRemoteDataTypeAndPossiblySetAutocompleteValues(
+			$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings
+		);
 		return [ $autocompleteSettings, $remoteDataType, $delimiter ];
 	}
 

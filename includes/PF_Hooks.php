@@ -220,7 +220,9 @@ class PFHooks {
 		if ( isset( $smw_docu_row ) ) {
 			$pf_name = wfMessage( 'specialpages-group-pf_group' )->text();
 			$pf_docu_label = wfMessage( 'adminlinks_documentation', $pf_name )->text();
-			$smw_docu_row->addItem( ALItem::newFromExternalLink( "https://www.mediawiki.org/wiki/Extension:Page_Forms", $pf_docu_label ) );
+			$smw_docu_row->addItem( ALItem::newFromExternalLink(
+				"https://www.mediawiki.org/wiki/Extension:Page_Forms", $pf_docu_label
+			) );
 		}
 
 		return true;
@@ -238,7 +240,9 @@ class PFHooks {
 		$editColumn = [ 'edit' => [ 'ooui-icon' => 'edit', 'ooui-title' => 'edit' ] ];
 		$indexOfDrilldown = array_search( 'drilldown', array_keys( $allowedActions ) );
 		$pos = $indexOfDrilldown === false ? count( $allowedActions ) : $indexOfDrilldown + 1;
-		$allowedActions = array_merge( array_slice( $allowedActions, 0, $pos ), $editColumn, array_slice( $allowedActions, $pos ) );
+		$allowedActions = array_merge(
+			array_slice( $allowedActions, 0, $pos ), $editColumn, array_slice( $allowedActions, $pos )
+		);
 
 		return true;
 	}
@@ -260,7 +264,10 @@ class PFHooks {
 	 *
 	 * @since 4.4
 	 */
-	public static function addToCargoTablesLinks( &$actionLinks, $tableName, $isReplacementTable, $hasReplacementTable, $templatesThatDeclareTables, $templatesThatAttachToTables, $user = null ) {
+	public static function addToCargoTablesLinks(
+		&$actionLinks, $tableName, $isReplacementTable, $hasReplacementTable,
+		$templatesThatDeclareTables, $templatesThatAttachToTables, $user = null
+	) {
 		// If it has a "replacement table", it's read-only and can't
 		// be edited (though the replacement table can).
 		if ( $hasReplacementTable ) {
@@ -308,7 +315,9 @@ class PFHooks {
 
 		$indexOfDrilldown = array_search( 'drilldown', array_keys( $actionLinks ) );
 		$pos = $indexOfDrilldown === false ? count( $actionLinks ) : $indexOfDrilldown + 1;
-		$actionLinks = array_merge( array_slice( $actionLinks, 0, $pos ), [ 'edit' => $text ], array_slice( $actionLinks, $pos ) );
+		$actionLinks = array_merge(
+			array_slice( $actionLinks, 0, $pos ), [ 'edit' => $text ], array_slice( $actionLinks, $pos )
+		);
 		return true;
 	}
 
@@ -331,14 +340,20 @@ class PFHooks {
 	 *
 	 * @since 4.8.1
 	 */
-	public static function addToCargoTablesRow( $cargoTablesPage, &$actionLinks, $tableName, $isReplacementTable, $hasReplacementTable, $templatesThatDeclareTables, $templatesThatAttachToTables, $actionList, $user = null ) {
+	public static function addToCargoTablesRow(
+		$cargoTablesPage, &$actionLinks, $tableName, $isReplacementTable, $hasReplacementTable,
+		$templatesThatDeclareTables, $templatesThatAttachToTables, $actionList, $user = null
+	) {
 		$cargoTablesPage->getOutput()->addModuleStyles( [ 'oojs-ui.styles.icons-editing-core' ] );
 
 		// For the sake of simplicity, this function basically just
 		// wraps around the previous hook function, for Cargo <= 2.4.
 		// That's why there's this awkward behavior of parsing links
 		// to get their URL. Hopefully this won't cause problems.
-		self::addToCargoTablesLinks( $actionLinks, $tableName, $isReplacementTable, $hasReplacementTable, $templatesThatDeclareTables, $templatesThatAttachToTables, $user );
+		self::addToCargoTablesLinks(
+			$actionLinks, $tableName, $isReplacementTable, $hasReplacementTable,
+			$templatesThatDeclareTables, $templatesThatAttachToTables, $user
+		);
 
 		if ( array_key_exists( 'edit', $actionLinks ) ) {
 			preg_match( '/href="(.*?)"/', $actionLinks['edit'], $matches );
@@ -389,12 +404,15 @@ class PFHooks {
 
 		$previewNote = $wgOut->parseAsInterface( wfMessage( 'pf-preview-note' )->text() );
 		// The "pfForm" ID is there so the form JS will be activated.
-		$editpage->previewTextAfterContent .= Html::element( 'h2', null, wfMessage( 'pf-preview-header' )->text() ) . "\n" .
+		$editpage->previewTextAfterContent .=
+			Html::element( 'h2', null, wfMessage( 'pf-preview-header' )->text() ) . "\n" .
 			'<div id="pfForm" class="previewnote" style="font-weight: bold">' . $previewNote . "</div>\n<hr />\n";
 
 		$form_definition = StringUtils::delimiterReplace( '<noinclude>', '</noinclude>', '', $editpage->textbox1 );
 		[ $form_text, $data_text, $form_page_title, $generated_page_name ] =
-			$wgPageFormsFormPrinter->formHTML( $form_definition, null, false, null, null, "Page Forms form preview dummy title", null );
+			$wgPageFormsFormPrinter->formHTML(
+				$form_definition, null, false, null, null, "Page Forms form preview dummy title", null
+			);
 
 		$parserOutput = PFUtils::getParser()->getOutput();
 		if ( method_exists( $wgOut, 'addParserOutputMetadata' ) ) {
@@ -428,7 +446,8 @@ class PFHooks {
 	 * @param MediaWiki\Storage\EditResult $editResult
 	 * @return bool
 	 */
-	public static function setPostEditCookie( WikiPage $wikiPage, MediaWiki\User\UserIdentity $user, string $summary, int $flags,
+	public static function setPostEditCookie(
+		WikiPage $wikiPage, MediaWiki\User\UserIdentity $user, string $summary, int $flags,
 		MediaWiki\Revision\RevisionRecord $revisionRecord, MediaWiki\Storage\EditResult $editResult
 	) {
 		// Bots don't need this cookie

@@ -78,10 +78,8 @@ END;
 		if ( $info ) {
 			$text .= "{{{info" . $info . "}}}\n";
 		}
-		$text .= <<<END
-<div id="wikiPreview" style="display: none; padding-bottom: 25px; margin-bottom: 25px; border-bottom: 1px solid #AAAAAA;"></div>
-
-END;
+		$text .= '<div id="wikiPreview" style="display: none; padding-bottom: 25px;' .
+			' margin-bottom: 25px; border-bottom: 1px solid #AAAAAA;"></div>' . "\n\n";
 		foreach ( $this->mItems as $item ) {
 			if ( $item['type'] == 'template' ) {
 				$template = $item['item'];

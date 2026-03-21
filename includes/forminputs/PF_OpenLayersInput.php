@@ -65,7 +65,10 @@ class PFOpenLayersInput extends PFFormInput {
 	 * @param bool $includeAddressLookup
 	 * @return string
 	 */
-	public static function mapLookupHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, $other_args, $height, $width, $includeAddressLookup = true ) {
+	public static function mapLookupHTML(
+		$cur_value, $input_name, $is_mandatory, $is_disabled, $other_args, $height, $width,
+		$includeAddressLookup = true
+	) {
 		global $wgPageFormsFieldNum, $wgPageFormsTabIndex;
 		global $wgPageFormsMapsWithFeeders;
 
@@ -176,7 +179,9 @@ class PFOpenLayersInput extends PFFormInput {
 
 		$height = self::getHeight( $other_args );
 		$width = self::getWidth( $other_args );
-		$fullInputHTML = self::mapLookupHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, $other_args, $height, $width );
+		$fullInputHTML = self::mapLookupHTML(
+			$cur_value, $input_name, $is_mandatory, $is_disabled, $other_args, $height, $width
+		);
 
 		$text = Html::rawElement( 'div', [ 'class' => 'pfOpenLayersInput' ], $fullInputHTML );
 

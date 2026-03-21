@@ -113,7 +113,11 @@ class PFAutoEditRating {
 			foreach ( $query_components as $query_component ) {
 				$var_and_val = explode( '=', $query_component, 2 );
 				if ( count( $var_and_val ) == 2 ) {
-					$formcontent .= Html::hidden( urldecode( $var_and_val[0] ), urldecode( $var_and_val[1] ), $var_and_val[1] == '' ? [ 'id' => 'ratingInput' ] : [] );
+					$formcontent .= Html::hidden(
+						urldecode( $var_and_val[0] ),
+						urldecode( $var_and_val[1] ),
+						$var_and_val[1] == '' ? [ 'id' => 'ratingInput' ] : []
+					);
 				}
 			}
 		}

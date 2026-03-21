@@ -44,7 +44,9 @@ class PFTemplateField {
 	private $mRegex = null;
 	private $mHoldsTemplate = null;
 
-	public static function create( $name, $label, $semanticProperty = null, $isList = null, $delimiter = null, $display = null ) {
+	public static function create(
+		$name, $label, $semanticProperty = null, $isList = null, $delimiter = null, $display = null
+	) {
 		$f = new PFTemplateField();
 		$f->mFieldName = trim( str_replace( '\\', '', $name ) );
 		if ( $label !== null ) {
@@ -170,7 +172,9 @@ class PFTemplateField {
 			$this->mPossibleValues[] = $wiki_value;
 			if ( count( $label_formats ) > 0 ) {
 				$label_format = $label_formats[0];
-				$label_value = \SMW\DataValueFactory::getInstance()->newDataValueByType( $this->mPropertyType, $wiki_value );
+				$label_value = \SMW\DataValueFactory::getInstance()->newDataValueByType(
+					$this->mPropertyType, $wiki_value
+				);
 				$label_value->setOutputFormat( $label_format );
 				$this->mValueLabels[$wiki_value] = html_entity_decode( $label_value->getWikiValue() );
 			}
@@ -236,7 +240,8 @@ class PFTemplateField {
 				$this->mFieldType = 'Enumeration';
 			}
 			$this->mRealFieldType = $fieldDescription->mType;
-		} elseif ( $fieldDescription->mType == 'Text' && $fieldDescription->mSize != '' && $fieldDescription->mSize <= 100 ) {
+		} elseif ( $fieldDescription->mType == 'Text' && $fieldDescription->mSize != '' &&
+			$fieldDescription->mSize <= 100 ) {
 			$this->mFieldType = 'String';
 		} else {
 			$this->mFieldType = $fieldDescription->mType;

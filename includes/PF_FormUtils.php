@@ -78,7 +78,9 @@ class PFFormUtils {
 		return $text;
 	}
 
-	public static function minorEditInputHTML( $form_submitted, $is_disabled, $is_checked, $label = null, $attrs = [] ) {
+	public static function minorEditInputHTML(
+		$form_submitted, $is_disabled, $is_checked, $label = null, $attrs = []
+	) {
 		global $wgPageFormsTabIndex;
 
 		$wgPageFormsTabIndex++;
@@ -122,7 +124,9 @@ class PFFormUtils {
 		return $text;
 	}
 
-	public static function watchInputHTML( $form_submitted, $is_disabled, $is_checked = false, $label = null, $attrs = [] ) {
+	public static function watchInputHTML(
+		$form_submitted, $is_disabled, $is_checked = false, $label = null, $attrs = []
+	) {
 		global $wgPageFormsTabIndex;
 		$titleGlobal = RequestContext::getMain()->getTitle();
 
@@ -691,7 +695,9 @@ END;
 	 */
 	public static function getFormCache() {
 		global $wgPageFormsFormCacheType, $wgParserCacheType;
-		$ret = ObjectCache::getInstance( ( $wgPageFormsFormCacheType !== null ) ? $wgPageFormsFormCacheType : $wgParserCacheType );
+		$ret = ObjectCache::getInstance(
+			( $wgPageFormsFormCacheType !== null ) ? $wgPageFormsFormCacheType : $wgParserCacheType
+		);
 		return $ret;
 	}
 

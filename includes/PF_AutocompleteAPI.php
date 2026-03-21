@@ -305,10 +305,14 @@ class PFAutocompleteAPI extends ApiBase {
 					'((pp_displaytitle.pp_value IS NULL OR pp_displaytitle.pp_value = \'\') AND (' .
 					PFValuesUtils::getSQLConditionForAutocompleteInColumn( $valueField, $substring, true ) .
 					')) OR (' .
-					PFValuesUtils::getSQLConditionForAutocompleteInColumn( 'pp_displaytitle.pp_value', $substring, false ) .
+						PFValuesUtils::getSQLConditionForAutocompleteInColumn(
+							'pp_displaytitle.pp_value', $substring, false
+						) .
 					')';
 			} else {
-				$conditions[] = PFValuesUtils::getSQLConditionForAutocompleteInColumn( $valueField, $substring, $propertyHasTypePage );
+				$conditions[] = PFValuesUtils::getSQLConditionForAutocompleteInColumn(
+					$valueField, $substring, $propertyHasTypePage
+				);
 			}
 		}
 

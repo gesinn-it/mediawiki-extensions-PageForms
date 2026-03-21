@@ -88,7 +88,8 @@ class PFComboBoxInput extends PFFormInput {
 				}
 			}
 		} else {
-			[ $autocompleteSettings, $remoteDataType, $delimiter ] = PFValuesUtils::setAutocompleteValues( $other_args, false );
+			[ $autocompleteSettings, $remoteDataType, $delimiter ] =
+				PFValuesUtils::setAutocompleteValues( $other_args, false );
 			$autocompleteSettings = str_replace( "'", "\'", $autocompleteSettings ?? '' );
 		}
 
@@ -157,7 +158,9 @@ class PFComboBoxInput extends PFFormInput {
 				$default_filename = '';
 			}
 
-			$inputText .= PFTextInput::uploadableHTML( $input_id, $delimiter = null, $default_filename, $cur_value, $other_args );
+			$inputText .= PFTextInput::uploadableHTML(
+				$input_id, $delimiter = null, $default_filename, $cur_value, $other_args
+			);
 		}
 
 		$spanID = 'span_' . $wgPageFormsFieldNum;

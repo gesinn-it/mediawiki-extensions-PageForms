@@ -133,15 +133,25 @@ class PFCreateCategoryTest extends SpecialPageTestBase {
 
 		$this->assertEquals( 'editform', $form->getAttribute( 'name' ) );
 		$this->assertEquals( 'post', $form->getAttribute( 'method' ) );
-		$this->assertEquals( '/index.php?title=Category:NewCategory&action=submit', $form->getAttribute( 'action' ), 'Form action does not match expected value' );
+		$this->assertEquals(
+			'/index.php?title=Category:NewCategory&action=submit',
+			$form->getAttribute( 'action' ),
+			'Form action does not match expected value'
+		);
 
 		// Check for the presence of "Category:NewCategory" in the HTML body
-		$this->assertNotFalse( $xpath->query( ' //text()[contains(., "Category:NewCategory")]' )->length, 'Category:NewCategory text not found' );
+		$this->assertNotFalse(
+			$xpath->query( ' //text()[contains(., "Category:NewCategory")]' )->length,
+			'Category:NewCategory text not found'
+		);
 
 		// Check the default form value in the wpTextbox1 input
 		$inputDefaultForm = $xpath->query( '//input[@name="wpTextbox1"]' )->item( 0 );
 		$this->assertNotNull( $inputDefaultForm, 'Special:CreateCategory: <input name="wpTextbox1"/> not found' );
-		$this->assertStringContainsString( '{{#default_form:ExampleForm}}', $inputDefaultForm->getAttribute( 'value' ), 'Default form value does not match' );
+		$this->assertStringContainsString(
+			'{{#default_form:ExampleForm}}', $inputDefaultForm->getAttribute( 'value' ),
+			'Default form value does not match'
+		);
 
 		// Assert that wpSave is present
 		$this->assertNotNull(

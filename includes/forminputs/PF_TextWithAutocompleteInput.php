@@ -61,7 +61,9 @@ class PFTextWithAutocompleteInput extends PFTextInput {
 	// @codeCoverageIgnoreEnd
 
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
-		return call_user_func( self::getAlias() . "::getHTML", $cur_value, $input_name, $is_mandatory, $is_disabled, $other_args );
+		return call_user_func(
+			self::getAlias() . "::getHTML", $cur_value, $input_name, $is_mandatory, $is_disabled, $other_args
+		);
 	}
 
 	public static function getAutocompletionParameters() {

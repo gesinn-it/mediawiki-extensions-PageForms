@@ -102,15 +102,23 @@ class PFDateTimeInput extends PFDateInput {
 
 		$text = parent::getMainHTML( $datetime, $input_name, $is_mandatory, $is_disabled, $other_args );
 		$disabled_text = ( $is_disabled ) ? 'disabled' : '';
-		$text .= '	&#160;<input tabindex="' . $wgPageFormsTabIndex . '" name="' . $input_name . '[hour]" type="text" class="hoursInput" value="' . $hour . '" size="2"/ ' . $disabled_text . '>';
+		$text .= "\t&#160;" .
+			'<input tabindex="' . $wgPageFormsTabIndex .
+			'" name="' . $input_name . '[hour]" type="text" class="hoursInput" value="' .
+			$hour . '" size="2"/ ' . $disabled_text . '>';
 		$wgPageFormsTabIndex++;
-		$text .= '	:<input tabindex="' . $wgPageFormsTabIndex . '" name="' . $input_name . '[minute]" type="text" class="minutesInput" value="' . $minute . '" size="2"/ ' . $disabled_text . '>';
+		$text .= '\t:<input tabindex="' . $wgPageFormsTabIndex .
+			'" name="' . $input_name . '[minute]" type="text" class="minutesInput" value="' .
+			$minute . '" size="2"/ ' . $disabled_text . '>';
 		$wgPageFormsTabIndex++;
-		$text .= ':<input tabindex="' . $wgPageFormsTabIndex . '" name="' . $input_name . '[second]" type="text" class="secondsInput" value="' . $second . '" size="2"/ ' . $disabled_text . '>' . "\n";
+		$text .= ':<input tabindex="' . $wgPageFormsTabIndex .
+			'" name="' . $input_name . '[second]" type="text" class="secondsInput" value="' .
+			$second . '" size="2"/ ' . $disabled_text . '>' . "\n";
 
 		if ( !$wgPageForms24HourTime ) {
 			$wgPageFormsTabIndex++;
-			$text .= '	 <select tabindex="' . $wgPageFormsTabIndex . '" name="' . $input_name . "[ampm24h]\" class=\"ampmInput\" $disabled_text>\n";
+			$text .= '\t <select tabindex="' . $wgPageFormsTabIndex .
+				'" name="' . $input_name . "[ampm24h]\" class=\"ampmInput\" $disabled_text>\n";
 			$ampm24h_options = [ '', 'AM', 'PM' ];
 			foreach ( $ampm24h_options as $value ) {
 				$text .= "				<option value=\"$value\"";
@@ -124,7 +132,9 @@ class PFDateTimeInput extends PFDateInput {
 
 		if ( $include_timezone ) {
 			$wgPageFormsTabIndex++;
-			$text .= '	<input tabindex="' . $wgPageFormsTabIndex . '" name="' . $input_name . '[timezone]" type="text" value="' . $timezone . '" size="3"/ ' . $disabled_text . '>' . "\n";
+			$text .= '\t<input tabindex="' . $wgPageFormsTabIndex .
+				'" name="' . $input_name . '[timezone]" type="text" value="' .
+				$timezone . '" size="3"/ ' . $disabled_text . '>' . "\n";
 		}
 
 		$spanClass = $this->getInputClass();

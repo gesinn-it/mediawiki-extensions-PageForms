@@ -211,7 +211,9 @@ class PFCreateTemplate extends SpecialPage {
 						'classes' => [ 'is_hierarchy' ]
 					] ),
 					new OOUI\LabelWidget( [
-						'label' => new OOUI\HtmlSnippet( $this->msg( 'pf_createtemplate_fieldishierarchy' )->escaped() ),
+						'label' => new OOUI\HtmlSnippet(
+						$this->msg( 'pf_createtemplate_fieldishierarchy' )->escaped()
+					),
 					] )
 				]
 			] );
@@ -249,8 +251,14 @@ class PFCreateTemplate extends SpecialPage {
 		}
 
 		$text .= "\t</td>\n";
-		$addAboveButton = Html::element( 'a', [ 'class' => "addAboveButton", 'title' => $this->msg( 'pf_createtemplate_addanotherabove' )->text() ] );
-		$removeButton = Html::element( 'a', [ 'class' => "removeButton", 'title' => $this->msg( 'pf_createtemplate_deletefield' )->text() ] );
+		$addAboveButton = Html::element( 'a', [
+			'class' => "addAboveButton",
+			'title' => $this->msg( 'pf_createtemplate_addanotherabove' )->text()
+		] );
+		$removeButton = Html::element( 'a', [
+			'class' => "removeButton",
+			'title' => $this->msg( 'pf_createtemplate_deletefield' )->text()
+		] );
 
 		$text .= <<<END
 			<td class="instanceAddAbove">$addAboveButton</td>
@@ -273,7 +281,9 @@ END;
 		$radioButton = new OOUI\RadioInputWidget(
 			$attrs
 		);
-		return $radioButton . Html::element( 'label', [ 'for' => $formatStr ], wfMessage( $formatMsg )->escaped() ) . "&nbsp;&nbsp;&nbsp;\n";
+		return $radioButton .
+			Html::element( 'label', [ 'for' => $formatStr ], wfMessage( $formatMsg )->escaped() ) .
+			"&nbsp;&nbsp;&nbsp;\n";
 	}
 
 	public static function printTemplateStyleInput( $htmlFieldName, $curSelection = null ) {
@@ -281,10 +291,18 @@ END;
 			$curSelection = 'standard';
 		}
 		$text = "<p class=\"pfCreateTemplateStyle\">" . wfMessage( 'pf_createtemplate_outputformat' )->escaped() . "\n";
-		$text .= self::printTemplateStyleButton( 'standard', 'pf_createtemplate_standardformat', $htmlFieldName, $curSelection );
-		$text .= self::printTemplateStyleButton( 'infobox', 'pf_createtemplate_infoboxformat', $htmlFieldName, $curSelection );
-		$text .= self::printTemplateStyleButton( 'plain', 'pf_createtemplate_plainformat', $htmlFieldName, $curSelection );
-		$text .= self::printTemplateStyleButton( 'sections', 'pf_createtemplate_sectionsformat', $htmlFieldName, $curSelection );
+		$text .= self::printTemplateStyleButton(
+			'standard', 'pf_createtemplate_standardformat', $htmlFieldName, $curSelection
+		);
+		$text .= self::printTemplateStyleButton(
+			'infobox', 'pf_createtemplate_infoboxformat', $htmlFieldName, $curSelection
+		);
+		$text .= self::printTemplateStyleButton(
+			'plain', 'pf_createtemplate_plainformat', $htmlFieldName, $curSelection
+		);
+		$text .= self::printTemplateStyleButton(
+			'sections', 'pf_createtemplate_sectionsformat', $htmlFieldName, $curSelection
+		);
 		$text .= "</p>";
 		return $text;
 	}
@@ -449,7 +467,9 @@ END;
 			"</label></p>";
 
 		$text .= "\t<fieldset>\n";
-		$text .= "\t" . Html::element( 'legend', null, $this->msg( 'pf_createtemplate_templatefields' )->text() ) . "\n";
+		$text .= "\t" . Html::element(
+			'legend', null, $this->msg( 'pf_createtemplate_templatefields' )->text()
+		) . "\n";
 		$text .= "\t" . Html::element( 'p', null, $this->msg( 'pf_createtemplate_fieldsdesc' )->text() ) . "\n";
 
 		if ( defined( 'SMW_VERSION' ) ) {
@@ -472,8 +492,12 @@ END;
 
 		if ( defined( 'SMW_VERSION' ) ) {
 			$text .= "\t<fieldset>\n";
-			$text .= "\t" . Html::element( 'legend', null, $this->msg( 'pf_createtemplate_aggregation' )->text() ) . "\n";
-			$text .= "\t" . Html::element( 'p', null, $this->msg( 'pf_createtemplate_aggregationdesc' )->text() ) . "\n";
+			$text .= "\t" . Html::element(
+				'legend', null, $this->msg( 'pf_createtemplate_aggregation' )->text()
+			) . "\n";
+			$text .= "\t" . Html::element(
+				'p', null, $this->msg( 'pf_createtemplate_aggregationdesc' )->text()
+			) . "\n";
 			$dropdownHtml = $this->printPropertiesComboBox( $all_properties, "aggregation" );
 			$text .= new OOUI\HorizontalLayout( [
 				'items' => [

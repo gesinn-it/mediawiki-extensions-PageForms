@@ -532,7 +532,8 @@ END;
 				parent.document.getElementById("{$this->mInputID}").value += '$basename' + '{$this->mDelimiter} ';
 				input.change();
 			} else {
-				parent.document.getElementById("{$this->mInputID}").value += '{$this->mDelimiter} $basename{$this->mDelimiter} ';
+				parent.document.getElementById("{$this->mInputID}").value +=
+					'{$this->mDelimiter} $basename{$this->mDelimiter} ';
 				input.change();
 			}
 		}
@@ -565,7 +566,8 @@ END;
 		if ( $wgUseCopyrightUpload ) {
 			$licensetxt = '';
 			if ( $license !== '' ) {
-				$licensetxt = '== ' . wfMessage( 'license-header' )->inContentLanguage()->text() . " ==\n" . '{{' . $license . '}}' . "\n";
+					$licensetxt = '== ' . wfMessage( 'license-header' )->inContentLanguage()->text() .
+						" ==\n" . '{{' . $license . '}}' . "\n";
 			}
 			$pageText = '== ' . wfMessage( 'filedesc' )->inContentLanguage()->text() . " ==\n" . $comment . "\n" .
 				'== ' . wfMessage( 'filestatus' )->inContentLanguage()->text() . " ==\n" . $copyStatus . "\n" .
@@ -573,9 +575,11 @@ END;
 				'== ' . wfMessage( 'filesource' )->inContentLanguage()->text() . " ==\n" . $source;
 		} else {
 			if ( $license !== '' ) {
-				$filedesc = $comment === '' ? '' : '== ' . wfMessage( 'filedesc' )->inContentLanguage()->text() . " ==\n" . $comment . "\n";
+				$filedesc = $comment === '' ? '' :
+					'== ' . wfMessage( 'filedesc' )->inContentLanguage()->text() . " ==\n" . $comment . "\n";
 				$pageText = $filedesc .
-					'== ' . wfMessage( 'license-header' )->inContentLanguage()->text() . " ==\n" . '{{' . $license . '}}' . "\n";
+						'== ' . wfMessage( 'license-header' )->inContentLanguage()->text() .
+							" ==\n" . '{{' . $license . '}}' . "\n";
 			} else {
 				$pageText = $comment;
 			}

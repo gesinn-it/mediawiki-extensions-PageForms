@@ -130,7 +130,9 @@ class PFFormFieldTest extends TestCase {
 		$this->mockTemplateInForm->method( 'strictParsing' )->willReturn( false );
 
 		// Call the method under test
-		$formField = PFFormField::newFromFormFieldTag( $tagComponents, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser );
+		$formField = PFFormField::newFromFormFieldTag(
+			$tagComponents, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
+		);
 
 		// Assert that the template field was set
 		$this->assertInstanceOf( PFTemplateField::class, $formField->template_field );
@@ -237,7 +239,9 @@ class PFFormFieldTest extends TestCase {
 			$this->mockUser
 		);
 
-		$this->assertEquals( 'TestProperty', $formField->getFieldArgs()['property'], 'The property should be set correctly' );
+		$this->assertEquals(
+			'TestProperty', $formField->getFieldArgs()['property'], 'The property should be set correctly'
+		);
 	}
 
 	public function testUniqueComponent() {
@@ -410,12 +414,18 @@ class PFFormFieldTest extends TestCase {
 		$result = $field->additionalHTMLForInput( $cur_value, $field_name, $template_name );
 
 		// Assertions for template-related hidden fields
-		$this->assertStringContainsString( 'type="hidden" value="true" name="template_example[map_field][some_field]"', $result );
+		$this->assertStringContainsString(
+			'type="hidden" value="true" name="template_example[map_field][some_field]"', $result
+		);
 		$this->assertStringContainsString( 'type="hidden" value="some_value" name="input_field"', $result );
 
 		// Assertions for unique-related hidden fields
-		$this->assertStringContainsString( 'type="hidden" value="Category1" name="input_0_unique_for_category"', $result );
-		$this->assertStringContainsString( 'type="hidden" value="Namespace1" name="input_0_unique_for_namespace"', $result );
+		$this->assertStringContainsString(
+			'type="hidden" value="Category1" name="input_0_unique_for_category"', $result
+		);
+		$this->assertStringContainsString(
+			'type="hidden" value="Namespace1" name="input_0_unique_for_namespace"', $result
+		);
 	}
 
 	public function testGetCurrentValue() {
@@ -514,7 +524,11 @@ class PFFormFieldTest extends TestCase {
 		$isLastField = false;
 		$output = $field->createMarkup( $partOfMultiple, $isLastField );
 
-		$expectedOutput = "'''Before Field Text Mock Label:''' <br><p class=\"pfFieldDescription\" style=\"font-size:0.7em; color:gray;\">This is a field description.</p>{{{field|MockFieldName|size=50|maxlength=100|uploadable|mandatory}}}\n\n";
+		$expectedOutput =
+			"'''Before Field Text Mock Label:''' <br>"
+			. "<p class=\"pfFieldDescription\" style=\"font-size:0.7em; color:gray;\">"
+			. "This is a field description.</p>"
+			. "{{{field|MockFieldName|size=50|maxlength=100|uploadable|mandatory}}}\n\n";
 
 		$this->assertEquals( $expectedOutput, $output, 'Markup for multiple-instance template is incorrect' );
 
@@ -523,19 +537,29 @@ class PFFormFieldTest extends TestCase {
 		$isLastField = false;
 		$output = $field->createMarkup( $partOfMultiple, $isLastField );
 
-		$expectedOutput = "! Before Field Text Mock Label: <br><p class=\"pfFieldDescription\" style=\"font-size:0.7em; color:gray;\">This is a field description.</p>\n" .
+		$expectedOutput =
+			"! Before Field Text Mock Label: <br>"
+			. "<p class=\"pfFieldDescription\" style=\"font-size:0.7em; color:gray;\">"
+			. "This is a field description.</p>\n" .
 				  "| {{{field|MockFieldName|size=50|maxlength=100|uploadable|mandatory}}}\n" .
 				  "|-\n";
-		$this->assertEquals( $expectedOutput, $output, 'Markup for single-instance template (not last field) is incorrect' );
+		$this->assertEquals(
+			$expectedOutput, $output, 'Markup for single-instance template (not last field) is incorrect'
+		);
 
 		// Test case: Single-instance template, last field
 		$isLastField = true;
 		$output = $field->createMarkup( $partOfMultiple, $isLastField );
 
-		$expectedOutput = "! Before Field Text Mock Label: <br><p class=\"pfFieldDescription\" style=\"font-size:0.7em; color:gray;\">This is a field description.</p>\n" .
+		$expectedOutput =
+			"! Before Field Text Mock Label: <br>"
+			. "<p class=\"pfFieldDescription\" style=\"font-size:0.7em; color:gray;\">"
+			. "This is a field description.</p>\n" .
 				  "| {{{field|MockFieldName|size=50|maxlength=100|uploadable|mandatory}}}\n";
 
-		$this->assertEquals( $expectedOutput, $output, 'Markup for single-instance template (last field) is incorrect' );
+		$this->assertEquals(
+			$expectedOutput, $output, 'Markup for single-instance template (last field) is incorrect'
+		);
 	}
 
 	public function testCreateMarkupWithSMW() {
@@ -563,7 +587,9 @@ class PFFormFieldTest extends TestCase {
 		$output = $field->createMarkup( $partOfMultiple, $isLastField );
 
 		// Expected output without extra newline
-		$expectedOutput = "'''Mock Label:'''  {{#info:This is a field description.}}{{{field|MockFieldName|size=50|maxlength=100|uploadable|mandatory}}}";
+		$expectedOutput =
+			"'''Mock Label:'''  {{#info:This is a field description.}}"
+			. "{{{field|MockFieldName|size=50|maxlength=100|uploadable|mandatory}}}";
 
 		// Trim the trailing newline from actual output before comparison
 		$output = rtrim( $output, "\n" );

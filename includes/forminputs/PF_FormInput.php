@@ -239,9 +239,11 @@ abstract class PFFormInput {
 	 *
 	 * Examples:
 	 *
-	 * Adding initFoo like this: <code>addJsInitFunctionData( "initFoo", "'bar'" );</code> will result in this JavaScript call: <code>initFoo( inputID, 'bar' );</code>.
+	 * Adding initFoo like this: <code>addJsInitFunctionData( "initFoo", "'bar'" );</code>
+	 * will result in this JavaScript call: <code>initFoo( inputID, 'bar' );</code>.
 	 *
-	 * Adding initFoo like this: <code>addJsInitFunctionData( "initFoo", "array('bar', 'baz'" );</code> will result in this JavaScript call: <code>initFoo( inputID, array('bar', 'baz') );</code>.
+	 * Adding initFoo like this: <code>addJsInitFunctionData( "initFoo", "array('bar', 'baz'" );</code>
+	 * will result in this JavaScript call: <code>initFoo( inputID, array('bar', 'baz') );</code>.
 	 *
 	 *
 	 * @param string $name The name of the initialization function.
@@ -270,9 +272,11 @@ abstract class PFFormInput {
 	 *
 	 * Examples:
 	 *
-	 * Adding validateFoo like this: <code>addJsValidationFunctionData( "initFoo", "'bar'" );</code> will result in this JavaScript call: <code>validateFoo( inputID, 'bar' );</code>.
+	 * Adding validateFoo like this: <code>addJsValidationFunctionData( "initFoo", "'bar'" );</code>
+	 * will result in this JavaScript call: <code>validateFoo( inputID, 'bar' );</code>.
 	 *
-	 * Adding validateFoo like this: <code>addJsValidationFunctionData( "initFoo", "array('bar', 'baz'" );</code> will result in this JavaScript call: <code>validateFoo( inputID, array('bar', 'baz') );</code>.
+	 * Adding validateFoo like this: <code>addJsValidationFunctionData( "initFoo", "array('bar', 'baz'" );</code>
+	 * will result in this JavaScript call: <code>validateFoo( inputID, array('bar', 'baz') );</code>.
 	 *
 	 *
 	 * @param string $name The name of the initialization function.
@@ -372,8 +376,13 @@ abstract class PFFormInput {
 			$input_id = $this->mInputName == 'pf_free_text' ? 'pf_free_text' : 'input_' . $this->mInputNumber;
 			$configVars = $output->getJsConfigVars();
 
-			$initFunctionData = self::updateFormInputJsFunctionData( 'ext.pf.initFunctionData', $configVars, $this->getJsInitFunctionData(), $input_id );
-			$validationFunctionData = self::updateFormInputJsFunctionData( 'ext.pf.validationFunctionData', $configVars, $this->getJsValidationFunctionData(), $input_id );
+				$initFunctionData = self::updateFormInputJsFunctionData(
+					'ext.pf.initFunctionData', $configVars, $this->getJsInitFunctionData(), $input_id
+				);
+			$validationFunctionData = self::updateFormInputJsFunctionData(
+					'ext.pf.validationFunctionData', $configVars,
+					$this->getJsValidationFunctionData(), $input_id
+				);
 
 			$output->addJsConfigVars( [
 				'ext.pf.initFunctionData' => $initFunctionData,

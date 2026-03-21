@@ -49,7 +49,9 @@ class PFArrayMap {
 			}
 			$result_value = $frame->expand( $formula, PPFrame::NO_ARGS | PPFrame::NO_TEMPLATES );
 			$result_value = str_replace( $var, $old_value, $result_value );
-			$result_value = $parser->preprocessToDom( $result_value, $frame->isTemplate() ? Parser::PTD_FOR_INCLUSION : 0 );
+			$result_value = $parser->preprocessToDom(
+				$result_value, $frame->isTemplate() ? Parser::PTD_FOR_INCLUSION : 0
+			);
 			$result_value = trim( $frame->expand( $result_value ) );
 			if ( $result_value == '' ) {
 				continue;

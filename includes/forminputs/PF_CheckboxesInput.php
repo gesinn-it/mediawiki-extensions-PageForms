@@ -116,7 +116,8 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 		if ( strpos( $input_name, '[num][' ) !== false ) {
 			// Multiple-instance template; do nothing.
 		} elseif ( array_key_exists( 'show select all', $other_args ) ||
-			( count( $possible_values ) >= $GLOBALS[ 'wgPageFormsCheckboxesSelectAllMinimum' ] && !array_key_exists( 'hide select all', $other_args ) ) ) {
+			( count( $possible_values ) >= $GLOBALS[ 'wgPageFormsCheckboxesSelectAllMinimum' ] &&
+				!array_key_exists( 'hide select all', $other_args ) ) ) {
 			$outerSpanClass .= ' select-all';
 		}
 

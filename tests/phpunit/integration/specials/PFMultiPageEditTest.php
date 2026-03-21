@@ -55,7 +55,9 @@ class PFMultiPageEditTest extends SpecialPageTestBase {
 
 		// Check assertions on the output.
 		$this->assertNotEmpty( $output->getHTML(), 'The page output should not be empty' );
-		$this->assertStringContainsString( 'TestTemplate', $output->getHTML(), 'The template name should appear in the output' );
+		$this->assertStringContainsString(
+			'TestTemplate', $output->getHTML(), 'The template name should appear in the output'
+		);
 	}
 
 	/**
@@ -83,8 +85,15 @@ class PFMultiPageEditTest extends SpecialPageTestBase {
 		$output = RequestContext::getMain()->getOutput();
 
 		// Instead of looking for 'Spreadsheet interface', let's look for part of the actual output.
-		$this->assertStringContainsString( 'class="pfSpreadsheet"', $output->getHTML(), 'The spreadsheet interface should be displayed' );
-		$this->assertStringContainsString( 'data-template-name="TestTemplate"', $output->getHTML(), 'The spreadsheet should include the template name' );
-		$this->assertStringContainsString( 'data-form-name="TestForm"', $output->getHTML(), 'The spreadsheet should include the form name' );
+		$this->assertStringContainsString(
+			'class="pfSpreadsheet"', $output->getHTML(), 'The spreadsheet interface should be displayed'
+		);
+		$this->assertStringContainsString(
+			'data-template-name="TestTemplate"', $output->getHTML(),
+			'The spreadsheet should include the template name'
+		);
+		$this->assertStringContainsString(
+			'data-form-name="TestForm"', $output->getHTML(), 'The spreadsheet should include the form name'
+		);
 	}
 }

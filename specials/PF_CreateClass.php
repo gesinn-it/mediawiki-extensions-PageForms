@@ -113,8 +113,8 @@ class PFCreateClass extends SpecialPage {
 				$params = [
 					'user_id' => $user->getId(),
 					'page_text' => $full_text,
-					'edit_summary' => $this->msg( 'pf_createproperty_editsummary', $property_type )->inContentLanguage()->text()
-				];
+					'edit_summary' => $this->msg( 'pf_createproperty_editsummary', $property_type )
+						->inContentLanguage()->text() ];
 				$jobs[] = new PFCreatePageJob( $property_title, $params );
 			}
 		}
@@ -129,7 +129,8 @@ class PFCreateClass extends SpecialPage {
 			$params = [
 				'user_id' => $user->getId(),
 				'page_text' => $full_text,
-				'edit_summary' => $this->msg( 'pf_createproperty_editsummary', $property_type )->inContentLanguage()->text()
+				'edit_summary' => $this->msg( 'pf_createproperty_editsummary', $property_type )
+					->inContentLanguage()->text()
 			];
 			$jobs[] = new PFCreatePageJob( $property_title, $params );
 		}
@@ -271,7 +272,8 @@ class PFCreateClass extends SpecialPage {
 		$createTemplatePage = new PFCreateTemplate( true );
 		$templateInfo .= $createTemplatePage->printTemplateStyleInput( 'template_format' );
 		$templateInfo .= Html::rawElement( 'p', [ 'id' => 'template_multiple_p' ],
-			Html::hidden( 'multiple_template', false ) . $this->msg( 'pf_createtemplate_multipleinstance' )->escaped() ) . "\n";
+			Html::hidden( 'multiple_template', false ) .
+			$this->msg( 'pf_createtemplate_multipleinstance' )->escaped() ) . "\n";
 		$templateInfo .= "\t<p><label id='fullwikitext_toggle'>" .
 			Html::hidden( 'use_fullwikitext', false ) .
 			$this->msg( 'pf_createtemplate_fullwikitext', '#template_display' )->escaped() .
@@ -293,13 +295,21 @@ class PFCreateClass extends SpecialPage {
 		}
 		$text .= Html::rawElement( 'blockquote', null, $templateInfo );
 
-		$form_name_input = Html::element( 'input', [ 'size' => '30', 'name' => 'form_name', 'id' => 'form_name' ], null );
-		$text .= "\t<p><label>" . $this->msg( 'pf_createclass_nameinput' )->escaped() . " $form_name_input</label></p>\n";
-		$category_name_input = Html::element( 'input', [ 'size' => '30', 'name' => 'category_name', 'id' => 'category_name' ], null );
-		$text .= "\t<p><label>" . $this->msg( 'pf_createcategory_name' )->escaped() . " $category_name_input</label></p>\n";
+		$form_name_input = Html::element(
+			'input', [ 'size' => '30', 'name' => 'form_name', 'id' => 'form_name' ], null
+		);
+		$text .= "\t<p><label>" . $this->msg( 'pf_createclass_nameinput' )->escaped() .
+			" $form_name_input</label></p>\n";
+		$category_name_input = Html::element(
+			'input', [ 'size' => '30', 'name' => 'category_name', 'id' => 'category_name' ], null
+		);
+		$text .= "\t<p><label>" . $this->msg( 'pf_createcategory_name' )->escaped() .
+			" $category_name_input</label></p>\n";
 
 		$text .= "\t<fieldset>\n";
-		$text .= "\t" . Html::element( 'legend', null, $this->msg( 'pf_createtemplate_templatefields' )->text() ) . "\n";
+		$text .= "\t" . Html::element(
+			'legend', null, $this->msg( 'pf_createtemplate_templatefields' )->text()
+		) . "\n";
 		$text .= "\t" . Html::element( 'p', null, $this->msg( 'pf_createtemplate_fieldsdesc' )->text() ) . "\n";
 
 		if ( defined( 'SMW_VERSION' ) ) {
@@ -322,8 +332,12 @@ class PFCreateClass extends SpecialPage {
 
 		if ( defined( 'SMW_VERSION' ) ) {
 			$text .= "\t<fieldset>\n";
-			$text .= "\t" . Html::element( 'legend', null, $this->msg( 'pf_createtemplate_aggregation' )->text() ) . "\n";
-			$text .= "\t" . Html::element( 'p', null, $this->msg( 'pf_createtemplate_aggregationdesc' )->text() ) . "\n";
+			$text .= "\t" . Html::element(
+				'legend', null, $this->msg( 'pf_createtemplate_aggregation' )->text()
+			) . "\n";
+			$text .= "\t" . Html::element(
+				'p', null, $this->msg( 'pf_createtemplate_aggregationdesc' )->text()
+			) . "\n";
 			$text .= "\t<p>" . $this->msg( 'pf_createtemplate_semanticproperty' )->escaped() . ' ' .
 				PFCreateTemplate::printPropertiesComboBox( $all_properties, "aggregation" ) . "</p>\n";
 			$text .= "\t<p>" . $this->msg( 'pf_createtemplate_aggregationlabel' )->escaped() . ' ' .

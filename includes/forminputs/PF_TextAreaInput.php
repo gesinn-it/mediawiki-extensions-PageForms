@@ -267,7 +267,10 @@ class PFTextAreaInput extends PFFormInput {
 			// correctly in IE - IE moves the cursor to the end
 			// whenever this.value is reset, so we'll make sure to
 			// do that only when we need to.
-			$maxLengthJSCheck = "if (window.event && window.event.keyCode < 48 && window.event.keyCode != 13) return; if (this.value.length > $maxlength) { this.value = this.value.substring(0, $maxlength); }";
+			$maxLengthJSCheck = "if (window.event && window.event.keyCode < 48" .
+				" && window.event.keyCode != 13) return;" .
+				" if (this.value.length > $maxlength)" .
+				" { this.value = this.value.substring(0, $maxlength); }";
 			$textarea_attrs['onKeyDown'] = $maxLengthJSCheck;
 			$textarea_attrs['onKeyUp'] = $maxLengthJSCheck;
 		}

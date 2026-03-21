@@ -85,7 +85,10 @@ class PFLeafletInput extends PFOpenLayersInput {
 			$width = self::getWidth( $other_args );
 		}
 
-		$fullInputHTML = self::mapLookupHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, $other_args, $height, $width, $fileName == null );
+		$fullInputHTML = self::mapLookupHTML(
+			$cur_value, $input_name, $is_mandatory, $is_disabled, $other_args, $height, $width,
+			$fileName == null
+		);
 
 		$divAttrs = [ 'class' => 'pfLeafletInput' ];
 		if ( $fileName !== null ) {

@@ -225,7 +225,9 @@ END;
 
 END;
 		// @TODO - remove this hook? It seems useless.
-		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::PrintRedirectForm', [ $is_save, !$is_save, false, &$text ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run(
+			'PageForms::PrintRedirectForm', [ $is_save, !$is_save, false, &$text ]
+		);
 		return $text;
 	}
 

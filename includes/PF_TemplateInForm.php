@@ -50,7 +50,9 @@ class PFTemplateInForm {
 	private $mAllInstancesPrinted = false;
 	private $mGridValues = [];
 
-	public static function create( $name, $label = null, $allowMultiple = null, $maxAllowed = null, $formFields = null ) {
+	public static function create(
+		$name, $label = null, $allowMultiple = null, $maxAllowed = null, $formFields = null
+	) {
 		$tif = new PFTemplateInForm();
 		$tif->mTemplateName = str_replace( '_', ' ', $name );
 		if ( $formFields === null ) {
@@ -113,7 +115,9 @@ class PFTemplateInForm {
 					if ( count( $matches ) > 2 ) {
 						$tif->mEmbedInTemplate = $matches[1];
 						$tif->mEmbedInField = $matches[2];
-						$tif->mPlaceholder = PFFormPrinter::placeholderFormat( $tif->mEmbedInTemplate, $tif->mEmbedInField );
+						$tif->mPlaceholder = PFFormPrinter::placeholderFormat(
+							$tif->mEmbedInTemplate, $tif->mEmbedInField
+						);
 					}
 				} elseif ( $sub_components[0] == 'display' ) {
 					$tif->mDisplay = $sub_components[1];
@@ -367,7 +371,8 @@ class PFTemplateInForm {
 		if ( $this->mAllowMultiple ) {
 			// If this data came from a spreadsheet, unescape some characters.
 			$spreadsheetTemplates = $wgRequest->getArray( 'spreadsheet_templates' );
-			if ( is_array( $spreadsheetTemplates ) && array_key_exists( $query_template_name, $spreadsheetTemplates ) ) {
+			if ( is_array( $spreadsheetTemplates ) &&
+				array_key_exists( $query_template_name, $spreadsheetTemplates ) ) {
 				foreach ( $allValuesFromSubmit as &$rowValues ) {
 					foreach ( $rowValues as &$curValue ) {
 						$curValue = str_replace( [ '&lt;', '&gt;' ], [ '<', '>' ], $curValue );
@@ -388,7 +393,8 @@ class PFTemplateInForm {
 				if ( $intkey !== null ) {
 					$intkey = (int)$intkey;
 				}
-				if ( $intkey !== null && $this->mNumSeenInstancesOnThisPage !== null && $intkey < $this->mNumSeenInstancesOnThisPage ) {
+				if ( $intkey !== null && $this->mNumSeenInstancesOnThisPage !== null &&
+					$intkey < $this->mNumSeenInstancesOnThisPage ) {
 					if ( $intkey === $this->mInstanceNum ) {
 						$instanceKey = $valuesFromSubmitKeys[$intkey];
 						$this->mValuesFromSubmit = $allValuesFromSubmit[$instanceKey];
@@ -452,7 +458,8 @@ class PFTemplateInForm {
 				}
 				// Ignore "singleton" tags, like '<ref name="abc" />'.
 				$possibleSingletonTagEnd = strpos( $str, '/>', $startTagLoc );
-				if ( $possibleSingletonTagEnd !== false && $possibleSingletonTagEnd < strpos( $str, '>', $startTagLoc ) ) {
+				if ( $possibleSingletonTagEnd !== false &&
+					$possibleSingletonTagEnd < strpos( $str, '>', $startTagLoc ) ) {
 					continue;
 				}
 				$endTagLoc = strpos( $str, $endTag, $startTagLoc + strlen( $startTag ) );
@@ -581,7 +588,10 @@ class PFTemplateInForm {
 			[ '/', '(', ')', '^' ],
 			[ '\/', '\(', '\)', '\^' ],
 			$this->mSearchTemplateStr );
-		$this->mPageCallsThisTemplate = preg_match( '/{{' . $this->mPregMatchTemplateStr . '\s*[\|}]/i', str_replace( '_', ' ', $existing_page_content ) );
+		$this->mPageCallsThisTemplate = preg_match(
+			'/{{' . $this->mPregMatchTemplateStr . '\s*[\|}]/i',
+			str_replace( '_', ' ', $existing_page_content )
+		);
 		if ( $this->mPageCallsThisTemplate ) {
 			$this->mNumSeenInstancesOnThisPage = $this->mInstanceNum + 1;
 		}

@@ -211,7 +211,9 @@ class PFFormEditAction extends Action {
 
 		$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
 		$linkParams = [ 'action' => 'edit', 'redlink' => true ];
-		$noFormLink = $linkRenderer->makeKnownLink( $title, wfMessage( 'pf-formedit-donotuseform' )->escaped(), [], $linkParams );
+		$noFormLink = $linkRenderer->makeKnownLink(
+			$title, wfMessage( 'pf-formedit-donotuseform' )->escaped(), [], $linkParams
+		);
 		$output->addHTML( Html::rawElement( 'p', null, $noFormLink ) );
 	}
 
@@ -300,7 +302,8 @@ class PFFormEditAction extends Action {
 		}
 
 		if ( count( $form_names ) > 1 ) {
-			$warning_text = "\t" . '<div class="warningbox">' . wfMessage( 'pf_formedit_morethanoneform' )->text() . "</div>\n";
+			$warning_text = "\t" . '<div class="warningbox">' .
+				wfMessage( 'pf_formedit_morethanoneform' )->text() . "</div>\n";
 			$output->addWikiTextAsInterface( $warning_text );
 		}
 

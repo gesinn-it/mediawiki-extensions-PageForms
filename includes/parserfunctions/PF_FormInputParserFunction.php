@@ -208,10 +208,14 @@ class PFFormInputParserFunction {
 			}
 		}
 
-		$formInputAttrs['data-button-label'] = ( $inButtonStr != '' ) ? $inButtonStr : wfMessage( 'pf_formstart_createoredit' )->escaped();
+		$formInputAttrs['data-button-label'] = ( $inButtonStr != '' )
+			? $inButtonStr
+			: wfMessage( 'pf_formstart_createoredit' )->escaped();
 		$formContents .= Html::element( 'div', $formInputAttrs, null );
 
-		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::FormInputEnd', [ $params, &$formContents ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run(
+			'PageForms::FormInputEnd', [ $params, &$formContents ]
+		);
 
 		$str = "\t" . Html::rawElement( 'form', [
 				'name' => 'createbox',

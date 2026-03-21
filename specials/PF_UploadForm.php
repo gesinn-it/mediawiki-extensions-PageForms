@@ -176,7 +176,9 @@ class PFUploadForm extends HTMLForm {
 				'checked' => $selectedSourceType == 'url',
 			];
 		}
-		MediaWikiServices::getInstance()->getHookContainer()->run( 'UploadFormSourceDescriptors', [ &$descriptor, &$radio, $selectedSourceType ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run(
+			'UploadFormSourceDescriptors', [ &$descriptor, &$radio, $selectedSourceType ]
+		);
 
 		$descriptor['Extensions'] = [
 			'type' => 'info',
@@ -355,10 +357,9 @@ class PFUploadForm extends HTMLForm {
 		$out->disable();
 		$titleGlobal = SpecialPage::getTitleFor( 'Upload' );
 
-		$text = <<<END
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="{$xhtmlDefaultNamespace}"
-END;
+		$text = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"' .
+			' "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' . "\n" .
+			'<html xmlns="' . $xhtmlDefaultNamespace . '"' . "\n";
 		foreach ( $xhtmlNamespaces as $tag => $ns ) {
 			$text .= "xmlns:{$tag}=\"{$ns}\" ";
 		}

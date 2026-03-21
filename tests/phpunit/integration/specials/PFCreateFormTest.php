@@ -64,7 +64,9 @@ class PFCreateFormTest extends SpecialPageTestBase {
 		$xpath = new DOMXPath( $dom );
 
 		// Check that the form uses the 'post' method and has the correct action URL
-		$form = $xpath->query( "//form[@id='editform' and @method='post' and @action='/index.php?title=Form:TestForm&action=submit']" );
+		$form = $xpath->query(
+			"//form[@id='editform' and @method='post' and @action='/index.php?title=Form:TestForm&action=submit']"
+		);
 		$this->assertNotNull( $form->item( 0 ), "Form not found or incorrect method/action" );
 
 		// Check for the wpSave hidden field
@@ -75,6 +77,8 @@ class PFCreateFormTest extends SpecialPageTestBase {
 		$this->assertStringContainsString( 'TestTemplate', $output->mBodytext, 'TestTemplate not found' );
 
 		// Check for the JavaScript that auto-submits the form
-		$this->assertStringContainsString( "document.editform.submit();", $output->mBodytext, "Form auto-submit script not found" );
+		$this->assertStringContainsString(
+			"document.editform.submit();", $output->mBodytext, "Form auto-submit script not found"
+		);
 	}
 }

@@ -402,7 +402,8 @@ class PFFormField {
 					$default_filename = $parser->recursiveTagParse( $default_filename );
 					$f->mFieldArgs['default filename'] = $default_filename;
 				} elseif ( $sub_components[0] == 'restricted' ) {
-					$effectiveGroups = MediaWikiServices::getInstance()->getUserGroupManager()->getUserEffectiveGroups( $user );
+					$effectiveGroups = MediaWikiServices::getInstance()->getUserGroupManager()
+						->getUserEffectiveGroups( $user );
 					$f->mIsRestricted = !array_intersect(
 						$effectiveGroups, array_map( 'trim', explode( ',', $sub_components[1] ) )
 					);
@@ -442,7 +443,8 @@ class PFFormField {
 		// property" - instead, we just always get the values if a
 		// field and table have been specified.
 		// @codeCoverageIgnoreStart
-		if ( $f->mPossibleValues === null && defined( 'CARGO_VERSION' ) && $cargo_table != null && $cargo_field != null ) {
+		if ( $f->mPossibleValues === null && defined( 'CARGO_VERSION' ) &&
+			$cargo_table != null && $cargo_field != null ) {
 			// We only want the non-null values. Ideally this could
 			// be done by calling getValuesForCargoField() with
 			// an "IS NOT NULL" clause, but unfortunately that fails
@@ -601,18 +603,27 @@ class PFFormField {
 		}
 	}
 
-	public function getCurrentValue( $template_instance_query_values, $form_submitted, $source_is_page, $all_instances_printed, &$val_modifier = null ) {
+	public function getCurrentValue(
+		$template_instance_query_values,
+		$form_submitted,
+		$source_is_page,
+		$all_instances_printed,
+		&$val_modifier = null
+	) {
 		// Get the value from the request, if
 		// it's there, and if it's not an array.
 		$field_name = $this->template_field->getFieldName();
 		$delimiter = $this->mFieldArgs['delimiter'];
 		$escaped_field_name = str_replace( "'", "\'", $field_name );
 
-		if ( PFUtils::isTranslateEnabled() && $this->hasFieldArg( 'translatable' ) && $this->getFieldArg( 'translatable' ) ) {
-			// If this is a translatable field, and both it and its corresponding translate ID tag are passed in, we add it.
+		if ( PFUtils::isTranslateEnabled() &&
+			$this->hasFieldArg( 'translatable' ) && $this->getFieldArg( 'translatable' ) ) {
+			// If this is a translatable field, and both it and its
+			// corresponding translate ID tag are passed in, we add it.
 			$fieldName = $this->getTemplateField()->getFieldName();
 			$fieldNameTag = $fieldName . '_translate_number_tag';
-			if ( isset( $template_instance_query_values[$fieldName] ) && isset( $template_instance_query_values[$fieldNameTag] ) ) {
+			if ( isset( $template_instance_query_values[$fieldName] ) &&
+				isset( $template_instance_query_values[$fieldNameTag] ) ) {
 				$tag = $template_instance_query_values[$fieldNameTag];
 				if ( !preg_match( '/( |\n)$/', $tag ) ) {
 					$tag .= "\n";
@@ -622,7 +633,8 @@ class PFFormField {
 					$template_instance_query_values[$fieldName] = $tag . $template_instance_query_values[$fieldName];
 				}
 			}
-			// If user has deleted some content, and there is some translate tag ("<!--T:X-->") with no content, remove the tag.
+			// If user has deleted some content, and there is some translate tag
+			// ("<!--T:X-->") with no content, remove the tag.
 			if ( isset( $template_instance_query_values[$fieldName] ) ) {
 				$this->cleanupTranslateTags( $template_instance_query_values[$fieldName] );
 			}
@@ -873,7 +885,9 @@ class PFFormField {
 		// locate where the multiple-templates HTML, stored in
 		// $multipleTemplateString, should be inserted.
 		if ( $this->mHoldsTemplate ) {
-			$text .= PFFormPrinter::makePlaceholderInFormHTML( PFFormPrinter::placeholderFormat( $template_name, $field_name ) );
+			$text .= PFFormPrinter::makePlaceholderInFormHTML(
+				PFFormPrinter::placeholderFormat( $template_name, $field_name )
+			);
 		}
 
 		// If this field is disabled, add a hidden field holding
@@ -920,13 +934,22 @@ class PFFormField {
 				$text .= Html::hidden( 'input_' . $wgPageFormsFieldNum . '_unique_cargo_field', $cargo_field );
 			}
 			if ( $this->hasFieldArg( 'unique_for_category' ) ) {
-				$text .= Html::hidden( 'input_' . $wgPageFormsFieldNum . '_unique_for_category', $this->getFieldArg( 'unique_for_category' ) );
+				$text .= Html::hidden(
+					'input_' . $wgPageFormsFieldNum . '_unique_for_category',
+					$this->getFieldArg( 'unique_for_category' )
+				);
 			}
 			if ( $this->hasFieldArg( 'unique_for_namespace' ) ) {
-				$text .= Html::hidden( 'input_' . $wgPageFormsFieldNum . '_unique_for_namespace', $this->getFieldArg( 'unique_for_namespace' ) );
+				$text .= Html::hidden(
+					'input_' . $wgPageFormsFieldNum . '_unique_for_namespace',
+					$this->getFieldArg( 'unique_for_namespace' )
+				);
 			}
 			if ( $this->hasFieldArg( 'unique_for_concept' ) ) {
-				$text .= Html::hidden( 'input_' . $wgPageFormsFieldNum . '_unique_for_concept', $this->getFieldArg( 'unique_for_concept' ) );
+				$text .= Html::hidden(
+					'input_' . $wgPageFormsFieldNum . '_unique_for_concept',
+					$this->getFieldArg( 'unique_for_concept' )
+				);
 			}
 		}
 		return $text;
@@ -964,10 +987,12 @@ class PFFormField {
 						$descPlaceholder = " {{#tip-info:$fieldDesc}}";
 					} else {
 						// Don't make it a tooltip.
-						$descPlaceholder = '<br><p class="pfFieldDescription" style="font-size:0.7em; color:gray;">' . $fieldDesc . '</p>';
+						$descPlaceholder = '<br><p class="pfFieldDescription"' .
+							' style="font-size:0.7em; color:gray;">' . $fieldDesc . '</p>';
 					}
 				} else {
-					$descPlaceholder = '<br><p class="pfFieldDescription" style="font-size:0.7em; color:gray;">' . $fieldDesc . '</p>';
+					$descPlaceholder = '<br><p class="pfFieldDescription"' .
+						' style="font-size:0.7em; color:gray;">' . $fieldDesc . '</p>';
 				}
 			}
 		}
@@ -1069,7 +1094,8 @@ class PFFormField {
 			if ( $this->template_field->getPropertyType() == '_wpg' ) {
 				$other_args['autocompletion source'] = $this->template_field->getSemanticProperty();
 				$other_args['autocomplete field type'] = 'property';
-			} elseif ( array_key_exists( 'autocomplete', $other_args ) || array_key_exists( 'remote autocompletion', $other_args ) ) {
+			} elseif ( array_key_exists( 'autocomplete', $other_args ) ||
+				array_key_exists( 'remote autocompletion', $other_args ) ) {
 				$other_args['autocompletion source'] = $this->template_field->getSemanticProperty();
 				$other_args['autocomplete field type'] = 'property';
 			}
@@ -1136,7 +1162,9 @@ class PFFormField {
 			if ( $this->hasFieldArg( 'mapping using translate' ) ) {
 				$other_args['value_labels'] = [];
 				foreach ( $other_args['possible_values'] as $key ) {
-					$other_args['value_labels'][$key] = $parser->recursiveTagParse( '{{int:' . $this->getFieldArg( 'mapping using translate' ) . $key . '}}' );
+					$other_args['value_labels'][$key] = $parser->recursiveTagParse(
+						'{{int:' . $this->getFieldArg( 'mapping using translate' ) . $key . '}}'
+					);
 				}
 			} else {
 				$other_args['value_labels'] = $this->template_field->getValueLabels();

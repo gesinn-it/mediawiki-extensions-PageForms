@@ -144,11 +144,14 @@ class PFTextInput extends PFFormInput {
 		return $previewImage;
 	}
 
-	public static function uploadableHTML( $input_id, $delimiter = null, $default_filename = null, $cur_value = '', array $other_args = [] ) {
+	public static function uploadableHTML(
+		$input_id, $delimiter = null, $default_filename = null, $cur_value = '', array $other_args = []
+	) {
 		global $wgPageFormsSimpleUpload, $wgPageFormsScriptPath;
 
 		if ( $wgPageFormsSimpleUpload ) {
-			$text = "\n" . '<img class="loading" style="display:none;" src="' . $wgPageFormsScriptPath . '/skins/loading.gif"/>' . "\n";
+			$text = "\n" . '<img class="loading" style="display:none;" src="' .
+				$wgPageFormsScriptPath . '/skins/loading.gif"/>' . "\n";
 			$text .= Html::rawElement( 'span', [
 				'class'         => 'simpleUploadInterface',
 				'data-input-id' => $input_id

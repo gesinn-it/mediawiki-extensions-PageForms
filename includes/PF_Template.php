@@ -128,11 +128,19 @@ class PFTemplate {
 		// (the rest of the function doesn't do that), but trying to
 		// get the #arraymap check regexp to find both kinds of SMW
 		// property tags seemed too hard to do.
-		$this->mTemplateText = preg_replace( '/#arraymap.*{{\s*#set:\s*([^=]*)=([^}]*)}}/', '[[$1:$2]]', $this->mTemplateText );
+		$this->mTemplateText = preg_replace(
+			'/#arraymap.*{{\s*#set:\s*([^=]*)=([^}]*)}}/',
+			'[[$1:$2]]',
+			$this->mTemplateText
+		);
 
 		// Look for "arraymap" parser function calls that map a
 		// property onto a list.
-		$ret = preg_match_all( '/{{#arraymap:{{{([^|}]*:?[^|}]*)[^\[]*\[\[([^:]*:?[^:]*)::/mis', $this->mTemplateText, $matches );
+		$ret = preg_match_all(
+			'/{{#arraymap:{{{([^|}]*:?[^|}]*)[^\[]*\[\[([^:]*:?[^:]*)::/mis',
+			$this->mTemplateText,
+			$matches
+		);
 		if ( $ret ) {
 			foreach ( $matches[1] as $i => $field_name ) {
 				if ( !in_array( $field_name, $fieldNamesArray ) ) {
@@ -145,12 +153,19 @@ class PFTemplate {
 			// There was an error in the preg_match_all()
 			// call - let the user know about it.
 			if ( preg_last_error() == PREG_BACKTRACK_LIMIT_ERROR ) {
-				print 'Page Forms error: backtrace limit exceeded during parsing! Please increase the value of <a href="http://www.php.net/manual/en/pcre.configuration.php#ini.pcre.backtrack-limit">pcre.backtrack_limit</a> in php.ini or LocalSettings.php.';
+					print 'Page Forms error: backtrace limit exceeded during parsing!' .
+						' Please increase the value of <a href="http://www.php.net/manual/en/' .
+						'pcre.configuration.php#ini.pcre.backtrack-limit">pcre.backtrack_limit' .
+						'</a> in php.ini or LocalSettings.php.';
 			}
 		}
 
 		// Look for normal property calls.
-		if ( preg_match_all( '/\[\[([^:|\[\]]*:*?[^:|\[\]]*)::{{{([^\]\|}]*).*?\]\]/mis', $this->mTemplateText, $matches ) ) {
+		if ( preg_match_all(
+			'/\[\[([^:|\[\]]*:*?[^:|\[\]]*)::{{{([^\]\|}]*).*?\]\]/mis',
+			$this->mTemplateText,
+			$matches
+		) ) {
 			foreach ( $matches[1] as $i => $propertyName ) {
 				$field_name = trim( $matches[2][$i] );
 				if ( !in_array( $field_name, $fieldNamesArray ) ) {
@@ -203,7 +218,9 @@ class PFTemplate {
 				$fieldName = trim( $fieldName );
 				if ( !empty( $fieldName ) && ( !in_array( $fieldName, $fieldNamesArray ) ) ) {
 					$cur_pos = stripos( $this->mTemplateText, $fieldName );
-					$this->mTemplateFields[$cur_pos] = PFTemplateField::create( $fieldName, PFUtils::getContLang()->ucfirst( $fieldName ) );
+					$this->mTemplateFields[$cur_pos] = PFTemplateField::create(
+						$fieldName, PFUtils::getContLang()->ucfirst( $fieldName )
+					);
 					$fieldNamesArray[] = $fieldName;
 				}
 			}
@@ -604,12 +621,12 @@ END;
 			// A CSS style can't be used, unfortunately, since most
 			// MediaWiki setups don't have an 'infobox' or
 			// comparable CSS class.
-			$tableText = <<<END
-{| style="width: 30em; font-size: 90%; border: 1px solid #aaaaaa; background-color: #f9f9f9; color: black; margin-bottom: 0.5em; margin-left: 1em; padding: 0.2em; float: right; clear: right; text-align:left;"
-! style="text-align: center; background-color:#ccccff;" colspan="2" |<span style="font-size: larger;">{{PAGENAME}}</span>
-|-
-
-END;
+			$tableText = '{| style="width: 30em; font-size: 90%; border: 1px solid #aaaaaa;' .
+				' background-color: #f9f9f9; color: black; margin-bottom: 0.5em; margin-left: 1em;' .
+				' padding: 0.2em; float: right; clear: right; text-align:left;"' . "\n" .
+				'! style="text-align: center; background-color:#ccccff;" colspan="2"' .
+				' |<span style="font-size: larger;">{{PAGENAME}}</span>' . "\n" .
+				"|-\n\n";
 		} else {
 			$tableText = '';
 		}
@@ -779,7 +796,9 @@ END;
 	public function createTextForField( $field ) {
 		$text = '';
 		$fieldStart = $this->mFieldStart;
-		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::TemplateFieldStart', [ $field, &$fieldStart ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run(
+			'PageForms::TemplateFieldStart', [ $field, &$fieldStart ]
+		);
 		if ( $fieldStart != '' ) {
 			$text .= "$fieldStart ";
 		}
@@ -790,7 +809,9 @@ END;
 		$text .= $field->createText( $cargoInUse );
 
 		$fieldEnd = $this->mFieldEnd;
-		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::TemplateFieldEnd', [ $field, &$fieldEnd ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run(
+			'PageForms::TemplateFieldEnd', [ $field, &$fieldEnd ]
+		);
 		if ( $fieldEnd != '' ) {
 			$text .= " $fieldEnd";
 		}

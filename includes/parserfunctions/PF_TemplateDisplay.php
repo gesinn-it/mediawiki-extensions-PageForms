@@ -25,7 +25,9 @@ class PFTemplateDisplay {
 		$template = PFTemplate::newFromName( $templateTitle->getText() );
 		$templateParams = $template->getTemplateParams();
 		if ( $templateParams == null ) {
-			return '<div class="error">' . 'Error: #template_params must be called in the template "' . $templateTitle->getText() . '".</div>';
+			return '<div class="error">' .
+				'Error: #template_params must be called in the template "' .
+				$templateTitle->getText() . '".</div>';
 		}
 
 		$parser->getOutput()->addModules( [ 'ext.pageforms.templatedisplay' ] );
@@ -237,8 +239,10 @@ class PFTemplateDisplay {
 
 		$rate = $value * 20;
 		$url = $wgServer . $wgScriptPath . '/' . 'extensions/Cargo/resources/images/star-rating-sprite-1.png';
-		$text = '<span style="display: block; width: 65px; height: 13px; background: url(\'' . $url . '\') 0 0;">
-			<span style="display: block; width: ' . $rate . '%; height: 13px; background: url(\'' . $url . '\') 0 -13px;"></span>';
+		$text = '<span style="display: block; width: 65px; height: 13px; background: url(\'' .
+			$url . '\') 0 0;">' . "\n\t\t\t" .
+			'<span style="display: block; width: ' . $rate .
+			'%; height: 13px; background: url(\'' . $url . '\') 0 -13px;"></span>';
 		return $text;
 	}
 

@@ -20,10 +20,12 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		// Make sure the form is not in "disabled" state. Unfortunately setting up the global state
 		// environment in a proper way to have PFFormPrinter work on a mock title object is very
 		// difficult. Therefore we just override the permission check by using a hook.
-		MediaWikiServices::getInstance()->getHookContainer()->register( 'PageForms::UserCanEditPage', static function ( $pageTitle, &$userCanEditPage ) {
-			$userCanEditPage = true;
-			return true;
-		} );
+		MediaWikiServices::getInstance()->getHookContainer()->register(
+			'PageForms::UserCanEditPage',
+			static function ( $pageTitle, &$userCanEditPage ) {
+				$userCanEditPage = true;
+				return true;
+			} );
 
 		parent::setUp();
 	}
@@ -88,7 +90,9 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 			'form_definition' => "==section1==
 								 {{{section|section1|level=2}}}" ],
 		[
-			'expected_form_text' => "<span class=\"inputSpan pageSection\"><textarea tabindex=\"1\" name=\"_section[section1]\" id=\"input_1\" class=\"createboxInput\" rows=\"5\" cols=\"90\" style=\"width: 100%\"></textarea></span>",
+			'expected_form_text' => "<span class=\"inputSpan pageSection\">"
+				. "<textarea tabindex=\"1\" name=\"_section[section1]\" id=\"input_1\""
+				. " class=\"createboxInput\" rows=\"5\" cols=\"90\" style=\"width: 100%\"></textarea></span>",
 			'expected_page_text' => "==section1==" ]
 		];
 
@@ -98,7 +102,9 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 			'form_definition' => "=====section 2=====
 								 {{{section|section 2|level=5|rows=10|cols=5}}}" ],
 		[
-			'expected_form_text' => "<span class=\"inputSpan pageSection\"><textarea tabindex=\"1\" name=\"_section[section 2]\" id=\"input_1\" class=\"createboxInput\" rows=\"10\" cols=\"5\" style=\"width: auto\"></textarea></span>",
+			'expected_form_text' => "<span class=\"inputSpan pageSection\">"
+				. "<textarea tabindex=\"1\" name=\"_section[section 2]\" id=\"input_1\""
+				. " class=\"createboxInput\" rows=\"10\" cols=\"5\" style=\"width: auto\"></textarea></span>",
 			'expected_page_text' => "=====section 2=====" ]
 		];
 
@@ -108,7 +114,9 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 			'form_definition' => "==section 3==
 								 {{{section|section 3|level=2|mandatory|rows=20|cols=50|autogrow}}}" ],
 		[
-			'expected_form_text' => "<span class=\"inputSpan pageSection mandatoryFieldSpan\"><textarea tabindex=\"1\" name=\"_section[section 3]\" id=\"input_1\" class=\"mandatoryField autoGrow\" rows=\"20\" cols=\"50\" style=\"width: auto\"></textarea></span>",
+			'expected_form_text' => "<span class=\"inputSpan pageSection mandatoryFieldSpan\">"
+				. "<textarea tabindex=\"1\" name=\"_section[section 3]\" id=\"input_1\""
+				. " class=\"mandatoryField autoGrow\" rows=\"20\" cols=\"50\" style=\"width: auto\"></textarea></span>",
 			'expected_page_text' => "==section 3==" ]
 		];
 
@@ -118,7 +126,10 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 			'form_definition' => "===Section 5===
 								 {{{section|Section 5|level=3|restricted|class=FormTest}}}" ],
 		[
-			'expected_form_text' => "<span class=\"inputSpan pageSection\"><textarea tabindex=\"1\" name=\"_section[Section 5]\" id=\"input_1\" class=\"createboxInput FormTest\" rows=\"5\" cols=\"90\" style=\"width: 100%\" disabled=\"\"></textarea></span>",
+			'expected_form_text' => "<span class=\"inputSpan pageSection\">"
+				. "<textarea tabindex=\"1\" name=\"_section[Section 5]\" id=\"input_1\""
+				. " class=\"createboxInput FormTest\" rows=\"5\" cols=\"90\""
+				. " style=\"width: 100%\" disabled=\"\"></textarea></span>",
 			'expected_page_text' => "===Section 5===" ]
 		];
 
@@ -140,7 +151,9 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 				'form_definition' => "=====section 6=====
 									 {{{section|section 6|level=5}}}" ],
 			[
-				'expected_form_text' => "<span id='wpMinoredit'{$ariaDisabled}class='oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget'><input type='checkbox' tabindex='3'{$ariaDisabled}accesskey='i' name='wpMinoredit' value=''",
+				'expected_form_text' => "<span id='wpMinoredit'{$ariaDisabled}"
+					. "class='oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget'>"
+					. "<input type='checkbox' tabindex='3'{$ariaDisabled}accesskey='i' name='wpMinoredit' value=''",
 				'expected_page_text' => "=====section 6=====" ]
 		];
 
@@ -150,7 +163,10 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 				'form_definition' => "=====section 7=====
 									{{{section|section 7|level=5|rows=5|cols=8}}}" ],
 			[
-				'expected_form_text' => "<span id='wpWatchthis'{$ariaDisabled}class='oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget'><input type='checkbox' tabindex='4'{$ariaDisabled}accesskey='w' name='wpWatchthis' value='' checked='checked'",
+				'expected_form_text' => "<span id='wpWatchthis'{$ariaDisabled}"
+					. "class='oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget'>"
+					. "<input type='checkbox' tabindex='4'{$ariaDisabled}accesskey='w'"
+					. " name='wpWatchthis' value='' checked='checked'",
 				'expected_page_text' => "=====section 7=====" ]
 		];
 		return $provider;

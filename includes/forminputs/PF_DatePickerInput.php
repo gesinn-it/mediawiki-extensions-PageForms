@@ -62,7 +62,8 @@ class PFDatePickerInput extends PFFormInput {
 			'type' => 'string',
 			'description' => wfMessage(
 				'pf-datepicker-dateformat',
-				'https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:Page_Forms/Input_types/Datepicker#Parameters'
+				'https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:Page_Forms' .
+					'/Input_types/Datepicker#Parameters'
 			)->text()
 		];
 		$params['first date'] = [
@@ -252,7 +253,9 @@ class PFDatePickerInput extends PFFormInput {
 	 * @param string $class
 	 * @return string the html text of an input element
 	 */
-	public static function genericTextHTML( $currentValue, $inputName, $isDisabled, $otherArgs, $inputId = null, $tabIndex = null, $class = '' ) {
+	public static function genericTextHTML(
+		$currentValue, $inputName, $isDisabled, $otherArgs, $inputId = null, $tabIndex = null, $class = ''
+	) {
 		global $wgPageFormsTabIndex;
 
 		// array of attributes to pass to the input field

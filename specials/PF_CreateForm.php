@@ -59,7 +59,9 @@ class PFCreateForm extends SpecialPage {
 			$form_name = $req->getVal( 'form_name' );
 		}
 
-		$section_name_error_str = '<span class="error" id="section_error">' . $this->msg( 'pf_blank_error' )->escaped() . '</span>';
+		$section_name_error_str =
+			'<span class="error" id="section_error">' .
+			$this->msg( 'pf_blank_error' )->escaped() . '</span>';
 
 		$out->addModules( [ 'ext.pageforms.collapsible', 'ext.pageforms.PF_CreateForm' ] );
 
@@ -138,7 +140,11 @@ class PFCreateForm extends SpecialPage {
 			// we have to first insert a stub element into the
 			// array, then replace that with the actual object.
 			array_splice( $form_items, $template_loc, 0, "stub" );
-			$form_items[$template_loc] = [ 'type' => 'template', 'name' => $form_template->getTemplateName(), 'item' => $form_template ];
+			$form_items[$template_loc] = [
+				'type' => 'template',
+				'name' => $form_template->getTemplateName(),
+				'item' => $form_template
+			];
 		} else {
 			$template_loc = null;
 			$new_template_loc = null;
@@ -163,7 +169,11 @@ class PFCreateForm extends SpecialPage {
 			}
 			// The same used hack for templates
 			array_splice( $form_items, $section_loc, 0, "stub" );
-			$form_items[$section_loc] = [ 'type' => 'section', 'name' => $form_section->getSectionName(), 'item' => $form_section ];
+			$form_items[$section_loc] = [
+				'type' => 'section',
+				'name' => $form_section->getSectionName(),
+				'item' => $form_section
+			];
 		} else {
 			$section_loc = null;
 			$new_section_loc = null;
@@ -281,7 +291,8 @@ class PFCreateForm extends SpecialPage {
 			$text .= Html::hidden( 'title', $this->getPageTitle()->getPrefixedText() );
 			$formNameItems = [];
 			$formNameText = new OOUI\LabelWidget( [
-				'label' => $this->msg( 'pf_createform_nameinput' )->escaped() . ' ' . $this->msg( 'pf_createform_nameinputdesc' )->escaped(),
+				'label' => $this->msg( 'pf_createform_nameinput' )->escaped() .
+					' ' . $this->msg( 'pf_createform_nameinputdesc' )->escaped(),
 			] );
 			$formNameTextInput = new OOUI\TextInputWidget( [
 				'name' => 'form_name',
@@ -478,7 +489,9 @@ END;
 		// Explanatory message if buttons are disabled because no
 		// templates have been added.
 		if ( count( $form_items ) == 0 ) {
-			$text .= "\t" . Html::element( 'p', null, "(" . $this->msg( 'pf_createform_additembeforesave' )->text() . ")" );
+			$text .= "\t" . Html::element(
+				'p', null, '(' . $this->msg( 'pf_createform_additembeforesave' )->text() . ')'
+			);
 		}
 		$text .= <<<END
 	</form>
@@ -535,7 +548,9 @@ END;
 				$header_options .= " " . Html::element( 'option', [ 'value' => $i ], $i ) . "\n";
 			}
 		}
-		$text .= Html::rawElement( 'select', [ 'name' => "level_section_" . $section_count ], $header_options ) . "</label>\n";
+		$text .= Html::rawElement(
+			'select', [ 'name' => "level_section_" . $section_count ], $header_options
+		) . "</label>\n";
 		$other_param_text = $this->msg( 'pf_createform_otherparameters' )->escaped();
 		$text .= "<fieldset class=\"pfCollapsibleFieldset\"><legend>$other_param_text</legend>\n";
 		$text .= Html::rawElement( 'div', [],
@@ -608,7 +623,10 @@ END;
 	public function fieldCreationHTML( $field, $field_num, $template_num ) {
 		$field_form_text = $template_num . "_" . $field_num;
 		$template_field = $field->template_field;
-		$text = Html::element( 'h3', null, $this->msg( 'pf_createform_field' )->text() . " " . $template_field->getFieldName() ) . "\n";
+		$text = Html::element(
+			'h3', null,
+			$this->msg( 'pf_createform_field' )->text() . " " . $template_field->getFieldName()
+		) . "\n";
 
 		if ( !defined( 'SMW_VERSION' ) || $template_field->getSemanticProperty() == "" ) {
 			// Print nothing if there's no semantic property.
@@ -637,7 +655,10 @@ END;
 				}
 				$propertyTypeStr = $datatypeLabels[$propTypeID];
 			}
-			$text .= Html::rawElement( 'p', null, $this->msg( $propDisplayMsg, $prop_link_text, $propertyTypeStr )->parse() ) . "\n";
+			$text .= Html::rawElement(
+				'p', null,
+				$this->msg( $propDisplayMsg, $prop_link_text, $propertyTypeStr )->parse()
+			) . "\n";
 		}
 		// If it's not a semantic field - don't add any text.
 		$form_label_text = $this->msg( 'pf_createform_formlabel' )->escaped();
@@ -645,11 +666,19 @@ END;
 
 		$formPrinter = $this->getConfig()->get( 'PageFormsFormPrinter' );
 		if ( $template_field->getPropertyType() !== null ) {
-			$default_input_type = $formPrinter->getDefaultInputTypeSMW( $template_field->isList(), $template_field->getPropertyType() );
-			$possible_input_types = $formPrinter->getPossibleInputTypesSMW( $template_field->isList(), $template_field->getPropertyType() );
+			$default_input_type = $formPrinter->getDefaultInputTypeSMW(
+				$template_field->isList(), $template_field->getPropertyType()
+			);
+			$possible_input_types = $formPrinter->getPossibleInputTypesSMW(
+				$template_field->isList(), $template_field->getPropertyType()
+			);
 		} elseif ( $template_field->getFieldType() !== null ) {
-			$default_input_type = $formPrinter->getDefaultInputTypeCargo( $template_field->isList(), $template_field->getFieldType() );
-			$possible_input_types = $formPrinter->getPossibleInputTypesCargo( $template_field->isList(), $template_field->getFieldType() );
+			$default_input_type = $formPrinter->getDefaultInputTypeCargo(
+				$template_field->isList(), $template_field->getFieldType()
+			);
+			$possible_input_types = $formPrinter->getPossibleInputTypesCargo(
+				$template_field->isList(), $template_field->getFieldType()
+			);
 		} else {
 			// Most likely, template uses neither SMW nor Cargo.
 			$default_input_type = null;
@@ -683,7 +712,9 @@ END;
 				new OOUI\LabelWidget( [
 					'label' => $input_type_text
 				] ),
-				$this->inputTypeDropdownHTML( $field_form_text, $default_input_type, $possible_input_types, $field->getInputType() )
+					$this->inputTypeDropdownHTML(
+						$field_form_text, $default_input_type, $possible_input_types, $field->getInputType()
+					)
 			]
 		] );
 
@@ -718,7 +749,9 @@ END;
 		return $text;
 	}
 
-	public function inputTypeDropdownHTML( $field_form_text, $default_input_type, $possible_input_types, $cur_input_type ) {
+	public function inputTypeDropdownHTML(
+		$field_form_text, $default_input_type, $possible_input_types, $cur_input_type
+	) {
 		if ( $default_input_type !== null ) {
 			array_unshift( $possible_input_types, $default_input_type );
 		}
@@ -726,12 +759,18 @@ END;
 		$dropdownAttrs = [];
 		foreach ( $possible_input_types as $i => $input_type ) {
 			if ( $i == 0 ) {
-				array_push( $dropdownAttrs, [ 'data' => '', 'label' => $input_type . ' ' . $this->msg( 'pf_createform_inputtypedefault' )->escaped() ] );
+				array_push( $dropdownAttrs, [
+					'data' => '',
+					'label' => $input_type . ' ' . $this->msg( 'pf_createform_inputtypedefault' )->escaped()
+				] );
 			} else {
 				array_push( $dropdownAttrs, [ 'data' => $input_type, 'label' => $input_type ] );
 			}
 		}
-		array_push( $dropdownAttrs, [ 'data' => 'hidden', 'label' => $this->msg( 'pf_createform_hidden' )->escaped() ] );
+		array_push( $dropdownAttrs, [
+			'data' => 'hidden',
+			'label' => $this->msg( 'pf_createform_hidden' )->escaped()
+		] );
 		$text = new OOUI\DropdownInputWidget( [
 			'classes' => [ 'inputTypeSelector' ],
 			'name' => 'input_type_' . $field_form_text,
@@ -753,7 +792,9 @@ END;
 	 * @param string $fieldFormText
 	 * @return string
 	 */
-	public static function inputTypeParamInput( $type, $paramName, $cur_value, array $param, array $paramValues, $fieldFormText ) {
+	public static function inputTypeParamInput(
+		$type, $paramName, $cur_value, array $param, array $paramValues, $fieldFormText
+	) {
 		if ( $type == 'int' ) {
 			return new OOUI\TextInputWidget( [
 				'name' => $paramName . '_' . $fieldFormText,
@@ -830,13 +871,18 @@ END;
 		}
 		$inputTypeClass = $formPrinter->getInputType( $inputType );
 
-		$params = method_exists( $inputTypeClass, 'getParameters' ) ? call_user_func( [ $inputTypeClass, 'getParameters' ] ) : [];
+		$params = method_exists( $inputTypeClass, 'getParameters' )
+			? call_user_func( [ $inputTypeClass, 'getParameters' ] )
+			: [];
 
 		$i = 0;
 		foreach ( $params as $param ) {
 			$paramName = $param['name'];
 			$type = $param['type'];
-			$desc = PFUtils::getParser()->parse( $param['description'], $this->getPageTitle(), ParserOptions::newFromUser( $this->getUser() ) )->getText();
+			$desc = PFUtils::getParser()->parse(
+				$param['description'], $this->getPageTitle(),
+				ParserOptions::newFromUser( $this->getUser() )
+			)->getText();
 
 			if ( array_key_exists( $paramName, $paramValues ) ) {
 				$cur_value = $paramValues[$paramName];
@@ -880,7 +926,10 @@ END;
 		foreach ( $params as $param ) {
 			$paramName = $param['name'];
 			$type = $param['type'];
-			$desc = PFUtils::getParser()->parse( $param['description'], $this->getPageTitle(), ParserOptions::newFromUser( $this->getUser() ) )->getText();
+			$desc = PFUtils::getParser()->parse(
+				$param['description'], $this->getPageTitle(),
+				ParserOptions::newFromUser( $this->getUser() )
+			)->getText();
 
 			if ( array_key_exists( $paramName, $paramValues ) ) {
 				$cur_value = $paramValues[$paramName];

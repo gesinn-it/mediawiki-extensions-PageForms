@@ -183,7 +183,9 @@ class PFFormLink {
 					foreach ( $query_components as $query_component ) {
 						$var_and_val = explode( '=', $query_component, 2 );
 						if ( count( $var_and_val ) == 2 ) {
-							$hidden_inputs .= Html::hidden( urldecode( $var_and_val[0] ), urldecode( $var_and_val[1] ) );
+							$hidden_inputs .= Html::hidden(
+								urldecode( $var_and_val[0] ), urldecode( $var_and_val[1] )
+							);
 						}
 					}
 					break;
@@ -225,7 +227,10 @@ class PFFormLink {
 					$inLinkStr = $inTargetName;
 				}
 			}
-			$str = Html::rawElement( 'a', [ 'href' => $link_url, 'class' => $classStr, 'title' => $inTooltip, 'target' => $targetWindow ], $inLinkStr );
+			$str = Html::rawElement( 'a', [
+				'href' => $link_url, 'class' => $classStr,
+				'title' => $inTooltip, 'target' => $targetWindow
+			], $inLinkStr );
 		}
 
 		return $str;

@@ -154,7 +154,8 @@ END;
 			// it is, edit the target page instead.
 			if ( method_exists( MediaWikiServices::class, 'getWikiPageFactory' ) ) {
 				// MW 1.36+
-				$content = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $page_title )->getContent();
+				$content = MediaWikiServices::getInstance()->getWikiPageFactory()
+					->newFromTitle( $page_title )->getContent();
 			} else {
 				$content = WikiPage::factory( $page_title )->getContent();
 			}
@@ -212,7 +213,9 @@ END;
 		// redirect.
 		$pageFormsScriptPath = $this->getConfig()->get( 'PageFormsScriptPath' );
 		$loadingImage = Html::element( 'img', [ 'src' => "$pageFormsScriptPath/skins/loading.gif" ] );
-		$text = "\t" . Html::rawElement( 'p', [ 'style' => "position: absolute; left: 45%; top: 45%;" ], $loadingImage );
+		$text = "\t" . Html::rawElement(
+			'p', [ 'style' => "position: absolute; left: 45%; top: 45%;" ], $loadingImage
+		);
 		$text .= "\t" . Html::element( 'meta', [ 'http-equiv' => 'refresh', 'content' => "0; url=$redirect_url" ] );
 		$out->addHTML( $text );
 	}

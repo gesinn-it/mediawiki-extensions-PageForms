@@ -113,7 +113,9 @@ class PFFormPrinter {
 		// All-purpose setup hook.
 		// Avoid PHP 7.1 warning from passing $this by reference.
 		$formPrinterRef = $this;
-		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::FormPrinterSetup', [ &$formPrinterRef ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run(
+			'PageForms::FormPrinterSetup', [ &$formPrinterRef ]
+		);
 	}
 
 	public function setSemanticTypeHook( $type, $is_list, $class_name, $default_args ) {
@@ -377,8 +379,14 @@ class PFFormPrinter {
 		if ( $form_is_disabled ) {
 			$addAboveButton = $removeButton = '';
 		} else {
-			$addAboveButton = Html::element( 'a', [ 'class' => "addAboveButton", 'title' => wfMessage( 'pf_formedit_addanotherabove' )->text() ] );
-			$removeButton = Html::element( 'a', [ 'class' => "removeButton", 'title' => wfMessage( 'pf_formedit_remove' )->text() ] );
+			$addAboveButton = Html::element( 'a', [
+				'class' => "addAboveButton",
+				'title' => wfMessage( 'pf_formedit_addanotherabove' )->text()
+			] );
+			$removeButton = Html::element( 'a', [
+				'class' => "removeButton",
+				'title' => wfMessage( 'pf_formedit_remove' )->text()
+			] );
 		}
 
 		$text = <<<END
@@ -596,7 +604,8 @@ END;
 
 			$inputType = $formField->getInputType();
 			$gridParamValues = [ 'name' => $templateField->getFieldName() ];
-			[ $autocompletedatatype, $autocompletesettings ] = $this->getSpreadsheetAutocompleteAttributes( $formFieldArgs );
+			[ $autocompletedatatype, $autocompletesettings ] =
+				$this->getSpreadsheetAutocompleteAttributes( $formFieldArgs );
 			if ( $formField->getLabel() !== null ) {
 				$gridParamValues['label'] = $formField->getLabel();
 			}
@@ -806,7 +815,10 @@ END;
 					// If there's a day, include whatever
 					// time information we have.
 					if ( $hour !== null ) {
-						$new_value .= " " . str_pad( intval( substr( $hour, 0, 2 ) ), 2, '0', STR_PAD_LEFT ) . ":" . str_pad( intval( substr( $minute, 0, 2 ) ), 2, '0', STR_PAD_LEFT );
+						$new_value .= " "
+						. str_pad( intval( substr( $hour, 0, 2 ) ), 2, '0', STR_PAD_LEFT )
+						. ":"
+						. str_pad( intval( substr( $minute, 0, 2 ) ), 2, '0', STR_PAD_LEFT );
 					}
 					if ( $second !== null ) {
 						$new_value .= ":" . str_pad( intval( substr( $second, 0, 2 ) ), 2, '0', STR_PAD_LEFT );
@@ -936,10 +948,13 @@ END;
 				$permissionErrors = $this->mPageTitle->getUserPermissionsErrors( 'edit', $user );
 			}
 			if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
-				$permissionErrors = [ [ 'readonlytext', [ MediaWikiServices::getInstance()->getReadOnlyMode()->getReason() ] ] ];
+				$permissionErrors = [ [ 'readonlytext',
+					[ MediaWikiServices::getInstance()->getReadOnlyMode()->getReason() ] ] ];
 			}
 			$userCanEditPage = count( $permissionErrors ) == 0;
-			MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::UserCanEditPage', [ $this->mPageTitle, &$userCanEditPage ] );
+			MediaWikiServices::getInstance()->getHookContainer()->run(
+				'PageForms::UserCanEditPage', [ $this->mPageTitle, &$userCanEditPage ]
+			);
 		}
 
 		// Start off with a loading spinner - this will be removed by
@@ -956,7 +971,9 @@ END;
 					'{{fullurl:Special:UserLogin|returnto={{FULLPAGENAMEE}}}}',
 					// Sign-up link
 					'{{fullurl:Special:UserLogin/signup|returnto={{FULLPAGENAMEE}}}}' )->parse();
-				$form_text .= Html::rawElement( 'div', [ 'id' => 'mw-anon-edit-warning', 'class' => 'warningbox' ], $anonEditWarning );
+				$form_text .= Html::rawElement(
+					'div', [ 'id' => 'mw-anon-edit-warning', 'class' => 'warningbox' ], $anonEditWarning
+				);
 			}
 		} else {
 			$form_is_disabled = true;
@@ -1065,7 +1082,8 @@ END;
 						}
 						if ( strpos( $tag_component, '<' ) !== false && strpos( $tag_component, '>' ) !== false ) {
 							throw new MWException(
-								'<div class="error">Error in form definition! The following field tag contains forbidden characters:</div>' .
+								'<div class="error">Error in form definition!' .
+						' The following field tag contains forbidden characters:</div>' .
 								"\n<pre>" . htmlspecialchars( $tag_component ) . "</pre>"
 							);
 						}
@@ -1103,7 +1121,9 @@ END;
 							$tif->setFieldValuesFromPage( $existing_page_content );
 							$existing_template_text = $tif->getFullTextInPage();
 							// Now remove this template from the text being edited.
-							$existing_page_content = $this->strReplaceFirst( $existing_template_text, '', $existing_page_content );
+							$existing_page_content = $this->strReplaceFirst(
+							$existing_template_text, '', $existing_page_content
+							);
 							// If we've found a match in the source
 							// page, there's a good chance that this
 							// page was created with this form - note
@@ -1133,7 +1153,10 @@ END;
 				// =====================================================
 				} elseif ( $tag_title == 'end template' ) {
 					if ( count( $tag_components ) > 1 ) {
-						throw new MWException( '<div class="error">Error in form definition: \'end template\' tag cannot contain any additional parameters.</div>' );
+						throw new MWException(
+							'<div class="error">Error in form definition:' .
+							' \'end template\' tag cannot contain any additional parameters.</div>'
+						);
 					}
 					if ( $source_is_page ) {
 						// Add any unhandled template fields
@@ -1168,20 +1191,32 @@ END;
 					// to deal with the #freetext# hack,
 					// among others.
 					$field_name = trim( $tag_components[1] );
-					$form_field = PFFormField::newFromFormFieldTag( $tag_components, $template, $tif, $form_is_disabled, $user );
+					$form_field = PFFormField::newFromFormFieldTag(
+						$tag_components, $template, $tif, $form_is_disabled, $user
+					);
 					// For special displays, add in the
 					// form fields, so we know the data
 					// structure.
-					if ( ( $tif->getDisplay() == 'table' && ( !$tif->allowsMultiple() || $tif->getInstanceNum() == 0 ) ) ||
-						( $tif->getDisplay() == 'spreadsheet' && $tif->allowsMultiple() && $tif->getInstanceNum() == 0 ) || ( $tif->getDisplay() == 'calendar' && $tif->allowsMultiple() && $tif->getInstanceNum() == 0 ) ) {
+					if ( ( $tif->getDisplay() == 'table'
+							&& ( !$tif->allowsMultiple() || $tif->getInstanceNum() == 0 ) ) ||
+						( $tif->getDisplay() == 'spreadsheet'
+							&& $tif->allowsMultiple() && $tif->getInstanceNum() == 0 ) ||
+						( $tif->getDisplay() == 'calendar'
+							&& $tif->allowsMultiple() && $tif->getInstanceNum() == 0 ) ) {
 						$tif->addField( $form_field );
 					}
 					$val_modifier = null;
 					if ( $is_autocreate ) {
 						$values_from_query = $autocreate_query[$tif->getTemplateName()] ?? [];
-						$cur_value = $form_field->getCurrentValue( $values_from_query, $form_submitted, $source_is_page, $tif->allInstancesPrinted(), $val_modifier );
+						$cur_value = $form_field->getCurrentValue(
+							$values_from_query, $form_submitted, $source_is_page,
+							$tif->allInstancesPrinted(), $val_modifier
+						);
 					} else {
-						$cur_value = $form_field->getCurrentValue( $tif->getValuesFromSubmit(), $form_submitted, $source_is_page, $tif->allInstancesPrinted(), $val_modifier );
+						$cur_value = $form_field->getCurrentValue(
+							$tif->getValuesFromSubmit(), $form_submitted, $source_is_page,
+							$tif->allInstancesPrinted(), $val_modifier
+						);
 					}
 					$delimiter = $form_field->getFieldArg( 'delimiter' );
 					if ( $form_field->holdsTemplate() ) {
@@ -1216,7 +1251,8 @@ END;
 							}
 							// Convert modified array back to a comma-separated string value and modify
 							// ==== GESINN PATCH BEGIN ====
-							// https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/commit/3017e9b503a09da312dc0a03f1235e90a66dc6d9
+							// https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/commit/
+							// 3017e9b503a09da312dc0a03f1235e90a66dc6d9
 							$cur_value = implode( $delimiter, $val_array );
 							// ==== GESINN PATCH BEGIN ====
 							if ( $cur_value === '' ) {
@@ -1271,12 +1307,18 @@ END;
 							} else {
 								$default_value = $cur_value;
 							}
-							$freeTextInput = new PFTextAreaInput( $input_number = null, $default_value, 'pf_free_text', ( $form_is_disabled || $form_field->isRestricted() ), $form_field->getFieldArgs() );
+							$freeTextInput = new PFTextAreaInput(
+								$input_number = null, $default_value, 'pf_free_text',
+								( $form_is_disabled || $form_field->isRestricted() ),
+								$form_field->getFieldArgs()
+							);
 							$freeTextInput->addJavaScript();
 							$new_text = $freeTextInput->getHtmlText();
 							if ( $form_field->hasFieldArg( 'edittools' ) ) {
 								// borrowed from EditPage::showEditTools()
-								$edittools_text = $parser->recursiveTagParse( wfMessage( 'edittools', [ 'content' ] )->text() );
+								$edittools_text = $parser->recursiveTagParse(
+									wfMessage( 'edittools', [ 'content' ] )->text()
+								);
 
 								$new_text .= <<<END
 		<div class="mw-editTools">
@@ -1291,7 +1333,9 @@ END;
 					}
 
 					if ( $tif->getTemplateName() === '' || $field_name == '#freetext#' ) {
-						$section = substr_replace( $section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc );
+						$section = substr_replace(
+							$section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
+						);
 					} else {
 						if ( is_array( $cur_value ) ) {
 							// @TODO - is this code ever called?
@@ -1333,22 +1377,31 @@ END;
 							// $generated_page_name = str_replace('.', '_', $generated_page_name);
 							$generated_page_name = str_replace( ' ', '_', $generated_page_name ?? '' );
 							$escaped_input_name = str_replace( ' ', '_', $form_field->getInputName() ?? '' );
-							$generated_page_name = str_ireplace( "<$escaped_input_name>", $cur_value_in_template ?? '', $generated_page_name );
+							$generated_page_name = str_ireplace(
+								"<$escaped_input_name>", $cur_value_in_template ?? '', $generated_page_name
+							);
 							// Once the substitution is done, replace underlines back
 							// with spaces.
 							$generated_page_name = str_replace( '_', ' ', $generated_page_name );
 						}
 						// @codeCoverageIgnoreStart
 						if ( defined( 'CARGO_VERSION' ) && $form_field->hasFieldArg( 'mapping cargo table' ) &&
-						$form_field->hasFieldArg( 'mapping cargo field' ) && $form_field->hasFieldArg( 'mapping cargo value field' ) ) {
+							$form_field->hasFieldArg( 'mapping cargo field' ) &&
+							$form_field->hasFieldArg( 'mapping cargo value field' ) ) {
 								$mappingCargoTable = $form_field->getFieldArg( 'mapping cargo table' );
 								$mappingCargoField = $form_field->getFieldArg( 'mapping cargo field' );
 								$mappingCargoValueField = $form_field->getFieldArg( 'mapping cargo value field' );
 							if ( !$form_submitted && $cur_value !== null && $cur_value !== '' ) {
-								$cur_value = $this->getCargoBasedMapping( $cur_value, $mappingCargoTable, $mappingCargoField, $mappingCargoValueField, $form_field );
+								$cur_value = $this->getCargoBasedMapping(
+									$cur_value, $mappingCargoTable, $mappingCargoField,
+									$mappingCargoValueField, $form_field
+								);
 							}
 							if ( $form_submitted && $cur_value_in_template !== null && $cur_value_in_template !== '' ) {
-								$cur_value_in_template = $this->getCargoBasedMapping( $cur_value_in_template, $mappingCargoTable, $mappingCargoValueField, $mappingCargoField, $form_field );
+								$cur_value_in_template = $this->getCargoBasedMapping(
+									$cur_value_in_template, $mappingCargoTable, $mappingCargoValueField,
+									$mappingCargoField, $form_field
+								);
 							}
 						}
 
@@ -1377,10 +1430,14 @@ END;
 						// @TODO - should it be $cur_value for both cases? Or should the
 						// hook perhaps modify both variables?
 						if ( $form_submitted ) {
-							MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::CreateFormField', [ &$form_field, &$cur_value_in_template, true ] );
+							MediaWikiServices::getInstance()->getHookContainer()->run(
+								'PageForms::CreateFormField', [ &$form_field, &$cur_value_in_template, true ]
+							);
 						} else {
 							$this->createFormFieldTranslateTag( $template, $tif, $form_field, $cur_value );
-							MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::CreateFormField', [ &$form_field, &$cur_value, false ] );
+							MediaWikiServices::getInstance()->getHookContainer()->run(
+								'PageForms::CreateFormField', [ &$form_field, &$cur_value, false ]
+							);
 						}
 						// if this is not part of a 'multiple' template, increment the
 						// global tab index (used for correct tabbing)
@@ -1406,8 +1463,11 @@ END;
 							// formatting; instead, they handle 'now' themselves.
 							if ( $input_type == 'date' || $input_type == 'datetime' ||
 									$input_type == 'year' ||
-									( $input_type == '' && $form_field->getTemplateField()->getPropertyType() == '_dat' ) ) {
-								$cur_value_in_template = self::getStringForCurrentTime( $input_type == 'datetime', $form_field->hasFieldArg( 'include timezone' ) );
+									( $input_type == ''
+										&& $form_field->getTemplateField()->getPropertyType() == '_dat' ) ) {
+								$cur_value_in_template = self::getStringForCurrentTime(
+								$input_type == 'datetime', $form_field->hasFieldArg( 'include timezone' )
+								);
 							}
 						// If the field is a text field, and its default value was set
 						// to 'current user', and it has no current value, set $cur_value
@@ -1448,11 +1508,17 @@ END;
 						}
 
 						$new_text = $this->formFieldHTML( $form_field, $cur_value );
-						$new_text .= $form_field->additionalHTMLForInput( $cur_value, $field_name, $tif->getTemplateName() );
+						$new_text .= $form_field->additionalHTMLForInput(
+							$cur_value, $field_name, $tif->getTemplateName()
+						);
 
 						if ( $new_text ) {
-							$wiki_page->addTemplateParam( $template_name, $tif->getInstanceNum(), $field_name, $cur_value_in_template );
-							$section = substr_replace( $section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc );
+							$wiki_page->addTemplateParam(
+								$template_name, $tif->getInstanceNum(), $field_name, $cur_value_in_template
+							);
+							$section = substr_replace(
+								$section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
+							);
 							$start_position = $brackets_loc + strlen( $new_text );
 						} else {
 							$start_position = $brackets_end_loc;
@@ -1462,7 +1528,8 @@ END;
 					if ( $tif->allowsMultiple() && !$tif->allInstancesPrinted() ) {
 						$wordForYes = PFUtils::getWordForYesOrNo( true );
 						if ( $form_field->getInputType() == 'checkbox' ) {
-							if ( strtolower( $cur_value ) == strtolower( $wordForYes ) || strtolower( $cur_value ) == 'yes' || $cur_value == '1' ) {
+							if ( strtolower( $cur_value ) == strtolower( $wordForYes )
+								|| strtolower( $cur_value ) == 'yes' || $cur_value == '1' ) {
 								$cur_value = true;
 							} else {
 								$cur_value = false;
@@ -1470,7 +1537,8 @@ END;
 						}
 					}
 
-					if ( $tif->getDisplay() != null && ( !$tif->allowsMultiple() || !$tif->allInstancesPrinted() ) ) {
+					if ( $tif->getDisplay() != null
+						&& ( !$tif->allowsMultiple() || !$tif->allInstancesPrinted() ) ) {
 						$tif->addGridValue( $field_name, $cur_value );
 					}
 
@@ -1484,9 +1552,12 @@ END;
 					$attr = [];
 
 					// if it's a query, ignore all standard inputs except run query
-					if ( ( $is_query && $input_name != 'run query' ) || ( !$is_query && $input_name == 'run query' ) ) {
+					if ( ( $is_query && $input_name != 'run query' )
+						|| ( !$is_query && $input_name == 'run query' ) ) {
 						$new_text = "";
-						$section = substr_replace( $section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc );
+						$section = substr_replace(
+							$section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
+						);
 						continue;
 					}
 					// set a flag so that the standard 'form bottom' won't get displayed
@@ -1516,19 +1587,27 @@ END;
 					}
 					if ( $input_name == 'summary' ) {
 						$value = $wgRequest->getVal( 'wpSummary' );
-						$new_text = PFFormUtils::summaryInputHTML( $form_is_disabled, $input_label, $attr, $value );
+						$new_text = PFFormUtils::summaryInputHTML(
+							$form_is_disabled, $input_label, $attr, $value
+						);
 					} elseif ( $input_name == 'minor edit' ) {
 						$is_checked = $wgRequest->getCheck( 'wpMinoredit' );
-						$new_text = PFFormUtils::minorEditInputHTML( $form_submitted, $form_is_disabled, $is_checked, $input_label, $attr );
+						$new_text = PFFormUtils::minorEditInputHTML(
+						$form_submitted, $form_is_disabled, $is_checked, $input_label, $attr
+						);
 					} elseif ( $input_name == 'watch' ) {
 						$is_checked = $wgRequest->getCheck( 'wpWatchthis' );
-						$new_text = PFFormUtils::watchInputHTML( $form_submitted, $form_is_disabled, $is_checked, $input_label, $attr );
+						$new_text = PFFormUtils::watchInputHTML(
+							$form_submitted, $form_is_disabled, $is_checked, $input_label, $attr
+						);
 					} elseif ( $input_name == 'save' ) {
 						$new_text = PFFormUtils::saveButtonHTML( $form_is_disabled, $input_label, $attr );
 					} elseif ( $input_name == 'save and continue' ) {
 						// Remove save and continue button in one-step-process
 						if ( $this->mPageTitle == $page_name ) {
-							$new_text = PFFormUtils::saveAndContinueButtonHTML( $form_is_disabled, $input_label, $attr );
+							$new_text = PFFormUtils::saveAndContinueButtonHTML(
+								$form_is_disabled, $input_label, $attr
+							);
 						} else {
 							$new_text = '';
 						}
@@ -1541,7 +1620,9 @@ END;
 					} elseif ( $input_name == 'run query' ) {
 						$new_text = PFFormUtils::runQueryButtonHTML( $form_is_disabled, $input_label, $attr );
 					}
-					$section = substr_replace( $section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc );
+					$section = substr_replace(
+						$section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
+					);
 				// =====================================================
 				// for section processing
 				// =====================================================
@@ -1582,7 +1663,8 @@ END;
 						}
 						$section_end_loc = -1;
 
-						// get the position of the next template or section defined in the form which is not empty and hidden if empty
+						// get the position of the next template or section
+						// defined in the form which is not empty and hidden if empty
 						$previous_brackets_end_loc = $brackets_end_loc;
 						$next_section_found = false;
 						// loop until the next section is found
@@ -1593,13 +1675,23 @@ END;
 								$next_section_found = true;
 							} else {
 								$next_bracket_end_loc = strpos( $section, '}}}', $next_bracket_start_loc );
-								$bracketed_string_next_section = substr( $section, $next_bracket_start_loc + 3, $next_bracket_end_loc - ( $next_bracket_start_loc + 3 ) );
-								$tag_components_next_section = PFUtils::getFormTagComponents( $bracketed_string_next_section );
-								$page_next_section_in_form = PFPageSection::newFromFormTag( $tag_components_next_section, $user );
+								$bracketed_string_next_section = substr(
+									$section, $next_bracket_start_loc + 3,
+									$next_bracket_end_loc - ( $next_bracket_start_loc + 3 )
+								);
+								$tag_components_next_section =
+									PFUtils::getFormTagComponents( $bracketed_string_next_section );
+								$page_next_section_in_form =
+									PFPageSection::newFromFormTag( $tag_components_next_section, $user );
 								$tag_title_next_section = trim( $tag_components_next_section[0] );
 								if ( $tag_title_next_section == 'section' ) {
-									// There is no pattern match for the next section if the section is empty and its hideIfEmpty attribute is set
-									if ( preg_match( '/(^={1,6}[ ]*?' . preg_quote( $tag_components_next_section[1], '/' ) . '[ ]*?={1,6}\s*?$)/m', $existing_page_content, $matches, PREG_OFFSET_CAPTURE ) ) {
+									// There is no pattern match for the next section if the section
+									// is empty and its hideIfEmpty attribute is set
+									if ( preg_match(
+										'/(^={1,6}[ ]*?' . preg_quote( $tag_components_next_section[1], '/' )
+											. '[ ]*?={1,6}\s*?$)/m',
+										$existing_page_content, $matches, PREG_OFFSET_CAPTURE
+									) ) {
 										$section_end_loc = $matches[0][1];
 										$next_section_found = true;
 									// Check for the next section if no pattern match
@@ -1619,8 +1711,11 @@ END;
 							$section_text = substr( $existing_page_content, $section_start_loc );
 							$existing_page_content = substr( $existing_page_content, 0, $section_start_loc );
 						} else {
-							$section_text = substr( $existing_page_content, $section_start_loc, $section_end_loc - $section_start_loc );
-							$existing_page_content = substr( $existing_page_content, 0, $section_start_loc ) . substr( $existing_page_content, $section_end_loc );
+							$section_text = substr(
+								$existing_page_content, $section_start_loc, $section_end_loc - $section_start_loc
+							);
+							$existing_page_content = substr( $existing_page_content, 0, $section_start_loc )
+							. substr( $existing_page_content, $section_end_loc );
 						}
 					}
 
@@ -1633,9 +1728,12 @@ END;
 						} else {
 							$section_text = '';
 						}
-						// $section_options will allow to pass additional options in the future without breaking backword compatibility
+						// $section_options will allow to pass additional options in the future
+						// without breaking backword compatibility
 						$section_options = [ 'hideIfEmpty' => $page_section_in_form->isHideIfEmpty() ];
-						$wiki_page->addSection( $section_name, $page_section_in_form->getSectionLevel(), $section_text, $section_options );
+						$wiki_page->addSection(
+						$section_name, $page_section_in_form->getSectionLevel(), $section_text, $section_options
+						);
 					}
 
 					$section_text = trim( $section_text );
@@ -1651,12 +1749,17 @@ END;
 					if ( $page_section_in_form->isHidden() ) {
 						$form_section_text = Html::hidden( $input_name, $section_text );
 					} else {
-						$sectionInput = new PFTextAreaInput( $wgPageFormsFieldNum, $section_text, $input_name, ( $form_is_disabled || $page_section_in_form->isRestricted() ), $other_args );
+						$sectionInput = new PFTextAreaInput(
+							$wgPageFormsFieldNum, $section_text, $input_name,
+							( $form_is_disabled || $page_section_in_form->isRestricted() ), $other_args
+						);
 						$sectionInput->addJavaScript();
 						$form_section_text = $sectionInput->getHtmlText();
 					}
 
-					$section = substr_replace( $section, $form_section_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc );
+					$section = substr_replace(
+						$section, $form_section_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
+					);
 				// =====================================================
 				// page info processing
 				// =====================================================
@@ -1697,15 +1800,22 @@ END;
 					}
 					// Replace the {{{info}}} tag with a hidden span, instead of a blank, to avoid a
 					// potential security issue.
-					$section = substr_replace( $section, '<span style="visibility: hidden;"></span>', $brackets_loc, $brackets_end_loc + 3 - $brackets_loc );
+					$section = substr_replace(
+					$section, '<span style="visibility: hidden;"></span>',
+					$brackets_loc, $brackets_end_loc + 3 - $brackets_loc
+					);
 				// =====================================================
 				// default outer level processing
 				// =====================================================
 				} else {
 					// Tag is not one of the allowed values -
 					// ignore it, other than to HTML-escape it.
-					$form_section_text = htmlspecialchars( substr( $section, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc ) );
-					$section = substr_replace( $section, $form_section_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc );
+					$form_section_text = htmlspecialchars(
+						substr( $section, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc )
+					);
+					$section = substr_replace(
+						$section, $form_section_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
+					);
 					$start_position = $brackets_end_loc;
 				}
 				// end if
@@ -1833,7 +1943,9 @@ END;
 						$multipleTemplateHTML .= $this->multipleTemplateStartHTML( $tif );
 					}
 					if ( !$tif->allInstancesPrinted() ) {
-						$multipleTemplateHTML .= $this->multipleTemplateInstanceHTML( $tif, $form_is_disabled, $section );
+						$multipleTemplateHTML .= $this->multipleTemplateInstanceHTML(
+							$tif, $form_is_disabled, $section
+						);
 					} else {
 						$multipleTemplateHTML .= $this->multipleTemplateEndHTML( $tif, $form_is_disabled, $section );
 					}
@@ -1859,7 +1971,9 @@ END;
 					// placeholder tag, but also add another
 					// placeholder tag, to keep track of it.
 					$multipleTemplateHTML .= self::makePlaceholderInFormHTML( $placeholder );
-					$form_text = str_replace( self::makePlaceholderInFormHTML( $placeholder ), $multipleTemplateHTML, $form_text );
+					$form_text = str_replace(
+						self::makePlaceholderInFormHTML( $placeholder ), $multipleTemplateHTML, $form_text
+					);
 				}
 				if ( !$tif->allInstancesPrinted() ) {
 					// This will cause the section to be
@@ -1999,7 +2113,9 @@ END;
 	 * @param PFFormField $form_field
 	 * @return string|null $currentValue
 	 */
-	private function getCargoBasedMapping( $currentValue, $mappingCargoTable, $mappingCargoField, $mappingCargoValueField, $form_field ) {
+	private function getCargoBasedMapping(
+		$currentValue, $mappingCargoTable, $mappingCargoField, $mappingCargoValueField, $form_field
+	) {
 		$cargoValues = [];
 		$delimiter = $form_field->getFieldArg( 'delimiter' );
 		$cur_value = str_replace( '"', '\"', $currentValue );
@@ -2009,7 +2125,10 @@ END;
 			$cargoValues = [ $currentValue ];
 		}
 		foreach ( $cargoValues as $key => $value ) {
-			$cargoValue = PFValuesUtils::getValuesForCargoField( $mappingCargoTable, $mappingCargoField, $mappingCargoValueField . '="' . trim( $value ) . '"' );
+			$cargoValue = PFValuesUtils::getValuesForCargoField(
+				$mappingCargoTable, $mappingCargoField,
+				$mappingCargoValueField . '="' . trim( $value ) . '"'
+			);
 			if ( !empty( $cargoValue ) ) {
 				$cargoValues[ $key ] = current( $cargoValue );
 			}
@@ -2082,7 +2201,10 @@ END;
 		}
 
 		if ( $class_name !== null ) {
-			$form_input = new $class_name( $wgPageFormsFieldNum, $cur_value, $form_field->getInputName(), $form_field->isDisabled(), $other_args );
+			$form_input = new $class_name(
+				$wgPageFormsFieldNum, $cur_value, $form_field->getInputName(),
+				$form_field->isDisabled(), $other_args
+			);
 
 			// If a regex was defined, make this a "regexp" input that wraps
 			// around the real one.
@@ -2106,7 +2228,8 @@ END;
 	 * @param string &$text
 	 */
 	private function addTranslatableInput( $form_field, $cur_value, &$text ) {
-		if ( PFUtils::isTranslateEnabled() || !$form_field->hasFieldArg( 'translatable' ) || !$form_field->getFieldArg( 'translatable' ) ) {
+		if ( PFUtils::isTranslateEnabled() || !$form_field->hasFieldArg( 'translatable' )
+			|| !$form_field->getFieldArg( 'translatable' ) ) {
 			return;
 		}
 
@@ -2124,7 +2247,8 @@ END;
 	}
 
 	private function createFormFieldTranslateTag( &$template, &$tif, &$form_field, &$cur_value ) {
-		if ( PFUtils::isTranslateEnabled() || !$form_field->hasFieldArg( 'translatable' ) || !$form_field->getFieldArg( 'translatable' ) ) {
+		if ( PFUtils::isTranslateEnabled() || !$form_field->hasFieldArg( 'translatable' )
+			|| !$form_field->getFieldArg( 'translatable' ) ) {
 			return;
 		}
 

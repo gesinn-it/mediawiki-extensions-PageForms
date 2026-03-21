@@ -111,7 +111,8 @@ class PFTokensInput extends PFFormInput {
 				$delimiter = ',';
 			}
 		} else {
-			[ $autocompleteSettings, $remoteDataType, $delimiter ] = PFValuesUtils::setAutocompleteValues( $other_args, true );
+			[ $autocompleteSettings, $remoteDataType, $delimiter ] =
+				PFValuesUtils::setAutocompleteValues( $other_args, true );
 		}
 
 		if ( is_array( $cur_value ) ) {
