@@ -23,7 +23,7 @@ class PFHooks {
 			return 1;
 		}
 
-		define( 'PF_VERSION', '5.5.1.0-alpha1' );
+		define( 'PF_VERSION', ExtensionRegistry::getInstance()->getAllThings()['PageForms']['version'] );
 
 		$GLOBALS['wgPageFormsIP'] = dirname( __DIR__ ) . '/../';
 
