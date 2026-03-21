@@ -136,6 +136,9 @@
 		}
 		const $src = $( src );
 		const raw = getRawNameAndValues( $src );
+		if ( !raw.name ) {
+			return;
+		}
 		const lookupOriginalValue = pf.originalValueLookup( $src );
 		const originalValues = raw.values.map( lookupOriginalValue );
 		const srcName = parseFieldIdentifier( raw.name );
