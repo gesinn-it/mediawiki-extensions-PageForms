@@ -62,11 +62,7 @@ class PFValuesUtils {
 	 */
 	public static function getCategoriesForPage( $title ) {
 		$categories = [];
-		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-			$db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-		} else {
-			$db = wfGetDB( DB_REPLICA );
-		}
+		$db = PFUtils::getReplicaDB();
 		$titlekey = $title->getArticleID();
 		if ( $titlekey == 0 ) {
 			// Something's wrong - exit
@@ -92,11 +88,7 @@ class PFValuesUtils {
 	 */
 	public static function getAllCategories() {
 		$categories = [];
-		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-			$db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-		} else {
-			$db = wfGetDB( DB_REPLICA );
-		}
+		$db = PFUtils::getReplicaDB();
 		$res = $db->select(
 			'category',
 			'cat_title',
@@ -304,11 +296,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		}
 		global $wgPageFormsMaxAutocompleteValues, $wgPageFormsUseDisplayTitle;
 
-		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-			$db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-		} else {
-			$db = wfGetDB( DB_REPLICA );
-		}
+		$db = PFUtils::getReplicaDB();
 		$top_category = str_replace( ' ', '_', $top_category );
 		$categories = [ $top_category ];
 		$checkcategories = [ $top_category ];
@@ -598,11 +586,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			$namespaceConditions[] = "page_namespace = $matchingNamespaceCode";
 		}
 
-		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-			$db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-		} else {
-			$db = wfGetDB( DB_REPLICA );
-		}
+		$db = PFUtils::getReplicaDB();
 		$conditions = [];
 		$conditions[] = implode( ' OR ', $namespaceConditions );
 		$tables = [ 'page' ];
@@ -899,11 +883,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 	public static function getSQLConditionForAutocompleteInColumn( $column, $substring, $replaceSpaces = true ) {
 		global $wgPageFormsAutocompleteOnAllChars;
 
-		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-			$db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-		} else {
-			$db = wfGetDB( DB_REPLICA );
-		}
+		$db = PFUtils::getReplicaDB();
 
 		// CONVERT() is also supported in PostgreSQL, but it doesn't
 		// seem to work the same way.

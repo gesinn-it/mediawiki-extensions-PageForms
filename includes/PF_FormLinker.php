@@ -27,11 +27,7 @@ class PFFormLinker {
 		}
 
 		$pageID = $title->getArticleID();
-		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-			$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-		} else {
-			$dbr = wfGetDB( DB_REPLICA );
-		}
+		$dbr = PFUtils::getReplicaDB();
 		$res = $dbr->select( 'page_props',
 			[
 				'pp_value'

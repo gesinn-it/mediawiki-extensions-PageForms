@@ -230,11 +230,7 @@ class PFFormEditAction extends Action {
 	 * @return int[]
 	 */
 	public static function getNumPagesPerForm() {
-		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-			$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-		} else {
-			$dbr = wfGetDB( DB_REPLICA );
-		}
+		$dbr = PFUtils::getReplicaDB();
 		$res = $dbr->select(
 			[ 'category', 'page', 'page_props' ],
 			[ 'pp_value', 'SUM(cat_pages) AS total_pages' ],

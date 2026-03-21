@@ -197,11 +197,7 @@ class PFAutocompleteAPI extends ApiBase {
 		$useDisplayTitle = $this->getConfig()->get( 'PageFormsUseDisplayTitle' );
 		$smwgDefaultStore = $GLOBALS['smwgDefaultStore'] ?? null;
 
-		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-			$db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-		} else {
-			$db = wfGetDB( DB_REPLICA );
-		}
+		$db = PFUtils::getReplicaDB();
 		$sqlOptions = [];
 		$sqlOptions['LIMIT'] = $maxAutocompleteValues;
 

@@ -8,7 +8,6 @@
  * @author Yaron Koren
  * @author Amr El-Absy
  */
-use MediaWiki\MediaWikiServices;
 
 class PFTree {
 	/**
@@ -253,11 +252,7 @@ class PFTree {
 	 * @return array
 	 */
 	private static function getSubcategories( $categoryName ) {
-		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-			$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-		} else {
-			$dbr = wfGetDB( DB_REPLICA );
-		}
+		$dbr = PFUtils::getReplicaDB();
 
 		$tables = [ 'page', 'categorylinks' ];
 		$fields = [ 'page_id', 'page_namespace', 'page_title',

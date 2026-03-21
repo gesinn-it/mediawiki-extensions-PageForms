@@ -296,25 +296,30 @@ These hooks enable PageForms to integrate with the MediaWiki editing workflow.
 # MediaWiki Version Compatibility
 
 PageForms supports a range of MediaWiki versions. Where the MW or PHP API
-differs between versions, the code uses a version gate:
+differs between versions, the compatibility gap is encapsulated in a static
+helper on `PFUtils` rather than repeated at each call site:
 
 ```php
-if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-    $db = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-} else {
-    $db = wfGetDB( DB_REPLICA );
-}
+// DB reads — use the centralized helper:
+$db = PFUtils::getReplicaDB();
+
+// WikiPage from Title — use the centralized helper:
+$wikiPage = PFUtils::newWikiPageFromTitle( $title );
 ```
+
+These helpers contain the version gate internally and shield all other code
+from knowing which MW version is running.
 
 Key compatibility boundaries:
 
-| Boundary | Older API | Newer API | Since |
-|----------|-----------|-----------|-------|
-| DB replica connection | `wfGetDB( DB_REPLICA )` | `getConnectionProvider()->getReplicaDatabase()` | MW 1.42 |
-| DB table JOIN | Raw SQL string as table name | Array form with `$joinConds` | MW 1.43 |
-| Parser instance | `$parser->getFreshParser()` | `$parser` directly (removed) | MW 1.43 |
-| ResourceLoader type hint | `ResourceLoader $rl` | No type hint | MW 1.43 |
-| Add user to group | `User::addGroup()` | `UserGroupManager::addUserToGroup()` | MW 1.41 |
+| Boundary | Older API | Newer API | Since | PFUtils helper |
+|----------|-----------|-----------|-------|----------------|
+| DB replica connection | `wfGetDB( DB_REPLICA )` | `getConnectionProvider()->getReplicaDatabase()` | MW 1.42 | `PFUtils::getReplicaDB()` |
+| WikiPage from Title | `WikiPage::factory( $title )` | `getWikiPageFactory()->newFromTitle( $title )` | MW 1.36 | `PFUtils::newWikiPageFromTitle( $title )` |
+| DB table JOIN | Raw SQL string as table name | Array form with `$joinConds` | MW 1.43 | — |
+| Parser instance | `$parser->getFreshParser()` | `$parser` directly (removed) | MW 1.43 | — |
+| ResourceLoader type hint | `ResourceLoader $rl` | No type hint | MW 1.43 | — |
+| Add user to group | `User::addGroup()` | `UserGroupManager::addUserToGroup()` | MW 1.41 | — |
 
 Test infrastructure notes:
 

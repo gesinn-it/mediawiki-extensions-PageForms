@@ -105,18 +105,27 @@ class PFUtils {
 	 * @return string|null
 	 */
 	public static function getPageText( $title, $audience = RevisionRecord::FOR_PUBLIC ) {
-		if ( method_exists( MediaWikiServices::class, 'getWikiPageFactory' ) ) {
-			// MW 1.36+
-			$wikiPage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
-		} else {
-			$wikiPage = new WikiPage( $title );
-		}
+		$wikiPage = self::newWikiPageFromTitle( $title );
 		$content = $wikiPage->getContent( $audience );
 		if ( $content instanceof TextContent ) {
 			return $content->getText();
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * Creates a WikiPage for the given Title, using the correct API for the current MW version.
+	 *
+	 * @param Title $title
+	 * @return WikiPage
+	 */
+	public static function newWikiPageFromTitle( Title $title ): WikiPage {
+		if ( method_exists( MediaWikiServices::class, 'getWikiPageFactory' ) ) {
+			// MW 1.36+
+			return MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
+		}
+		return WikiPage::factory( $title );
 	}
 
 	public static function getSpecialPage( $pageName ) {
@@ -298,15 +307,23 @@ END;
 	}
 
 	/**
+	 * Returns a read-only database connection, using the correct API for the current MW version.
+	 *
+	 * @return \Wikimedia\Rdbms\IReadableDatabase|\Wikimedia\Rdbms\IDatabase
+	 */
+	public static function getReplicaDB() {
+		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
+			return MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
+		}
+		return wfGetDB( DB_REPLICA );
+	}
+
+	/**
 	 * Returns an array of all form names on this wiki.
 	 * @return string[]
 	 */
 	public static function getAllForms() {
-		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-			$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-		} else {
-			$dbr = wfGetDB( DB_REPLICA );
-		}
+		$dbr = self::getReplicaDB();
 		$res = $dbr->select( 'page',
 			'page_title',
 			[ 'page_namespace' => PF_NS_FORM,
