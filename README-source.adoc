@@ -1,4 +1,5 @@
 :project_name: Page Forms
+:project_type: mediawiki
 = {project_name}
 
 image:https://github.com/gesinn-it/mediawiki-extensions-PageForms/actions/workflows/ci.yml/badge.svg[CI,link=https://github.com/gesinn-it/mediawiki-extensions-PageForms/actions/workflows/ci.yml]
