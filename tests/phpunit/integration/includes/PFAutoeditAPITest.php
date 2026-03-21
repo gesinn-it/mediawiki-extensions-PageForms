@@ -146,6 +146,315 @@ class PFAutoeditAPITest extends ApiTestCase {
 		$this->assertStringContainsString( 'Saved successfully.', $result['responseText'] );
 	}
 
+	// -------------------------------------------------------------------------
+	// getters / setters
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @covers \PFAutoeditAPI::getOptions
+	 * @covers \PFAutoeditAPI::setOptions
+	 */
+	public function testSetAndGetOptions(): void {
+		[ $module ] = $this->newModule();
+		$module->setOptions( [ 'form' => 'MyForm', 'target' => 'MyPage' ] );
+		$this->assertSame( [ 'form' => 'MyForm', 'target' => 'MyPage' ], $module->getOptions() );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::setOption
+	 * @covers \PFAutoeditAPI::getOptions
+	 */
+	public function testSetOptionUpdatesASingleKey(): void {
+		[ $module ] = $this->newModule();
+		$module->setOptions( [ 'form' => 'A', 'target' => 'B' ] );
+		$module->setOption( 'target', 'C' );
+		$this->assertSame( 'C', $module->getOptions()['target'] );
+		$this->assertSame( 'A', $module->getOptions()['form'] );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::getAction
+	 */
+	public function testGetActionReturnsNullByDefault(): void {
+		[ $module ] = $this->newModule();
+		$this->assertNull( $module->getAction() );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::getStatus
+	 */
+	public function testGetStatusReturnsNullByDefault(): void {
+		[ $module ] = $this->newModule();
+		$this->assertNull( $module->getStatus() );
+	}
+
+	// -------------------------------------------------------------------------
+	// isWriteMode / getAllowedParams / getParamDescription
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @covers \PFAutoeditAPI::isWriteMode
+	 */
+	public function testIsWriteModeReturnsTrue(): void {
+		[ $module ] = $this->newModule();
+		$this->assertTrue( $module->isWriteMode() );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::getAllowedParams
+	 */
+	public function testGetAllowedParamsContainsRequiredKeys(): void {
+		[ $module ] = $this->newModule();
+		$params = $module->getAllowedParams();
+		$this->assertIsArray( $params );
+		foreach ( [ 'form', 'target', 'query', 'preload' ] as $key ) {
+			$this->assertArrayHasKey( $key, $params );
+		}
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::getParamDescription
+	 */
+	public function testGetParamDescriptionReturnsStringsForAllAllowedParams(): void {
+		[ $module ] = $this->newModule();
+		$desc = $module->getParamDescription();
+		$this->assertIsArray( $desc );
+		foreach ( array_keys( $module->getAllowedParams() ) as $key ) {
+			$this->assertArrayHasKey( $key, $desc );
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// getVersion
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @covers \PFAutoeditAPI::getVersion
+	 */
+	public function testGetVersionContainsClassName(): void {
+		[ $module ] = $this->newModule();
+		$version = $module->getVersion();
+		$this->assertStringContainsString( 'PFAutoeditAPI', $version );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::getVersion
+	 */
+	public function testGetVersionContainsPFVersion(): void {
+		[ $module ] = $this->newModule();
+		$version = $module->getVersion();
+		$this->assertStringContainsString( PF_VERSION, $version );
+	}
+
+	// -------------------------------------------------------------------------
+	// addOptionsFromString – exercises parseDataFromQueryString
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @covers \PFAutoeditAPI::addOptionsFromString
+	 */
+	public function testAddOptionsFromStringParsesSimpleKeyValue(): void {
+		[ $module ] = $this->newModule();
+		$module->addOptionsFromString( 'MyTemplate%5Bfield%5D=hello' );
+		$options = $module->getOptions();
+		$this->assertArrayHasKey( 'MyTemplate', $options );
+		$this->assertSame( 'hello', $options['MyTemplate']['field'] );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::addOptionsFromString
+	 */
+	public function testAddOptionsFromStringPreservesLiteralPlusSign(): void {
+		// A literal '+' in a field value must survive round-trip as '+', not
+		// be decoded to a space.  This is the behaviour the + → %2B patch ensures.
+		[ $module ] = $this->newModule();
+		$module->addOptionsFromString( 'T%5Bf%5D=a%2Bb' );
+		$this->assertSame( 'a+b', $module->getOptions()['T']['f'] );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::addOptionsFromString
+	 */
+	public function testAddOptionsFromStringHandlesMultipleFields(): void {
+		[ $module ] = $this->newModule();
+		$module->addOptionsFromString( 'T%5Bx%5D=1&T%5By%5D=2' );
+		$options = $module->getOptions();
+		$this->assertSame( '1', $options['T']['x'] );
+		$this->assertSame( '2', $options['T']['y'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// prepareAction – action dispatch logic
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @covers \PFAutoeditAPI::prepareAction
+	 */
+	public function testPrepareActionDefaultsToFormedit(): void {
+		[ $module ] = $this->newModule( [ 'form' => 'TestForm', 'target' => 'TestPage' ] );
+		$module->prepareAction();
+		$this->assertSame( PFAutoeditAPI::ACTION_FORMEDIT, $module->getAction() );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::prepareAction
+	 */
+	public function testPrepareActionWpSaveSetsActionSave(): void {
+		[ $module ] = $this->newModule( [
+			'form'   => 'TestForm',
+			'target' => 'TestPage',
+			'wpSave' => '1',
+		] );
+		$module->prepareAction();
+		$this->assertSame( PFAutoeditAPI::ACTION_SAVE, $module->getAction() );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::prepareAction
+	 */
+	public function testPrepareActionWpPreviewSetsActionPreview(): void {
+		[ $module ] = $this->newModule( [
+			'form'      => 'TestForm',
+			'target'    => 'TestPage',
+			'wpPreview' => '1',
+		] );
+		$module->prepareAction();
+		$this->assertSame( PFAutoeditAPI::ACTION_PREVIEW, $module->getAction() );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::prepareAction
+	 */
+	public function testPrepareActionWpDiffSetsActionDiff(): void {
+		[ $module ] = $this->newModule( [
+			'form'   => 'TestForm',
+			'target' => 'TestPage',
+			'wpDiff' => '1',
+		] );
+		$module->prepareAction();
+		$this->assertSame( PFAutoeditAPI::ACTION_DIFF, $module->getAction() );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::prepareAction
+	 */
+	public function testPrepareActionActionPfautoeditSetsSaveAndIsAutoEdit(): void {
+		[ $module ] = $this->newModule( [
+			'form'   => 'TestForm',
+			'target' => 'TestPage',
+			'action' => 'pfautoedit',
+		] );
+		$module->prepareAction();
+		$this->assertSame( PFAutoeditAPI::ACTION_SAVE, $module->getAction() );
+
+		$ref = ( new ReflectionClass( PFAutoeditAPI::class ) )->getProperty( 'mIsAutoEdit' );
+		$ref->setAccessible( true );
+		$this->assertTrue( $ref->getValue( $module ) );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::prepareAction
+	 */
+	public function testPrepareActionTitleParamAliasesTarget(): void {
+		// MW submits 'title' instead of 'target' in some contexts;
+		// prepareAction() must copy it to 'target' and remove 'title'.
+		[ $module ] = $this->newModule( [
+			'form'  => 'TestForm',
+			'title' => 'SomePage',
+		] );
+		$module->prepareAction();
+		$opts = $module->getOptions();
+		$this->assertArrayHasKey( 'target', $opts );
+		$this->assertSame( 'SomePage', $opts['target'] );
+		$this->assertArrayNotHasKey( 'title', $opts );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::prepareAction
+	 */
+	public function testPrepareActionQueryParamIsUnpacked(): void {
+		// If 'query' is present it must be parsed and merged into mOptions.
+		[ $module ] = $this->newModule( [
+			'form'   => 'TestForm',
+			'target' => 'TestPage',
+			'query'  => 'MyTpl%5Bfield%5D=qval',
+		] );
+		$module->prepareAction();
+		$opts = $module->getOptions();
+		$this->assertArrayNotHasKey( 'query', $opts, "'query' key must be removed after unpacking" );
+		$this->assertSame( 'qval', $opts['MyTpl']['field'] );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::prepareAction
+	 */
+	public function testPrepareActionSetsStatusTo200(): void {
+		[ $module ] = $this->newModule( [ 'form' => 'TestForm', 'target' => 'TestPage' ] );
+		$module->prepareAction();
+		$this->assertSame( 200, $module->getStatus() );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::prepareAction
+	 */
+	public function testPrepareActionNormalizesFormAndTargetNames(): void {
+		[ $module ] = $this->newModule( [
+			'form'   => 'test form',
+			'target' => 'test page',
+		] );
+		$module->prepareAction();
+		$opts = $module->getOptions();
+		// Title::newFromText normalises spaces to underscores and capitalises.
+		$this->assertSame( 'Test form', $opts['form'] );
+		$this->assertSame( 'Test page', $opts['target'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// addToArray – numeric instance key appends 'a' suffix (non-top-level)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @covers \PFAutoeditAPI::addToArray
+	 */
+	public function testAddToArrayNumericSubkeyGetsSuffix(): void {
+		$data = [];
+		// Non-top-level numeric key inside a parent key → parent['0a'][...]
+		PFAutoeditAPI::addToArray( $data, 'T[0][field]', 'v', false );
+		$this->assertArrayHasKey( '0a', $data['T'] );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::addToArray
+	 */
+	public function testAddToArrayDoesNotOverwriteExistingChildArray(): void {
+		$data = [ 'T' => [ 'f' => 'old' ] ];
+		// Trying to set a string on a key that already holds an array → no-op
+		PFAutoeditAPI::addToArray( $data, 'T', 'should not overwrite' );
+		$this->assertIsArray( $data['T'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Helper
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Build a PFAutoeditAPI instance with request values pre-set.
+	 *
+	 * @param array $requestData Key-value pairs for the FauxRequest
+	 * @return array{0: PFAutoeditAPI}
+	 */
+	private function newModule( array $requestData = [] ): array {
+		$context = new RequestContext();
+		$context->setRequest( new FauxRequest( $requestData, true ) );
+		$main = new ApiMain( $context );
+		$module = new PFAutoeditAPI( $main, 'pfautoedit' );
+		return [ $module ];
+	}
+
+	// -------------------------------------------------------------------------
+	// finalizeResults – 'ok text' / 'error text' copy-paste bug
+	// -------------------------------------------------------------------------
+
 	/**
 	 * When the action failed (status 400) and the caller provided an
 	 * 'error text' option, finalizeResults() must read from mOptions['error text'].
