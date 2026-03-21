@@ -174,6 +174,9 @@ class PFHooks {
 		$vars['wgPageFormsEDSettings'] = $wgPageFormsEDSettings;
 		$vars['wgAmericanDates'] = $wgAmericanDates;
 
+		global $wgPageFormsSFSelectConfig;
+		$vars['sf_select'] = json_encode( $wgPageFormsSFSelectConfig ?? [] );
+
 		return true;
 	}
 

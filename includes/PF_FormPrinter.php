@@ -99,6 +99,7 @@ class PFFormPrinter {
 		$this->registerInputType( 'PFTokensInput' );
 		$this->registerInputType( 'PFRegExpInput' );
 		$this->registerInputType( 'PFRatingInput' );
+		$this->registerInputType( 'PFSFSelectInput' );
 		// Add this if the Semantic Maps extension is not
 		// included, or if it's SM (really Maps) v4.0 or higher.
 		if ( !$wgPageFormsDisableOutsideServices ) {

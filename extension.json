@@ -72,7 +72,8 @@
 	},
 	"APIModules": {
 		"pfautocomplete": "PFAutocompleteAPI",
-		"pfautoedit": "PFAutoeditAPI"
+		"pfautoedit": "PFAutoeditAPI",
+		"sformsselect": "PFSFSelectAPI"
 	},
 	"MessagesDirs": {
 		"PageForms": [
@@ -157,6 +158,10 @@
 		"PFLeafletInput": "includes/forminputs/PF_LeafletInput.php",
 		"PFRegExpInput": "includes/forminputs/PF_RegExpInput.php",
 		"PFRatingInput": "includes/forminputs/PF_RatingInput.php",
+		"PFSFSelectInput": "includes/forminputs/PF_SFSelectInput.php",
+		"PFSFSelectField": "includes/forminputs/PF_SFSelectField.php",
+		"PFSFSelectAPI": "includes/forminputs/PF_SFSelectAPI.php",
+		"PFSFSelectAPIRequestProcessor": "includes/forminputs/PF_SFSelectAPIRequestProcessor.php",
 		"PFWikiPage": "includes/wikipage/PF_WikiPage.php",
 		"PFWikiPageTemplate": "includes/wikipage/PF_WikiPageTemplate.php",
 		"PFWikiPageTemplateParam": "includes/wikipage/PF_WikiPageTemplateParam.php",
@@ -408,6 +413,34 @@
 		},
 		"ext.pageforms.rating.styles": {
 			"styles": "skins/jquery.rateyo.css"
+		},
+		"ext.pageforms.originalValueLookup": {
+			"scripts": [
+				"libs/PF_originalValueLookup.js"
+			],
+			"dependencies": [
+				"mediawiki.base"
+			],
+			"targets": [
+				"desktop",
+				"mobile"
+			]
+		},
+		"ext.pageforms.sfselect": {
+			"scripts": [
+				"libs/PF_sfselect.js"
+			],
+			"styles": [
+				"skins/PF_sfselect.css"
+			],
+			"dependencies": [
+				"ext.pageforms.main",
+				"ext.pageforms.originalValueLookup"
+			],
+			"targets": [
+				"desktop",
+				"mobile"
+			]
 		},
 		"ext.pageforms.simpleupload": {
 			"scripts": [
