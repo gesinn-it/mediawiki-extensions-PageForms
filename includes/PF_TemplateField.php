@@ -199,61 +199,6 @@ class PFTemplateField {
 		$this->setTypeAndPossibleValues();
 	}
 
-	// @codeCoverageIgnoreStart
-
-	/**
-	 * Equivalent to setSemanticProperty(), but called when using Cargo
-	 * instead of SMW.
-	 * @param string $tableName
-	 * @param string $fieldName
-	 * @param CargoFieldDescription|null $fieldDescription
-	 */
-	public function setCargoFieldData( $tableName, $fieldName, $fieldDescription = null ) {
-		$this->mCargoTable = $tableName;
-		$this->mCargoField = $fieldName;
-
-		if ( $fieldDescription === null ) {
-			try {
-				$tableSchemas = CargoUtils::getTableSchemas( [ $tableName ] );
-			} catch ( MWException $e ) {
-				return;
-			}
-			if ( count( $tableSchemas ) == 0 ) {
-				return;
-			}
-			$tableSchema = $tableSchemas[$tableName];
-			$fieldDescriptions = $tableSchema->mFieldDescriptions;
-			if ( array_key_exists( $fieldName, $fieldDescriptions ) ) {
-				$fieldDescription = $fieldDescriptions[$fieldName];
-			} else {
-				return;
-			}
-		}
-
-		// We have some "pseudo-types", used for setting the correct
-		// form input.
-		if ( $fieldDescription->mAllowedValues != null ) {
-			if ( $fieldDescription->mIsHierarchy == true ) {
-				$this->mFieldType = 'Hierarchy';
-				$this->mHierarchyStructure = $fieldDescription->mHierarchyStructure;
-			} else {
-				$this->mFieldType = 'Enumeration';
-			}
-			$this->mRealFieldType = $fieldDescription->mType;
-		} elseif ( $fieldDescription->mType == 'Text' && $fieldDescription->mSize != '' &&
-			$fieldDescription->mSize <= 100 ) {
-			$this->mFieldType = 'String';
-		} else {
-			$this->mFieldType = $fieldDescription->mType;
-		}
-		$this->mIsList = $fieldDescription->mIsList;
-		$this->mDelimiter = $fieldDescription->getDelimiter();
-		$this->mPossibleValues = $fieldDescription->mAllowedValues;
-		$this->mIsMandatory = $fieldDescription->mIsMandatory;
-		$this->mIsUnique = $fieldDescription->mIsUnique;
-		$this->mRegex = $fieldDescription->mRegex;
-	}
-
 	public function getFieldName() {
 		return $this->mFieldName;
 	}
@@ -274,22 +219,6 @@ class PFTemplateField {
 		return $this->mPropertyType;
 	}
 
-	public function getExpectedCargoField() {
-		if ( $this->mCargoField != '' ) {
-			return $this->mCargoField;
-		} else {
-			return str_replace( ' ', '_', $this->mFieldName );
-		}
-	}
-
-	public function getFullCargoField() {
-		if ( $this->mCargoTable == '' || $this->mCargoField == '' ) {
-			return null;
-		}
-		return $this->mCargoTable . '|' . $this->mCargoField;
-	}
-
-	// @codeCoverageIgnoreEnd
 	public function getFieldType() {
 		return $this->mFieldType;
 	}

@@ -241,16 +241,6 @@ class PFTemplateFieldTest extends TestCase {
 		$this->assertSame( [], $field->getPossibleValues() );
 	}
 
-	public function testGetExpectedCargoFieldFallsBackToUnderscoreFieldName() {
-		$field = PFTemplateField::create( 'My Field', null );
-		$this->assertSame( 'My_Field', $field->getExpectedCargoField() );
-	}
-
-	public function testGetFullCargoFieldReturnsNullWhenNotSet() {
-		$field = PFTemplateField::create( 'Field', null );
-		$this->assertNull( $field->getFullCargoField() );
-	}
-
 	public function testSetFieldTypeSetsType() {
 		$field = PFTemplateField::create( 'Field', null );
 		$field->setFieldType( 'Text' );

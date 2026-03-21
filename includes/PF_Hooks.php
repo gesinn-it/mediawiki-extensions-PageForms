@@ -139,7 +139,7 @@ class PFHooks {
 	public static function setGlobalJSVariables( &$vars ) {
 		global $wgPageFormsTargetName;
 		global $wgPageFormsAutocompleteValues, $wgPageFormsAutocompleteOnAllChars;
-		global $wgPageFormsFieldProperties, $wgPageFormsCargoFields, $wgPageFormsDependentFields;
+		global $wgPageFormsFieldProperties, $wgPageFormsDependentFields;
 		global $wgPageFormsGridValues, $wgPageFormsGridParams;
 		global $wgPageFormsCalendarValues, $wgPageFormsCalendarParams, $wgPageFormsCalendarHTML;
 		global $wgPageFormsContLangYes, $wgPageFormsContLangNo, $wgPageFormsContLangMonths;
@@ -152,7 +152,6 @@ class PFHooks {
 		$vars['wgPageFormsAutocompleteValues'] = $wgPageFormsAutocompleteValues;
 		$vars['wgPageFormsAutocompleteOnAllChars'] = $wgPageFormsAutocompleteOnAllChars;
 		$vars['wgPageFormsFieldProperties'] = $wgPageFormsFieldProperties;
-		$vars['wgPageFormsCargoFields'] = $wgPageFormsCargoFields;
 		$vars['wgPageFormsDependentFields'] = $wgPageFormsDependentFields;
 		$vars['wgPageFormsCalendarValues'] = $wgPageFormsCalendarValues;
 		$vars['wgPageFormsCalendarParams'] = $wgPageFormsCalendarParams;
@@ -227,144 +226,6 @@ class PFHooks {
 
 		return true;
 	}
-
-	// @codeCoverageIgnoreStart
-
-	public static function addToCargoTablesColumns( $cargoTablesPage, &$allowedActions ) {
-		if ( !$cargoTablesPage->getUser()->isAllowed( 'multipageedit' ) ) {
-			return true;
-		}
-
-		$cargoTablesPage->getOutput()->addModuleStyles( [ 'oojs-ui.styles.icons-editing-core' ] );
-
-		$editColumn = [ 'edit' => [ 'ooui-icon' => 'edit', 'ooui-title' => 'edit' ] ];
-		$indexOfDrilldown = array_search( 'drilldown', array_keys( $allowedActions ) );
-		$pos = $indexOfDrilldown === false ? count( $allowedActions ) : $indexOfDrilldown + 1;
-		$allowedActions = array_merge(
-			array_slice( $allowedActions, 0, $pos ), $editColumn, array_slice( $allowedActions, $pos )
-		);
-
-		return true;
-	}
-
-	/**
-	 * Called by the CargoTablesActionLinks hook.
-	 *
-	 * Adds an "Edit" link to Special:CargoTables, pointing to Special:MultiPageEdit.
-	 *
-	 * @param array &$actionLinks Action links
-	 * @param string $tableName Cargo table name
-	 * @param bool $isReplacementTable Whether this table is a replacement table
-	 * @param bool $hasReplacementTable Whether this table has a replacement table
-	 * @param int[][] $templatesThatDeclareTables
-	 * @param string[] $templatesThatAttachToTables
-	 * @param User|null $user The current user
-	 *
-	 * @return bool
-	 *
-	 * @since 4.4
-	 */
-	public static function addToCargoTablesLinks(
-		&$actionLinks, $tableName, $isReplacementTable, $hasReplacementTable,
-		$templatesThatDeclareTables, $templatesThatAttachToTables, $user = null
-	) {
-		// If it has a "replacement table", it's read-only and can't
-		// be edited (though the replacement table can).
-		if ( $hasReplacementTable ) {
-			return true;
-		}
-
-		// Check permissions.
-		if ( $user == null ) {
-			// For Cargo versions < 3.1.
-			$user = RequestContext::getMain()->getUser();
-		}
-
-		if ( !$user->isAllowed( 'multipageedit' ) ) {
-			return true;
-		}
-		// Only put in an "Edit" link if there's exactly one template
-		// for this Cargo table, and one form for that template.
-		if ( !array_key_exists( $tableName, $templatesThatDeclareTables ) ) {
-			return true;
-		}
-		if ( array_key_exists( $tableName, $templatesThatAttachToTables ) ) {
-			return true;
-		}
-		$templateIDs = $templatesThatDeclareTables[$tableName];
-		if ( count( $templateIDs ) > 1 ) {
-			return true;
-		}
-
-		$templateTitle = Title::newFromID( $templateIDs[0] );
-		$templateName = $templateTitle->getText();
-		if ( self::$mMultiPageEditPage == null ) {
-			self::$mMultiPageEditPage = new PFMultiPageEdit();
-			self::$mMultiPageEditPage->setTemplateList();
-		}
-		$formName = self::$mMultiPageEditPage->getFormForTemplate( $templateName );
-		if ( $formName == null ) {
-			return true;
-		}
-
-		$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
-		$sp = PFUtils::getSpecialPage( 'MultiPageEdit' );
-		$editMsg = wfMessage( 'edit' )->text();
-		$linkParams = [ 'template' => $templateName, 'form' => $formName ];
-		$text = $linkRenderer->makeKnownLink( $sp->getPageTitle(), $editMsg, [], $linkParams );
-
-		$indexOfDrilldown = array_search( 'drilldown', array_keys( $actionLinks ) );
-		$pos = $indexOfDrilldown === false ? count( $actionLinks ) : $indexOfDrilldown + 1;
-		$actionLinks = array_merge(
-			array_slice( $actionLinks, 0, $pos ), [ 'edit' => $text ], array_slice( $actionLinks, $pos )
-		);
-		return true;
-	}
-
-	/**
-	 * Called by the CargoTablesSetActionLinks hook.
-	 *
-	 * Adds an "Edit" link to Special:CargoTables, pointing to Special:MultiPageEdit.
-	 *
-	 * @param SpecialPage $cargoTablesPage
-	 * @param array &$actionLinks Action links
-	 * @param string $tableName Cargo table name
-	 * @param bool $isReplacementTable Whether this table iss a replacement table
-	 * @param bool $hasReplacementTable Whether this table has a replacement table
-	 * @param int[][] $templatesThatDeclareTables
-	 * @param string[] $templatesThatAttachToTables
-	 * @param string[] $actionList
-	 * @param User|null $user The current user
-	 *
-	 * @return bool
-	 *
-	 * @since 4.8.1
-	 */
-	public static function addToCargoTablesRow(
-		$cargoTablesPage, &$actionLinks, $tableName, $isReplacementTable, $hasReplacementTable,
-		$templatesThatDeclareTables, $templatesThatAttachToTables, $actionList, $user = null
-	) {
-		$cargoTablesPage->getOutput()->addModuleStyles( [ 'oojs-ui.styles.icons-editing-core' ] );
-
-		// For the sake of simplicity, this function basically just
-		// wraps around the previous hook function, for Cargo <= 2.4.
-		// That's why there's this awkward behavior of parsing links
-		// to get their URL. Hopefully this won't cause problems.
-		self::addToCargoTablesLinks(
-			$actionLinks, $tableName, $isReplacementTable, $hasReplacementTable,
-			$templatesThatDeclareTables, $templatesThatAttachToTables, $user
-		);
-
-		if ( array_key_exists( 'edit', $actionLinks ) ) {
-			preg_match( '/href="(.*?)"/', $actionLinks['edit'], $matches );
-			$mpeURL = html_entity_decode( $matches[1] );
-			$actionLinks['edit'] = $cargoTablesPage->getActionButton( 'edit', $mpeURL );
-		}
-
-		return true;
-	}
-
-	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Disable TinyMCE if this is a form definition page, or a form-editable page.

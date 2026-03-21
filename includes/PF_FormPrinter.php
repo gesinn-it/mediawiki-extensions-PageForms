@@ -24,12 +24,6 @@ class PFFormPrinter {
 	 */
 	public $mSemanticTypeHooks;
 	/**
-	 * This property stores mCargoTypeHooks values
-	 *
-	 * @var array
-	 */
-	public $mCargoTypeHooks;
-	/**
 	 * This property stores mInputTypeHooks values
 	 *
 	 * @var array
@@ -53,26 +47,17 @@ class PFFormPrinter {
 	private $mDefaultInputForPropTypeList;
 	private $mPossibleInputsForPropType;
 	private $mPossibleInputsForPropTypeList;
-	private $mDefaultInputForCargoType;
-	private $mDefaultInputForCargoTypeList;
-	private $mPossibleInputsForCargoType;
-	private $mPossibleInputsForCargoTypeList;
 
 	public function __construct() {
 		global $wgPageFormsDisableOutsideServices;
 		// Initialize variables.
 		$this->mSemanticTypeHooks = [];
-		$this->mCargoTypeHooks = [];
 		$this->mInputTypeHooks = [];
 		$this->mInputTypeClasses = [];
 		$this->mDefaultInputForPropType = [];
 		$this->mDefaultInputForPropTypeList = [];
 		$this->mPossibleInputsForPropType = [];
 		$this->mPossibleInputsForPropTypeList = [];
-		$this->mDefaultInputForCargoType = [];
-		$this->mDefaultInputForCargoTypeList = [];
-		$this->mPossibleInputsForCargoType = [];
-		$this->mPossibleInputsForCargoTypeList = [];
 
 		$this->standardInputsIncluded = false;
 
@@ -122,14 +107,6 @@ class PFFormPrinter {
 		$this->mSemanticTypeHooks[$type][$is_list] = [ $class_name, $default_args ];
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public function setCargoTypeHook( $type, $is_list, $class_name, $default_args ) {
-		$this->mCargoTypeHooks[$type][$is_list] = [ $class_name, $default_args ];
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	public function setInputTypeHook( $input_type, $class_name, $default_args ) {
 		$this->mInputTypeHooks[$input_type] = [ $class_name, $default_args ];
 	}
@@ -156,17 +133,6 @@ class PFFormPrinter {
 			$this->mDefaultInputForPropTypeList[$propertyType] = $inputTypeName;
 		}
 
-		$defaultCargoTypes = call_user_func( [ $inputTypeClass, 'getDefaultCargoTypes' ] );
-		foreach ( $defaultCargoTypes as $fieldType => $additionalValues ) {
-			$this->setCargoTypeHook( $fieldType, false, $inputTypeClass, $additionalValues );
-			$this->mDefaultInputForCargoType[$fieldType] = $inputTypeName;
-		}
-		$defaultCargoTypeLists = call_user_func( [ $inputTypeClass, 'getDefaultCargoTypeLists' ] );
-		foreach ( $defaultCargoTypeLists as $fieldType => $additionalValues ) {
-			$this->setCargoTypeHook( $fieldType, true, $inputTypeClass, $additionalValues );
-			$this->mDefaultInputForCargoTypeList[$fieldType] = $inputTypeName;
-		}
-
 		$otherProperties = call_user_func( [ $inputTypeClass, 'getOtherPropTypesHandled' ] );
 		foreach ( $otherProperties as $propertyTypeID ) {
 			if ( array_key_exists( $propertyTypeID, $this->mPossibleInputsForPropType ) ) {
@@ -181,23 +147,6 @@ class PFFormPrinter {
 				$this->mPossibleInputsForPropTypeList[$propertyTypeID][] = $inputTypeName;
 			} else {
 				$this->mPossibleInputsForPropTypeList[$propertyTypeID] = [ $inputTypeName ];
-			}
-		}
-
-		$otherCargoTypes = call_user_func( [ $inputTypeClass, 'getOtherCargoTypesHandled' ] );
-		foreach ( $otherCargoTypes as $cargoType ) {
-			if ( array_key_exists( $cargoType, $this->mPossibleInputsForCargoType ) ) {
-				$this->mPossibleInputsForCargoType[$cargoType][] = $inputTypeName;
-			} else {
-				$this->mPossibleInputsForCargoType[$cargoType] = [ $inputTypeName ];
-			}
-		}
-		$otherCargoTypeLists = call_user_func( [ $inputTypeClass, 'getOtherCargoTypeListsHandled' ] );
-		foreach ( $otherCargoTypeLists as $cargoType ) {
-			if ( array_key_exists( $cargoType, $this->mPossibleInputsForCargoTypeList ) ) {
-				$this->mPossibleInputsForCargoTypeList[$cargoType][] = $inputTypeName;
-			} else {
-				$this->mPossibleInputsForCargoTypeList[$cargoType] = [ $inputTypeName ];
 			}
 		}
 
@@ -241,26 +190,6 @@ class PFFormPrinter {
 		}
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public function getDefaultInputTypeCargo( $isList, $fieldType ) {
-		if ( $isList ) {
-			if ( array_key_exists( $fieldType, $this->mDefaultInputForCargoTypeList ) ) {
-				return $this->mDefaultInputForCargoTypeList[$fieldType];
-			} else {
-				return null;
-			}
-		} else {
-			if ( array_key_exists( $fieldType, $this->mDefaultInputForCargoType ) ) {
-				return $this->mDefaultInputForCargoType[$fieldType];
-			} else {
-				return null;
-			}
-		}
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	public function getPossibleInputTypesSMW( $isList, $propertyType ) {
 		if ( $isList ) {
 			if ( array_key_exists( $propertyType, $this->mPossibleInputsForPropTypeList ) ) {
@@ -276,26 +205,6 @@ class PFFormPrinter {
 			}
 		}
 	}
-
-	// @codeCoverageIgnoreStart
-
-	public function getPossibleInputTypesCargo( $isList, $fieldType ) {
-		if ( $isList ) {
-			if ( array_key_exists( $fieldType, $this->mPossibleInputsForCargoTypeList ) ) {
-				return $this->mPossibleInputsForCargoTypeList[$fieldType];
-			} else {
-				return [];
-			}
-		} else {
-			if ( array_key_exists( $fieldType, $this->mPossibleInputsForCargoType ) ) {
-				return $this->mPossibleInputsForCargoType[$fieldType];
-			} else {
-				return [];
-			}
-		}
-	}
-
-	// @codeCoverageIgnoreEnd
 
 	public function getAllInputTypes() {
 		return array_keys( $this->mInputTypeClasses );
@@ -1384,28 +1293,6 @@ END;
 							// with spaces.
 							$generated_page_name = str_replace( '_', ' ', $generated_page_name );
 						}
-						// @codeCoverageIgnoreStart
-						if ( defined( 'CARGO_VERSION' ) && $form_field->hasFieldArg( 'mapping cargo table' ) &&
-							$form_field->hasFieldArg( 'mapping cargo field' ) &&
-							$form_field->hasFieldArg( 'mapping cargo value field' ) ) {
-								$mappingCargoTable = $form_field->getFieldArg( 'mapping cargo table' );
-								$mappingCargoField = $form_field->getFieldArg( 'mapping cargo field' );
-								$mappingCargoValueField = $form_field->getFieldArg( 'mapping cargo value field' );
-							if ( !$form_submitted && $cur_value !== null && $cur_value !== '' ) {
-								$cur_value = $this->getCargoBasedMapping(
-									$cur_value, $mappingCargoTable, $mappingCargoField,
-									$mappingCargoValueField, $form_field
-								);
-							}
-							if ( $form_submitted && $cur_value_in_template !== null && $cur_value_in_template !== '' ) {
-								$cur_value_in_template = $this->getCargoBasedMapping(
-									$cur_value_in_template, $mappingCargoTable, $mappingCargoValueField,
-									$mappingCargoField, $form_field
-								);
-							}
-						}
-
-						// @codeCoverageIgnoreEnd
 						if ( $cur_value !== '' &&
 							( $form_field->hasFieldArg( 'mapping template' ) ||
 							$form_field->hasFieldArg( 'mapping property' ) ||
@@ -2102,43 +1989,6 @@ END;
 		return [ $form_text, $page_text, $form_page_title, $generated_page_name ];
 	}
 
-	// @codeCoverageIgnoreStart
-
-	/**
-	 * Cargo based mapping compatible with autocompletion
-	 * @param string $currentValue
-	 * @param string $mappingCargoTable
-	 * @param string $mappingCargoField
-	 * @param string $mappingCargoValueField
-	 * @param PFFormField $form_field
-	 * @return string|null $currentValue
-	 */
-	private function getCargoBasedMapping(
-		$currentValue, $mappingCargoTable, $mappingCargoField, $mappingCargoValueField, $form_field
-	) {
-		$cargoValues = [];
-		$delimiter = $form_field->getFieldArg( 'delimiter' );
-		$cur_value = str_replace( '"', '\"', $currentValue );
-		if ( $form_field->isList() ) {
-			$cargoValues = explode( $delimiter, $currentValue );
-		} else {
-			$cargoValues = [ $currentValue ];
-		}
-		foreach ( $cargoValues as $key => $value ) {
-			$cargoValue = PFValuesUtils::getValuesForCargoField(
-				$mappingCargoTable, $mappingCargoField,
-				$mappingCargoValueField . '="' . trim( $value ) . '"'
-			);
-			if ( !empty( $cargoValue ) ) {
-				$cargoValues[ $key ] = current( $cargoValue );
-			}
-		}
-		$currentValue = implode( $delimiter, $cargoValues );
-		return $currentValue;
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	/**
 	 * Create the HTML to display this field within a form.
 	 * @param PFFormField $form_field
@@ -2172,16 +2022,9 @@ END;
 			$other_args = $form_field->getArgumentsForInputCall( $hook_values[1] );
 		} else {
 			// The input type is not defined in the form.
-			$cargo_field_type = $template_field->getFieldType();
 			$property_type = $template_field->getPropertyType();
 			$is_list = ( $form_field->isList() || $template_field->isList() );
-			if ( $cargo_field_type !== '' &&
-				array_key_exists( $cargo_field_type, $this->mCargoTypeHooks ) &&
-				isset( $this->mCargoTypeHooks[$cargo_field_type][$is_list] ) ) {
-				$hook_values = $this->mCargoTypeHooks[$cargo_field_type][$is_list];
-				$class_name = $hook_values[0];
-				$other_args = $form_field->getArgumentsForInputCall( $hook_values[1] );
-			} elseif ( $property_type !== '' &&
+			if ( $property_type !== '' &&
 				array_key_exists( $property_type, $this->mSemanticTypeHooks ) &&
 				isset( $this->mSemanticTypeHooks[$property_type][$is_list] ) ) {
 				$hook_values = $this->mSemanticTypeHooks[$property_type][$is_list];

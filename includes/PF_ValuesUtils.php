@@ -288,68 +288,6 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		return $results;
 	}
 
-	// @codeCoverageIgnoreStart
-
-	/**
-	 * Used with the Cargo extension.
-	 * @param string $tableName
-	 * @param string $fieldName
-	 * @return array
-	 */
-	public static function getAllValuesForCargoField( $tableName, $fieldName ) {
-		return self::getValuesForCargoField( $tableName, $fieldName );
-	}
-
-	/**
-	 * Used with the Cargo extension.
-	 * @param string $tableName
-	 * @param string $fieldName
-	 * @param string|null $whereStr
-	 * @return array
-	 */
-	public static function getValuesForCargoField( $tableName, $fieldName, $whereStr = null ) {
-		global $wgPageFormsMaxLocalAutocompleteValues;
-
-		// The limit should be greater than the maximum number of local
-		// autocomplete values, so that form inputs also know whether
-		// to switch to remote autocompletion.
-		// (We increment by 10, to be on the safe side, since some values
-		// can be null, etc.)
-		$limitStr = max( 100, $wgPageFormsMaxLocalAutocompleteValues + 10 );
-
-		try {
-			$sqlQuery = CargoSQLQuery::newFromValues(
-				$tableName, $fieldName, $whereStr, $joinOnStr = null, $fieldName,
-				$havingStr = null, $fieldName, $limitStr, $offsetStr = 0
-			);
-		} catch ( Exception $e ) {
-			return [];
-		}
-
-		$queryResults = $sqlQuery->run();
-		$values = [];
-		// Field names starting with a '_' are special fields -
-		// all other fields will have had their underscores
-		// replaced with spaces in $queryResults.
-		if ( $fieldName[0] == '_' ) {
-			$fieldAlias = $fieldName;
-		} else {
-			$fieldAlias = str_replace( '_', ' ', $fieldName );
-		}
-		foreach ( $queryResults as $row ) {
-			if ( !array_key_exists( $fieldAlias, $row ) ) {
-				continue;
-			}
-			// Cargo HTML-encodes everything - let's decode double
-			// quotes, at least.
-			$values[] = str_replace( '&quot;', '"', $row[$fieldAlias] );
-		}
-		$values = self::shiftShortestMatch( $values );
-		return $values;
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	/**
 	 * Get all the pages that belong to a category and all its
 	 * subcategories, down a certain number of levels - heavily based on
@@ -748,21 +686,9 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			return [];
 		}
 
-		// The query depends on whether this is a Cargo field, SMW
+		// The query depends on whether this is an SMW
 		// property, category, SMW concept or namespace.
-		// @codeCoverageIgnoreStart
-		if ( $source_type == 'cargo field' ) {
-			$arr = explode( '|', $source_name );
-			if ( count( $arr ) == 3 ) {
-				$names_array = self::getValuesForCargoField( $arr[0], $arr[1], $arr[2] );
-			} else {
-				[ $table_name, $field_name ] = explode( '|', $source_name, 2 );
-				$names_array = self::getAllValuesForCargoField( $table_name, $field_name );
-			}
-			// Remove blank/null values from the array.
-			$names_array = array_values( array_filter( $names_array ) );
-		// @codeCoverageIgnoreEnd
-		} elseif ( $source_type == 'property' ) {
+		if ( $source_type == 'property' ) {
 			$names_array = self::getAllValuesForProperty( $source_name );
 		} elseif ( $source_type == 'category' ) {
 			$names_array = self::getAllPagesForCategory( $source_name, 10 );
@@ -808,21 +734,6 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		} elseif ( array_key_exists( 'autocomplete field type', $field_args ) ) {
 			$autocompleteFieldType = $field_args['autocomplete field type'];
 			$autocompletionSource = $field_args['autocompletion source'];
-		// @codeCoverageIgnoreStart
-		} elseif ( array_key_exists( 'full_cargo_field', $field_args ) ) {
-			$autocompletionSource = $field_args['full_cargo_field'];
-			$autocompleteFieldType = 'cargo field';
-		} elseif ( array_key_exists( 'cargo field', $field_args ) ) {
-			$fieldName = $field_args['cargo field'];
-			$tableName = $field_args['cargo table'];
-			$autocompletionSource = "$tableName|$fieldName";
-			$autocompleteFieldType = 'cargo field';
-			if ( array_key_exists( 'cargo where', $field_args ) ) {
-				$whereStr = $field_args['cargo where'];
-				$autocompletionSource .= "|$whereStr";
-			}
-
-		// @codeCoverageIgnoreEnd
 		} elseif ( array_key_exists( 'semantic_property', $field_args ) ) {
 			$autocompletionSource = $field_args['semantic_property'];
 			$autocompleteFieldType = 'property';

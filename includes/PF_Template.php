@@ -88,20 +88,6 @@ class PFTemplate {
 		$templateText = StringUtils::delimiterReplace( '<noinclude>', '</noinclude>', '', $templateText );
 		$this->mTemplateText = strtr( $templateText, [ '<includeonly>' => '', '</includeonly>' => '' ] );
 
-		// The Cargo-based function is more specific; it only gets
-		// data structure information from the template schema. If
-		// there's no Cargo schema for this template, we call
-		// loadTemplateFieldsSMWAndOther(), which doesn't require the
-		// presence of SMW and can get non-SMW information as well.
-		// @codeCoverageIgnoreStart
-		if ( defined( 'CARGO_VERSION' ) ) {
-			$this->loadTemplateFieldsCargo( $templateTitle );
-			if ( count( $this->mTemplateFields ) > 0 ) {
-				return;
-			}
-		}
-
-		// @codeCoverageIgnoreEnd
 		$this->loadTemplateFieldsSMWAndOther();
 	}
 
@@ -264,151 +250,6 @@ class PFTemplate {
 		$this->mTemplateFields[$cur_pos] = $templateField;
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public function loadTemplateFieldsCargo( $templateTitle ) {
-		$cargoFieldsOfTemplateParams = [];
-
-		// First, get the table name, and fields, declared for this
-		// template, if any.
-		[ $tableName, $tableSchema ] = $this->getCargoTableAndSchema( $templateTitle );
-		if ( $tableName == null ) {
-			$fieldDescriptions = [];
-		} else {
-			$fieldDescriptions = $tableSchema->mFieldDescriptions;
-		}
-
-		// If #template_params was declared for this template, our
-		// job is easy - we just go through the declared fields, get
-		// the Cargo data for each field if it exists, and populate
-		// $mTemplateFields with it.
-		if ( $this->mTemplateParams !== null ) {
-			foreach ( $this->mTemplateParams as $fieldName => $fieldParams ) {
-				$templateField = PFTemplateField::newFromParams( $fieldName, $fieldParams );
-				$cargoField = $templateField->getExpectedCargoField();
-				if ( array_key_exists( $cargoField, $fieldDescriptions ) ) {
-					$fieldDescription = $fieldDescriptions[$cargoField];
-					$templateField->setCargoFieldData( $tableName, $cargoField, $fieldDescription );
-				}
-				$this->mTemplateFields[$fieldName] = $templateField;
-			}
-			return;
-		}
-
-		// If there are no declared template params *or* Cargo fields,
-		// exit.
-		if ( count( $fieldDescriptions ) == 0 ) {
-			return;
-		}
-
-		// No #template_params call, so we have to do a more manual
-		// process.
-		// Match template params to Cargo table fields, by parsing
-		// call(s) to #cargo_store.
-		// Let's find every #cargo_store tag.
-		// Unfortunately, it doesn't seem possible to use a regexp
-		// search for this, because it's hard to know which set of
-		// double brackets represents the end of such a call. Instead,
-		// we'll do some manual parsing.
-		$cargoStoreLocations = [];
-		$curPos = 0;
-		while ( true ) {
-			$newPos = strpos( $this->mTemplateText, "#cargo_store:", $curPos );
-			if ( $newPos === false ) {
-				break;
-			}
-			$curPos = $newPos + 13;
-			$cargoStoreLocations[] = $curPos;
-		}
-
-		$cargoStoreCalls = [];
-		foreach ( $cargoStoreLocations as $locNum => $startPos ) {
-			$numUnclosedBrackets = 2;
-			if ( $locNum < count( $cargoStoreLocations ) - 1 ) {
-				$lastPos = $cargoStoreLocations[$locNum + 1];
-			} else {
-				$lastPos = strlen( $this->mTemplateText ) - 1;
-			}
-			$curCargoStoreCall = '';
-			$curPos = $startPos;
-			while ( $curPos <= $lastPos ) {
-				$curChar = $this->mTemplateText[$curPos];
-				$curCargoStoreCall .= $curChar;
-				if ( $curChar == '}' ) {
-					$numUnclosedBrackets--;
-				} elseif ( $curChar == '{' ) {
-					$numUnclosedBrackets++;
-				}
-				if ( $numUnclosedBrackets == 0 ) {
-					break;
-				}
-				$curPos++;
-			}
-			$cargoStoreCalls[] = $curCargoStoreCall;
-		}
-
-		foreach ( $cargoStoreCalls as $cargoStoreCall ) {
-			if ( preg_match_all( '/([^|{]*?)=\s*{{{([^|}]*)/mis', $cargoStoreCall, $matches ) ) {
-				foreach ( $matches[1] as $i => $cargoFieldName ) {
-					$templateParameter = trim( $matches[2][$i] );
-					$cargoFieldsOfTemplateParams[$templateParameter] = $cargoFieldName;
-				}
-			}
-		}
-
-		// Now, combine the two sets of information into an array of
-		// PFTemplateFields objects.
-		// First, go through the #cargo_store parameters, add add them
-		// all to the array, matching them with Cargo field descriptions
-		// where possible.
-		foreach ( $cargoFieldsOfTemplateParams as $templateParameter => $cargoField ) {
-			$templateField = PFTemplateField::create( $templateParameter, $templateParameter );
-			if ( array_key_exists( $cargoField, $fieldDescriptions ) ) {
-				$fieldDescription = $fieldDescriptions[$cargoField];
-				$templateField->setCargoFieldData( $tableName, $cargoField, $fieldDescription );
-			}
-			$this->mTemplateFields[] = $templateField;
-		}
-
-		// Now, go through the Cargo field descriptions, and add
-		// whichever ones were not in #cargo_store (as of version 3.0,
-		// Cargo does not require template parameters to be passed in
-		// to #cargo_store).
-		foreach ( $fieldDescriptions as $cargoField => $fieldDescription ) {
-			$templateParameter = array_search( $cargoField, $cargoFieldsOfTemplateParams );
-			if ( $templateParameter !== false ) {
-				continue;
-			}
-			$templateParameter = str_replace( '_', ' ', $cargoField );
-			$templateField = PFTemplateField::create( $templateParameter, $templateParameter );
-			$templateField->setCargoFieldData( $tableName, $cargoField, $fieldDescription );
-			$this->mTemplateFields[] = $templateField;
-		}
-	}
-
-	public function getCargoTableAndSchema( $templateTitle ) {
-		$templatePageID = $templateTitle->getArticleID();
-		$tableSchemaString = CargoUtils::getPageProp( $templatePageID, 'CargoFields' );
-		// See if there even is DB storage for this template - if not,
-		// exit.
-		if ( $tableSchemaString === null ) {
-			// There's no declared table - but see if there's an
-			// attached table.
-			[ $tableName, $isDeclared ] = CargoUtils::getTableNameForTemplate( $templateTitle );
-			if ( $tableName == null ) {
-				return [ null, null ];
-			}
-			$mainTemplatePageID = CargoUtils::getTemplateIDForDBTable( $tableName );
-			$tableSchemaString = CargoUtils::getPageProp( $mainTemplatePageID, 'CargoFields' );
-		} else {
-			$tableName = CargoUtils::getPageProp( $templatePageID, 'CargoTableName' );
-		}
-		$tableSchema = CargoTableSchema::newFromDBString( $tableSchemaString );
-		return [ $tableName, $tableSchema ];
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	public function getTemplateFields() {
 		return $this->mTemplateFields;
 	}
@@ -447,58 +288,6 @@ class PFTemplate {
 		$this->mTemplateFormat = $templateFormat;
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public function createCargoDeclareCall() {
-		$text = '{{#cargo_declare:';
-		$text .= '_table=' . $this->mCargoTable;
-		foreach ( $this->mTemplateFields as $i => $field ) {
-			if ( $field->getFieldType() == '' ) {
-				continue;
-			}
-
-			$text .= '|';
-			$text .= str_replace( ' ', '_', $field->getFieldName() ) . '=';
-			if ( $field->isList() ) {
-				$delimiter = $field->getDelimiter();
-				if ( $delimiter == '' ) {
-					$delimiter = ',';
-				}
-				$text .= "List ($delimiter) of ";
-			}
-			$text .= $field->getFieldType();
-			if ( $field->getHierarchyStructure() ) {
-				$hierarchyStructureString = $field->getHierarchyStructure();
-				$text .= " (hierarchy;allowed values=$hierarchyStructureString)";
-			} elseif ( count( $field->getPossibleValues() ) > 0 ) {
-				$allowedValuesString = implode( ',', $field->getPossibleValues() );
-				$text .= " (allowed values=$allowedValuesString)";
-			}
-		}
-		$text .= '}}';
-		return $text;
-	}
-
-	public function createCargoStoreCall() {
-		$text = '{{#cargo_store:';
-		$text .= '_table=' . $this->mCargoTable;
-		if ( defined( 'CargoStore::PARAMS_OPTIONAL' ) ) {
-			// Cargo 3.0+
-			$text .= '}}';
-			return $text;
-		}
-
-		foreach ( $this->mTemplateFields as $i => $field ) {
-			$text .= '|' .
-				str_replace( ' ', '_', $field->getFieldName() ) .
-				'={{{' . $field->getFieldName() . '|}}}';
-		}
-		$text .= ' }}';
-		return $text;
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	/**
 	 * Creates the text of a template, when called from
 	 * Special:CreateTemplate, Special:CreateClass or the Page Schemas
@@ -527,17 +316,9 @@ END;
 				}
 				$text .= "|" . $field->getFieldName() . "=\n";
 			}
-			// @codeCoverageIgnoreStart
-			if ( defined( 'CARGO_VERSION' ) && !defined( 'SMW_VERSION' ) && $this->mCargoTable != '' ) {
-				$cargoInUse = true;
-				$cargoDeclareCall = $this->createCargoDeclareCall() . "\n";
-				$cargoStoreCall = $this->createCargoStoreCall();
-			} else {
-			// @codeCoverageIgnoreEnd
-				$cargoInUse = false;
-				$cargoDeclareCall = '';
-				$cargoStoreCall = '';
-			}
+			$cargoInUse = false;
+			$cargoDeclareCall = '';
+			$cargoStoreCall = '';
 
 			$templateFooter = wfMessage( 'pf_template_docufooter' )->inContentLanguage()->text();
 			$text .= <<<END
@@ -560,17 +341,9 @@ END;
 				}
 				$text .= $field->toWikitext();
 			}
-			// @codeCoverageIgnoreStart
-			if ( defined( 'CARGO_VERSION' ) && !defined( 'SMW_VERSION' ) && $this->mCargoTable != '' ) {
-				$cargoInUse = true;
-				$cargoDeclareCall = $this->createCargoDeclareCall() . "\n";
-				$cargoStoreCall = $this->createCargoStoreCall();
-			} else {
-			// @codeCoverageIgnoreEnd
-				$cargoInUse = false;
-				$cargoDeclareCall = '';
-				$cargoStoreCall = '';
-			}
+			$cargoInUse = false;
+			$cargoDeclareCall = '';
+			$cargoStoreCall = '';
 
 			$text .= <<<END
 }}
@@ -803,9 +576,7 @@ END;
 			$text .= "$fieldStart ";
 		}
 
-		// @codeCoverageIgnoreStart
-		$cargoInUse = defined( 'CARGO_VERSION' ) && !defined( 'SMW_VERSION' ) && $this->mCargoTable != '';
-		// @codeCoverageIgnoreEnd
+		$cargoInUse = false;
 		$text .= $field->createText( $cargoInUse );
 
 		$fieldEnd = $this->mFieldEnd;

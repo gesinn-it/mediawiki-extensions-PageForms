@@ -120,12 +120,6 @@ class PFMultiPageEdit extends QueryPage {
 						$gridParamValues['type'] = 'combobox';
 						$gridParamValues['inputType'] = 'combobox';
 					}
-					$fullCargoField = $templateField->getFullCargoField();
-					// @codeCoverageIgnoreStart
-					// these attributes would be utilised for the autocompletion
-					$gridParamValues['autocompletesettings'] = $fullCargoField;
-					$gridParamValues['autocompletedatatype'] = 'cargo field';
-					// @codeCoverageIgnoreEnd
 				}
 			} elseif ( !empty( $propertyType ) ) {
 				if ( $propertyType == '_dat' ) {

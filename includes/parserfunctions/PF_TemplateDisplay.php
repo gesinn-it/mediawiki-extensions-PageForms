@@ -125,8 +125,6 @@ class PFTemplateDisplay {
 				} else {
 					$formattedFieldValue = self::pageText( $fieldValue, $templateField );
 				}
-			} elseif ( $fieldType == 'Coordinates' ) {
-				$formattedFieldValue = self::mapText( $fieldValue, $format, $parser );
 			} elseif ( $fieldType == 'Rating' ) {
 				$formattedFieldValue = self::ratingText( $fieldValue );
 			} elseif ( $fieldType == 'File' ) {
@@ -153,43 +151,6 @@ class PFTemplateDisplay {
 
 		return [ $text, 'noparse' => true, 'isHTML' => true ];
 	}
-
-	// @codeCoverageIgnoreStart
-
-	private static function mapText( $coordinatesStr, $format, $parser ) {
-		if ( $coordinatesStr == '' ) {
-			return '';
-		}
-
-		$mappingFormat = new CargoMapsFormat( $parser->getOutput() );
-
-		try {
-			[ $lat, $lon ] = CargoUtils::parseCoordinatesString( $coordinatesStr );
-		} catch ( MWException $e ) {
-			return '';
-		}
-		$valuesTable = [ [ 'Coords  lat' => $lat, 'Coords  lon' => $lon ] ];
-		$formattedValuesTable = $valuesTable;
-		$coordsDesc = new CargoFieldDescription();
-		$coordsDesc->mType = 'Coordinates';
-		$fieldDescriptions = [ 'Coords' => $coordsDesc ];
-		$displayParams = [];
-		if ( $format == 'infobox' ) {
-			$displayParams['width'] = '300';
-			$displayParams['height'] = '300';
-		}
-
-		try {
-			$text = $mappingFormat->display( $valuesTable,
-				$formattedValuesTable, $fieldDescriptions,
-				$displayParams );
-		} catch ( MWException $e ) {
-			return '';
-		}
-		return $text;
-	}
-
-	// @codeCoverageIgnoreEnd
 
 	private static function pageListText( $value, $templateField ) {
 		$text = '';

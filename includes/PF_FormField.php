@@ -245,7 +245,6 @@ class PFFormField {
 		}
 
 		$semantic_property = null;
-		$cargo_table = $cargo_field = $cargo_where = null;
 		$show_on_select = [];
 		$fullFieldName = $template_name . '[' . $field_name . ']';
 		$values = $valuesSourceType = $valuesSource = null;
@@ -378,12 +377,6 @@ class PFFormField {
 					$f->mFieldArgs['unique_for_concept'] = $parser->recursiveTagParse( $sub_components[1] );
 				} elseif ( $sub_components[0] == 'property' ) {
 					$semantic_property = $sub_components[1];
-				} elseif ( $sub_components[0] == 'cargo table' ) {
-					$cargo_table = $sub_components[1];
-				} elseif ( $sub_components[0] == 'cargo field' ) {
-					$cargo_field = $sub_components[1];
-				} elseif ( $sub_components[0] == 'cargo where' ) {
-					$cargo_where = $sub_components[1];
 				} elseif ( $sub_components[0] == 'default filename' ) {
 					$titleGlobal = RequestContext::getMain()->getTitle();
 					$page_name = $titleGlobal->getText();
@@ -438,35 +431,6 @@ class PFFormField {
 			$valuesArray = array_map( 'trim', explode( $delimiter, $values ) );
 			$f->mPossibleValues = array_map( 'htmlspecialchars_decode', $valuesArray );
 		}
-
-		// If we're using Cargo, there's no equivalent for "values from
-		// property" - instead, we just always get the values if a
-		// field and table have been specified.
-		// @codeCoverageIgnoreStart
-		if ( $f->mPossibleValues === null && defined( 'CARGO_VERSION' ) &&
-			$cargo_table != null && $cargo_field != null ) {
-			// We only want the non-null values. Ideally this could
-			// be done by calling getValuesForCargoField() with
-			// an "IS NOT NULL" clause, but unfortunately that fails
-			// for array/list fields.
-			// Instead of getting involved with all that, we'll just
-			// remove the null/blank values afterward.
-			$cargoValues = PFValuesUtils::getAllValuesForCargoField( $cargo_table, $cargo_field );
-			$f->mPossibleValues = array_filter( $cargoValues, 'strlen' );
-		}
-
-		if ( defined( 'CARGO_VERSION' ) && $cargo_where != null ) {
-			if ( $cargo_table == null || $cargo_field == null ) {
-				$fullCargoField = $f->template_field->getFullCargoField();
-				$table_and_field = explode( '|', $fullCargoField );
-				$cargo_table = $table_and_field[0];
-				$cargo_field = $table_and_field[1];
-			}
-			$cargoValues = PFValuesUtils::getValuesForCargoField( $cargo_table, $cargo_field, $cargo_where );
-			$f->mPossibleValues = array_filter( $cargoValues, 'strlen' );
-		}
-
-		// @codeCoverageIgnoreEnd
 
 		if ( $f->mPossibleValues == null ) {
 			$f->mPossibleValues = $f->template_field->getPossibleValues();
@@ -534,20 +498,6 @@ class PFFormField {
 				$wgPageFormsFieldProperties[$fullFieldName] = $semantic_property;
 			}
 		}
-		// @codeCoverageIgnoreStart
-		if ( defined( 'CARGO_VERSION' ) ) {
-			if ( $cargo_table != null && $cargo_field != null ) {
-				$f->template_field->setCargoFieldData( $cargo_table, $cargo_field );
-			}
-			$fullCargoField = $f->template_field->getFullCargoField();
-			if ( $fullCargoField !== null ) {
-				global $wgPageFormsCargoFields;
-				$wgPageFormsCargoFields[$fullFieldName] = $fullCargoField;
-			}
-		}
-
-		// @codeCoverageIgnoreEnd
-
 		if ( $template_name === null || $template_name === '' ) {
 			$f->mInputName = $field_name;
 		} elseif ( $template_in_form->allowsMultiple() ) {
@@ -925,14 +875,6 @@ class PFFormField {
 			if ( $semantic_property != null ) {
 				$text .= Html::hidden( 'input_' . $wgPageFormsFieldNum . '_unique_property', $semantic_property );
 			}
-			$fullCargoField = $this->template_field->getFullCargoField();
-			if ( $fullCargoField != null ) {
-				// It's inefficient to get these values via
-				// text parsing, but oh well.
-				[ $cargo_table, $cargo_field ] = explode( '|', $fullCargoField, 2 );
-				$text .= Html::hidden( 'input_' . $wgPageFormsFieldNum . '_unique_cargo_table', $cargo_table );
-				$text .= Html::hidden( 'input_' . $wgPageFormsFieldNum . '_unique_cargo_field', $cargo_field );
-			}
 			if ( $this->hasFieldArg( 'unique_for_category' ) ) {
 				$text .= Html::hidden(
 					'input_' . $wgPageFormsFieldNum . '_unique_for_category',
@@ -1102,44 +1044,6 @@ class PFFormField {
 		}
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public function getArgumentsForInputCallCargo( array &$other_args ) {
-		$fullCargoField = $this->template_field->getFullCargoField();
-		if ( $fullCargoField !== null &&
-			!array_key_exists( 'full_cargo_field', $other_args ) ) {
-			if ( array_key_exists( 'cargo where', $other_args ) ) {
-				$other_args['full_cargo_field'] = $fullCargoField . '|' . $other_args['cargo where'];
-			} else {
-				$other_args['full_cargo_field'] = $fullCargoField;
-			}
-		}
-
-		if ( $this->template_field->getFieldType() == 'Hierarchy' ) {
-			$other_args['structure'] = $this->template_field->getHierarchyStructure();
-		}
-
-		if ( !array_key_exists( 'autocompletion source', $other_args ) ) {
-			if (
-				$this->template_field->getFieldType() == 'Page' ||
-				array_key_exists( 'autocomplete', $other_args ) ||
-				array_key_exists( 'remote autocompletion', $other_args )
-			) {
-				if ( array_key_exists( 'mapping cargo table', $other_args ) &&
-				array_key_exists( 'mapping cargo field', $other_args ) ) {
-					$mapping_cargo_field = $other_args[ 'mapping cargo field' ];
-					$mapping_cargo_table = $other_args[ 'mapping cargo table' ];
-					$other_args['autocompletion source'] = $mapping_cargo_table . '|' . $mapping_cargo_field;
-				} else {
-					$other_args['autocompletion source'] = $this->template_field->getFullCargoField();
-				}
-				$other_args['autocomplete field type'] = 'cargo field';
-			}
-		}
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	/**
 	 * Since Page Forms uses a hook system for the functions that
 	 * create HTML inputs, most arguments are contained in the "$other_args"
@@ -1179,12 +1083,6 @@ class PFFormField {
 		}
 
 		// Now add some extension-specific arguments to the input call.
-		// @codeCoverageIgnoreStart
-		if ( defined( 'CARGO_VERSION' ) ) {
-			$this->getArgumentsForInputCallCargo( $other_args );
-		}
-
-		// @codeCoverageIgnoreEnd
 		if ( defined( 'SMW_VERSION' ) ) {
 			$this->getArgumentsForInputCallSMW( $other_args );
 		}
