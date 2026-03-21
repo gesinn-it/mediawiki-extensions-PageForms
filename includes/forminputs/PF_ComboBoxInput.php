@@ -19,6 +19,8 @@ class PFComboBoxInput extends PFFormInput {
 		return [ '_wpg', '_str' ];
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public static function getDefaultCargoTypes() {
 		return [ 'Page' => [] ];
 	}
@@ -26,6 +28,8 @@ class PFComboBoxInput extends PFFormInput {
 	public static function getOtherCargoTypesHandled() {
 		return [ 'String' ];
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
 		global $wgPageFormsTabIndex, $wgPageFormsFieldNum, $wgPageFormsEDSettings;

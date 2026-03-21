@@ -8,25 +8,39 @@
 
 == Project Notes
 
-=== Deprecated integrations: Cargo and PageSchemas
+=== Deprecated functionality
 
-Support for the Cargo and PageSchemas extensions will be removed in a future
-version. The following rules apply immediately:
+The following features will be removed in a future version.
+The same rules apply to all of them:
 
-* Do *not* write new tests for Cargo- or PageSchemas-related code paths.
-* Do *not* document Cargo or PageSchemas behaviour in any new or updated
-  documentation.
-* When coverage gaps in existing code are caused solely by Cargo or PageSchemas
-  code paths, treat those gaps as irrelevant — do not create tests to fill them.
-* Annotate Cargo- and PageSchemas-related code blocks with a PHPUnit coverage
-  ignore comment so that they are excluded from coverage metrics:
+* Do *not* write new tests for these code paths.
+* Do *not* document this behaviour in any new or updated documentation.
+* When coverage gaps in existing code are caused solely by these code paths,
+  treat those gaps as irrelevant — do not create tests to fill them.
+* Annotate code blocks with a PHPUnit coverage ignore comment so that they are
+  excluded from coverage metrics:
 
 [source,php]
 ----
 // @codeCoverageIgnoreStart
-... Cargo / PageSchemas code ...
+... deprecated code ...
 // @codeCoverageIgnoreEnd
 ----
+
+==== Cargo and PageSchemas integrations
+
+Support for the Cargo and PageSchemas extensions will be removed.
+Cargo-specific code blocks are scattered through `includes/` and `specials/`
+files; annotate only the Cargo/PageSchemas block, not the whole file.
+
+==== CreateXXX special pages
+
+The special pages `PF_CreateCategory`, `PF_CreateClass`, `PF_CreateForm`,
+`PF_CreateProperty`, and `PF_CreateTemplate` in `specials/` will be removed
+entirely. Annotate the *entire file* with a single
+`@codeCoverageIgnoreStart` / `@codeCoverageIgnoreEnd` pair wrapping the class
+body. Existing tests in `tests/phpunit/integration/specials/PFCreateXxxTest.php`
+may remain but must not be extended.
 
 == Coding Conventions
 

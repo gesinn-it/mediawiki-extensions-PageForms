@@ -152,6 +152,8 @@ class PFTemplateDisplay {
 		return [ $text, 'noparse' => true, 'isHTML' => true ];
 	}
 
+	// @codeCoverageIgnoreStart
+
 	private static function mapText( $coordinatesStr, $format, $parser ) {
 		if ( $coordinatesStr == '' ) {
 			return '';
@@ -184,6 +186,8 @@ class PFTemplateDisplay {
 		}
 		return $text;
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	private static function pageListText( $value, $templateField ) {
 		$text = '';

@@ -8,6 +8,8 @@
  * @ingroup PF
  */
 
+// @codeCoverageIgnoreStart
+
 /**
  * @ingroup PFSpecialPages
  */
@@ -350,6 +352,7 @@ END;
 							$possibleValues = CargoUtils::smartSplit( ',', $allowedValuesStr );
 							$field->setPossibleValues( $possibleValues );
 						}
+
 					}
 
 					$fields[] = $field;
@@ -369,6 +372,7 @@ END;
 			if ( $use_cargo ) {
 				$pfTemplate->setCargoTable( $cargo_table );
 			}
+
 			$pfTemplate->setFullWikiTextStatus( $use_fullwikitext );
 			$pfTemplate->setAggregatingInfo( $aggregating_property, $aggregation_label );
 			$pfTemplate->setFormat( $template_format );
@@ -523,3 +527,5 @@ END;
 		return 'pf_group';
 	}
 }
+
+// @codeCoverageIgnoreEnd

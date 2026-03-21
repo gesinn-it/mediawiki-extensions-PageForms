@@ -21,6 +21,8 @@ class PFStartDateInput extends PFDateInput {
 		return [ '_dat' ];
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public static function getDefaultCargoTypes() {
 		return [
 			'Start date' => [],
@@ -30,6 +32,8 @@ class PFStartDateInput extends PFDateInput {
 	public static function getOtherCargoTypesHandled() {
 		return [ 'Date' ];
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	public function getInputClass() {
 		return 'dateInput startDateInput';

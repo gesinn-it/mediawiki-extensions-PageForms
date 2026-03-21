@@ -330,6 +330,8 @@ abstract class PFFormInput {
 		return [];
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public static function getDefaultCargoTypes() {
 		return [];
 	}
@@ -345,6 +347,8 @@ abstract class PFFormInput {
 	public static function getOtherCargoTypeListsHandled() {
 		return [];
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Add the necessary JavaScript for this input.

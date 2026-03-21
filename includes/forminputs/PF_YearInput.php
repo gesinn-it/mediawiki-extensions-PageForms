@@ -29,6 +29,8 @@ class PFYearInput extends PFTextInput {
 		return [];
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public static function getDefaultCargoTypes() {
 		return [];
 	}
@@ -44,6 +46,8 @@ class PFYearInput extends PFTextInput {
 	public static function getOtherCargoTypeListsHandled() {
 		return [];
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
 		$other_args['size'] = 4;

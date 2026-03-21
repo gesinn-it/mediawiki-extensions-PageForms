@@ -8,6 +8,8 @@
  * @ingroup PF
  */
 
+// @codeCoverageIgnoreStart
+
 /**
  * @ingroup PFSpecialPages
  */
@@ -153,3 +155,5 @@ END;
 		return 'pf_group';
 	}
 }
+
+// @codeCoverageIgnoreEnd

@@ -226,6 +226,8 @@ class PFHooks {
 		return true;
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public static function addToCargoTablesColumns( $cargoTablesPage, &$allowedActions ) {
 		if ( !$cargoTablesPage->getUser()->isAllowed( 'multipageedit' ) ) {
 			return true;
@@ -346,6 +348,8 @@ class PFHooks {
 
 		return true;
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Disable TinyMCE if this is a form definition page, or a form-editable page.

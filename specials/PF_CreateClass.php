@@ -11,6 +11,8 @@
 
 use MediaWiki\MediaWikiServices;
 
+// @codeCoverageIgnoreStart
+
 /**
  * @ingroup PFSpecialPages
  */
@@ -139,6 +141,7 @@ class PFCreateClass extends SpecialPage {
 		if ( defined( 'CARGO_VERSION' ) && $use_cargo ) {
 			$pfTemplate->setCargoTable( $cargo_table );
 		}
+
 		if ( defined( 'SMW_VERSION' ) && $template_multiple ) {
 			$pfTemplate->setConnectingProperty( $connectingProperty );
 		} else {
@@ -264,6 +267,7 @@ class PFCreateClass extends SpecialPage {
 				Html::element( 'input', [ 'size' => '30', 'name' => 'cargo_table', 'id' => 'cargo_table' ], null )
 			) . "\n";
 		}
+
 		$createTemplatePage = new PFCreateTemplate( true );
 		$templateInfo .= $createTemplatePage->printTemplateStyleInput( 'template_format' );
 		$templateInfo .= Html::rawElement( 'p', [ 'id' => 'template_multiple_p' ],
@@ -349,3 +353,5 @@ class PFCreateClass extends SpecialPage {
 		return 'pf_group';
 	}
 }
+
+// @codeCoverageIgnoreEnd

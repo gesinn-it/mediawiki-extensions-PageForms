@@ -814,6 +814,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 				$whereStr = $field_args['cargo where'];
 				$autocompletionSource .= "|$whereStr";
 			}
+
 		// @codeCoverageIgnoreEnd
 		} elseif ( array_key_exists( 'semantic_property', $field_args ) ) {
 			$autocompletionSource = $field_args['semantic_property'];

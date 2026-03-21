@@ -441,6 +441,7 @@ class PFFormField {
 		// If we're using Cargo, there's no equivalent for "values from
 		// property" - instead, we just always get the values if a
 		// field and table have been specified.
+		// @codeCoverageIgnoreStart
 		if ( $f->mPossibleValues === null && defined( 'CARGO_VERSION' ) && $cargo_table != null && $cargo_field != null ) {
 			// We only want the non-null values. Ideally this could
 			// be done by calling getValuesForCargoField() with
@@ -462,6 +463,8 @@ class PFFormField {
 			$cargoValues = PFValuesUtils::getValuesForCargoField( $cargo_table, $cargo_field, $cargo_where );
 			$f->mPossibleValues = array_filter( $cargoValues, 'strlen' );
 		}
+
+		// @codeCoverageIgnoreEnd
 
 		if ( $f->mPossibleValues == null ) {
 			$f->mPossibleValues = $f->template_field->getPossibleValues();
@@ -529,6 +532,7 @@ class PFFormField {
 				$wgPageFormsFieldProperties[$fullFieldName] = $semantic_property;
 			}
 		}
+		// @codeCoverageIgnoreStart
 		if ( defined( 'CARGO_VERSION' ) ) {
 			if ( $cargo_table != null && $cargo_field != null ) {
 				$f->template_field->setCargoFieldData( $cargo_table, $cargo_field );
@@ -539,6 +543,8 @@ class PFFormField {
 				$wgPageFormsCargoFields[$fullFieldName] = $fullCargoField;
 			}
 		}
+
+		// @codeCoverageIgnoreEnd
 
 		if ( $template_name === null || $template_name === '' ) {
 			$f->mInputName = $field_name;
@@ -1070,6 +1076,8 @@ class PFFormField {
 		}
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public function getArgumentsForInputCallCargo( array &$other_args ) {
 		$fullCargoField = $this->template_field->getFullCargoField();
 		if ( $fullCargoField !== null &&
@@ -1103,6 +1111,8 @@ class PFFormField {
 			}
 		}
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Since Page Forms uses a hook system for the functions that
@@ -1141,9 +1151,12 @@ class PFFormField {
 		}
 
 		// Now add some extension-specific arguments to the input call.
+		// @codeCoverageIgnoreStart
 		if ( defined( 'CARGO_VERSION' ) ) {
 			$this->getArgumentsForInputCallCargo( $other_args );
 		}
+
+		// @codeCoverageIgnoreEnd
 		if ( defined( 'SMW_VERSION' ) ) {
 			$this->getArgumentsForInputCallSMW( $other_args );
 		}

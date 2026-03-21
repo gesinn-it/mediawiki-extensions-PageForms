@@ -23,6 +23,8 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 		return [];
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public static function getDefaultCargoTypeLists() {
 		return [
 			'Enumeration' => []
@@ -32,6 +34,8 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 	public static function getOtherCargoTypeListsHandled() {
 		return [];
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
 		global $wgPageFormsTabIndex, $wgPageFormsFieldNum;

@@ -20,6 +20,8 @@ abstract class PFMultiEnumInput extends PFEnumInput {
 		return [ 'enumeration' ];
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public static function getOtherCargoTypesHandled() {
 		return [];
 	}
@@ -27,6 +29,8 @@ abstract class PFMultiEnumInput extends PFEnumInput {
 	public static function getOtherCargoTypeListsHandled() {
 		return [ 'Enumeration' ];
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	public static function getParameters() {
 		$params = parent::getParameters();

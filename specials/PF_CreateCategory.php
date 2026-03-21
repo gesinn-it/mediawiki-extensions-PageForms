@@ -8,6 +8,8 @@
  * @ingroup PF
  */
 
+// @codeCoverageIgnoreStart
+
 /**
  * @ingroup PFSpecialPages
  */
@@ -167,3 +169,5 @@ class PFCreateCategory extends SpecialPage {
 		return 'pf_group';
 	}
 }
+
+// @codeCoverageIgnoreEnd

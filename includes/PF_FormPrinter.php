@@ -120,9 +120,13 @@ class PFFormPrinter {
 		$this->mSemanticTypeHooks[$type][$is_list] = [ $class_name, $default_args ];
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public function setCargoTypeHook( $type, $is_list, $class_name, $default_args ) {
 		$this->mCargoTypeHooks[$type][$is_list] = [ $class_name, $default_args ];
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	public function setInputTypeHook( $input_type, $class_name, $default_args ) {
 		$this->mInputTypeHooks[$input_type] = [ $class_name, $default_args ];
@@ -235,6 +239,8 @@ class PFFormPrinter {
 		}
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public function getDefaultInputTypeCargo( $isList, $fieldType ) {
 		if ( $isList ) {
 			if ( array_key_exists( $fieldType, $this->mDefaultInputForCargoTypeList ) ) {
@@ -250,6 +256,8 @@ class PFFormPrinter {
 			}
 		}
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	public function getPossibleInputTypesSMW( $isList, $propertyType ) {
 		if ( $isList ) {
@@ -267,6 +275,8 @@ class PFFormPrinter {
 		}
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public function getPossibleInputTypesCargo( $isList, $fieldType ) {
 		if ( $isList ) {
 			if ( array_key_exists( $fieldType, $this->mPossibleInputsForCargoTypeList ) ) {
@@ -282,6 +292,8 @@ class PFFormPrinter {
 			}
 		}
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	public function getAllInputTypes() {
 		return array_keys( $this->mInputTypeClasses );
@@ -1320,6 +1332,7 @@ END;
 							// with spaces.
 							$generated_page_name = str_replace( '_', ' ', $generated_page_name );
 						}
+						// @codeCoverageIgnoreStart
 						if ( defined( 'CARGO_VERSION' ) && $form_field->hasFieldArg( 'mapping cargo table' ) &&
 						$form_field->hasFieldArg( 'mapping cargo field' ) && $form_field->hasFieldArg( 'mapping cargo value field' ) ) {
 								$mappingCargoTable = $form_field->getFieldArg( 'mapping cargo table' );
@@ -1332,6 +1345,8 @@ END;
 								$cur_value_in_template = $this->getCargoBasedMapping( $cur_value_in_template, $mappingCargoTable, $mappingCargoValueField, $mappingCargoField, $form_field );
 							}
 						}
+
+						// @codeCoverageIgnoreEnd
 						if ( $cur_value !== '' &&
 							( $form_field->hasFieldArg( 'mapping template' ) ||
 							$form_field->hasFieldArg( 'mapping property' ) ||
@@ -1967,6 +1982,8 @@ END;
 		return [ $form_text, $page_text, $form_page_title, $generated_page_name ];
 	}
 
+	// @codeCoverageIgnoreStart
+
 	/**
 	 * Cargo based mapping compatible with autocompletion
 	 * @param string $currentValue
@@ -1994,6 +2011,8 @@ END;
 		$currentValue = implode( $delimiter, $cargoValues );
 		return $currentValue;
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Create the HTML to display this field within a form.

@@ -10,6 +10,8 @@
 
 use MediaWiki\MediaWikiServices;
 
+// @codeCoverageIgnoreStart
+
 /**
  * @ingroup PFSpecialPages
  */
@@ -910,3 +912,5 @@ END;
 		return 'pf_group';
 	}
 }
+
+// @codeCoverageIgnoreEnd

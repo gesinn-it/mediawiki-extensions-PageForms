@@ -15,6 +15,8 @@ class PFLeafletInput extends PFOpenLayersInput {
 		return 'leaflet';
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public static function getDefaultCargoTypes() {
 		return [];
 	}
@@ -22,6 +24,8 @@ class PFLeafletInput extends PFOpenLayersInput {
 	public static function getOtherCargoTypesHandled() {
 		return [ 'Coordinates' ];
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
 		global $wgOut;

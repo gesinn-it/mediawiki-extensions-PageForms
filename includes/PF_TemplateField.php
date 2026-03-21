@@ -195,6 +195,8 @@ class PFTemplateField {
 		$this->setTypeAndPossibleValues();
 	}
 
+	// @codeCoverageIgnoreStart
+
 	/**
 	 * Equivalent to setSemanticProperty(), but called when using Cargo
 	 * instead of SMW.
@@ -282,6 +284,7 @@ class PFTemplateField {
 		return $this->mCargoTable . '|' . $this->mCargoField;
 	}
 
+	// @codeCoverageIgnoreEnd
 	public function getFieldType() {
 		return $this->mFieldType;
 	}

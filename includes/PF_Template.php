@@ -93,12 +93,15 @@ class PFTemplate {
 		// there's no Cargo schema for this template, we call
 		// loadTemplateFieldsSMWAndOther(), which doesn't require the
 		// presence of SMW and can get non-SMW information as well.
+		// @codeCoverageIgnoreStart
 		if ( defined( 'CARGO_VERSION' ) ) {
 			$this->loadTemplateFieldsCargo( $templateTitle );
 			if ( count( $this->mTemplateFields ) > 0 ) {
 				return;
 			}
 		}
+
+		// @codeCoverageIgnoreEnd
 		$this->loadTemplateFieldsSMWAndOther();
 	}
 
@@ -244,6 +247,8 @@ class PFTemplate {
 		$this->mTemplateFields[$cur_pos] = $templateField;
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public function loadTemplateFieldsCargo( $templateTitle ) {
 		$cargoFieldsOfTemplateParams = [];
 
@@ -385,6 +390,8 @@ class PFTemplate {
 		return [ $tableName, $tableSchema ];
 	}
 
+	// @codeCoverageIgnoreEnd
+
 	public function getTemplateFields() {
 		return $this->mTemplateFields;
 	}
@@ -422,6 +429,8 @@ class PFTemplate {
 	public function setFormat( $templateFormat ) {
 		$this->mTemplateFormat = $templateFormat;
 	}
+
+	// @codeCoverageIgnoreStart
 
 	public function createCargoDeclareCall() {
 		$text = '{{#cargo_declare:';
@@ -471,6 +480,8 @@ class PFTemplate {
 		return $text;
 	}
 
+	// @codeCoverageIgnoreEnd
+
 	/**
 	 * Creates the text of a template, when called from
 	 * Special:CreateTemplate, Special:CreateClass or the Page Schemas
@@ -499,11 +510,13 @@ END;
 				}
 				$text .= "|" . $field->getFieldName() . "=\n";
 			}
+			// @codeCoverageIgnoreStart
 			if ( defined( 'CARGO_VERSION' ) && !defined( 'SMW_VERSION' ) && $this->mCargoTable != '' ) {
 				$cargoInUse = true;
 				$cargoDeclareCall = $this->createCargoDeclareCall() . "\n";
 				$cargoStoreCall = $this->createCargoStoreCall();
 			} else {
+			// @codeCoverageIgnoreEnd
 				$cargoInUse = false;
 				$cargoDeclareCall = '';
 				$cargoStoreCall = '';
@@ -530,11 +543,13 @@ END;
 				}
 				$text .= $field->toWikitext();
 			}
+			// @codeCoverageIgnoreStart
 			if ( defined( 'CARGO_VERSION' ) && !defined( 'SMW_VERSION' ) && $this->mCargoTable != '' ) {
 				$cargoInUse = true;
 				$cargoDeclareCall = $this->createCargoDeclareCall() . "\n";
 				$cargoStoreCall = $this->createCargoStoreCall();
 			} else {
+			// @codeCoverageIgnoreEnd
 				$cargoInUse = false;
 				$cargoDeclareCall = '';
 				$cargoStoreCall = '';
@@ -769,7 +784,9 @@ END;
 			$text .= "$fieldStart ";
 		}
 
+		// @codeCoverageIgnoreStart
 		$cargoInUse = defined( 'CARGO_VERSION' ) && !defined( 'SMW_VERSION' ) && $this->mCargoTable != '';
+		// @codeCoverageIgnoreEnd
 		$text .= $field->createText( $cargoInUse );
 
 		$fieldEnd = $this->mFieldEnd;

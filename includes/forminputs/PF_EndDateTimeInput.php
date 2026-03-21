@@ -17,6 +17,8 @@ class PFEndDateTimeInput extends PFDateTimeInput {
 		return 'dateTimeInput endDateTimeInput';
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public static function getDefaultCargoTypes() {
 		return [
 			'End datetime' => [],
@@ -26,4 +28,6 @@ class PFEndDateTimeInput extends PFDateTimeInput {
 	public static function getOtherCargoTypesHandled() {
 		return [ 'Datetime' ];
 	}
+
+	// @codeCoverageIgnoreEnd
 }

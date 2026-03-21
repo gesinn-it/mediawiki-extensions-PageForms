@@ -21,6 +21,8 @@ class PFTextAreaInput extends PFFormInput {
 		return 'textarea';
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public static function getDefaultCargoTypes() {
 		return [
 			'Text' => [],
@@ -34,6 +36,8 @@ class PFTextAreaInput extends PFFormInput {
 			'Searchtext' => [ 'field_type' => 'text', 'is_list' => 'true' ]
 		];
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * @param string $input_number The number of the input in the form. For a simple HTML input

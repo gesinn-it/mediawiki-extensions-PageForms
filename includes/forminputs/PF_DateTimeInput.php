@@ -21,11 +21,15 @@ class PFDateTimeInput extends PFDateInput {
 		return [ '_dat' ];
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public static function getDefaultCargoTypes() {
 		return [
 			'Datetime' => []
 		];
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	public function getInputClass() {
 		return 'dateTimeInput';

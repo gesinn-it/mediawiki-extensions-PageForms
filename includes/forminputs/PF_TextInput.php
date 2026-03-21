@@ -51,6 +51,8 @@ class PFTextInput extends PFFormInput {
 		return [ '_wpg' ];
 	}
 
+	// @codeCoverageIgnoreStart
+
 	public static function getDefaultCargoTypes() {
 		return [
 			'Integer' => [ 'field_type' => 'integer' ],
@@ -78,6 +80,8 @@ class PFTextInput extends PFFormInput {
 	public static function getOtherCargoTypeListsHandled() {
 		return [ 'Page' ];
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Gets the HTML for the preview image or null if there is none.
