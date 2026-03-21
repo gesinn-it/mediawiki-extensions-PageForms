@@ -4,6 +4,7 @@
 // workflow .github/workflows/copilot-instructions.yml.
 // NEVER edit or regenerate copilot-instructions.md manually.
 // ============================================================
+:project_type: mediawiki
 
 == Project Notes
 
@@ -26,6 +27,10 @@ version. The following rules apply immediately:
 ... Cargo / PageSchemas code ...
 // @codeCoverageIgnoreEnd
 ----
+
+== Coding Conventions
+
+include::../docs/gesinn-it-docs-master-pub/snippets/coding-conventions-{project_type}.adoc[]
 
 == Test Workflow
 
