@@ -6,7 +6,13 @@
 class PFSFSelectAPIRequestProcessorTest extends MediaWikiIntegrationTestCase {
 
 	private function makeProcessor( ?callable $smwMock = null ): PFSFSelectAPIRequestProcessor {
-		$parser = $this->getServiceContainer()->getParserFactory()->create();
+		// getServiceContainer() was introduced in MW 1.36.
+		if ( version_compare( MW_VERSION, '1.36', '>=' ) ) {
+			$services = $this->getServiceContainer();
+		} else {
+			$services = \MediaWiki\MediaWikiServices::getInstance();
+		}
+		$parser = $services->getParserFactory()->create();
 		$parser->setTitle( Title::newFromText( 'Test' ) );
 		$parser->setOptions( new ParserOptions( $this->getTestUser()->getUser() ) );
 		$parser->resetOutput();
