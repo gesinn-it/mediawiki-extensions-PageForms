@@ -160,6 +160,9 @@
 		"PFCreatePageJob": "includes/PF_CreatePageJob.php",
 		"IntegrationTestHelpers": "tests/phpunit/integration/IntegrationTestHelpers.php"
 	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\PageForms\\": "src/"
+	},
 	"ResourceModules": {
 		"ext.pageforms.main": {
 			"scripts": [

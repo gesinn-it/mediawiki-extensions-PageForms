@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Extension\PageForms\HtmlFormDataExtractor;
 use OOUI\BlankTheme;
 
 /**
@@ -500,40 +501,29 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// parseDataFromHTMLFrag – characterises every HTML input variant
+	// HtmlFormDataExtractor::extract – characterises every HTML input variant
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Helper: invoke the private parseDataFromHTMLFrag() via reflection and
-	 * return the extracted $data array.  Also pre-seeds mOptions so that
-	 * disabled-field removal tests can verify the side-effect.
+	 * Helper: call HtmlFormDataExtractor::extract() directly.
+	 * Returns the extracted data and the (possibly modified) mOptions array.
 	 *
 	 * @param string $html HTML fragment to parse
-	 * @param array $mOptions Initial value for $this->mOptions
+	 * @param array $mOptions Initial mOptions (disabled-field removal tests use this)
 	 * @return array{data: array, mOptions: array}
 	 */
 	private function parseHTML( string $html, array $mOptions = [] ): array {
-		[ $module ] = $this->newModule();
-		$ref = new ReflectionClass( PFAutoeditAPI::class );
-
-		$optProp = $ref->getProperty( 'mOptions' );
-		$optProp->setAccessible( true );
-		$optProp->setValue( $module, $mOptions );
-
-		$method = $ref->getMethod( 'parseDataFromHTMLFrag' );
-		$method->setAccessible( true );
-		$data = $method->invoke( $module, $html );
-
+		$data = HtmlFormDataExtractor::extract( $html, $mOptions );
 		return [
 			'data'     => $data,
-			'mOptions' => $optProp->getValue( $module ),
+			'mOptions' => $mOptions,
 		];
 	}
 
 	// --- text input ---
 
 	/**
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLTextInputExtractsValue(): void {
 		$result = $this->parseHTML( '<input type="text" name="MyTpl[field]" value="hello" />' );
@@ -543,7 +533,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	/**
 	 * A bare <input> with no type attribute defaults to "text".
 	 *
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLInputWithNoTypeDefaultsToText(): void {
 		$result = $this->parseHTML( '<input name="MyTpl[field]" value="implicit" />' );
@@ -551,7 +541,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLHiddenInputExtractsValue(): void {
 		$result = $this->parseHTML( '<input type="hidden" name="MyTpl[h]" value="hv" />' );
@@ -561,7 +551,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// --- checkbox ---
 
 	/**
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLCheckedCheckboxExtractsValue(): void {
 		$result = $this->parseHTML(
@@ -571,7 +561,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLUncheckedCheckboxProducesNoEntry(): void {
 		$result = $this->parseHTML(
@@ -583,7 +573,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// --- radio ---
 
 	/**
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLCheckedRadioExtractsValue(): void {
 		$result = $this->parseHTML(
@@ -594,7 +584,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLUncheckedRadioProducesNoEntry(): void {
 		$result = $this->parseHTML(
@@ -606,7 +596,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// --- textarea ---
 
 	/**
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLTextareaExtractsContent(): void {
 		$result = $this->parseHTML( '<textarea name="MyTpl[txt]">some text</textarea>' );
@@ -614,7 +604,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLTextareaWithNoNameIsIgnored(): void {
 		$result = $this->parseHTML( '<textarea>orphan</textarea>' );
@@ -627,7 +617,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * Single-select: when no option is marked selected, the first option
 	 * is used as the default value.
 	 *
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLSingleSelectDefaultsToFirstOption(): void {
 		$result = $this->parseHTML(
@@ -640,7 +630,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLSingleSelectSelectedOptionOverridesDefault(): void {
 		$result = $this->parseHTML(
@@ -656,7 +646,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * When an option has no value attribute and is selected, its text
 	 * content is used as the value.
 	 *
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLSelectOptionWithNoValueUsesTextContent(): void {
 		$result = $this->parseHTML(
@@ -674,7 +664,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * into addToArray(), which overwrites on repeated calls with the same key,
 	 * so the *last* selected option wins.
 	 *
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLMultiSelectLastSelectedOptionWins(): void {
 		$result = $this->parseHTML(
@@ -694,7 +684,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * A disabled input must NOT appear in $data, and its key must be
 	 * removed from $this->mOptions (restricted-field cleanup).
 	 *
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLDisabledInputIsNotExtractedAndIsRemovedFromOptions(): void {
 		$result = $this->parseHTML(
@@ -710,7 +700,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * A disabled select must NOT appear in $data, and its key must be
 	 * removed from $this->mOptions.
 	 *
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLDisabledSelectIsNotExtractedAndIsRemovedFromOptions(): void {
 		$result = $this->parseHTML(
@@ -726,7 +716,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	/**
 	 * An input with no name attribute must be silently ignored.
 	 *
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLInputWithNoNameIsIgnored(): void {
 		$result = $this->parseHTML( '<input type="text" value="orphan" />' );
@@ -736,7 +726,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	/**
 	 * Multiple fields in one fragment are all captured.
 	 *
-	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::extract
 	 */
 	public function testParseHTMLMixedFragmentExtractsAllFields(): void {
 		$html  = '<input type="text" name="T[a]" value="va" />';

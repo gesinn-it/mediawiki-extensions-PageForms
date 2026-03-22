@@ -7,6 +7,7 @@ declare( strict_types=1 );
  * @ingroup PageForms
  */
 
+use MediaWiki\Extension\PageForms\HtmlFormDataExtractor;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
 
@@ -969,7 +970,7 @@ class PFAutoeditAPI extends ApiBase {
 
 			// Parse the data to be preloaded from the form HTML of
 			// the existing page.
-			$data = $this->parseDataFromHTMLFrag( $formHTML );
+			$data = HtmlFormDataExtractor::extract( $formHTML, $this->mOptions );
 
 			// ...and merge/overwrite it with the new data.
 			$this->mOptions = PFUtils::arrayMergeRecursiveDistinct( $data, $this->mOptions );
@@ -1052,130 +1053,6 @@ class PFAutoeditAPI extends ApiBase {
 		return $user->matchEditToken( $token );
 	}
 
-	private function parseDataFromHTMLFrag( $html ) {
-		$data = [];
-		$doc = new DOMDocument();
-		if ( LIBXML_VERSION < 20900 ) {
-			// PHP < 8
-			$oldVal = libxml_disable_entity_loader( true );
-		}
-
-		// phpcs:ignore Generic.PHP.NoSilencedErrors.Discouraged
-		@$doc->loadHTML(
-			'<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"' .
-			' "http://www.w3.org/TR/REC-html40/loose.dtd">' .
-			'<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/></head><body>'
-			. $html
-			. '</body></html>'
-		);
-
-		if ( LIBXML_VERSION < 20900 ) {
-			// PHP < 8
-			libxml_disable_entity_loader( $oldVal );
-		}
-
-		// Process input tags.
-		$inputs = $doc->getElementsByTagName( 'input' );
-
-		for ( $i = 0; $i < $inputs->length; $i++ ) {
-			$input = $inputs->item( $i );
-			'@phan-var DOMElement $input';/** @var DOMElement $input */
-			$type = $input->getAttribute( 'type' );
-			$name = trim( $input->getAttribute( 'name' ) );
-
-			if ( !$name ) {
-				continue;
-			}
-			if ( $input->hasAttribute( 'disabled' ) ) {
-				// Remove fields from mOptions which are restricted or disabled
-				// so that they do not get edited in an #autoedit call.
-				$restrictedField = preg_split( "/[\[\]]/", $name, -1, PREG_SPLIT_NO_EMPTY );
-				if ( $restrictedField && count( $restrictedField ) > 1 ) {
-					unset( $this->mOptions[$restrictedField[0]][$restrictedField[1]] );
-				}
-				continue;
-			}
-
-			if ( $type === '' ) {
-				$type = 'text';
-			}
-
-			switch ( $type ) {
-				case 'checkbox':
-				case 'radio':
-					if ( $input->hasAttribute( 'checked' ) ) {
-						self::addToArray( $data, $name, $input->getAttribute( 'value' ) );
-					}
-					break;
-
-				// case 'button':
-				case 'hidden':
-				case 'image':
-				case 'password':
-				case 'date':
-				case 'datetime':
-				// case 'reset':
-				// case 'submit':
-				case 'text':
-					self::addToArray( $data, $name, $input->getAttribute( 'value' ) );
-					break;
-			}
-		}
-
-		// Process select tags
-		$selects = $doc->getElementsByTagName( 'select' );
-
-		for ( $i = 0; $i < $selects->length; $i++ ) {
-			$select = $selects->item( $i );
-			$name = trim( $select->getAttribute( 'name' ) );
-
-			if ( !$name || $select->hasAttribute( 'disabled' ) ) {
-				// Remove fields from mOptions which are restricted or disabled
-				// so that they do not get edited in an #autoedit call.
-				$restrictedField = preg_split( "/[\[\]]/", $name, -1, PREG_SPLIT_NO_EMPTY );
-				if ( $restrictedField ) {
-					unset( $this->mOptions[$restrictedField[0]][$restrictedField[1]] );
-				}
-				continue;
-			}
-
-			$options = $select->getElementsByTagName( 'option' );
-
-			// If the current $select is a radio button select
-			// (i.e. not multiple) set the first option to selected
-			// as default. This may be overwritten in the loop below.
-			if ( $options->length > 0 && ( !$select->hasAttribute( 'multiple' ) ) ) {
-				self::addToArray( $data, $name, $options->item( 0 )->getAttribute( 'value' ) );
-			}
-
-			for ( $o = 0; $o < $options->length; $o++ ) {
-				if ( $options->item( $o )->hasAttribute( 'selected' ) ) {
-					if ( $options->item( $o )->getAttribute( 'value' ) ) {
-						self::addToArray( $data, $name, $options->item( $o )->getAttribute( 'value' ) );
-					} else {
-						self::addToArray( $data, $name, $options->item( $o )->nodeValue );
-					}
-				}
-			}
-		}
-
-		// Process textarea tags
-		$textareas = $doc->getElementsByTagName( 'textarea' );
-
-		for ( $i = 0; $i < $textareas->length; $i++ ) {
-			$textarea = $textareas->item( $i );
-			$name = trim( $textarea->getAttribute( 'name' ) );
-
-			if ( !$name ) {
-				continue;
-			}
-
-			self::addToArray( $data, $name, $textarea->textContent );
-		}
-
-		return $data;
-	}
-
 	/**
 	 * Parses data from a query string into the $data array
 	 *
@@ -1199,7 +1076,7 @@ class PFAutoeditAPI extends ApiBase {
 			if ( $key == "query" || $key == "query string" ) {
 				$this->parseDataFromQueryString( $data, $value );
 			} else {
-				self::addToArray( $data, $key, $value );
+				HtmlFormDataExtractor::addToArray( $data, $key, $value );
 			}
 		}
 
@@ -1207,7 +1084,7 @@ class PFAutoeditAPI extends ApiBase {
 	}
 
 	/**
-	 * This function recursively inserts the value into a tree.
+	 * Delegate to HtmlFormDataExtractor::addToArray() for backward compatibility.
 	 *
 	 * @param array &$array is root
 	 * @param string $key identifies path to position in tree.
@@ -1216,41 +1093,7 @@ class PFAutoeditAPI extends ApiBase {
 	 * @param bool $toplevel if this is a toplevel value.
 	 */
 	public static function addToArray( &$array, $key, $value, $toplevel = true ) {
-		$matches = [];
-		if ( preg_match( '/^([^\[\]]*)\[([^\[\]]*)\](.*)/', $key, $matches ) ) {
-			// for some reason toplevel keys get their spaces encoded by MW.
-			// We have to imitate that.
-			if ( $toplevel ) {
-				$key = str_replace( ' ', '_', $matches[1] );
-			} else {
-				if ( is_numeric( $matches[1] ) && isset( $matches[2] ) ) {
-					// Multiple instances are indexed like 0a,1a,2a... to differentiate
-					// the inputs the form starts out with from any inputs added by the Javascript.
-					// Append the character "a" only if the instance number is numeric.
-					// If the key(i.e. the instance) doesn't exists then the numerically next
-					// instance is created whatever be the key.
-					$key = $matches[1] . 'a';
-				} else {
-					$key = $matches[1];
-				}
-			}
-			// if subsequent element does not exist yet or is a string (we prefer arrays over strings)
-			if ( !array_key_exists( $key, $array ) || is_string( $array[$key] ) ) {
-				$array[$key] = [];
-			}
-
-			// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset
-			self::addToArray( $array[$key], $matches[2] . $matches[3], $value, false );
-		} else {
-			if ( $key ) {
-				// only add the string value if there is no child array present
-				if ( !array_key_exists( $key, $array ) || !is_array( $array[$key] ) ) {
-					$array[$key] = $value;
-				}
-			} else {
-				array_push( $array, $value );
-			}
-		}
+		HtmlFormDataExtractor::addToArray( $array, $key, $value, $toplevel );
 	}
 
 	/**
