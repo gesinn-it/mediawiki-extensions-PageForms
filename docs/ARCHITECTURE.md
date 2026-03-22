@@ -30,20 +30,31 @@ Form Parsing
         ▼
 Domain Model
         │
-        ▼
-Form Rendering
-        │
-        ▼
-Browser UI
-        │
-        ▼
-Submission Processing
-        │
-        ▼
-Wiki Page Generation
+        ├─────────────────────────────┐
+        ▼                             ▼
+Interactive Form             PF_AutoeditAPI
+(PFFormPrinter + JS)         (API / #autoedit)
+        │                             │
+        └──────────────┬──────────────┘
+                       ▼
+           Submission Processing
+                       │
+                       ▼
+           Wiki Page Generation
 ```
 
 Each stage is handled by specific components within the extension.
+
+At the **Domain Model** stage the pipeline forks into two paths:
+
+* **Interactive path** — `PFFormPrinter` renders the form as HTML, ResourceLoader
+  modules initialize client-side widgets, and the user submits the form via the
+  browser.
+* **API path** — `PF_AutoeditAPI` (invoked directly via the MediaWiki API or
+  through the `#autoedit` / `#autoeditrating` parser functions) applies field
+  values programmatically, without any browser interaction. It reuses
+  `PFFormPrinter` internally to resolve default values and existing page
+  content, then proceeds directly to submission processing.
 
 ---
 
@@ -152,7 +163,35 @@ Responsibilities include:
 * attaching client-side behavior
 * preparing submission metadata
 
-The renderer transforms the domain model into the interactive form presented in the browser.
+The renderer transforms the domain model into the interactive form presented in
+the browser. It is also invoked by `PF_AutoeditAPI` on the API path to resolve
+default values and load existing page content, even though no visible form is
+rendered in that case.
+
+---
+
+# Programmatic Editing (API Path)
+
+`PF_AutoeditAPI` is a MediaWiki API module that allows pages to be created or
+updated without user interaction.
+
+Entry points:
+
+* Direct MediaWiki API call: `action=pfautoedit`
+* `#autoedit` parser function (inline links or buttons on wiki pages)
+* `#autoeditrating` parser function (star-rating widget)
+
+Behavior:
+
+* Accepts form name, target page, and field values as request parameters.
+* Internally invokes `PFFormPrinter` to load the form definition and resolve
+  default values from existing page content.
+* Bypasses the browser UI entirely — no HTML form is sent to the client.
+* Applies the submitted field values, constructs wiki text, and saves the page
+  via the standard MediaWiki edit pipeline.
+
+This makes `PF_AutoeditAPI` the primary integration point for automated or
+inline page updates triggered from wiki pages or external scripts.
 
 ---
 

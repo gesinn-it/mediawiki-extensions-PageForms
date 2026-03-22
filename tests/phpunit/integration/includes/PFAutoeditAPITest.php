@@ -1,5 +1,7 @@
 <?php
 
+use OOUI\BlankTheme;
+
 /**
  * @covers \PFAutoeditAPI
  * @group PF
@@ -7,6 +9,11 @@
  * @group medium
  */
 class PFAutoeditAPITest extends ApiTestCase {
+
+	protected function setUp(): void {
+		parent::setUp();
+		\OOUI\Theme::setSingleton( new BlankTheme() );
+	}
 
 	// -------------------------------------------------------------------------
 	// makeRandomNumber
@@ -490,6 +497,478 @@ class PFAutoeditAPITest extends ApiTestCase {
 
 		$result = $module->getResult()->getResultData();
 		$this->assertStringContainsString( 'Something went wrong.', $result['responseText'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// parseDataFromHTMLFrag – characterises every HTML input variant
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Helper: invoke the private parseDataFromHTMLFrag() via reflection and
+	 * return the extracted $data array.  Also pre-seeds mOptions so that
+	 * disabled-field removal tests can verify the side-effect.
+	 *
+	 * @param string $html HTML fragment to parse
+	 * @param array $mOptions Initial value for $this->mOptions
+	 * @return array{data: array, mOptions: array}
+	 */
+	private function parseHTML( string $html, array $mOptions = [] ): array {
+		[ $module ] = $this->newModule();
+		$ref = new ReflectionClass( PFAutoeditAPI::class );
+
+		$optProp = $ref->getProperty( 'mOptions' );
+		$optProp->setAccessible( true );
+		$optProp->setValue( $module, $mOptions );
+
+		$method = $ref->getMethod( 'parseDataFromHTMLFrag' );
+		$method->setAccessible( true );
+		$data = $method->invoke( $module, $html );
+
+		return [
+			'data'     => $data,
+			'mOptions' => $optProp->getValue( $module ),
+		];
+	}
+
+	// --- text input ---
+
+	/**
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLTextInputExtractsValue(): void {
+		$result = $this->parseHTML( '<input type="text" name="MyTpl[field]" value="hello" />' );
+		$this->assertSame( 'hello', $result['data']['MyTpl']['field'] );
+	}
+
+	/**
+	 * A bare <input> with no type attribute defaults to "text".
+	 *
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLInputWithNoTypeDefaultsToText(): void {
+		$result = $this->parseHTML( '<input name="MyTpl[field]" value="implicit" />' );
+		$this->assertSame( 'implicit', $result['data']['MyTpl']['field'] );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLHiddenInputExtractsValue(): void {
+		$result = $this->parseHTML( '<input type="hidden" name="MyTpl[h]" value="hv" />' );
+		$this->assertSame( 'hv', $result['data']['MyTpl']['h'] );
+	}
+
+	// --- checkbox ---
+
+	/**
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLCheckedCheckboxExtractsValue(): void {
+		$result = $this->parseHTML(
+			'<input type="checkbox" name="MyTpl[cb]" value="yes" checked />'
+		);
+		$this->assertSame( 'yes', $result['data']['MyTpl']['cb'] );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLUncheckedCheckboxProducesNoEntry(): void {
+		$result = $this->parseHTML(
+			'<input type="checkbox" name="MyTpl[cb]" value="yes" />'
+		);
+		$this->assertArrayNotHasKey( 'MyTpl', $result['data'] );
+	}
+
+	// --- radio ---
+
+	/**
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLCheckedRadioExtractsValue(): void {
+		$result = $this->parseHTML(
+			'<input type="radio" name="MyTpl[r]" value="A" checked />' .
+			'<input type="radio" name="MyTpl[r]" value="B" />'
+		);
+		$this->assertSame( 'A', $result['data']['MyTpl']['r'] );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLUncheckedRadioProducesNoEntry(): void {
+		$result = $this->parseHTML(
+			'<input type="radio" name="MyTpl[r]" value="A" />'
+		);
+		$this->assertArrayNotHasKey( 'MyTpl', $result['data'] );
+	}
+
+	// --- textarea ---
+
+	/**
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLTextareaExtractsContent(): void {
+		$result = $this->parseHTML( '<textarea name="MyTpl[txt]">some text</textarea>' );
+		$this->assertSame( 'some text', $result['data']['MyTpl']['txt'] );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLTextareaWithNoNameIsIgnored(): void {
+		$result = $this->parseHTML( '<textarea>orphan</textarea>' );
+		$this->assertSame( [], $result['data'] );
+	}
+
+	// --- select (single) ---
+
+	/**
+	 * Single-select: when no option is marked selected, the first option
+	 * is used as the default value.
+	 *
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLSingleSelectDefaultsToFirstOption(): void {
+		$result = $this->parseHTML(
+			'<select name="MyTpl[s]">' .
+			'<option value="first">First</option>' .
+			'<option value="second">Second</option>' .
+			'</select>'
+		);
+		$this->assertSame( 'first', $result['data']['MyTpl']['s'] );
+	}
+
+	/**
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLSingleSelectSelectedOptionOverridesDefault(): void {
+		$result = $this->parseHTML(
+			'<select name="MyTpl[s]">' .
+			'<option value="first">First</option>' .
+			'<option value="second" selected>Second</option>' .
+			'</select>'
+		);
+		$this->assertSame( 'second', $result['data']['MyTpl']['s'] );
+	}
+
+	/**
+	 * When an option has no value attribute and is selected, its text
+	 * content is used as the value.
+	 *
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLSelectOptionWithNoValueUsesTextContent(): void {
+		$result = $this->parseHTML(
+			'<select name="MyTpl[s]">' .
+			'<option selected>LabelOnly</option>' .
+			'</select>'
+		);
+		$this->assertSame( 'LabelOnly', $result['data']['MyTpl']['s'] );
+	}
+
+	// --- select (multiple) ---
+
+	/**
+	 * Multi-select: no default to first; only explicitly selected options feed
+	 * into addToArray(), which overwrites on repeated calls with the same key,
+	 * so the *last* selected option wins.
+	 *
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLMultiSelectLastSelectedOptionWins(): void {
+		$result = $this->parseHTML(
+			'<select name="MyTpl[m]" multiple>' .
+			'<option value="a" selected>A</option>' .
+			'<option value="b">B</option>' .
+			'<option value="c" selected>C</option>' .
+			'</select>'
+		);
+		// addToArray overwrites on the same key — last selected ('c') wins.
+		$this->assertSame( 'c', $result['data']['MyTpl']['m'] );
+	}
+
+	// --- disabled / restricted fields ---
+
+	/**
+	 * A disabled input must NOT appear in $data, and its key must be
+	 * removed from $this->mOptions (restricted-field cleanup).
+	 *
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLDisabledInputIsNotExtractedAndIsRemovedFromOptions(): void {
+		$result = $this->parseHTML(
+			'<input type="text" name="MyTpl[restricted]" value="secret" disabled />',
+			[ 'MyTpl' => [ 'restricted' => 'preexisting' ] ]
+		);
+		$this->assertArrayNotHasKey( 'MyTpl', $result['data'] );
+		// the restricted field must be removed from mOptions
+		$this->assertArrayNotHasKey( 'restricted', $result['mOptions']['MyTpl'] ?? [] );
+	}
+
+	/**
+	 * A disabled select must NOT appear in $data, and its key must be
+	 * removed from $this->mOptions.
+	 *
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLDisabledSelectIsNotExtractedAndIsRemovedFromOptions(): void {
+		$result = $this->parseHTML(
+			'<select name="MyTpl[locked]" disabled>' .
+			'<option value="v" selected>V</option>' .
+			'</select>',
+			[ 'MyTpl' => [ 'locked' => 'preexisting' ] ]
+		);
+		$this->assertArrayNotHasKey( 'MyTpl', $result['data'] );
+		$this->assertArrayNotHasKey( 'locked', $result['mOptions']['MyTpl'] ?? [] );
+	}
+
+	/**
+	 * An input with no name attribute must be silently ignored.
+	 *
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLInputWithNoNameIsIgnored(): void {
+		$result = $this->parseHTML( '<input type="text" value="orphan" />' );
+		$this->assertSame( [], $result['data'] );
+	}
+
+	/**
+	 * Multiple fields in one fragment are all captured.
+	 *
+	 * @covers \PFAutoeditAPI::parseDataFromHTMLFrag
+	 */
+	public function testParseHTMLMixedFragmentExtractsAllFields(): void {
+		$html  = '<input type="text" name="T[a]" value="va" />';
+		$html .= '<textarea name="T[b]">vb</textarea>';
+		$html .= '<select name="T[c]"><option value="vc" selected>VC</option></select>';
+
+		$result = $this->parseHTML( $html );
+		$this->assertSame( 'va', $result['data']['T']['a'] );
+		$this->assertSame( 'vb', $result['data']['T']['b'] );
+		$this->assertSame( 'vc', $result['data']['T']['c'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// FauxRequest / formHTML integration
+	//
+	// These tests guard against the "dual request-access" bug: PF_AutoeditAPI
+	// spoofs the request context via RequestContext::getMain()->setRequest()
+	// before calling formHTML(). Any call site that reads 'global $wgRequest'
+	// instead of RequestContext::getMain()->getRequest() silently bypasses the
+	// spoof and loses all submitted field values, producing a bare template call
+	// like {{Tpl}} instead of {{Tpl|field=value}}.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * formHTML() called with a FauxRequest on the RequestContext must produce
+	 * wikitext that contains the submitted field value.
+	 *
+	 * This is the regression test for the setFieldValuesFromSubmit() bug:
+	 * the function used `global $wgRequest` which is not updated by
+	 * RequestContext::setRequest(), so template params were always lost in
+	 * the autoedit save path.
+	 *
+	 * @covers \PFTemplateInForm::setFieldValuesFromSubmit
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHtmlWithFauxRequestProducesTemplateCallWithParams(): void {
+		global $wgPageFormsFormPrinter;
+
+		$templateName = 'AETestTpl';
+		$fieldName = 'text';
+		$fieldValue = 'Hello FauxRequest';
+
+		$formDef = "{{{for template|$templateName}}}\n"
+			. "{{{field|$fieldName}}}\n"
+			. "{{{end template}}}";
+
+		// Build the same FauxRequest that PF_AutoeditAPI would set on the context.
+		$options = [
+			$templateName => [ $fieldName => $fieldValue ],
+		];
+		$oldRequest = RequestContext::getMain()->getRequest();
+		RequestContext::getMain()->setRequest( new FauxRequest( $options, true ) );
+
+		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef,
+			$form_submitted = true,
+			$source_is_page = false,
+			$form_id = null,
+			$existing_page_content = null,
+			$page_name = 'AETest',
+			$page_name_formula = null,
+			$is_query = false,
+			$is_embedded = false,
+			$is_autocreate = false,
+			$autocreate_query = [],
+			$user = $this->getTestUser()->getUser()
+		);
+
+		RequestContext::getMain()->setRequest( $oldRequest );
+
+		$this->assertStringContainsString(
+			"|$fieldName=$fieldValue",
+			$pageText,
+			'formHTML() with a FauxRequest on RequestContext must include submitted field values in the page text'
+		);
+	}
+
+	/**
+	 * Counterpart: formHTML() called WITHOUT a FauxRequest (real-request path)
+	 * must not include a field value for a key that was never submitted.
+	 *
+	 * Guards against false positives in the test above.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHtmlWithoutSubmittedValueProducesBarTemplateCall(): void {
+		global $wgPageFormsFormPrinter;
+
+		$templateName = 'AETestTpl';
+		$fieldName = 'text';
+
+		$formDef = "{{{for template|$templateName}}}\n"
+			. "{{{field|$fieldName}}}\n"
+			. "{{{end template}}}";
+
+		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef,
+			$form_submitted = true,
+			$source_is_page = false,
+			$form_id = null,
+			$existing_page_content = null,
+			$page_name = 'AETest',
+			$page_name_formula = null,
+			$is_query = false,
+			$is_embedded = false,
+			$is_autocreate = false,
+			$autocreate_query = [],
+			$user = $this->getTestUser()->getUser()
+		);
+
+		$this->assertStringNotContainsString(
+			"|$fieldName=",
+			$pageText,
+			'formHTML() without submitted value must not include field params in the page text'
+		);
+		$this->assertStringContainsString(
+			"{{$templateName}}",
+			$pageText,
+			'formHTML() without submitted value must produce a bare template call'
+		);
+	}
+
+	// -------------------------------------------------------------------------
+	// Append (+) and Remove (-) modifiers — Gesinn Patch
+	//
+	// These tests cover the val_modifier code path in PFFormPrinter::formHTML()
+	// (the Gesinn Patch). PFFormFieldTest already verifies that getCurrentValue()
+	// returns the raw submitted value; here we verify that the concatenation or
+	// subtraction against the existing page value is performed correctly.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * The append modifier (field+=value) must concatenate the submitted value
+	 * onto the existing field value using the field's delimiter.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHtmlWithAppendModifierAppendsToExistingFieldValue(): void {
+		global $wgPageFormsFormPrinter;
+
+		$templateName = 'AETestTpl';
+		$fieldName = 'text';
+		$delimiter = ';';
+
+		$formDef = "{{{for template|$templateName}}}\n"
+			. "{{{field|$fieldName|delimiter=$delimiter}}}\n"
+			. "{{{end template}}}";
+
+		$existingContent = '{{' . $templateName . "\n|" . $fieldName . "=val1{$delimiter}val2\n}}";
+
+		$options = [
+			$templateName => [ "{$fieldName}+" => 'val3' ],
+		];
+		$oldRequest = RequestContext::getMain()->getRequest();
+		RequestContext::getMain()->setRequest( new FauxRequest( $options, true ) );
+
+		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef,
+			$form_submitted = true,
+			$source_is_page = true,
+			$form_id = null,
+			$existing_page_content = $existingContent,
+			$page_name = 'AETest',
+			$page_name_formula = null,
+			$is_query = false,
+			$is_embedded = false,
+			$is_autocreate = false,
+			$autocreate_query = [],
+			$user = $this->getTestUser()->getUser()
+		);
+
+		RequestContext::getMain()->setRequest( $oldRequest );
+
+		$this->assertStringContainsString(
+			"|{$fieldName}=val1{$delimiter}val2{$delimiter}val3",
+			$pageText,
+			'Append modifier (field+=value) must concatenate new value onto existing values'
+		);
+	}
+
+	/**
+	 * The remove modifier (field-=value) must remove the specified value from
+	 * the existing field value list.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHtmlWithRemoveModifierRemovesFromExistingFieldValue(): void {
+		global $wgPageFormsFormPrinter;
+
+		$templateName = 'AETestTpl';
+		$fieldName = 'text';
+		$delimiter = ';';
+
+		$formDef = "{{{for template|$templateName}}}\n"
+			. "{{{field|$fieldName|delimiter=$delimiter}}}\n"
+			. "{{{end template}}}";
+
+		$existingContent = '{{' . $templateName . "\n|" . $fieldName . "=val1{$delimiter}val2{$delimiter}val3\n}}";
+
+		$options = [
+			$templateName => [ "{$fieldName}-" => 'val2' ],
+		];
+		$oldRequest = RequestContext::getMain()->getRequest();
+		RequestContext::getMain()->setRequest( new FauxRequest( $options, true ) );
+
+		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef,
+			$form_submitted = true,
+			$source_is_page = true,
+			$form_id = null,
+			$existing_page_content = $existingContent,
+			$page_name = 'AETest',
+			$page_name_formula = null,
+			$is_query = false,
+			$is_embedded = false,
+			$is_autocreate = false,
+			$autocreate_query = [],
+			$user = $this->getTestUser()->getUser()
+		);
+
+		RequestContext::getMain()->setRequest( $oldRequest );
+
+		$this->assertStringContainsString(
+			"|{$fieldName}=val1{$delimiter}val3",
+			$pageText,
+			'Remove modifier (field-=value) must remove specified value from existing list'
+		);
+		$this->assertStringNotContainsString(
+			'val2',
+			$pageText,
+			'Remove modifier must not leave the removed value in the page text'
+		);
 	}
 
 }

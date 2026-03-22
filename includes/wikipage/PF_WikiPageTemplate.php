@@ -41,7 +41,10 @@ class PFWikiPageTemplate {
 	}
 
 	public function addUnhandledParams() {
-		global $wgRequest;
+		// PF_AutoeditAPI spoofs the request context via RequestContext::getMain()->setRequest(new FauxRequest(...))
+		// before calling formHTML(). Read from RequestContext to respect that spoof rather than
+		// using 'global $wgRequest', which is not updated by setRequest().
+		$request = RequestContext::getMain()->getRequest();
 
 		if ( !$this->mAddUnhandledParams ) {
 			return;
@@ -50,7 +53,7 @@ class PFWikiPageTemplate {
 		$templateName = str_replace( ' ', '_', $this->mName );
 		$prefix = '_unhandled_' . $templateName . '_';
 		$prefixSize = strlen( $prefix );
-		foreach ( $wgRequest->getValues() as $key => $value ) {
+		foreach ( $request->getValues() as $key => $value ) {
 			if ( strpos( $key, $prefix ) === 0 ) {
 				$paramName = urldecode( substr( $key, $prefixSize ) );
 				$this->addUnhandledParam( $paramName, $value );

@@ -796,7 +796,10 @@ END;
 		$autocreate_query = [],
 		$user = null
 	) {
-		global $wgRequest;
+		// PF_AutoeditAPI spoofs the request context via RequestContext::getMain()->setRequest(new FauxRequest(...))
+		// before calling formHTML(). Read from RequestContext to respect that spoof rather than
+		// using 'global $request', which is not updated by setRequest().
+		$request = RequestContext::getMain()->getRequest();
 		// used to represent the current tab index in the form
 		global $wgPageFormsTabIndex;
 		// used for setting various HTML IDs
@@ -825,7 +828,7 @@ END;
 			$this->mPageTitle = $titleGlobal;
 		} elseif ( $page_name === '' || $page_name === null ) {
 			$this->mPageTitle = Title::newFromText(
-				$wgRequest->getVal( 'namespace' ) . ":Page Forms permissions test" );
+				$request->getVal( 'namespace' ) . ":Page Forms permissions test" );
 		} else {
 			$this->mPageTitle = Title::newFromText( $page_name );
 		}
@@ -1086,10 +1089,10 @@ END;
 					if ( $tif == null ) {
 						$template = new PFTemplate( null, [] );
 						// Get free text from the query string, if it was set.
-						if ( $wgRequest->getCheck( 'free_text' ) ) {
-							$standard_input = $wgRequest->getArray( 'standard_input', [] );
-							$standard_input['#freetext#'] = $wgRequest->getVal( 'free_text' );
-							$wgRequest->setVal( 'standard_input', $standard_input );
+						if ( $request->getCheck( 'free_text' ) ) {
+							$standard_input = $request->getArray( 'standard_input', [] );
+							$standard_input['#freetext#'] = $request->getVal( 'free_text' );
+							$request->setVal( 'standard_input', $standard_input );
 						}
 						$tif = PFTemplateInForm::create( 'standard_input', null, null, null, [] );
 						$tif->setFieldValuesFromSubmit();
@@ -1473,17 +1476,17 @@ END;
 						}
 					}
 					if ( $input_name == 'summary' ) {
-						$value = $wgRequest->getVal( 'wpSummary' );
+						$value = $request->getVal( 'wpSummary' );
 						$new_text = PFFormUtils::summaryInputHTML(
 							$form_is_disabled, $input_label, $attr, $value
 						);
 					} elseif ( $input_name == 'minor edit' ) {
-						$is_checked = $wgRequest->getCheck( 'wpMinoredit' );
+						$is_checked = $request->getCheck( 'wpMinoredit' );
 						$new_text = PFFormUtils::minorEditInputHTML(
 						$form_submitted, $form_is_disabled, $is_checked, $input_label, $attr
 						);
 					} elseif ( $input_name == 'watch' ) {
-						$is_checked = $wgRequest->getCheck( 'wpWatchthis' );
+						$is_checked = $request->getCheck( 'wpWatchthis' );
 						$new_text = PFFormUtils::watchInputHTML(
 							$form_submitted, $form_is_disabled, $is_checked, $input_label, $attr
 						);
@@ -1607,8 +1610,8 @@ END;
 					}
 
 					// If input is from the form.
-					if ( ( !$source_is_page ) && $wgRequest ) {
-						$text_per_section = $wgRequest->getArray( '_section' );
+					if ( ( !$source_is_page ) && $request ) {
+						$text_per_section = $request->getArray( '_section' );
 
 						if ( is_array( $text_per_section ) && array_key_exists( $section_name, $text_per_section ) ) {
 							$section_text = $text_per_section[$section_name];
@@ -1901,8 +1904,8 @@ END;
 			// into the form.
 			$free_text = trim( $existing_page_content );
 		// ...or get it from the form submission, if it's not called from #formredlink
-		} elseif ( !$is_autocreate && $wgRequest->getCheck( 'pf_free_text' ) ) {
-			$free_text = $wgRequest->getVal( 'pf_free_text' );
+		} elseif ( !$is_autocreate && $request->getCheck( 'pf_free_text' ) ) {
+			$free_text = $request->getVal( 'pf_free_text' );
 			if ( !$free_text_was_included ) {
 				$wiki_page->addFreeTextSection();
 			}
