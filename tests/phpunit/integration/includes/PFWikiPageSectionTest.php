@@ -9,10 +9,10 @@ class PFWikiPageSectionTest extends TestCase {
 
 	private function make( array $opts = [] ): PFWikiPageSection {
 		return new PFWikiPageSection(
-			$opts['name']        ?? 'Background',
-			$opts['level']       ?? 2,
-			$opts['text']        ?? 'Some content',
-			$opts['options']     ?? [ 'hideIfEmpty' => false ]
+			$opts['name'] ?? 'Background',
+			$opts['level'] ?? 2,
+			$opts['text'] ?? 'Some content',
+			$opts['options'] ?? [ 'hideIfEmpty' => false ]
 		);
 	}
 
