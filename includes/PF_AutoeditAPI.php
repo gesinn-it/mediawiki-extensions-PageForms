@@ -948,32 +948,30 @@ class PFAutoeditAPI extends ApiBase {
 			// effect in the form.
 			$pageExists = true;
 
-			// Spoof request context for PFFormPrinter::formHTML().
-			$session = RequestContext::getMain()->getRequest()->getSession();
-			RequestContext::getMain()->setRequest( new FauxRequest( $this->mOptions, true, $session ) );
-			// Call PFFormPrinter::formHTML() to get at the form
-			// HTML of the existing page.
-			[ $formHTML, $targetContent, $form_page_title, $generatedTargetNameFormula ] =
-				$formPrinter->formHTML(
-					// Special handling for autoedit edits -
-					// otherwise, multi-instance templates
-					// don't get saved, for some convoluted
-					// reason.
-					$formContent, ( $isFormSubmitted && !$this->mIsAutoEdit ), $pageExists,
-					$formArticleId, $preloadContent, $targetName, $targetNameFormula,
-					$is_query = false, $is_embedded = false, $is_autocreate = false,
-					$autocreate_query = [], $this->getUser()
-				);
-			// Restore original request immediately after formHTML() to prevent
-			// the global context from staying spoofed when action is FORMEDIT.
-			RequestContext::getMain()->setRequest( $oldRequest );
-
-			// Parse the data to be preloaded from the form HTML of
-			// the existing page.
-			$data = HtmlFormDataExtractor::extract( $formHTML, $this->mOptions );
-
-			// ...and merge/overwrite it with the new data.
-			$this->mOptions = PFUtils::arrayMergeRecursiveDistinct( $data, $this->mOptions );
+			if ( $isFormSubmitted ) {
+				// SAVE / PREVIEW / DIFF: extract field values directly from the wikitext
+				// of the existing page, bypassing the formHTML() + HtmlFormDataExtractor
+				// HTML round-trip that would only encode the values into HTML to immediately
+				// read them back out again.
+				$data = $formPrinter->preparePreloadData( $formContent, $preloadContent, $formArticleId );
+				$this->mOptions = PFUtils::arrayMergeRecursiveDistinct( $data, $this->mOptions );
+			} else {
+				// FORMEDIT: formHTML() is still needed here to produce the HTML that will
+				// be returned to the browser.  The preloaded values are extracted from that
+				// HTML so they can be merged into $this->mOptions before the final render.
+				$session = RequestContext::getMain()->getRequest()->getSession();
+				RequestContext::getMain()->setRequest( new FauxRequest( $this->mOptions, true, $session ) );
+				[ $formHTML, $targetContent, $form_page_title, $generatedTargetNameFormula ] =
+					$formPrinter->formHTML(
+						$formContent, false, $pageExists,
+						$formArticleId, $preloadContent, $targetName, $targetNameFormula,
+						$is_query = false, $is_embedded = false, $is_autocreate = false,
+						$autocreate_query = [], $this->getUser()
+					);
+				RequestContext::getMain()->setRequest( $oldRequest );
+				$data = HtmlFormDataExtractor::extract( $formHTML, $this->mOptions );
+				$this->mOptions = PFUtils::arrayMergeRecursiveDistinct( $data, $this->mOptions );
+			}
 		}
 
 		// We already preloaded stuff for saving/previewing -

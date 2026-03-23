@@ -758,6 +758,123 @@ END;
 	}
 
 	/**
+	 * Extract preloaded field values from an existing page's wikitext using
+	 * the form definition, without generating any HTML.
+	 *
+	 * This is a stripped-down version of formHTML() for the $source_is_page=true
+	 * path: it sets up a parser, normalises the form definition, walks the
+	 * {{{for template}}} / {{{field}}} / {{{end template}}} sections, calls
+	 * PFTemplateInForm::setFieldValuesFromPage() for each template found in
+	 * the page, and returns the collected values as a nested array.
+	 *
+	 * The returned keys use the same underscore-normalisation as
+	 * HtmlFormDataExtractor::extract(), so the result can be merged directly
+	 * into PFAutoeditAPI::$mOptions without further transformation.
+	 *
+	 * @param string $form_def Form definition wikitext (noinclude already stripped)
+	 * @param string $existing_page_content Wikitext of the existing page to preload from
+	 * @param int|null $form_id Form article ID (used for parser cache, may be null)
+	 * @return array<string, array<string, string>> ['Template_Name' => ['FieldName' => value, ...], ...]
+	 */
+	public function preparePreloadData( string $form_def, string $existing_page_content, ?int $form_id = null ): array {
+		$user = RequestContext::getMain()->getUser();
+
+		// Set up a fresh parser — same approach as formHTML().
+		$globalParser = PFUtils::getParser();
+		if ( method_exists( $globalParser, 'getFreshParser' ) ) {
+			$parser = $globalParser->getFreshParser();
+			if ( !$parser->getOptions() ) {
+				$parser->setOptions( ParserOptions::newFromUser( $user ) );
+			}
+		} else {
+			$parser = MediaWikiServices::getInstance()->getParserFactory()->create();
+			$parser->setOptions( ParserOptions::newFromUser( $user ) );
+		}
+		$parser->clearState();
+
+		$form_def = PFFormUtils::getFormDefinition( $parser, $form_def, $form_id );
+
+		// Neutralise the 'free text' standard input so it doesn't confuse the scan.
+		$form_def = str_replace( 'standard input|free text', 'field|#freetext#', $form_def );
+
+		// Split form definition into sections on {{{for template}}} / {{{end template}}} boundaries
+		// (same algorithm as formHTML()).
+		$form_def_sections = [];
+		$start_position = 0;
+		$section_start = 0;
+		$brackets_loc = strpos( $form_def, '{{{', $start_position );
+		while ( $brackets_loc !== false ) {
+			$brackets_end_loc = strpos( $form_def, '}}}', $brackets_loc );
+			$bracketed_string = substr( $form_def, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 ) );
+			$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
+			$tag_title = trim( $tag_components[0] );
+			if ( $tag_title === 'for template' || $tag_title === 'end template' ) {
+				$form_def_sections[] = substr( $form_def, $section_start, $brackets_loc - $section_start );
+				$section_start = $brackets_loc;
+			}
+			$start_position = $brackets_loc + 1;
+			$brackets_loc = strpos( $form_def, '{{{', $start_position );
+		}
+		$form_def_sections[] = trim( substr( $form_def, $section_start ) );
+
+		// Walk sections and collect preloaded field values.
+		$result = [];
+		$tif = null;
+		$template_key = null;
+
+		foreach ( $form_def_sections as $section ) {
+			$section = ' ' . $section;
+			$start_position = 0;
+
+			while ( true ) {
+				$brackets_loc = strpos( $section, '{{{', $start_position );
+				if ( $brackets_loc === false ) {
+					break;
+				}
+				$brackets_end_loc = strpos( $section, '}}}', $brackets_loc );
+				$bracketed_string = substr(
+					$section, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 )
+				);
+				$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
+				if ( count( $tag_components ) === 0 ) {
+					break;
+				}
+				$tag_title = trim( $tag_components[0] );
+
+				if ( $tag_title === 'for template' ) {
+					$template_name = str_replace( '_', ' ', $parser->recursiveTagParse( $tag_components[1] ) );
+					// Top-level array key: spaces → underscores, matching HtmlFormDataExtractor output.
+					$template_key = str_replace( ' ', '_', $template_name );
+					$tif = PFTemplateInForm::newFromFormTag( $tag_components );
+					$tif->setPageRelatedInfo( $existing_page_content );
+					if ( $tif->pageCallsThisTemplate() ) {
+						$tif->setFieldValuesFromPage( $existing_page_content );
+						$existing_template_text = $tif->getFullTextInPage();
+						$existing_page_content = $this->strReplaceFirst(
+							$existing_template_text, '', $existing_page_content
+						);
+					}
+				} elseif ( $tag_title === 'end template' ) {
+					$tif = null;
+					$template_key = null;
+				} elseif ( $tag_title === 'field' && $tif !== null && $template_key !== null ) {
+					$field_name = trim( $tag_components[1] );
+					if ( $field_name !== '#freetext#'
+						&& $tif->getFullTextInPage() !== ''
+						&& $tif->hasValueFromPageForField( $field_name )
+					) {
+						$result[$template_key][$field_name] = $tif->getAndRemoveValueFromPageForField( $field_name );
+					}
+				}
+
+				$start_position = $brackets_loc + 1;
+			}
+		}
+
+		return $result;
+	}
+
+	/**
 	 * This function is the real heart of the entire Page Forms
 	 * extension. It handles two main actions: (1) displaying a form on the
 	 * screen, given a form definition and possibly page contents (if an

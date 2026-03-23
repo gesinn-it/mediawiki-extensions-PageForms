@@ -225,6 +225,53 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * preparePreloadData() must return the same field values as the
+	 * formHTML() + HtmlFormDataExtractor::extract() round-trip.
+	 *
+	 * @covers \PFFormPrinter::preparePreloadData
+	 */
+	public function testPreparePreloadDataReturnsFieldValuesFromExistingPageContent(): void {
+		global $wgPageFormsFormPrinter;
+
+		$formDef = "{{{for template|PFTestPreloadTpl02}}}\n"
+			. "{{{field|Country}}}\n"
+			. "{{{field|City}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$pageContent = '{{PFTestPreloadTpl02|Country=DE|City=Berlin}}';
+
+		$data = $wgPageFormsFormPrinter->preparePreloadData( $formDef, $pageContent );
+
+		$this->assertArrayHasKey( 'PFTestPreloadTpl02', $data );
+		$this->assertSame( 'DE', $data['PFTestPreloadTpl02']['Country'] );
+		$this->assertSame( 'Berlin', $data['PFTestPreloadTpl02']['City'] );
+	}
+
+	/**
+	 * preparePreloadData() must return an empty array when the existing page
+	 * does not call the template defined in the form.
+	 *
+	 * @covers \PFFormPrinter::preparePreloadData
+	 */
+	public function testPreparePreloadDataReturnsEmptyArrayWhenTemplateAbsentFromPage(): void {
+		global $wgPageFormsFormPrinter;
+
+		$formDef = "{{{for template|PFTestPreloadTpl03}}}\n"
+			. "{{{field|Country}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$pageContent = 'Some free text without any template call.';
+
+		$data = $wgPageFormsFormPrinter->preparePreloadData( $formDef, $pageContent );
+
+		$this->assertSame( [], $data );
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
 	 * Returns a mock Title for test
 	 * @return Title
 	 */
