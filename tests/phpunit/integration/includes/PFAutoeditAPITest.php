@@ -850,6 +850,49 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// hasModifierKeys()
+	// -------------------------------------------------------------------------
+
+	/**
+	 * hasModifierKeys() must return false when no modifier keys are present.
+	 *
+	 * @covers \PFAutoeditAPI::hasModifierKeys
+	 */
+	public function testHasModifierKeysReturnsFalseWithNoModifiers(): void {
+		[ $module ] = $this->newModule();
+		$module->setOptions( [ 'form' => 'Frm', 'target' => 'Pg', 'Tpl' => [ 'f' => 'v' ] ] );
+		$ref = ( new ReflectionClass( PFAutoeditAPI::class ) )->getMethod( 'hasModifierKeys' );
+		$ref->setAccessible( true );
+		$this->assertFalse( $ref->invoke( $module ) );
+	}
+
+	/**
+	 * hasModifierKeys() must return true when a + append modifier key is present.
+	 *
+	 * @covers \PFAutoeditAPI::hasModifierKeys
+	 */
+	public function testHasModifierKeysReturnsTrueForAppendKey(): void {
+		[ $module ] = $this->newModule();
+		$module->setOptions( [ 'form' => 'Frm', 'target' => 'Pg', 'Tpl' => [ 'f+' => 'v' ] ] );
+		$ref = ( new ReflectionClass( PFAutoeditAPI::class ) )->getMethod( 'hasModifierKeys' );
+		$ref->setAccessible( true );
+		$this->assertTrue( $ref->invoke( $module ) );
+	}
+
+	/**
+	 * hasModifierKeys() must return true when a - remove modifier key is present.
+	 *
+	 * @covers \PFAutoeditAPI::hasModifierKeys
+	 */
+	public function testHasModifierKeysReturnsTrueForRemoveKey(): void {
+		[ $module ] = $this->newModule();
+		$module->setOptions( [ 'form' => 'Frm', 'target' => 'Pg', 'Tpl' => [ 'f-' => 'v' ] ] );
+		$ref = ( new ReflectionClass( PFAutoeditAPI::class ) )->getMethod( 'hasModifierKeys' );
+		$ref->setAccessible( true );
+		$this->assertTrue( $ref->invoke( $module ) );
+	}
+
+	// -------------------------------------------------------------------------
 	// Append (+) and Remove (-) modifiers — Gesinn Patch
 	//
 	// These tests cover the val_modifier code path in PFFormPrinter::formHTML()
