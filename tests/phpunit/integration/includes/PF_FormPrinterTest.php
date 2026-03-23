@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Extension\PageForms\HtmlFormDataExtractor;
 use MediaWiki\MediaWikiServices;
 use OOUI\BlankTheme;
 
@@ -171,6 +172,57 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		];
 		return $provider;
 	}
+
+	// -------------------------------------------------------------------------
+	// formHTML() – preload roundtrip (source_is_page = true)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * When an existing page contains {{Template|field=value}} and formHTML()
+	 * is called with $source_is_page = true, the generated HTML must carry
+	 * that value in the input, and HtmlFormDataExtractor must recover it.
+	 *
+	 * This is the spec-level regression test for the preload channel of
+	 * PFAutoeditAPI::doAction():
+	 *   formHTML() → HtmlFormDataExtractor::extract() → $data['Tpl']['field']
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLWithSourceIsPagePreloadsTextFieldValueFromExistingPageContent(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestPreloadTpl01}}}\n"
+			. "{{{field|Country}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$pageContent = '{{PFTestPreloadTpl01|Country=DE}}';
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef,
+			$form_submitted = false,
+			$source_is_page = true,
+			$form_id = null,
+			$pageContent,
+			$page_name = 'PFTestPreloadPage01',
+			$page_name_formula = null,
+			$is_query = false, $is_embedded = false, $is_autocreate = false,
+			$autocreate_query = [],
+			self::getTestUser()->getUser()
+		);
+
+		$mOptions = [];
+		$data = HtmlFormDataExtractor::extract( $formHtml, $mOptions );
+
+		$this->assertArrayHasKey( 'PFTestPreloadTpl01', $data,
+			'formHTML() with source_is_page=true must produce inputs for the template' );
+		$this->assertSame( 'DE', $data['PFTestPreloadTpl01']['Country'],
+			'The field value from the existing page must survive the HTML round-trip unchanged' );
+	}
+
+	// -------------------------------------------------------------------------
 
 	/**
 	 * Returns a mock Title for test
