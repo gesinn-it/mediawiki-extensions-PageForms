@@ -249,12 +249,13 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * preparePreloadData() must return an empty array when the existing page
-	 * does not call the template defined in the form.
+	 * preparePreloadData() must return no template fields when the page does
+	 * not call the template defined in the form, but must still return the
+	 * page content as pf_free_text.
 	 *
 	 * @covers \PFFormPrinter::preparePreloadData
 	 */
-	public function testPreparePreloadDataReturnsEmptyArrayWhenTemplateAbsentFromPage(): void {
+	public function testPreparePreloadDataReturnsFreeTextWhenTemplateAbsentFromPage(): void {
 		global $wgPageFormsFormPrinter;
 
 		$formDef = "{{{for template|PFTestPreloadTpl03}}}\n"
@@ -266,7 +267,33 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 
 		$data = $wgPageFormsFormPrinter->preparePreloadData( $formDef, $pageContent );
 
-		$this->assertSame( [], $data );
+		$this->assertArrayNotHasKey( 'PFTestPreloadTpl03', $data );
+		$this->assertSame( 'Some free text without any template call.', $data['pf_free_text'] );
+	}
+
+	/**
+	 * preparePreloadData() must include pf_free_text with the remaining page
+	 * content after all template text has been stripped out.
+	 * This ensures that autoedit SAVE does not silently delete the free text
+	 * section of an existing page.
+	 *
+	 * @covers \PFFormPrinter::preparePreloadData
+	 */
+	public function testPreparePreloadDataIncludesFreeTextAfterTemplateContent(): void {
+		global $wgPageFormsFormPrinter;
+
+		$formDef = "{{{for template|PFTestPreloadTpl05}}}\n"
+			. "{{{field|Title}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|free text}}}\n"
+			. "{{{standard input|save}}}";
+
+		$pageContent = "{{PFTestPreloadTpl05|Title=Introduction}}\n\nThis is the free text body.";
+
+		$data = $wgPageFormsFormPrinter->preparePreloadData( $formDef, $pageContent );
+
+		$this->assertSame( 'Introduction', $data['PFTestPreloadTpl05']['Title'] );
+		$this->assertSame( 'This is the free text body.', $data['pf_free_text'] );
 	}
 
 	// -------------------------------------------------------------------------

@@ -774,7 +774,8 @@ END;
 	 * @param string $form_def Form definition wikitext (noinclude already stripped)
 	 * @param string $existing_page_content Wikitext of the existing page to preload from
 	 * @param int|null $form_id Form article ID (used for parser cache, may be null)
-	 * @return array<string, array<string, string>> ['Template_Name' => ['FieldName' => value, ...], ...]
+	 * @return array<string, string|array<string, string>> Template field values keyed by template name, plus
+	 *   optionally 'pf_free_text' => string for any remaining page content outside templates.
 	 */
 	public function preparePreloadData( string $form_def, string $existing_page_content, ?int $form_id = null ): array {
 		$user = RequestContext::getMain()->getUser();
@@ -869,6 +870,15 @@ END;
 
 				$start_position = $brackets_loc + 1;
 			}
+		}
+
+		// Whatever remains in $existing_page_content after all template text has been
+		// stripped is the free text section — mirror what formHTML() does when
+		// $source_is_page=true (line: $free_text = trim( $existing_page_content )).
+		// Without this, an autoedit SAVE would silently delete any free text on the page.
+		$freeText = trim( $existing_page_content );
+		if ( $freeText !== '' ) {
+			$result['pf_free_text'] = $freeText;
 		}
 
 		return $result;
