@@ -14,7 +14,7 @@ class PFSFSelectAPIRequestProcessorTest extends MediaWikiIntegrationTestCase {
 		}
 		$parser = $services->getParserFactory()->create();
 		$parser->setTitle( Title::newFromText( 'Test' ) );
-		$parser->setOptions( new ParserOptions( $this->getTestUser()->getUser() ) );
+		$parser->setOptions( ParserOptions::newFromAnon() );
 		$parser->resetOutput();
 		return new PFSFSelectAPIRequestProcessor( $parser, $smwMock );
 	}
