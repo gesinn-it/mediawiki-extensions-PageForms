@@ -1,26 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Variable \\$formHTML might not be defined\\.$#"
-			count: 2
-			path: ../includes/PF_AutoeditAPI.php
-
-		-
-			message: "#^Variable \\$form_page_title might not be defined\\.$#"
-			count: 1
-			path: ../includes/PF_AutoeditAPI.php
-
-		-
-			message: "#^Variable \\$generatedTargetNameFormula might not be defined\\.$#"
-			count: 1
-			path: ../includes/PF_AutoeditAPI.php
-
-		-
-			message: "#^Variable \\$targetContent might not be defined\\.$#"
-			count: 2
-			path: ../includes/PF_AutoeditAPI.php
-
-		-
 			message: "#^Access to constant MAIN on an unknown class MediaWiki\\\\Storage\\\\SlotRecord\\.$#"
 			count: 1
 			path: ../includes/PF_CreatePageJob.php

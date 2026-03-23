@@ -907,6 +907,10 @@ class PFAutoeditAPI extends ApiBase {
 		// Save request for later restoration after formHTML() spoofing.
 		$oldRequest = RequestContext::getMain()->getRequest();
 		$pageExists = false;
+		$formHTML = '';
+		$targetContent = '';
+		$form_page_title = '';
+		$generatedTargetNameFormula = '';
 
 		// preload data if not explicitly excluded and if the preload page exists
 		if ( !isset( $this->mOptions['preload'] ) || $this->mOptions['preload'] !== false ) {

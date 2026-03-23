@@ -771,6 +771,10 @@ END;
 	 * HtmlFormDataExtractor::extract(), so the result can be merged directly
 	 * into PFAutoeditAPI::$mOptions without further transformation.
 	 *
+	 * **Limitation**: Only the first occurrence of each template is read; multiple-instance
+	 * templates (those with the `multiple` attribute) are not supported — subsequent
+	 * instances on the page are silently ignored.
+	 *
 	 * @param string $form_def Form definition wikitext (noinclude already stripped)
 	 * @param string $existing_page_content Wikitext of the existing page to preload from
 	 * @param int|null $form_id Form article ID (used for parser cache, may be null)
@@ -797,26 +801,7 @@ END;
 
 		// Neutralise the 'free text' standard input so it doesn't confuse the scan.
 		$form_def = str_replace( 'standard input|free text', 'field|#freetext#', $form_def );
-
-		// Split form definition into sections on {{{for template}}} / {{{end template}}} boundaries
-		// (same algorithm as formHTML()).
-		$form_def_sections = [];
-		$start_position = 0;
-		$section_start = 0;
-		$brackets_loc = strpos( $form_def, '{{{', $start_position );
-		while ( $brackets_loc !== false ) {
-			$brackets_end_loc = strpos( $form_def, '}}}', $brackets_loc );
-			$bracketed_string = substr( $form_def, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 ) );
-			$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
-			$tag_title = trim( $tag_components[0] );
-			if ( $tag_title === 'for template' || $tag_title === 'end template' ) {
-				$form_def_sections[] = substr( $form_def, $section_start, $brackets_loc - $section_start );
-				$section_start = $brackets_loc;
-			}
-			$start_position = $brackets_loc + 1;
-			$brackets_loc = strpos( $form_def, '{{{', $start_position );
-		}
-		$form_def_sections[] = trim( substr( $form_def, $section_start ) );
+		$form_def_sections = $this->splitFormDefIntoSections( $form_def );
 
 		// Walk sections and collect preloaded field values.
 		$result = [];
@@ -882,6 +867,38 @@ END;
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Split a form definition string into sections on {{{for template}}} / {{{end template}}}
+	 * boundaries.
+	 *
+	 * The first element of the returned array is any text before the first template tag;
+	 * subsequent elements each start with a {{{for template}}} or {{{end template}}} tag.
+	 *
+	 * @param string $form_def Form definition wikitext (with 'standard input|free text' already
+	 *   replaced by 'field|#freetext#' when needed).
+	 * @return list<string>
+	 */
+	private function splitFormDefIntoSections( string $form_def ): array {
+		$form_def_sections = [];
+		$start_position = 0;
+		$section_start = 0;
+		$brackets_loc = strpos( $form_def, '{{{', $start_position );
+		while ( $brackets_loc !== false ) {
+			$brackets_end_loc = strpos( $form_def, '}}}', $brackets_loc );
+			$bracketed_string = substr( $form_def, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 ) );
+			$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
+			$tag_title = trim( $tag_components[0] );
+			if ( $tag_title === 'for template' || $tag_title === 'end template' ) {
+				$form_def_sections[] = substr( $form_def, $section_start, $brackets_loc - $section_start );
+				$section_start = $brackets_loc;
+			}
+			$start_position = $brackets_loc + 1;
+			$brackets_loc = strpos( $form_def, '{{{', $start_position );
+		}
+		$form_def_sections[] = trim( substr( $form_def, $section_start ) );
+		return $form_def_sections;
 	}
 
 	/**
@@ -1049,33 +1066,12 @@ END;
 
 		$form_def = PFFormUtils::getFormDefinition( $parser, $form_def, $form_id );
 
-		// Turn form definition file into an array of sections, one for
-		// each template definition (plus the first section).
-		$form_def_sections = [];
-		$start_position = 0;
-		$section_start = 0;
 		$free_text_was_included = false;
 		$preloaded_free_text = null;
 		// @HACK - replace the 'free text' standard input with a
 		// field declaration to get it to be handled as a field.
 		$form_def = str_replace( 'standard input|free text', 'field|#freetext#', $form_def );
-		$brackets_loc = strpos( $form_def, "{{{", $start_position );
-		while ( $brackets_loc !== false ) {
-			$brackets_end_loc = strpos( $form_def, "}}}", $brackets_loc );
-			$bracketed_string = substr( $form_def, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 ) );
-			$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
-			$tag_title = trim( $tag_components[0] );
-			if ( $tag_title == 'for template' || $tag_title == 'end template' ) {
-				// Create a section for everything up to here
-				$section = substr( $form_def, $section_start, $brackets_loc - $section_start );
-				$form_def_sections[] = $section;
-				$section_start = $brackets_loc;
-			}
-			$start_position = $brackets_loc + 1;
-			$brackets_loc = strpos( $form_def, "{{{", $start_position );
-		}
-		// end while
-		$form_def_sections[] = trim( substr( $form_def, $section_start ) );
+		$form_def_sections = $this->splitFormDefIntoSections( $form_def );
 
 		// Cycle through the form definition file, and possibly an
 		// existing article as well, finding template and field
