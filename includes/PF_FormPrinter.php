@@ -796,6 +796,11 @@ END;
 			$parser->setOptions( ParserOptions::newFromUser( $user ) );
 		}
 		$parser->clearState();
+		// MW 1.35 requires a non-null Title for Parser::parse(). Provide a
+		// fallback when no title has been set on the parser yet.
+		if ( !is_object( $parser->getTitle() ) ) {
+			$parser->setTitle( Title::newMainPage() );
+		}
 
 		$form_def = PFFormUtils::getFormDefinition( $parser, $form_def, $form_id );
 
