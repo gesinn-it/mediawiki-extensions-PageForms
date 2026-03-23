@@ -597,4 +597,166 @@ class PFFormFieldTest extends TestCase {
 		// Assert that the output matches the expected result
 		$this->assertEquals( $expectedOutput, $output, 'Markup for Semantic MediaWiki tooltip is incorrect' );
 	}
+
+	// -------------------------------------------------------------------------
+	// valueStringToLabels / labelToValue – mapping field value conversion
+	//
+	// These tests exercise the key↔label translation layer used by fields
+	// with mapping template=, mapping property=, or mapping cargo table=.
+	// mPossibleValues is set directly (via Reflection) to isolate the logic
+	// from DB / SMW / Cargo dependencies.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Build a PFFormField with a pre-set mPossibleValues map for testing.
+	 *
+	 * @param array $possibleValues ['storageKey' => 'displayLabel', ...]
+	 * @return PFFormField
+	 */
+	private function makeFieldWithPossibleValues( array $possibleValues ): PFFormField {
+		$templateField = $this->createMock( PFTemplateField::class );
+		$templateField->method( 'getPossibleValues' )->willReturn( null );
+		$templateField->method( 'getDelimiter' )->willReturn( '' );
+
+		$field = PFFormField::create( $templateField );
+
+		$ref = new ReflectionClass( PFFormField::class );
+		$prop = $ref->getProperty( 'mPossibleValues' );
+		$prop->setAccessible( true );
+		$prop->setValue( $field, $possibleValues );
+
+		return $field;
+	}
+
+	// --- valueStringToLabels ---
+
+	/**
+	 * A stored key that exists in the mapping must be translated to its label.
+	 *
+	 * @covers PFFormField::valueStringToLabels
+	 */
+	public function testValueStringToLabelsTranslatesKnownKey(): void {
+		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany', 'FR' => 'France' ] );
+		$this->assertSame( 'Germany', $field->valueStringToLabels( 'DE', null ) );
+	}
+
+	/**
+	 * A stored key that is NOT in the mapping must pass through unchanged
+	 * (identity fallback).
+	 *
+	 * @covers PFFormField::valueStringToLabels
+	 */
+	public function testValueStringToLabelsUnknownKeyPassesThrough(): void {
+		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
+		$this->assertSame( 'XX', $field->valueStringToLabels( 'XX', null ) );
+	}
+
+	/**
+	 * An empty string must be returned unchanged without touching the mapping.
+	 *
+	 * @covers PFFormField::valueStringToLabels
+	 */
+	public function testValueStringToLabelsEmptyStringReturnsEmpty(): void {
+		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
+		$this->assertSame( '', $field->valueStringToLabels( '', null ) );
+	}
+
+	/**
+	 * A null value must be returned unchanged (null-safe path).
+	 *
+	 * @covers PFFormField::valueStringToLabels
+	 */
+	public function testValueStringToLabelsNullReturnsNull(): void {
+		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
+		$this->assertNull( $field->valueStringToLabels( null, null ) );
+	}
+
+	/**
+	 * A delimited list of keys must be translated key-by-key and returned as
+	 * an array of labels.
+	 *
+	 * @covers PFFormField::valueStringToLabels
+	 */
+	public function testValueStringToLabelsDelimitedListTranslatesEachKey(): void {
+		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany', 'FR' => 'France' ] );
+		$result = $field->valueStringToLabels( 'DE,FR', ',' );
+		// Multiple results are returned as an array.
+		$this->assertSame( [ 'Germany', 'France' ], $result );
+	}
+
+	/**
+	 * A delimited list where one key is unknown must leave that entry as-is.
+	 *
+	 * @covers PFFormField::valueStringToLabels
+	 */
+	public function testValueStringToLabelsDelimitedListUnknownKeyPassesThrough(): void {
+		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
+		$result = $field->valueStringToLabels( 'DE,XX', ',' );
+		$this->assertSame( [ 'Germany', 'XX' ], $result );
+	}
+
+	/**
+	 * A single-element delimited list must return a scalar string, not an array.
+	 *
+	 * @covers PFFormField::valueStringToLabels
+	 */
+	public function testValueStringToLabelsSingleElementReturnsScalar(): void {
+		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
+		$result = $field->valueStringToLabels( 'DE', ',' );
+		$this->assertIsString( $result );
+		$this->assertSame( 'Germany', $result );
+	}
+
+	/**
+	 * When mPossibleValues is null (unmapped field), the raw value is returned
+	 * unchanged regardless of content.
+	 *
+	 * @covers PFFormField::valueStringToLabels
+	 */
+	public function testValueStringToLabelsNullPossibleValuesReturnsRawValue(): void {
+		$templateField = $this->createMock( PFTemplateField::class );
+		$templateField->method( 'getPossibleValues' )->willReturn( null );
+		$templateField->method( 'getDelimiter' )->willReturn( '' );
+		$field = PFFormField::create( $templateField );
+		// mPossibleValues stays null — no mapping configured
+		$this->assertSame( 'DE', $field->valueStringToLabels( 'DE', null ) );
+	}
+
+	// --- labelToValue ---
+
+	/**
+	 * A display label that exists in the mapping must be translated back to its
+	 * storage key.
+	 *
+	 * @covers PFFormField::labelToValue
+	 */
+	public function testLabelToValueTranslatesKnownLabel(): void {
+		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany', 'FR' => 'France' ] );
+		$this->assertSame( 'DE', $field->labelToValue( 'Germany' ) );
+	}
+
+	/**
+	 * A label that is NOT in the mapping must pass through unchanged
+	 * (identity fallback — used for raw storage keys arriving via autoedit).
+	 *
+	 * @covers PFFormField::labelToValue
+	 */
+	public function testLabelToValueUnknownLabelPassesThrough(): void {
+		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
+		$this->assertSame( 'Unknown', $field->labelToValue( 'Unknown' ) );
+	}
+
+	/**
+	 * A raw storage key passed as a label must pass through unchanged.
+	 * This is the critical autoedit preload case: the page contains 'DE',
+	 * autoedit passes it through, labelToValue must not corrupt it.
+	 *
+	 * @covers PFFormField::labelToValue
+	 */
+	public function testLabelToValueRawKeyPassesThroughUnchanged(): void {
+		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
+		// 'DE' is a key, not a label value, so array_search('DE', ['DE'=>'Germany'])
+		// returns false → identity fallback.
+		$this->assertSame( 'DE', $field->labelToValue( 'DE' ) );
+	}
 }
