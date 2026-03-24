@@ -1,355 +1,363 @@
+= PageForms Autocomplete Subsystem
+:toc:
 
-# PageForms Autocomplete Subsystem
+== Overview
 
-## Overview
-
-PageForms provides an **autocomplete subsystem** that allows form inputs
+PageForms provides an *autocomplete subsystem* that allows form inputs
 to suggest existing values while the user types.
 
 Autocomplete improves usability by:
 
-- reducing typing effort
-- preventing inconsistent values
-- ensuring references to existing entities
+* reducing typing effort
+* preventing inconsistent values
+* ensuring references to existing entities
 
-Autocomplete is **not an input type itself**. Instead, it is a shared
+Autocomplete is *not an input type itself*. Instead, it is a shared
 capability used by multiple input widgets such as:
 
-- `combobox`
-- `tokens`
-- text inputs configured with suggestion sources
+* `combobox`
+* `tokens`
+* text inputs configured with suggestion sources
 
-The autocomplete subsystem spans both **client-side JavaScript logic**
-and **server-side MediaWiki API modules**.
+The autocomplete subsystem spans both *client-side JavaScript logic*
+and *server-side MediaWiki API modules*.
 
----
-
-# Architectural Position
+== Architectural Position
 
 Autocomplete sits between the form input widget and the underlying data
 source.
 
 Typical execution flow:
 
-Form field  
-→ Input type (combobox, tokens, etc.)  
-→ JavaScript widget  
-→ MediaWiki API request  
-→ `PFAutocompleteAPI`  
+----
+Form field
+→ Input type (combobox, tokens, etc.)
+→ JavaScript widget
+→ MediaWiki API request
+→ PFAutocompleteAPI
 → Data source (SMW / category / namespace / external service)
+----
 
 This separation keeps UI components independent from storage systems.
 
 Layer responsibilities:
 
-| Layer | Responsibility |
-|------|----------------|
-| Input widget | Provides user interface |
-| JavaScript layer | Handles user interaction and AJAX calls |
-| API module | Retrieves suggestions |
-| Data source | Stores actual values |
+[cols="1,3",options="header"]
+|===
+| Layer | Responsibility
 
----
+| Input widget
+| Provides user interface
 
-# Client-Side Architecture
+| JavaScript layer
+| Handles user interaction and AJAX calls
+
+| API module
+| Retrieves suggestions
+
+| Data source
+| Stores actual values
+|===
+
+== Client-Side Architecture
 
 Autocomplete interactions are primarily implemented in JavaScript.
 
 Key components:
 
-- `PF_ComboBoxInput.js`
-- `PageForms.js`
-- `ext.pf.js`
+* `PF_ComboBoxInput.js`
+* `PageForms.js`
+* `ext.pf.js`
 
 The PageForms JavaScript namespace is initialized as:
 
-```javascript
+[source,javascript]
+----
 window.pf = window.pageforms = pf;
-```
+----
 
 This namespace hosts widget implementations such as:
 
-```
+----
 pf.ComboBoxInput
-```
+----
 
----
-
-# Input Initialization
+== Input Initialization
 
 PageForms widgets are initialized using the input initialization system
-described in `docs/input-types.md`.
+described in xref:input-types.adoc[Input Type System].
 
 Inputs register initialization logic through:
 
-```
+----
 PageForms_registerInputInit()
-```
+----
 
 Initialization functions are stored on the form element:
 
-```
+----
 $("#pfForm").data("PageForms")
    ├─ initFunctions
    └─ validationFunctions
-```
+----
 
 Initialization occurs:
 
-- when the form page loads
-- when dynamic template instances are created
+* when the form page loads
+* when dynamic template instances are created
 
----
-
-# ComboBox Autocomplete Widget
+== ComboBox Autocomplete Widget
 
 The most commonly used autocomplete widget is implemented in:
 
-```
+----
 PF_ComboBoxInput.js
-```
+----
 
 It defines the class:
 
-```
+----
 pf.ComboBoxInput
-```
+----
 
 which extends the OOUI widget:
 
-```
+----
 OO.ui.ComboBoxInputWidget
-```
+----
 
-This widget integrates with MediaWiki’s OOUI system and adds asynchronous
+This widget integrates with MediaWiki's OOUI system and adds asynchronous
 value retrieval.
 
-### Event Flow
+=== Event Flow
 
 Autocomplete suggestions are triggered by user interaction events:
 
-- `keyup`
-- `focus`
-- `mouseup`
+* `keyup`
+* `focus`
+* `mouseup`
 
 Simplified flow:
 
-User types text  
-→ keyup event  
-→ `setValues()`  
-→ AJAX request to API  
+----
+User types text
+→ keyup event
+→ setValues()
+→ AJAX request to API
 → suggestions displayed in dropdown
+----
 
----
-
-# AJAX Request Construction
+== AJAX Request Construction
 
 When remote autocomplete is enabled, the widget builds a request to the
 MediaWiki API.
 
 Example:
 
-```
+----
 api.php?action=pfautocomplete
         &format=json
         &property=Has_author
         &substr=abc
-```
+----
 
 Parameters depend on the configured data source.
 
 Requests are executed via jQuery AJAX and a loading indicator is shown
 during the request.
 
----
-
-# Rendering Suggestions
+== Rendering Suggestions
 
 The API returns suggestions as JSON objects.
 
 Example:
 
-```json
+[source,json]
+----
 [
   { "title": "Albert_Einstein" },
   { "title": "Niels_Bohr" }
 ]
-```
+----
 
 If display titles are available:
 
-```json
+[source,json]
+----
 {
   "title": "Albert_Einstein",
   "displaytitle": "Albert Einstein"
 }
-```
+----
 
 The client widget prefers `displaytitle` when present.
 
----
-
-# Server-Side API
+== Server-Side API
 
 Server-side autocomplete is implemented through the MediaWiki API module:
 
-```
+----
 PFAutocompleteAPI
-```
+----
 
 The module is exposed through:
 
-```
+----
 action=pfautocomplete
-```
+----
 
 Responsibilities:
 
-- interpret request parameters
-- query the appropriate data source
-- format results for the client
+* interpret request parameters
+* query the appropriate data source
+* format results for the client
 
----
-
-# API Parameters
+== API Parameters
 
 Important parameters include:
 
-| Parameter | Description |
-|---|---|
-| `substr` | substring typed by the user |
-| `property` | Semantic MediaWiki property |
-| `category` | category whose pages should be suggested |
-| `concept` | SMW concept |
-| `namespace` | namespace of pages |
-| `wikidata` | Wikidata search query |
-| `external_url` | external service endpoint |
-| `baseprop` | base field for dependent autocomplete |
-| `basevalue` | selected value of base field |
+[cols="1,3",options="header"]
+|===
+| Parameter | Description
 
----
+| `substr`
+| substring typed by the user
 
-# Supported Data Sources
+| `property`
+| Semantic MediaWiki property
 
-## Semantic MediaWiki Properties
+| `category`
+| category whose pages should be suggested
+
+| `concept`
+| SMW concept
+
+| `namespace`
+| namespace of pages
+
+| `wikidata`
+| Wikidata search query
+
+| `external_url`
+| external service endpoint
+
+| `baseprop`
+| base field for dependent autocomplete
+
+| `basevalue`
+| selected value of base field
+|===
+
+== Supported Data Sources
+
+=== Semantic MediaWiki Properties
 
 Example:
 
-```
+----
 action=pfautocomplete
 &property=Has_author
 &substr=al
-```
+----
 
 The API queries the SMW store for values whose textual representation
 matches the typed substring.
 
----
-
-## Categories
+=== Categories
 
 Example:
 
-```
+----
 action=pfautocomplete
 &category=Authors
-```
+----
 
 Returns page titles within the specified category.
 
----
-
-## Concepts
+=== Concepts
 
 Example:
 
-```
+----
 action=pfautocomplete
 &concept=Important_authors
-```
+----
 
 Concept-based autocomplete retrieves results from semantic queries.
 
----
-
-## Namespaces
+=== Namespaces
 
 Example:
 
-```
+----
 action=pfautocomplete
 &namespace=0
-```
+----
 
 Returns pages from a given namespace.
 
----
-
-## Wikidata
+=== Wikidata
 
 Example:
 
-```
+----
 action=pfautocomplete
 &wikidata=Q5
-```
+----
 
 Allows suggesting external entities from Wikidata.
 
----
-
-# Dependent Autocompletion
+== Dependent Autocompletion
 
 Autocomplete fields may depend on another field.
 
 Example relationship:
 
+----
 Country → City
+----
 
 Example API request:
 
-```
+----
 action=pfautocomplete
 &property=City
 &baseprop=Country
 &basevalue=Germany
-```
+----
 
 The API filters suggestions based on the selected base value.
 
----
-
-# Display Title Handling
+== Display Title Handling
 
 Autocomplete results may include:
 
-- `title`
-- `title + displaytitle`
+* `title`
+* `title` + `displaytitle`
 
 Example:
 
-```json
+[source,json]
+----
 {
   "title": "Albert_Einstein",
   "displaytitle": "Albert Einstein"
 }
-```
+----
 
 If `displaytitle` exists, the client displays it while internally
 storing the page title.
 
----
+== Label Disambiguation
 
-# Label Disambiguation
-
-When results come from **categories, concepts or namespaces**, PageForms may apply
+When results come from *categories, concepts or namespaces*, PageForms may apply
 a label disambiguation step.
 
 This behavior is controlled by:
 
-```
+----
 $wgPageFormsUseDisplayTitle
-```
+----
 
 The API maps page titles to display titles and ensures that labels
 remain unique.
@@ -358,82 +366,49 @@ Example situation:
 
 Pages:
 
-```
+----
 Paris
 Paris_(Texas)
-```
+----
 
 Both may have display title:
 
-```
+----
 Paris
-```
+----
 
 The disambiguation logic ensures the user sees distinct suggestions:
 
-```
+----
 Paris
 Paris (Texas)
-```
+----
 
 Internally the stored values remain:
 
-```
+----
 Paris
 Paris_(Texas)
-```
+----
 
 This preserves readability while keeping references accurate.
 
----
-
-# Interaction with Input Types
+== Interaction with Input Types
 
 Autocomplete is a shared infrastructure used by several widgets.
 
 Examples:
 
-| Input type | Behavior |
-|---|---|
-| `combobox` | single selectable value |
-| `tokens` | multiple selectable values |
-| text inputs | optional suggestions |
+[cols="1,3",options="header"]
+|===
+| Input type | Behavior
 
-Widgets differ in how selected values are stored and displayed.
+| `combobox`
+| single selectable value
 
-Example:
+| `tokens`
+| multiple selectable values
 
-combobox → single value  
-tokens → multiple values represented as removable tokens
-
-Both widgets retrieve suggestions through the same API:
-
-```
-action=pfautocomplete
-```
-
----
-
-# Summary
-
-The PageForms autocomplete subsystem connects form inputs with dynamic
-data sources.
-
-Architecture overview:
-
-Input widget (UI)  
-→ JavaScript autocomplete logic  
-→ MediaWiki API module  
-→ Backend data source
-
-Key components:
-
-| Component | Role |
-|---|---|
-| `pf.ComboBoxInput` | client autocomplete widget |
-| `PageForms.js` | initialization framework |
-| `PFAutocompleteAPI` | server-side API |
-| `PFValuesUtils` | backend value retrieval helpers |
-
-This layered design allows PageForms to support autocomplete across
-multiple widgets while keeping UI logic separate from data storage.
+| text inputs
+| optional suggestions
+|===
