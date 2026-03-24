@@ -32,16 +32,6 @@ Cargo-specific code blocks are scattered through `includes/` and
 `specials/` files; annotate only the Cargo/PageSchemas block, not the
 whole file.
 
-### CreateXXX special pages
-
-The special pages `PF_CreateCategory`, `PF_CreateClass`,
-`PF_CreateForm`, `PF_CreateProperty`, and `PF_CreateTemplate` in
-`specials/` will be removed entirely. Annotate the **entire file** with
-a single `@codeCoverageIgnoreStart` / `@codeCoverageIgnoreEnd` pair
-wrapping the class body. Existing tests in
-`tests/phpunit/integration/specials/PFCreateXxxTest.php` may remain but
-must not be extended.
-
 # Coding Conventions
 
 **Coding Conventions — General**
