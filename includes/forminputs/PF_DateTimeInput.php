@@ -107,7 +107,7 @@ class PFDateTimeInput extends PFDateInput {
 			'" name="' . $input_name . '[hour]" type="text" class="hoursInput" value="' .
 			$hour . '" size="2"/ ' . $disabled_text . '>';
 		$wgPageFormsTabIndex++;
-		$text .= '\t:<input tabindex="' . $wgPageFormsTabIndex .
+		$text .= ':<input tabindex="' . $wgPageFormsTabIndex .
 			'" name="' . $input_name . '[minute]" type="text" class="minutesInput" value="' .
 			$minute . '" size="2"/ ' . $disabled_text . '>';
 		$wgPageFormsTabIndex++;
@@ -117,7 +117,7 @@ class PFDateTimeInput extends PFDateInput {
 
 		if ( !$wgPageForms24HourTime ) {
 			$wgPageFormsTabIndex++;
-			$text .= '\t <select tabindex="' . $wgPageFormsTabIndex .
+			$text .= ' <select tabindex="' . $wgPageFormsTabIndex .
 				'" name="' . $input_name . "[ampm24h]\" class=\"ampmInput\" $disabled_text>\n";
 			$ampm24h_options = [ '', 'AM', 'PM' ];
 			foreach ( $ampm24h_options as $value ) {
@@ -132,7 +132,7 @@ class PFDateTimeInput extends PFDateInput {
 
 		if ( $include_timezone ) {
 			$wgPageFormsTabIndex++;
-			$text .= '\t<input tabindex="' . $wgPageFormsTabIndex .
+			$text .= '<input tabindex="' . $wgPageFormsTabIndex .
 				'" name="' . $input_name . '[timezone]" type="text" value="' .
 				$timezone . '" size="3"/ ' . $disabled_text . '>' . "\n";
 		}

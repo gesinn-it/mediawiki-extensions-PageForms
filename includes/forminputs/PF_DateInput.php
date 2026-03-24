@@ -186,7 +186,7 @@ class PFDateInput extends PFFormInput {
 		$text = "";
 		$disabled_text = ( $is_disabled ) ? 'disabled' : '';
 		$monthInput = self::monthDropdownHTML( $month, $input_name, $is_disabled );
-		$dayInput = '\t<input tabindex="' . $wgPageFormsTabIndex .
+		$dayInput = '<input tabindex="' . $wgPageFormsTabIndex .
 			'" class="dayInput" name="' . $input_name .
 			'[day]" type="text" value="' . $day . '" size="2" ' . $disabled_text . '/>';
 		if ( $wgAmericanDates ) {
@@ -194,7 +194,7 @@ class PFDateInput extends PFFormInput {
 		} else {
 			$text .= "$dayInput\n$monthInput\n";
 		}
-		$text .= '\t<input tabindex="' . $wgPageFormsTabIndex .
+		$text .= '<input tabindex="' . $wgPageFormsTabIndex .
 			'" class="yearInput" name="' . $input_name .
 			'[year]" type="text" value="' . $year .
 			'" size="4" ' . $disabled_text . '/>' . "\n";
