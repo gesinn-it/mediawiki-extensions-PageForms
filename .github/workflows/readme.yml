@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - README-source.adoc
+      - docs/gesinn-it-docs-master-pub
+      - docs/gesinn-it-docs-master-pub/**
     branches:
       - '**'
   workflow_dispatch:
@@ -34,6 +36,6 @@ jobs:
       - name: Commit readme
         uses: EndBug/add-and-commit@v8
         with:
-          with: 'readme.adoc'
+          add: 'README.adoc'
           pull: '--rebase --autostash'
           message: "Update generated README [skip ci]"
