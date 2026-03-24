@@ -50,8 +50,7 @@ class PFHooks {
 		// This global variable is needed so that other
 		// extensions can hook into it to add their own
 		// input types.
-		// @phan-suppress-next-line PhanUndeclaredFunctionInCallable
-		$GLOBALS['wgPageFormsFormPrinter'] = new StubObject( 'wgPageFormsFormPrinter', 'PFFormPrinter' );
+		$GLOBALS['wgPageFormsFormPrinter'] = new PFFormPrinter();
 	}
 
 	/**
