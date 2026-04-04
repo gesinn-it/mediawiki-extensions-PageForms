@@ -168,7 +168,7 @@ class PFFormUtilsTest extends TestCase {
 	 *
 	 * Verifies the behavior of the getPreloadedText method when different titles are passed as arguments.
 	 *
-	 * @covers PFFormUtils::getPreloadedText
+	 * @covers PFFormCache::getPreloadedText
 	 */
 	public function testGetPreloadedText() {
 		$preloadTitleMock = $this->createMock( Title::class );

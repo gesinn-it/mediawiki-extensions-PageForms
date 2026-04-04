@@ -702,7 +702,7 @@ END;
 			$parser->setTitle( Title::newMainPage() );
 		}
 
-		$form_def = PFFormUtils::getFormDefinition( $parser, $form_def, $form_id );
+		$form_def = PFFormCache::getFormDefinition( $parser, $form_def, $form_id );
 
 		// Neutralise the 'free text' standard input so it doesn't confuse the scan.
 		$form_def = str_replace( 'standard input|free text', 'field|#freetext#', $form_def );
@@ -969,7 +969,7 @@ END;
 		// is set.
 		$parser->clearState();
 
-		$form_def = PFFormUtils::getFormDefinition( $parser, $form_def, $form_id );
+		$form_def = PFFormCache::getFormDefinition( $parser, $form_def, $form_id );
 
 		$free_text_was_included = false;
 		$preloaded_free_text = null;

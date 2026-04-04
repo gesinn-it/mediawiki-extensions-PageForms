@@ -164,7 +164,7 @@ class PFAutocompleteAPI extends ApiBase {
 			return $this->computeAllValuesForProperty( $property_name, $substring, $basePropertyName, $baseValue );
 		}
 
-		$cache = PFFormUtils::getFormCache();
+				$cache = PFFormCache::getFormCache();
 		// Remove trailing whitespace to avoid unnecessary database selects
 		$cacheKeyString = $property_name . '::' . rtrim( $substring );
 		if ( $basePropertyName !== null ) {
