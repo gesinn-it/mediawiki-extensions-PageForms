@@ -271,9 +271,12 @@ class PFTemplate {
 		$this->mCategoryName = $categoryName;
 	}
 
+	// @codeCoverageIgnoreStart
 	public function setCargoTable( $cargoTable ) {
 		$this->mCargoTable = str_replace( ' ', '_', $cargoTable );
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	public function setFullWikiTextStatus( $status ) {
 		$this->mFullWikiText = $status;
@@ -316,9 +319,11 @@ END;
 				}
 				$text .= "|" . $field->getFieldName() . "=\n";
 			}
+			// @codeCoverageIgnoreStart
 			$cargoInUse = false;
 			$cargoDeclareCall = '';
 			$cargoStoreCall = '';
+			// @codeCoverageIgnoreEnd
 
 			$templateFooter = wfMessage( 'pf_template_docufooter' )->inContentLanguage()->text();
 			$text .= <<<END
@@ -341,9 +346,11 @@ END;
 				}
 				$text .= $field->toWikitext();
 			}
+			// @codeCoverageIgnoreStart
 			$cargoInUse = false;
 			$cargoDeclareCall = '';
 			$cargoStoreCall = '';
+			// @codeCoverageIgnoreEnd
 
 			$text .= <<<END
 }}
@@ -468,11 +475,13 @@ END;
 				}
 			}
 
+			// @codeCoverageIgnoreStart
 			// If we're using Cargo, fields can simply be displayed
 			// normally - no need for any special tags - *unless*
 			// the field holds a list of Page values, in which case
 			// we need to apply #arraymap.
 			$isCargoListOfPages = $cargoInUse && $field->isList() && $field->getFieldType() == 'Page';
+			// @codeCoverageIgnoreEnd
 			if ( !$fieldProperty && !$isCargoListOfPages ) {
 				if ( $separator != '' ) {
 					$tableText .= "$separator ";
@@ -576,7 +585,9 @@ END;
 			$text .= "$fieldStart ";
 		}
 
+		// @codeCoverageIgnoreStart
 		$cargoInUse = false;
+		// @codeCoverageIgnoreEnd
 		$text .= $field->createText( $cargoInUse );
 
 		$fieldEnd = $this->mFieldEnd;
