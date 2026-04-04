@@ -38,10 +38,4 @@ ifdef COMPOSER_EXT
 	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer phan $(COMPOSER_PARAMS)"
 endif
 
-.PHONY: composer-phpstan
-composer-phpstan: .init
-ifdef COMPOSER_EXT
-	$(show-current-target)
-	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer phpstan $(COMPOSER_PARAMS)"
-endif
 

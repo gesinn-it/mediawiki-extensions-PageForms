@@ -1,8 +1,0 @@
-includes:
-	- phpstan.neon
-	- 1.35-compatibility.neon
-	- 1.35-baseline.neon
-
-parameters:
-	scanFiles:
-		- ../../../languages/Language.php
