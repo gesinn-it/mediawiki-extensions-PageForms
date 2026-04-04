@@ -68,6 +68,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 
 	/**
 	 * @covers \PFAutoeditAPI::addToArray
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::addToArray
 	 */
 	public function testAddToArrayTopLevelKeyAddsStringValue(): void {
 		$data = [];
@@ -77,6 +78,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 
 	/**
 	 * @covers \PFAutoeditAPI::addToArray
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::addToArray
 	 */
 	public function testAddToArrayNestedKeyCreatesNestedArray(): void {
 		$data = [];
@@ -86,6 +88,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 
 	/**
 	 * @covers \PFAutoeditAPI::addToArray
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::addToArray
 	 */
 	public function testAddToArrayTopLevelSpaceEncodedAsUnderscore(): void {
 		$data = [];
@@ -95,6 +98,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 
 	/**
 	 * @covers \PFAutoeditAPI::addToArray
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::addToArray
 	 */
 	public function testAddToArrayEmptyKeyAppendsValue(): void {
 		$data = [];
@@ -423,6 +427,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 
 	/**
 	 * @covers \PFAutoeditAPI::addToArray
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::addToArray
 	 */
 	public function testAddToArrayNumericSubkeyGetsSuffix(): void {
 		$data = [];
@@ -433,6 +438,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 
 	/**
 	 * @covers \PFAutoeditAPI::addToArray
+	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::addToArray
 	 */
 	public function testAddToArrayDoesNotOverwriteExistingChildArray(): void {
 		$data = [ 'T' => [ 'f' => 'old' ] ];
