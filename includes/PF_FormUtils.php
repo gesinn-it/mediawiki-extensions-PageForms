@@ -865,12 +865,12 @@ END;
 					// If there's a day, include whatever time information we have.
 					if ( $hour !== null ) {
 						$new_value .= " "
-						. str_pad( intval( substr( $hour, 0, 2 ) ), 2, '0', STR_PAD_LEFT )
+						. str_pad( (string)intval( substr( $hour, 0, 2 ) ), 2, '0', STR_PAD_LEFT )
 						. ":"
-						. str_pad( intval( substr( $minute, 0, 2 ) ), 2, '0', STR_PAD_LEFT );
+						. str_pad( (string)intval( substr( $minute, 0, 2 ) ), 2, '0', STR_PAD_LEFT );
 					}
 					if ( $second !== null ) {
-						$new_value .= ":" . str_pad( intval( substr( $second, 0, 2 ) ), 2, '0', STR_PAD_LEFT );
+						$new_value .= ":" . str_pad( (string)intval( substr( $second, 0, 2 ) ), 2, '0', STR_PAD_LEFT );
 					}
 					if ( $ampm24h !== null ) {
 						$new_value .= " $ampm24h";
