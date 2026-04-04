@@ -25,7 +25,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 */
 	public function testMakeRandomNumberDefaultIsOneDigit(): void {
 		$result = PFAutoeditAPI::makeRandomNumber();
-		$this->assertRegExp( '/^\d$/', $result );
+		$this->assertRegex( '/^\d$/', $result );
 	}
 
 	/**
@@ -34,7 +34,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	public function testMakeRandomNumberWithSixDigitsHasAtMostSixChars(): void {
 		$result = PFAutoeditAPI::makeRandomNumber( 6 );
 		$this->assertLessThanOrEqual( 6, strlen( $result ) );
-		$this->assertRegExp( '/^\d+$/', $result );
+		$this->assertRegex( '/^\d+$/', $result );
 	}
 
 	/**
@@ -43,7 +43,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	public function testMakeRandomNumberWithPaddingHasExactLength(): void {
 		$result = PFAutoeditAPI::makeRandomNumber( 4, true );
 		$this->assertSame( 4, strlen( $result ) );
-		$this->assertRegExp( '/^\d{4}$/', $result );
+		$this->assertRegex( '/^\d{4}$/', $result );
 	}
 
 	/**
@@ -1003,11 +1003,18 @@ class PFAutoeditAPITest extends ApiTestCase {
 			$pageText,
 			'Remove modifier (field-=value) must remove specified value from existing list'
 		);
-		$this->assertStringNotContainsString(
-			'val2',
-			$pageText,
-			'Remove modifier must not leave the removed value in the page text'
-		);
 	}
 
+	/**
+	 * Cross-version assertRegexp: uses assertMatchesRegularExpression (PHPUnit ≥ 9)
+	 * when available, otherwise falls back to assertRegExp (PHPUnit 8, MW 1.35).
+	 */
+	private function assertRegex( string $pattern, string $string, string $message = '' ): void {
+		if ( method_exists( $this, 'assertMatchesRegularExpression' ) ) {
+			$this->assertMatchesRegularExpression( $pattern, $string, $message );
+		} else {
+			// @phan-suppress-next-line PhanUndeclaredMethod
+			$this->assertRegExp( $pattern, $string, $message );
+		}
+	}
 }

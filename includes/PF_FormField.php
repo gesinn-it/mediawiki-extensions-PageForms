@@ -205,7 +205,17 @@ class PFFormField {
 	) {
 		global $wgPageFormsEmbeddedTemplates;
 
+		// MW 1.43 compat: Parser::$mStripState and $mOutputType are typed properties
+		// that are only initialised after clearState()/setOutputType() are called.
+		// getParser() returns the raw singleton which may not have been through
+		// clearState() yet; ensure options are set first (required by resetOutput()),
+		// then initialise both typed properties before calling recursiveTagParse().
 		$parser = PFUtils::getParser();
+		if ( !$parser->getOptions() ) {
+			$parser->setOptions( ParserOptions::newFromAnon() );
+		}
+		$parser->clearState();
+		$parser->setOutputType( Parser::OT_HTML );
 
 		$f = new PFFormField();
 		$f->mFieldArgs = [];
@@ -1053,7 +1063,14 @@ class PFFormField {
 	 * @return array
 	 */
 	public function getArgumentsForInputCall( array $default_args = null ) {
+		// MW 1.43 compat: same typed-property guard as in newFromFormTag() above –
+		// see comment there for the full explanation.
 		$parser = PFUtils::getParser();
+		if ( !$parser->getOptions() ) {
+			$parser->setOptions( ParserOptions::newFromAnon() );
+		}
+		$parser->clearState();
+		$parser->setOutputType( Parser::OT_HTML );
 
 		// start with the arguments array already defined
 		$other_args = $this->mFieldArgs;

@@ -70,10 +70,18 @@ class PFTemplateInForm {
 		return $tif;
 	}
 
-	public static function newFromFormTag( $tag_components ) {
+	public static function newFromFormTag( $tag_components, ?Parser $parser = null ) {
 		global $wgPageFormsEmbeddedTemplates;
 
-		$parser = PFUtils::getParser();
+		if ( $parser === null ) {
+			// MW 1.43 compat: Parser::$mStripState is a typed property initialised
+			// only by clearState(). The global singleton from getParser() may not
+			// have been initialised yet, so we call clearState() explicitly.
+			// When a caller already holds an initialised $parser (e.g. formHTML()),
+			// it passes it via the optional $parser parameter to skip this.
+			$parser = PFUtils::getParser();
+			$parser->clearState();
+		}
 
 		$tif = new PFTemplateInForm();
 		$tif->mTemplateName = str_replace( '_', ' ', trim( $parser->recursiveTagParse( $tag_components[1] ) ) );

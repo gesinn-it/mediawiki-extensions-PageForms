@@ -836,7 +836,7 @@ END;
 					$template_name = str_replace( '_', ' ', $parser->recursiveTagParse( $tag_components[1] ) );
 					// Top-level array key: spaces → underscores, matching HtmlFormDataExtractor output.
 					$template_key = str_replace( ' ', '_', $template_name );
-					$tif = PFTemplateInForm::newFromFormTag( $tag_components );
+					$tif = PFTemplateInForm::newFromFormTag( $tag_components, $parser );
 					$tif->setPageRelatedInfo( $existing_page_content );
 					if ( $tif->pageCallsThisTemplate() ) {
 						$tif->setFieldValuesFromPage( $existing_page_content );
@@ -1142,7 +1142,7 @@ END;
 					$is_new_template = ( $template_name != $previous_template_name );
 					if ( $is_new_template ) {
 						$template = PFTemplate::newFromName( $template_name );
-						$tif = PFTemplateInForm::newFromFormTag( $tag_components );
+						$tif = PFTemplateInForm::newFromFormTag( $tag_components, $parser );
 					}
 					// Remove template tag.
 					$section = substr_replace( $section, '', $brackets_loc, $brackets_end_loc + 3 - $brackets_loc );
