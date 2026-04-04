@@ -78,7 +78,7 @@ jobs:
         if: matrix.coverage == false
 
       - name: Run Phan static analysis
-        run: make composer-phan
+        run: make install composer-phan
         if: matrix.coverage == true
 
       - name: Run tests with coverage
