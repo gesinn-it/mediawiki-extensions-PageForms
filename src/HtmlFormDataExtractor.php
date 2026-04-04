@@ -32,6 +32,7 @@ class HtmlFormDataExtractor {
 		$data = [];
 		$doc = new DOMDocument();
 
+		$oldVal = false;
 		if ( LIBXML_VERSION < 20900 ) {
 			// PHP < 8
 			$oldVal = libxml_disable_entity_loader( true );
@@ -56,7 +57,7 @@ class HtmlFormDataExtractor {
 
 		for ( $i = 0; $i < $inputs->length; $i++ ) {
 			$input = $inputs->item( $i );
-			'@phan-var DOMElement $input';/** @var DOMElement $input */
+			'@phan-var \DOMElement $input';/** @var \DOMElement $input */
 			$type = $input->getAttribute( 'type' );
 			$name = trim( $input->getAttribute( 'name' ) );
 
@@ -104,6 +105,7 @@ class HtmlFormDataExtractor {
 
 		for ( $i = 0; $i < $selects->length; $i++ ) {
 			$select = $selects->item( $i );
+			'@phan-var \DOMElement $select';/** @var \DOMElement $select */
 			$name = trim( $select->getAttribute( 'name' ) );
 
 			if ( !$name || $select->hasAttribute( 'disabled' ) ) {
@@ -122,15 +124,19 @@ class HtmlFormDataExtractor {
 			// (i.e. not multiple) set the first option to selected
 			// as default. This may be overwritten in the loop below.
 			if ( $options->length > 0 && ( !$select->hasAttribute( 'multiple' ) ) ) {
-				self::addToArray( $data, $name, $options->item( 0 )->getAttribute( 'value' ) );
+				$firstOption = $options->item( 0 );
+				'@phan-var \DOMElement $firstOption';/** @var \DOMElement $firstOption */
+				self::addToArray( $data, $name, $firstOption->getAttribute( 'value' ) );
 			}
 
 			for ( $o = 0; $o < $options->length; $o++ ) {
-				if ( $options->item( $o )->hasAttribute( 'selected' ) ) {
-					if ( $options->item( $o )->getAttribute( 'value' ) ) {
-						self::addToArray( $data, $name, $options->item( $o )->getAttribute( 'value' ) );
+				$option = $options->item( $o );
+				'@phan-var \DOMElement $option';/** @var \DOMElement $option */
+				if ( $option->hasAttribute( 'selected' ) ) {
+					if ( $option->getAttribute( 'value' ) ) {
+						self::addToArray( $data, $name, $option->getAttribute( 'value' ) );
 					} else {
-						self::addToArray( $data, $name, $options->item( $o )->nodeValue );
+						self::addToArray( $data, $name, $option->nodeValue );
 					}
 				}
 			}
@@ -141,6 +147,7 @@ class HtmlFormDataExtractor {
 
 		for ( $i = 0; $i < $textareas->length; $i++ ) {
 			$textarea = $textareas->item( $i );
+			'@phan-var \DOMElement $textarea';/** @var \DOMElement $textarea */
 			$name = trim( $textarea->getAttribute( 'name' ) );
 
 			if ( !$name ) {

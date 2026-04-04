@@ -20,6 +20,7 @@
 		</properties>
 	</rule>
 	<file>.</file>
+	<exclude-pattern>.phan/baseline.php</exclude-pattern>
 	<arg name="extensions" value="php"/>
 	<arg name="encoding" value="UTF-8"/>
 </ruleset>
