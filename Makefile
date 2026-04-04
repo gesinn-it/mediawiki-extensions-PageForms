@@ -11,13 +11,13 @@ endif
 EXTENSION=PageForms
 
 # docker images
-MW_VERSION?=1.39
-PHP_VERSION?=8.1
+MW_VERSION?=1.43
+PHP_VERSION?=8.3
 DB_TYPE?=mysql
 DB_IMAGE?="mysql:8"
 
 # extensions
-SMW_VERSION?=5.1.0
+SMW_VERSION?=6.0.1
 DT_VERSION?=4.0.3
 
 # composer
