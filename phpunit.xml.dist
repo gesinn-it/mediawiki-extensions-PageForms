@@ -13,6 +13,9 @@
          stopOnSkipped="false"
          verbose="true">
     <testsuites>
+        <testsuite name="extension-page-forms-unit">
+            <directory>tests/phpunit/unit</directory>
+        </testsuite>
         <testsuite name="extension-page-forms-integration">
             <directory>tests/phpunit/integration</directory>
         </testsuite>

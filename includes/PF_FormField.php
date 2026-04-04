@@ -646,7 +646,7 @@ class PFFormField {
 							$cur_values[$key] = $this->autocapitalize( $val );
 						}
 					}
-					return PFFormPrinter::getStringFromPassedInArray( $cur_values, $delimiter );
+					return PFFormUtils::getStringFromPassedInArray( $cur_values, $delimiter );
 				} else {
 					$field_query_val = $this->autocapitalize( trim( $field_query_val ) );
 					if ( $map_field && $this->mPossibleValues !== null ) {
@@ -669,7 +669,7 @@ class PFFormField {
 			}
 			if ( !$form_submitted && $field_query_val != '' ) {
 				if ( is_array( $field_query_val ) ) {
-					$str = PFFormPrinter::getStringFromPassedInArray( $field_query_val, $delimiter );
+					$str = PFFormUtils::getStringFromPassedInArray( $field_query_val, $delimiter );
 				} else {
 					$str = $field_query_val;
 				}
