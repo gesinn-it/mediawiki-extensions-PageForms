@@ -389,6 +389,46 @@ Before every commit, run the full CI suite to confirm nothing is broken:
 make ci
 ```
 
+**PageForms local development workflow (volume mount)**
+
+This repository uses a `build/docker-compose.override.yml`
+(developer-local, git-ignored) that bind-mounts the extension source
+directory into the running container. This means `make install` is *not*
+required before every test run — source file changes on the host are
+immediately visible in the container.
+
+The full setup and rationale is documented in
+`build/docs/use-case-local-development.adoc`.
+
+`make install` is only needed:
+
+- At the start of a new session (first run)
+
+- After `composer.json` or `package.json` changes
+
+- After changing a bundled extension version variable
+
+- After changing `setup_extension`
+
+Use these targets for iterative work — do NOT prefix them with
+`make install`:
+
+``` console
+# PHP iteration — lint (full) + phpunit filtered by class or method:
+make php-test FILTER=PFFormCacheTest
+make php-test FILTER=PFFormCacheTest::testGetPreloadedText
+
+# JS iteration — eslint + banana-checker + qunit, test file derived from source file:
+# libs/PF_foo.js → tests/node-qunit/PF_foo.test.js (automatically)
+make js-test FILE=libs/PF_formInput.js
+
+# Pre-commit gate — all checks without reinstalling (~2–3 min):
+make dev-test 2>&1 | tee /tmp/dev-test.log; echo "EXIT:$?"
+
+# Phan — only before releases or after major refactoring (~1 min):
+make composer-phan 2>&1 | tee /tmp/phan.log; echo "EXIT:$?"
+```
+
 <div class="important">
 
 Always pipe every `make` invocation through `tee` to capture the full
@@ -399,7 +439,7 @@ analyse after:
 
 ``` console
 make ci 2>&1 | tee /tmp/ci.log; echo "EXIT:$?"
-make install npm-test 2>&1 | tee /tmp/npm-test.log; echo "EXIT:$?"
+make dev-test 2>&1 | tee /tmp/dev-test.log; echo "EXIT:$?"
 ```
 
 Then analyse the log:
