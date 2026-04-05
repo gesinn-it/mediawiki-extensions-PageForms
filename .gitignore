@@ -14,4 +14,7 @@ extensions/
 .phpunit.result.cache
 .nyc_output
 coverage
+
+# Local DCI volume-mount override — not committed, survives submodule updates
+build/docker-compose.override.yml
 .env
