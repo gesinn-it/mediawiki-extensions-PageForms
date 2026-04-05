@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * Integration tests for PFFormCache — the form-definition caching subsystem
  * extracted from PFFormUtils.
@@ -36,7 +38,8 @@ class PFFormCacheTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetCacheKeyWithParserDiffersFromWithout() {
-		$parser = $this->getServiceContainer()->getParser();
+		// getServiceContainer() was added in MW 1.36; use MediaWikiServices::getInstance() for MW 1.35 compat.
+		$parser = MediaWikiServices::getInstance()->getParser();
 		$parser->setOptions( ParserOptions::newFromAnon() );
 		$keyWithout = PFFormCache::getCacheKey( '7' );
 		$keyWith = PFFormCache::getCacheKey( '7', $parser );
@@ -55,7 +58,14 @@ class PFFormCacheTest extends MediaWikiIntegrationTestCase {
 
 	public function testPurgeCacheIgnoresNonFormPages() {
 		$title = Title::newFromText( 'SomePage', NS_MAIN );
-		$wikiPage = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
+		// getServiceContainer() / getWikiPageFactory() require MW 1.36+; use WikiPage::factory() on MW 1.35.
+		if ( method_exists( MediaWikiServices::class, 'getWikiPageFactory' ) ) {
+			$wikiPage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
+		} else {
+			// @codeCoverageIgnoreStart
+			$wikiPage = WikiPage::factory( $title );
+			// @codeCoverageIgnoreEnd
+		}
 		$result = PFFormCache::purgeCache( $wikiPage );
 		$this->assertTrue( $result );
 	}
