@@ -145,9 +145,21 @@ class PFComboBoxInput extends PFFormInput {
 			}
 		}
 
-		// Make sure that the current value always shows up when the
-		// form is first displayed.
-		$innerDropdown .= Html::element( 'option', [ 'selected' => true ], $cur_value );
+		// Make sure that the current value always shows up when the form is first
+		// displayed. For remote fields (concept/category/namespace/property) with
+		// UseDisplayTitle enabled, $cur_value is already the display title but the
+		// canonical page title must be preserved in the value attribute so that the
+		// JS widget can bootstrap its DisplayTitle↔canonical maps from the DOM and
+		// skip the init AJAX call. Without this the JS would only have the display
+		// title and would need to query the API just to learn the canonical title.
+		$optionAttrs = [ 'selected' => true ];
+		if ( $remoteDataType !== null && $cur_value !== '' && !empty( $possible_values ) ) {
+			$canonicalValue = array_search( $cur_value, $possible_values );
+			if ( $canonicalValue !== false ) {
+				$optionAttrs['value'] = (string)$canonicalValue;
+			}
+		}
+		$innerDropdown .= Html::element( 'option', $optionAttrs, $cur_value );
 
 		$inputText = Html::rawElement( 'select', $inputAttrs, $innerDropdown );
 

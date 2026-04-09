@@ -63,9 +63,30 @@
         }
         // ==== GESINN PATCH END ====
 
-        // Initialize values in the combobox
-        this.setValues();
+        // Bootstrap the DisplayTitle↔canonical maps from the server-rendered
+        // <option> elements. The server encodes the canonical page title in the
+        // option's value attribute and the display title as its text content.
+        // This avoids an AJAX call on init: the only purpose of the old
+        // this.setValues() call here was to populate these maps so that
+        // syncCanonicalValue() could set data-pf-canonical-value correctly.
+        // The maps are still refreshed via AJAX on the first user interaction
+        // (focus/keyup/mouseup) through the normal setValues() path.
+        //
+        // Note: element.val() now returns the canonical title (value attribute),
+        // so maps must be bootstrapped before syncDisplayValueFromCanonical() can
+        // resolve it to the display title. setOptions() is called with the display
+        // title to ensure OOUI renders its dropdown indicator button; the menu is
+        // immediately closed so it does not auto-open on init.
+        this.bootstrapMapsFromElement( element );
+        this.syncDisplayValueFromCanonical();
         this.syncCanonicalValue();
+        const initDisplayVal = this.getValue();
+        this.setOptions( [ {
+            data: initDisplayVal || '',
+            label: initDisplayVal || mw.message( 'pf-autocomplete-input-too-short', 1 ).text(),
+            disabled: !initDisplayVal
+        } ] );
+        this.getMenu().toggle( false );
 
         if (this.config.autocompletesettings == 'external data') {
             // this is especially set for dependent on settings
@@ -385,6 +406,32 @@
             this.syncDisplayValueFromCanonical();
             this.syncCanonicalValue();
         }
+    };
+
+    /**
+     * Populate titleByDisplayValue / displayByTitle maps from the <option>
+     * elements of the original server-rendered <select>. The server stores
+     * the canonical page title in option.value and the display title as
+     * option.text (for remote fields with UseDisplayTitle). If the value
+     * attribute is absent the two are identical.
+     *
+     * @param {jQuery} element  The original <select> element passed to apply()
+     */
+    pf.ComboBoxInput.prototype.bootstrapMapsFromElement = function ( element ) {
+        element.find( 'option' ).each( ( i, opt ) => {
+            const $opt = $( opt );
+            const displayTitle = $opt.text();
+            const canonicalTitle = $opt.attr( 'value' ) !== undefined
+                ? $opt.attr( 'value' )
+                : displayTitle;
+            if ( displayTitle ) {
+                this.titleByDisplayValue[ displayTitle ] = canonicalTitle;
+                this.displayByTitle[ canonicalTitle ] = displayTitle;
+                if ( canonicalTitle === this.getValue() || displayTitle === this.getValue() ) {
+                    this.itemFound = true;
+                }
+            }
+        } );
     };
 
     pf.ComboBoxInput.prototype.getCanonicalValueForInput = function ( value ) {

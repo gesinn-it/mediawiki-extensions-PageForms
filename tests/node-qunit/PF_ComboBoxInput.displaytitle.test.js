@@ -240,3 +240,46 @@ QUnit.test( 'existing canonical value is displayed as displaytitle after options
 	assert.strictEqual( combo.getValue(), 'Albert Einstein' );
 	assert.strictEqual( combo.$input.attr( 'data-pf-canonical-value' ), 'Albert_Einstein' );
 } );
+
+QUnit.test( 'bootstrapMapsFromElement populates maps from option value/text attributes', ( assert ) => {
+	// Simulates a server-rendered <select> where PHP set value=canonical and
+	// text=displaytitle on the selected <option> (the new behaviour added to
+	// PF_ComboBoxInput.php).  No AJAX call should be needed to resolve the mapping.
+	const $select = $( '<select>' )
+		.append( $( '<option>' ).attr( 'value', 'Product:Caddy' ).text( 'Caddy' ).prop( 'selected', true ) );
+
+	const combo = createComboBoxDouble( {
+		titleByDisplayValue: {},
+		displayByTitle: {},
+		_currentValue: 'Caddy'
+	} );
+
+	pageforms.ComboBoxInput.prototype.bootstrapMapsFromElement.call( combo, $select );
+
+	assert.strictEqual( combo.titleByDisplayValue[ 'Caddy' ], 'Product:Caddy',
+		'titleByDisplayValue maps display title to canonical' );
+	assert.strictEqual( combo.displayByTitle[ 'Product:Caddy' ], 'Caddy',
+		'displayByTitle maps canonical to display title' );
+	assert.true( combo.itemFound, 'itemFound is set when current value matches' );
+} );
+
+QUnit.test( 'bootstrapMapsFromElement falls back to text when no value attribute', ( assert ) => {
+	// When PHP renders <option selected>Caddy</option> without a value attribute
+	// (e.g. when possible_values is null), text and canonical are both "Caddy".
+	const $select = $( '<select>' )
+		.append( $( '<option>' ).text( 'Caddy' ).prop( 'selected', true ) );
+
+	const combo = createComboBoxDouble( {
+		titleByDisplayValue: {},
+		displayByTitle: {},
+		_currentValue: 'Caddy'
+	} );
+
+	pageforms.ComboBoxInput.prototype.bootstrapMapsFromElement.call( combo, $select );
+
+	assert.strictEqual( combo.titleByDisplayValue[ 'Caddy' ], 'Caddy',
+		'titleByDisplayValue uses text as canonical fallback' );
+	assert.strictEqual( combo.displayByTitle[ 'Caddy' ], 'Caddy',
+		'displayByTitle identity mapping for no-value option' );
+	assert.true( combo.itemFound, 'itemFound is set when current value matches' );
+} );
