@@ -1,0 +1,68 @@
+{
+	"description": "Test API `action=pfautocomplete` concept substr filter works beyond $wgPageFormsMaxAutocompleteValues limit",
+	"setup": [
+		{
+			"page": "PFConceptSubstrLimitA01",
+			"contents": "[[Category:PFConceptSubstrLimitCat01]]"
+		},
+		{
+			"page": "PFConceptSubstrLimitB01",
+			"contents": "[[Category:PFConceptSubstrLimitCat01]]"
+		},
+		{
+			"page": "PFConceptSubstrLimitTarget01",
+			"contents": "[[Category:PFConceptSubstrLimitCat01]]"
+		},
+		{
+			"namespace": "SMW_NS_CONCEPT",
+			"page": "PFConceptSubstrLimit01",
+			"contents": "{{#concept: [[Category:PFConceptSubstrLimitCat01]]}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "api",
+			"about": "substr=Target01 returns PFConceptSubstrLimitTarget01 even though it sorts last and the concept limit is 2",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"concept": "PFConceptSubstrLimit01",
+					"substr": "Target01"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"PFConceptSubstrLimitTarget01\""
+			}
+		},
+		{
+			"type": "api",
+			"about": "substr=A01 returns only PFConceptSubstrLimitA01",
+			"api": {
+				"parameters": {
+					"action": "pfautocomplete",
+					"format": "json",
+					"concept": "PFConceptSubstrLimit01",
+					"substr": "A01"
+				}
+			},
+			"assert-output": {
+				"to-contain": "\"title\":\"PFConceptSubstrLimitA01\"",
+				"not-contain": "PFConceptSubstrLimitTarget01"
+			}
+		}
+	],
+	"settings": {
+		"wgPageFormsMaxAutocompleteValues": 2,
+		"wgPageFormsAutocompleteOnAllChars": true,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_CONCEPT": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

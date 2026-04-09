@@ -450,15 +450,54 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 
 		global $wgPageFormsUseDisplayTitle;
 		$conceptDI = \SMW\DIWikiPage::newFromTitle( $conceptTitle );
-		$desc = new \SMW\Query\Language\ConceptDescription( $conceptDI );
+		$conceptDesc = new \SMW\Query\Language\ConceptDescription( $conceptDI );
+
+		// When filtering by substring there are two strategies, depending on the mode:
+		//
+		// Non-display-title mode (!$wgPageFormsUseDisplayTitle):
+		//   Push a title-LIKE condition into the SMW query via Conjunction, so the
+		//   LIMIT applies only to already-filtered results. Without this, the LIMIT
+		//   truncates the full concept list before PHP filtering, silently dropping
+		//   pages beyond the limit even if they match the search term.
+		//   ValueDescription(DIWikiPage, SMW_CMP_LIKE) maps to smw_sortkey LIKE '%pattern%'
+		//   in the SQLStore, equivalent to the [[~*pattern*]] ask-query syntax.
+		//
+		// Display-title mode ($wgPageFormsUseDisplayTitle, the default):
+		//   smw_sortkey stores the page title, not the display title, so the LIKE
+		//   filter cannot pre-screen by display title. Instead the SMW query fetches
+		//   all concept pages (up to smwgQMaxLimit) and the PHP pass below does the
+		//   authoritative display-title filtering. The result is then truncated to
+		//   $wgPageFormsMaxAutocompleteValues at the end of this function.
+		if ( $substring !== null && !$wgPageFormsUseDisplayTitle ) {
+			$pattern = $wgPageFormsAutocompleteOnAllChars
+				? '*' . $substring . '*'
+				: $substring . '*';
+			$titleDI = new \SMW\DIWikiPage( $pattern, NS_MAIN );
+			$titleFilter = new \SMW\Query\Language\ValueDescription( $titleDI, null, SMW_CMP_LIKE );
+			$desc = new \SMW\Query\Language\Conjunction( [ $conceptDesc, $titleFilter ] );
+		} else {
+			$desc = $conceptDesc;
+		}
+
 		$printout = new \SMW\Query\PrintRequest( \SMW\Query\PrintRequest::PRINT_THIS, "" );
 		$desc->addPrintRequest( $printout );
 		$query = new SMWQuery( $desc );
-		$query->setLimit( $wgPageFormsMaxAutocompleteValues );
+
+		// In display-title mode with a substring filter the PHP pass is the authoritative
+		// filter and needs to see all concept pages. Skip the autocomplete-values cap here
+		// and let the SMW default limit ($smwgQMaxLimit, typically 10,000) apply; the result
+		// is truncated to $wgPageFormsMaxAutocompleteValues after PHP filtering below.
+		// In all other cases — no filter, or non-display-title mode with Conjunction — the
+		// autocomplete cap is applied directly to the SMW query.
+		if ( $substring === null || !$wgPageFormsUseDisplayTitle ) {
+			$query->setLimit( $wgPageFormsMaxAutocompleteValues );
+		}
 		$query_result = $store->getQueryResult( $query );
+
 		$pages = [];
 		$sortkeys = [];
 		$titles = [];
+
 		for ( $res = $query_result->getNext(); $res; $res = $query_result->getNext() ) {
 			$page = $res[0]->getNextText( SMW_OUTPUT_WIKI );
 			if ( $wgPageFormsUseDisplayTitle ) {
@@ -504,14 +543,11 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			$filtered_pages = [];
 			$filtered_sortkeys = [];
 			foreach ( $pages as $index => $pageName ) {
-				// Filter on the substring manually. It would
-				// be better to do this filtering in the
-				// original SMW query, but that doesn't seem
-				// possible yet.
-				// @TODO - this will miss a lot of results for
-				// concepts with > 1000 pages. Instead, this
-				// code should loop through all the pages,
-				// using "offset".
+				// For !$wgPageFormsUseDisplayTitle: the SMW query already pre-filters
+				// via title-LIKE so this pass only refines word-boundary matching
+				// when $wgPageFormsAutocompleteOnAllChars is false.
+				// For $wgPageFormsUseDisplayTitle: smw_sortkey holds the page title,
+				// not the display title, so this remains the authoritative filter.
 				$lowercasePageName = strtolower( $pageName );
 				$position = strpos( $lowercasePageName, $substring );
 				if ( $position !== false ) {
@@ -533,6 +569,9 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			$sortkeys = $filtered_sortkeys;
 		}
 		array_multisort( $sortkeys, $pages );
+		// In display-title mode with a substring filter the SMW query fetches more
+		// pages than $wgPageFormsMaxAutocompleteValues; truncate here after filtering.
+		$pages = array_slice( $pages, 0, $wgPageFormsMaxAutocompleteValues );
 		return $pages;
 	}
 
