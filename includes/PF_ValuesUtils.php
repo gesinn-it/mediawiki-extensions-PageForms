@@ -776,7 +776,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 	public static function getRemoteDataTypeAndPossiblySetAutocompleteValues(
 		$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings
 	) {
-		global $wgPageFormsMaxLocalAutocompleteValues, $wgPageFormsAutocompleteValues;
+		global $wgPageFormsAutocompleteValues;
 
 		if ( $autocompleteFieldType == 'external_url' || $autocompleteFieldType == 'wikidata' ) {
 			// Autocompletion from URL is always done remotely.
@@ -786,6 +786,20 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			// No autocompletion.
 			return null;
 		}
+
+		// Wiki-sourced types (concept, category, namespace, property) are always
+		// fetched remotely via the pfautocomplete API. Pre-loading them on page
+		// render is unreliable because their size is unbounded: applying the
+		// autocomplete-values cap before PHP substring filtering silently drops
+		// matching pages beyond the limit. Remote autocompletion avoids this
+		// entirely — the API receives the substring and applies the limit to
+		// already-filtered results. $wgPageFormsMaxLocalAutocompleteValues is
+		// intentionally not consulted for these types.
+		$alwaysRemoteTypes = [ 'concept', 'category', 'namespace', 'property' ];
+		if ( in_array( $autocompleteFieldType, $alwaysRemoteTypes, true ) ) {
+			return $autocompleteFieldType;
+		}
+
 		// @TODO - that empty() check shouldn't be necessary.
 		if ( array_key_exists( 'possible_values', $field_args ) &&
 		!empty( $field_args['possible_values'] ) ) {
@@ -801,6 +815,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			$autocompleteFieldType
 		);
 
+		global $wgPageFormsMaxLocalAutocompleteValues;
 		if ( count( $autocompleteValues ) > $wgPageFormsMaxLocalAutocompleteValues &&
 			$autocompleteFieldType != 'values' &&
 			!array_key_exists( 'values dependent on', $field_args ) &&

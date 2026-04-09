@@ -74,7 +74,9 @@ class PFValuesUtilsTest extends TestCase {
 	/**
 	 * @covers \PFValuesUtils::getRemoteDataTypeAndPossiblySetAutocompleteValues
 	 */
-	public function testGetRemoteDataTypeAndPossiblySetAutocompleteValuesStoresDisambiguatedCategoryLabels() {
+	public function testGetRemoteDataTypeAndPossiblySetAutocompleteValuesReturnsRemoteForCategory() {
+		// category is always fetched remotely via the pfautocomplete API regardless
+		// of possible_values or $wgPageFormsMaxLocalAutocompleteValues.
 		$fieldArgs = [
 			'possible_values' => [
 				'FooAlpha' => 'Paris',
@@ -89,15 +91,8 @@ class PFValuesUtilsTest extends TestCase {
 			'disambiguation-settings'
 		);
 
-		$this->assertNull( $remoteDataType );
-		$this->assertArrayHasKey( 'disambiguation-settings', $GLOBALS['wgPageFormsAutocompleteValues'] );
-		$this->assertSame(
-			[
-				'FooAlpha' => 'Paris (FooAlpha)',
-				'FooBeta' => 'Paris (FooBeta)'
-			],
-			$GLOBALS['wgPageFormsAutocompleteValues']['disambiguation-settings']
-		);
+		$this->assertSame( 'category', $remoteDataType );
+		$this->assertArrayNotHasKey( 'disambiguation-settings', $GLOBALS['wgPageFormsAutocompleteValues'] );
 	}
 
 	/**

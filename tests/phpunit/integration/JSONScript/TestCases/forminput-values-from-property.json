@@ -46,9 +46,7 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"autocompletesettings=\"PFTestVFProp01\""
-				],
-				"not-contain": [
+					"autocompletesettings=\"PFTestVFProp01\"",
 					"autocompletedatatype=\"property\""
 				]
 			}
@@ -63,9 +61,7 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"autocompletesettings=\"PFTestVFProp02,list"
-				],
-				"not-contain": [
+					"autocompletesettings=\"PFTestVFProp02,list",
 					"autocompletedatatype=\"property\""
 				]
 			}
