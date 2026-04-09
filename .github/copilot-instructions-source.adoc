@@ -8,30 +8,10 @@
 
 == Project Notes
 
-=== Deprecated functionality
+=== Cargo and PageSchemas integrations
 
-The following features will be removed in a future version.
-The same rules apply to all of them:
-
-* Do *not* write new tests for these code paths.
-* Do *not* document this behaviour in any new or updated documentation.
-* When coverage gaps in existing code are caused solely by these code paths,
-  treat those gaps as irrelevant — do not create tests to fill them.
-* Annotate code blocks with a PHPUnit coverage ignore comment so that they are
-  excluded from coverage metrics:
-
-[source,php]
-----
-// @codeCoverageIgnoreStart
-... deprecated code ...
-// @codeCoverageIgnoreEnd
-----
-
-==== Cargo and PageSchemas integrations
-
-Support for the Cargo and PageSchemas extensions will be removed.
-Cargo-specific code blocks are scattered through `includes/` and `specials/`
-files; annotate only the Cargo/PageSchemas block, not the whole file.
+Support for Cargo and PageSchemas is dropped.
+Delete any Cargo/PageSchemas code immediately upon discovery — no tests, no docs, no annotations.
 
 == Coding Conventions
 
