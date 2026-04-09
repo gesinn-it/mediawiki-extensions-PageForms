@@ -95,6 +95,7 @@ ifdef COMPOSER_EXT
 	$(show-current-target)
 	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer lint"
 	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer phpcs"
+	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer phan"
 	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer phpunit"
 endif
 ifdef NODE_JS
