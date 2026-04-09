@@ -496,6 +496,7 @@
 		},
 		"ext.pageforms.ooui.combobox": {
 			"scripts": [
+				"libs/PF_ComboBoxDataSource.js",
 				"libs/PF_ComboBoxInput.js"
 			],
 			"dependencies": [
