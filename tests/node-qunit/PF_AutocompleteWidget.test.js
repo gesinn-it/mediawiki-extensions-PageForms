@@ -1,4 +1,8 @@
 global.pf = global.pf || {};
+// pf.highlightText and other shared helpers live in ext.pf.js; bridge window.pf → global.pf
+// so that PF_AutocompleteWidget thin wrappers can resolve them in the Node.js test environment.
+require( '../../libs/ext.pf.js' );
+Object.assign( global.pf, global.window.pf );
 require( '../../libs/PF_AutocompleteWidget.js' );
 
 function createWidgetDouble( overrides ) {

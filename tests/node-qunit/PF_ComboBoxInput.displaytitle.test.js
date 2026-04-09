@@ -11,6 +11,8 @@ global.pageforms.buildAutocompleteParams = function ( dataType, settings, substr
 	}
 	return params;
 };
+// Stub for pf.highlightText (shared free function from ext.pf.js)
+global.pageforms.highlightText = ( searchTerm, s ) => s;
 require( '../../libs/PF_ComboBoxDataSource.js' );
 require( '../../libs/PF_ComboBoxInput.js' );
 const sinon = require( 'sinon' );

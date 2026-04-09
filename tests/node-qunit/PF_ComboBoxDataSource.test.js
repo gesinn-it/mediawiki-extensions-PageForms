@@ -14,6 +14,13 @@ global.pageforms.buildAutocompleteParams = function ( dataType, settings, substr
 	}
 	return params;
 };
+// Stubs for pf.nameAttr / pf.partOfMultiple (shared free functions from ext.pf.js)
+global.pageforms.partOfMultiple = function ( element ) {
+	return element.attr( 'origname' ) !== undefined;
+};
+global.pageforms.nameAttr = function ( element ) {
+	return global.pageforms.partOfMultiple( element ) ? 'origname' : 'name';
+};
 
 require( '../../libs/PF_ComboBoxDataSource.js' );
 const sinon = require( 'sinon' );

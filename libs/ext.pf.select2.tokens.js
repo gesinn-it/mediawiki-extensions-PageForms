@@ -335,7 +335,7 @@
 		const dep_on = this.dependentOn();
 		if ( dep_on === null ) {
 			if ( autocompletesettings === 'external data' ) {
-				let name = $(input_id).attr(this.nameAttr($(input_id)));
+				let name = $(input_id).attr(pf.nameAttr($(input_id)));
 				// Remove the final "[]".
 				if (name.includes('[]')) {
 					name = name.slice(0, Math.max(0, name.length - 2));

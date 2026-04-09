@@ -152,7 +152,7 @@
 	 */
 	pf.ComboBoxDataSource.prototype._fetchExternalData = function ( filterValue ) {
 		const inputId = '#' + this.inputId;
-		const name = $( inputId ).attr( this.nameAttr( $( inputId ) ) );
+		const name = $( inputId ).attr( pf.nameAttr( $( inputId ) ) );
 		const edSettings = mw.config.get( 'wgPageFormsEDSettings' ) || {};
 		const edValues = mw.config.get( 'edgValues' ) || {};
 		const onAllChars = mw.config.get( 'wgPageFormsAutocompleteOnAllChars' );
@@ -272,27 +272,8 @@
 
 	// ===========================================================
 	// DOM helpers — moved from pf.ComboBoxInput
+	// pf.nameAttr() and pf.partOfMultiple() live in ext.pf.js (shared with select2)
 	// ===========================================================
-
-	/**
-	 * Returns the attribute name used to identify the field in the DOM.
-	 *
-	 * @param {jQuery} element
-	 * @return {string}  'origname' for multiple-instance templates, 'name' otherwise
-	 */
-	pf.ComboBoxDataSource.prototype.nameAttr = function ( element ) {
-		return this.partOfMultiple( element ) ? 'origname' : 'name';
-	};
-
-	/**
-	 * Returns whether the element is part of a multiple-instance template.
-	 *
-	 * @param {jQuery} element
-	 * @return {boolean}
-	 */
-	pf.ComboBoxDataSource.prototype.partOfMultiple = function ( element ) {
-		return element.attr( 'origname' ) !== undefined;
-	};
 
 	/**
 	 * Returns the name of the field this input depends on, or null.
@@ -301,7 +282,7 @@
 	 */
 	pf.ComboBoxDataSource.prototype.dependentOn = function () {
 		const inputId = '#' + this.inputId;
-		const nameAttr = this.nameAttr( $( inputId ) );
+		const nameAttr = pf.nameAttr( $( inputId ) );
 		const name = $( inputId ).attr( nameAttr );
 		const deps = mw.config.get( 'wgPageFormsDependentFields' ) || [];
 		for ( let i = 0; i < deps.length; i++ ) {
@@ -319,7 +300,7 @@
 	 */
 	pf.ComboBoxDataSource.prototype.dependentOnMe = function () {
 		const inputId = '#' + this.inputId;
-		const nameAttr = this.nameAttr( $( inputId ) );
+		const nameAttr = pf.nameAttr( $( inputId ) );
 		const name = $( inputId ).attr( nameAttr );
 		const dependent = [];
 		const deps = mw.config.get( 'wgPageFormsDependentFields' ) || [];
@@ -342,7 +323,7 @@
 		const opts = {};
 		let $baseElement;
 
-		if ( this.partOfMultiple( $( inputId ) ) ) {
+		if ( pf.partOfMultiple( $( inputId ) ) ) {
 			$baseElement = $( inputId ).closest( '.multipleTemplateInstance' )
 				.find( '[origname="' + depOn + '"]' );
 		} else {

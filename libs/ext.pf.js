@@ -58,3 +58,49 @@ pf.buildAutocompleteParams = function ( dataType, settings, substr ) {
 	}
 	return params;
 };
+
+/**
+ * Returns whether the element is part of a multiple-instance template
+ * (i.e. has an origname attribute).
+ *
+ * @param {jQuery} element
+ * @return {boolean}
+ */
+pf.partOfMultiple = function ( element ) {
+	return element.attr( 'origname' ) !== undefined;
+};
+
+/**
+ * Returns the attribute name used to identify the field in the DOM.
+ *
+ * @param {jQuery} element
+ * @return {string}  'origname' for multiple-instance templates, 'name' otherwise
+ */
+pf.nameAttr = function ( element ) {
+	return pf.partOfMultiple( element ) ? 'origname' : 'name';
+};
+
+/**
+ * Highlight occurrences of searchTerm inside suggestion with <strong> tags.
+ * Matching is case-insensitive; the full suggestion is returned as an
+ * OO.ui.HtmlSnippet so it can be used as an OOUI menu-option label.
+ *
+ * @param {string} searchTerm  The current input / search string
+ * @param {string} suggestion  The label text to highlight within
+ * @return {OO.ui.HtmlSnippet}
+ */
+pf.highlightText = function ( searchTerm, suggestion ) {
+	const searchRegexp = new RegExp( '(?![^&;]+;)(?!<[^<>]*)(' +
+		searchTerm.replace( /([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, '\\$1' ) +
+		')(?![^<>]*>)(?![^&;]+;)', 'gi' );
+	const loc = suggestion.search( searchRegexp );
+	let t;
+	if ( loc >= 0 ) {
+		t = suggestion.slice( 0, Math.max( 0, loc ) ) +
+			'<strong>' + suggestion.slice( loc, loc + searchTerm.length ) + '</strong>' +
+			suggestion.slice( loc + searchTerm.length );
+	} else {
+		t = suggestion;
+	}
+	return new OO.ui.HtmlSnippet( t );
+};

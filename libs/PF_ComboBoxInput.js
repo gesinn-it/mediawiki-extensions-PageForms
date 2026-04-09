@@ -97,7 +97,7 @@
             // this is especially set for dependent on settings
             // when the source field has external data autocompletion
             const input_id = "#" + this.getInputId();
-            const name = $(input_id).attr(this.dataSource.nameAttr($(input_id)));
+            const name = $(input_id).attr(pf.nameAttr($(input_id)));
             const positionOfBracket = name.indexOf('[');
             const data_autocomplete = name.slice(0,Math.max(0, positionOfBracket))+'|'+name.slice(positionOfBracket+1,name.length-1);
             this.setInputAttribute('data-autocomplete',data_autocomplete);
@@ -215,7 +215,7 @@
                 if ( optionLabel === curValue || optionTitle === curValue ) {
                     this.itemFound = true;
                 }
-                values.push( { data: optionLabel, label: this.highlightText( optionLabel ) } );
+                values.push( { data: optionLabel, label: pf.highlightText( this.getValue(), optionLabel ) } );
             } );
         }
 
@@ -300,25 +300,6 @@
             this.$input.val( this.$input.attr( 'data-pf-canonical-value' ) || this.$input.val() );
         } );
     };
-    pf.ComboBoxInput.prototype.highlightText = function (suggestion) {
-        const searchTerm = this.getValue();
-        const searchRegexp = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
-            searchTerm.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1") +
-            ")(?![^<>]*>)(?![^&;]+;)", "gi");
-        const itemLabel = suggestion;
-        const loc = itemLabel.search(searchRegexp);
-        let t;
-
-        if (loc >= 0) {
-            t = itemLabel.slice(0, Math.max(0, loc)) +
-                '<strong>' + itemLabel.slice(loc, loc + searchTerm.length) + '</strong>' +
-                itemLabel.slice(loc + searchTerm.length);
-        } else {
-            t = itemLabel;
-        }
-        return new OO.ui.HtmlSnippet(t);
-    };
-
     pf.ComboBoxInput.prototype.setInputAttribute = function (attr, value) {
         this.$input.attr(attr, value);
     };

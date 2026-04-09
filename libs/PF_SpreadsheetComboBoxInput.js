@@ -132,23 +132,10 @@ pf.SpreadsheetComboBoxInput.prototype.setValues = function() {
  */
 pf.SpreadsheetComboBoxInput.prototype.highlightText = function ( suggestion ) {
 	let searchTerm = this.getValue();
-	if ( searchTerm[0] == ' ' ) {
-		searchTerm = searchTerm.slice(1);
+	if ( searchTerm[ 0 ] === ' ' ) {
+		searchTerm = searchTerm.slice( 1 );
 	}
-    const searchRegexp = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
-        searchTerm.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1") +
-        ")(?![^<>]*>)(?![^&;]+;)", "gi");
-    const itemLabel = suggestion;
-    const loc = itemLabel.search(searchRegexp);
-    let t;
-    if (loc >= 0) {
-        t = itemLabel.slice(0, Math.max(0, loc)) +
-            '<strong>' + itemLabel.slice(loc, loc + searchTerm.length) + '</strong>' +
-            itemLabel.slice(loc + searchTerm.length);
-    } else {
-        t = itemLabel;
-    }
-    return new OO.ui.HtmlSnippet(t);
+	return pf.highlightText( searchTerm, suggestion );
 };
 /**
  * Provides an option with "No Matches" label

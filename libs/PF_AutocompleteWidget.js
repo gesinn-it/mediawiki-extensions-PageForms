@@ -115,23 +115,7 @@ pf.AutocompleteWidget.prototype.getLookupMenuOptionsFromData = function ( data )
 };
 
 pf.AutocompleteWidget.prototype.highlightText = function ( suggestion ) {
-	const searchTerm = this.getValue();
-	const searchRegexp = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
-		searchTerm.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1") +
-		")(?![^<>]*>)(?![^&;]+;)", "gi");
-	const itemLabel = suggestion;
-	const loc = itemLabel.search(searchRegexp);
-	let t;
-
-	if (loc >= 0) {
-		t = itemLabel.slice(0, Math.max(0, loc)) +
-			 '<strong>' + itemLabel.slice(loc, loc + searchTerm.length) + '</strong>' +
-			itemLabel.slice(loc + searchTerm.length);
-	} else {
-		t = itemLabel;
-	}
-
-	return new OO.ui.HtmlSnippet( t );
+	return pf.highlightText( this.getValue(), suggestion );
 };
 
 /**

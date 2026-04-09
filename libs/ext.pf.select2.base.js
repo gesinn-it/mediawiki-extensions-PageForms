@@ -121,7 +121,7 @@
 		 */
 		dependentOn: function() {
 			const input_id = "#" + this.id;
-			const name_attr = this.nameAttr( $(input_id) );
+			const name_attr = pf.nameAttr( $(input_id) );
 			const name = $(input_id).attr( name_attr );
 
 			const wgPageFormsDependentFields = mw.config.get( 'wgPageFormsDependentFields' );
@@ -143,7 +143,7 @@
 		 *
 		 */
 		dependentOnMe: function( element ) {
-			const name_attr = this.nameAttr(element);
+			const name_attr = pf.nameAttr(element);
 			const name = element.attr( name_attr );
 			const dependent_on_me = [];
 
@@ -156,29 +156,6 @@
 			}
 
 			return dependent_on_me;
-		},
-		/*
-		 * Returns the name attribute of the field depending on
-		 * whether it is a part of a multiple instance template or not
-		 *
-		 * @param {HTMLElement} element
-		 *
-		 * @return {string}
-		 *
-		 */
-		nameAttr: function( element ) {
-			return this.partOfMultiple( element ) ? "origname" : "name";
-		},
-		/*
-		 * Checks whether the field is part of a multiple instance template or not
-		 *
-		 * @param {HTMLElement} element
-		 *
-		 * @return {boolean}
-		 *
-		 */
-		partOfMultiple: function( element ) {
-			return element.attr( "origname" ) !== undefined ? true : false;
 		},
 		/*
 		 * Gives dependent field options which include
@@ -194,7 +171,7 @@
 			const dep_field_opts = {};
 			let $base_element;
 
-			if ( this.partOfMultiple($(input_id)) ) {
+			if ( pf.partOfMultiple($(input_id)) ) {
 				$base_element = $(input_id).closest( ".multipleTemplateInstance" )
 					.find( '[origname ="' + dep_on + '" ]' );
 			} else {
