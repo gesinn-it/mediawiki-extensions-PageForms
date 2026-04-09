@@ -3,35 +3,25 @@
  * within the spreadsheet-style display that uses the
  * Page Forms 'pfautocomplete' API.
  *
+ * Extends pf.AutocompleteWidget to reuse shared lookup infrastructure
+ * (getLookupCacheDataFromResponse, highlightText,
+ * getNoMatchesOOUIMenuOptionWidget, checkIfAnyWordStartsWithInputValue)
+ * and overrides getLookupRequest / getLookupMenuOptionsFromData to
+ * support the additional data types required by spreadsheet fields
+ * (cargo field, concept, property, dep_on, external data).
+ *
  * @class
- * @extends OO.ui.TextInputWidget
+ * @extends pf.AutocompleteWidget
  * @param {Object} config Configuration Options
  * @author Yash Varshney
  */
- pf.spreadsheetAutocompleteWidget = function( config ) {
-	this.config = config || {};
-	// Parent constructor
-	const textInputConfig = {
-		// This turns off the local, browser-based autocompletion,
-		// which would normally suggest values that the user has
-		// typed before on that computer.
-		autocomplete: false
-	};
-
-	OO.ui.TextInputWidget.call(this, textInputConfig);
-	// Mixin constructor
-	OO.ui.mixin.LookupElement.call(this, { highlightFirst: false });
-
-	// dataCache will temporarily store entity id => entity data mappings of
-	// entities, so that if we somehow then alter the text (add characters,
-	// remove some) and then adjust our typing to form a known item,
-	// it'll recognize it and know what the id was, without us having to
-	// select it anew
-	this.dataCache = {};
+pf.spreadsheetAutocompleteWidget = function ( config ) {
+	// Parent constructor — always activates LookupElement mixin because
+	// spreadsheet fields always use remote autocompletion.
+	pf.AutocompleteWidget.call( this, Object.assign( { autocompletedatatype: true }, config ) );
 };
 
-OO.inheritClass( pf.spreadsheetAutocompleteWidget, OO.ui.TextInputWidget );
-OO.mixinClass( pf.spreadsheetAutocompleteWidget, OO.ui.mixin.LookupElement );
+OO.inheritClass( pf.spreadsheetAutocompleteWidget, pf.AutocompleteWidget );
 
 /**
  * @inheritdoc
@@ -80,19 +70,12 @@ pf.spreadsheetAutocompleteWidget.prototype.getLookupRequest = function () {
 		requestParams.basevalue = dep_field_opts.base_value;
 	}
 	return api.get( requestParams );
-}
-
-/**
- * @inheritdoc
- */
- pf.spreadsheetAutocompleteWidget.prototype.getLookupCacheDataFromResponse = function ( response ) {
-	return response || [];
 };
 
 /**
  * @inheritdoc
  */
- pf.spreadsheetAutocompleteWidget.prototype.getLookupMenuOptionsFromData = function ( data ) {
+pf.spreadsheetAutocompleteWidget.prototype.getLookupMenuOptionsFromData = function ( data ) {
 	let item;
 	const items = [];
 
@@ -155,59 +138,6 @@ pf.spreadsheetAutocompleteWidget.prototype.getLookupRequest = function () {
 };
 
 /**
- * @param {string} suggestion
- * @return {Mixed} HtmlSnipppet
- */
-pf.spreadsheetAutocompleteWidget.prototype.highlightText = function ( suggestion ) {
-	let searchTerm = this.getValue();
-	if ( searchTerm[0] == ' ' ) {
-		searchTerm = searchTerm.slice(1);
-	}
-    const searchRegexp = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
-        searchTerm.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1") +
-        ")(?![^<>]*>)(?![^&;]+;)", "gi");
-    const itemLabel = suggestion;
-    const loc = itemLabel.search(searchRegexp);
-    let t;
-    if (loc >= 0) {
-        t = itemLabel.slice(0, Math.max(0, loc)) +
-            '<strong>' + itemLabel.slice(loc, loc + searchTerm.length) + '</strong>' +
-            itemLabel.slice(loc + searchTerm.length);
-    } else {
-        t = itemLabel;
-    }
-    return new OO.ui.HtmlSnippet(t);
-};
-/**
- * Provides an OOUI's MenuOptionWidget with a "No Matches" label
- *
- * @return {Mixed} OOUi's MenuOptionWidget
- */
-pf.spreadsheetAutocompleteWidget.prototype.getNoMatchesOOUIMenuOptionWidget = function() {
-	return [
-		new OO.ui.MenuOptionWidget( {
-			data: this.getValue(),
-			label: mw.message('pf-autocomplete-no-matches').text(),
-			disabled: true
-		} )
-	];
-}
-
-/**
- * Checks if any "word" in the given string starts with the given search term.
- *
- * @param {string} string
- *
- * @param {string} curValue
- *
- * @return {boolean}
- */
-pf.spreadsheetAutocompleteWidget.prototype.checkIfAnyWordStartsWithInputValue = function( string, curValue ) {
-	const regex = new RegExp('\\b' + curValue.toLowerCase());
-	return string.toLowerCase().match(regex) !== null;
-}
-
-/**
  * Gives dependent field options which include
  * property, base property and base value
  *
@@ -224,4 +154,4 @@ pf.spreadsheetAutocompleteWidget.prototype.getDependentFieldOpts = function( dat
     dep_field_opts.prop = this.config['autocompletesettings'];
 
     return dep_field_opts;
-}
+};

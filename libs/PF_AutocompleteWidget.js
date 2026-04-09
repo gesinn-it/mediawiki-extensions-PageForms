@@ -121,6 +121,33 @@ pf.AutocompleteWidget.prototype.getLookupMenuOptionsFromData = function ( data )
 	return items;
 };
 
+/**
+ * Returns a disabled OOUI MenuOptionWidget with a "No Matches" label.
+ *
+ * @return {OO.ui.MenuOptionWidget[]}
+ */
+pf.AutocompleteWidget.prototype.getNoMatchesOOUIMenuOptionWidget = function () {
+	return [
+		new OO.ui.MenuOptionWidget( {
+			data: this.getValue(),
+			label: mw.message( 'pf-autocomplete-no-matches' ).text(),
+			disabled: true
+		} )
+	];
+};
+
+/**
+ * Checks if any word in the given string starts with the given search term.
+ *
+ * @param {string} string
+ * @param {string} curValue
+ * @return {boolean}
+ */
+pf.AutocompleteWidget.prototype.checkIfAnyWordStartsWithInputValue = function ( string, curValue ) {
+	const regex = new RegExp( '\\b' + curValue.toLowerCase() );
+	return string.toLowerCase().match( regex ) !== null;
+};
+
 pf.AutocompleteWidget.prototype.highlightText = function ( suggestion ) {
 	const searchTerm = this.getValue();
 	const searchRegexp = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" +
@@ -139,4 +166,33 @@ pf.AutocompleteWidget.prototype.highlightText = function ( suggestion ) {
 	}
 
 	return new OO.ui.HtmlSnippet( t );
+};
+
+/**
+ * Returns a single-item array containing a disabled "No matches" MenuOptionWidget.
+ * Shared by all autocomplete widgets so subclasses do not need to duplicate it.
+ *
+ * @return {OO.ui.MenuOptionWidget[]}
+ */
+pf.AutocompleteWidget.prototype.getNoMatchesOOUIMenuOptionWidget = function () {
+	return [
+		new OO.ui.MenuOptionWidget( {
+			data: this.getValue(),
+			label: mw.message( 'pf-autocomplete-no-matches' ).text(),
+			disabled: true
+		} )
+	];
+};
+
+/**
+ * Checks if any word in the given string starts with the given search term.
+ * Used for non-"all-chars" autocomplete filtering.
+ *
+ * @param {string} string
+ * @param {string} curValue
+ * @return {boolean}
+ */
+pf.AutocompleteWidget.prototype.checkIfAnyWordStartsWithInputValue = function ( string, curValue ) {
+	const regex = new RegExp( '\\b' + curValue.toLowerCase() );
+	return string.toLowerCase().match( regex ) !== null;
 };
