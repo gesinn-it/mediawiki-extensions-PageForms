@@ -153,7 +153,7 @@ class PFComboBoxInput extends PFFormInput {
 		// skip the init AJAX call. Without this the JS would only have the display
 		// title and would need to query the API just to learn the canonical title.
 		$optionAttrs = [ 'selected' => true ];
-		if ( $remoteDataType !== null && $cur_value !== '' && !empty( $possible_values ) ) {
+		if ( $remoteDataType !== null && $cur_value !== '' && $possible_values !== [] ) {
 			$canonicalValue = array_search( $cur_value, $possible_values );
 			if ( $canonicalValue !== false ) {
 				$optionAttrs['value'] = (string)$canonicalValue;
