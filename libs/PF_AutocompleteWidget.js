@@ -65,19 +65,12 @@ OO.mixinClass( pf.AutocompleteWidget, OO.ui.mixin.LookupElement );
  */
 pf.AutocompleteWidget.prototype.getLookupRequest = function () {
 	const value = this.getValue();
-	const deferred = $.Deferred();
 	const api = new mw.Api();
-	const requestParams = {
-		action: 'pfautocomplete',
-		format: 'json',
-		substr: value
-	};
-
-	if ( this.config.autocompletedatatype == 'category' ) {
-		requestParams.category = this.config.autocompletesettings;
-	} else if ( this.config.autocompletedatatype == 'namespace' ) {
-		requestParams.namespace = this.config.autocompletesettings;
-	}
+	const requestParams = pf.buildAutocompleteParams(
+		this.config.autocompletedatatype,
+		this.config.autocompletesettings,
+		value
+	);
 
 	return api.get( requestParams );
 };
@@ -119,33 +112,6 @@ pf.AutocompleteWidget.prototype.getLookupMenuOptionsFromData = function ( data )
 		items.push( item );
 	}
 	return items;
-};
-
-/**
- * Returns a disabled OOUI MenuOptionWidget with a "No Matches" label.
- *
- * @return {OO.ui.MenuOptionWidget[]}
- */
-pf.AutocompleteWidget.prototype.getNoMatchesOOUIMenuOptionWidget = function () {
-	return [
-		new OO.ui.MenuOptionWidget( {
-			data: this.getValue(),
-			label: mw.message( 'pf-autocomplete-no-matches' ).text(),
-			disabled: true
-		} )
-	];
-};
-
-/**
- * Checks if any word in the given string starts with the given search term.
- *
- * @param {string} string
- * @param {string} curValue
- * @return {boolean}
- */
-pf.AutocompleteWidget.prototype.checkIfAnyWordStartsWithInputValue = function ( string, curValue ) {
-	const regex = new RegExp( '\\b' + curValue.toLowerCase() );
-	return string.toLowerCase().match( regex ) !== null;
 };
 
 pf.AutocompleteWidget.prototype.highlightText = function ( suggestion ) {

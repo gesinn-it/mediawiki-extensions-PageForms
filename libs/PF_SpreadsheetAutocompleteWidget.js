@@ -27,8 +27,7 @@ OO.inheritClass( pf.spreadsheetAutocompleteWidget, pf.AutocompleteWidget );
  * @inheritdoc
  */
 pf.spreadsheetAutocompleteWidget.prototype.getLookupRequest = function () {
-    let value = this.getValue();
-	const deferred = $.Deferred();
+	let value = this.getValue();
 	// sometimes it happens that on double clicking the cell
 	// a space is automatically added to the value inside the
 	// editor and hence we get "No Matches found" so we can
@@ -37,24 +36,10 @@ pf.spreadsheetAutocompleteWidget.prototype.getLookupRequest = function () {
 		value = value.slice(1);
 	}
 	const api = new mw.Api();
-	const requestParams = {
-		action: 'pfautocomplete',
-		format: 'json',
-		substr: value,
-	};
-	if( this.config.autocompletedatatype == 'category' ) {
-		requestParams.category = this.config.autocompletesettings;
-	} else if ( this.config.autocompletedatatype == 'cargo field' ) {
-		const table_and_field = this.config.autocompletesettings.split( '|' );
-		requestParams.cargo_table = table_and_field[0];
-		requestParams.cargo_field = table_and_field[1];
-	} else if ( this.config.autocompletedatatype == 'property' ) {
-		requestParams.property = this.config.autocompletesettings;
-	} else if ( this.config.autocompletedatatype == 'concept' ) {
-		requestParams.concept = this.config.autocompletesettings;
-	} else if( this.config.autocompletedatatype == 'dep_on' ) {
+	let requestParams;
+	if ( this.config.autocompletedatatype === 'dep_on' ) {
+		requestParams = { action: 'pfautocomplete', format: 'json', substr: value };
 		const dep_field_opts = this.getDependentFieldOpts( this.config.data_y, this.config.dep_on_field );
-
 		if (!dep_field_opts.prop.includes('|')) {
 			requestParams.property = dep_field_opts.prop;
 			requestParams.baseprop = dep_field_opts.base_prop;
@@ -68,6 +53,12 @@ pf.spreadsheetAutocompleteWidget.prototype.getLookupRequest = function () {
 			requestParams.base_cargo_field = baseCargoTableAndFieldStr.split('|')[1];
 		}
 		requestParams.basevalue = dep_field_opts.base_value;
+	} else {
+		requestParams = pf.buildAutocompleteParams(
+			this.config.autocompletedatatype,
+			this.config.autocompletesettings,
+			value
+		);
 	}
 	return api.get( requestParams );
 };
