@@ -487,8 +487,8 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		// filter and needs to see all concept pages. Skip the autocomplete-values cap here
 		// and let the SMW default limit ($smwgQMaxLimit, typically 10,000) apply; the result
 		// is truncated to $wgPageFormsMaxAutocompleteValues after PHP filtering below.
-		// In all other cases — no filter, or non-display-title mode with Conjunction — the
-		// autocomplete cap is applied directly to the SMW query.
+		// Without a substring filter (initial page load / pre-load), apply the cap directly
+		// to SMW so the query stays bounded.
 		if ( $substring === null || !$wgPageFormsUseDisplayTitle ) {
 			$query->setLimit( $wgPageFormsMaxAutocompleteValues );
 		}
