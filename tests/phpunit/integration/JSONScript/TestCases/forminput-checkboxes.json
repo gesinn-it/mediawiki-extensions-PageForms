@@ -1,0 +1,143 @@
+{
+	"description": "form input checkboxes",
+	"setup": [
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestCbFormBasic01",
+			"contents": "{{{field|PFCbField|input type=checkboxes|values=PFCbAlpha,PFCbBeta,PFCbGamma}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestCbFormMandatory01",
+			"contents": "{{{field|PFCbField|input type=checkboxes|values=PFCbAlpha,PFCbBeta|mandatory}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestCbFormValLabels01",
+			"contents": "{{{field|PFCbField|input type=checkboxes|values=PFCbAlpha,PFCbBeta|value_labels={\"PFCbAlpha\":\"Alpha Label\",\"PFCbBeta\":\"Beta Label\"}}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestCbFormSelectAll01",
+			"contents": "{{{field|PFCbField|input type=checkboxes|values=PFCbAlpha,PFCbBeta|show select all}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestCbTplReEdit01",
+			"contents": "{{{PFCbColors|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestCbFormReEdit01",
+			"contents": "{{{for template|PFTestCbTplReEdit01}}}\n{{{field|PFCbColors|input type=checkboxes|values=PFCbAlpha,PFCbBeta,PFCbGamma}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestCbSubjReEdit01",
+			"contents": "{{PFTestCbTplReEdit01|PFCbColors=PFCbAlpha,PFCbGamma}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Checkboxes basic render: span class, checkbox values, names and is_list hidden input",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestCbFormBasic01/PFTestCbNewPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"class=\"checkboxesSpan\"",
+					"value='PFCbAlpha'",
+					"value='PFCbBeta'",
+					"value='PFCbGamma'",
+					"name='standard input[PFCbField][0]'",
+					"name='standard input[PFCbField][1]'",
+					"name='standard input[PFCbField][2]'",
+					"name=\"standard input[PFCbField][is_list]\"",
+					"class=\"checkboxLabel\"",
+					"&nbsp;PFCbAlpha"
+				],
+				"not-contain": [
+					"mandatoryFieldSpan",
+					"select-all"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Checkboxes with mandatory param adds mandatoryFieldSpan class",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestCbFormMandatory01/PFTestCbNewPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"class=\"checkboxesSpan mandatoryFieldSpan\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Checkboxes with value_labels renders custom label text instead of raw value",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestCbFormValLabels01/PFTestCbNewPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"Alpha Label",
+					"Beta Label",
+					"value='PFCbAlpha'",
+					"value='PFCbBeta'"
+				],
+				"not-contain": [
+					"&nbsp;PFCbAlpha",
+					"&nbsp;PFCbBeta"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Checkboxes with show select all adds select-all span class",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestCbFormSelectAll01/PFTestCbNewPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"select-all"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Checkboxes re-edit: stored values are pre-checked, unset value is not checked",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestCbFormReEdit01/PFTestCbSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"value='PFCbAlpha' checked='checked'",
+					"value='PFCbGamma' checked='checked'"
+				],
+				"not-contain": [
+					"value='PFCbBeta' checked='checked'"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
