@@ -43,6 +43,13 @@ class PFListBoxInput extends PFMultiEnumInput {
 		}
 		$cur_values = PFValuesUtils::getValuesArray( $this->mCurrentValue, $delimiter );
 
+		// Normalize value_labels: when coming from a form field definition it
+		// arrives as a JSON string; when set by PF_FormField it is already an
+		// array. Decode once so the is_array() check below always works.
+		if ( array_key_exists( 'value_labels', $this->mOtherArgs ) && is_string( $this->mOtherArgs['value_labels'] ) ) {
+			$this->mOtherArgs['value_labels'] = json_decode( $this->mOtherArgs['value_labels'], true ) ?? [];
+		}
+
 		$possible_values = $this->mOtherArgs['possible_values'];
 		if ( $possible_values == null ) {
 			$possible_values = [];

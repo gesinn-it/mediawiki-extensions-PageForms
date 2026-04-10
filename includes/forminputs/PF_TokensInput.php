@@ -50,6 +50,13 @@ class PFTokensInput extends PFFormInput {
 
 		$other_args['is_list'] = true;
 
+		// Normalize value_labels: when coming from a form field definition it
+		// arrives as a JSON string; when set by PF_FormField it is already an
+		// array. Decode once so the is_array() check below always works.
+		if ( array_key_exists( 'value_labels', $other_args ) && is_string( $other_args['value_labels'] ) ) {
+			$other_args['value_labels'] = json_decode( $other_args['value_labels'], true ) ?? [];
+		}
+
 		if ( array_key_exists( 'values from external data', $other_args ) ) {
 			$autocompleteSettings = 'external data';
 			$remoteDataType = null;
