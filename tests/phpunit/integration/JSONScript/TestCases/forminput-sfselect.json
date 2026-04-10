@@ -1,0 +1,89 @@
+{
+	"description": "SF_Select input type — basic render, re-edit and mandatory",
+	"setup": [
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestSFSTpl01",
+			"contents": "{{{PFSFSField01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestSFSForm01",
+			"contents": "{{{for template|PFTestSFSTpl01}}}\n{{{field|PFSFSField01|input type=SF_Select|sametemplate|field=PFSFSField01}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestSFSSubj01",
+			"contents": "{{PFTestSFSTpl01|PFSFSField01=PFSFSOptA}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestSFSTpl02",
+			"contents": "{{{PFSFSField02|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestSFSFormMandatory01",
+			"contents": "{{{for template|PFTestSFSTpl02}}}\n{{{field|PFSFSField02|input type=SF_Select|sametemplate|field=PFSFSField02|mandatory}}}\n{{{end template}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "SF_Select basic render: wrapper span and select element with correct classes",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestSFSForm01/PFTestSFSNewPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"select-sfs",
+					"select-sfs-single",
+					"<select ",
+					"<option></option>"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "SF_Select re-edit: stored value is pre-selected",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestSFSForm01/PFTestSFSSubj01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<option selected='selected'>PFSFSOptA</option>"
+				],
+				"not-contain": [
+					"<option selected='selected'>PFSFSOptB</option>"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "SF_Select mandatory: mandatoryFieldSpan and mandatoryField classes are added",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestSFSFormMandatory01/PFTestSFSNewPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"mandatoryFieldSpan",
+					"mandatoryField"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgArticlePath": "/index.php/$1",
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
