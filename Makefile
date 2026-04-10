@@ -63,11 +63,17 @@ ifdef NODE_JS
 	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && npx qunit --require ./tests/node-qunit/setup.js $(QUNIT_PARAMS)"
 endif
 
+# Suppress git "dubious ownership" warning for the volume-mounted extension folder.
+# Required after every fresh container start (make install wipes git's global config).
+.PHONY: .git-safe-dir
+.git-safe-dir: .init
+	$(compose-exec-wiki) bash -c "git config --global --add safe.directory $(EXTENSION_FOLDER) 2>/dev/null || true"
+
 # PHP development cycle: lint (full) + phpunit
 # Optional:
 #   FILTER=PFFormCacheTest   restricts phpunit via --filter
 .PHONY: php-test
-php-test: .init
+php-test: .git-safe-dir
 ifdef COMPOSER_EXT
 	$(show-current-target)
 	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer lint"
@@ -80,7 +86,7 @@ endif
 #                               also derives the matching qunit test file
 #                               (libs/PF_foo.js → tests/node-qunit/PF_foo.test.js)
 .PHONY: js-test
-js-test: .init
+js-test: .git-safe-dir
 ifdef NODE_JS
 	$(show-current-target)
 	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && $(if $(FILE),npx eslint $(FILE),npm run eslint) && npm run banana-checker"
@@ -90,7 +96,7 @@ endif
 # Full development cycle without reinstalling: lint + phpcs + phpunit + eslint + qunit
 # Equivalent to 'make ci' but skips 'make install'. Run before committing.
 .PHONY: dev-test
-dev-test: .init
+dev-test: .git-safe-dir
 ifdef COMPOSER_EXT
 	$(show-current-target)
 	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer lint"
