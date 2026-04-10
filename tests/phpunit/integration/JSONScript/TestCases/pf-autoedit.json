@@ -1,0 +1,145 @@
+{
+	"description": "autoedit parser function",
+	"setup": [
+		{
+			"page": "autoedit-span",
+			"contents": "{{#autoedit:link text=EDIT ME}}"
+		},
+		{
+			"page": "autoedit-link",
+			"contents": "{{#autoedit:link type=link|link text=EDIT ME}}"
+		},
+		{
+			"page": "autoedit-button",
+			"contents": "{{#autoedit:link type=button|link text=EDIT ME}}"
+		},
+		{
+			"page": "autoedit-instant",
+			"contents": "{{#autoedit:link type=instant|link text=EDIT ME}}"
+		},
+		{
+			"page": "autoedit-reload",
+			"contents": "{{#autoedit:link text=EDIT ME|reload}}"
+		},
+		{
+			"page": "autoedit-minor",
+			"contents": "{{#autoedit:link text=EDIT ME|minor}}"
+		},
+		{
+			"page": "autoedit-confirm",
+			"contents": "{{#autoedit:link text=EDIT ME|confirm}}"
+		},
+		{
+			"page": "autoedit-querystring",
+			"contents": "{{#autoedit:link text=EDIT ME|query string=MyTemplate[MyField]=Hello}}"
+		},
+		{
+			"page": "autoedit-invalidns",
+			"contents": "{{#autoedit:link text=EDIT ME|target=User:PFTestAutoEditUser01}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "format",
+			"about": "span autoedit (default) wraps content in autoedit div",
+			"subject": "autoedit-span",
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"autoedit\">",
+					"<span class=\"autoedit-trigger\">EDIT ME</span>",
+					"<span class=\"autoedit-result\"></span>",
+					"<form class=\"autoedit-data\">"
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "link type link renders anchor element with autoedit-trigger class",
+			"subject": "autoedit-link",
+			"assert-output": {
+				"to-contain": [
+					"<a class=\"autoedit-trigger\" href=\"#\">EDIT ME</a>"
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "link type button renders OOUI button",
+			"subject": "autoedit-button",
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"oo-ui-labelElement-label\">EDIT ME</span>"
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "link type instant renders instant-trigger span",
+			"subject": "autoedit-instant",
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"autoedit-trigger-instant\">EDIT ME</span>"
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "reload flag adds reload class to trigger span",
+			"subject": "autoedit-reload",
+			"assert-output": {
+				"to-contain": [
+					"autoedit-trigger reload"
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "minor flag adds wpMinoredit hidden input",
+			"subject": "autoedit-minor",
+			"assert-output": {
+				"to-contain": [
+					"name=\"wpMinoredit\""
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "confirm flag adds confirm-edit class to autoedit form",
+			"subject": "autoedit-confirm",
+			"assert-output": {
+				"to-contain": [
+					"confirm-edit"
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "query string is converted to hidden inputs",
+			"subject": "autoedit-querystring",
+			"assert-output": {
+				"to-contain": [
+					"name=\"MyTemplate[MyField]\"",
+					"value=\"Hello\""
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "target in disallowed namespace returns error div",
+			"subject": "autoedit-invalidns",
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"error\""
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgArticlePath": "/index.php/$1"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
