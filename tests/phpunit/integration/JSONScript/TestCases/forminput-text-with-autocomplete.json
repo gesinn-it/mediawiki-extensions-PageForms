@@ -1,0 +1,80 @@
+{
+	"description": "form input text with autocomplete: scalar delegates to combobox, list delegates to tokens",
+	"setup": [
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestTWAFormScalar01",
+			"contents": "{{{field|PFTWAField|input type=text with autocomplete}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestTWAFormList01",
+			"contents": "{{{field|PFTWAField|input type=text with autocomplete|list}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestTWAFormScalarPlaceholder01",
+			"contents": "{{{field|PFTWAField|input type=text with autocomplete|placeholder=TWA placeholder test}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "text with autocomplete (scalar) delegates to combobox widget",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestTWAFormScalar01/PFTestTWANewPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"class=\"pfComboBox\"",
+					"name=\"standard input[PFTWAField]\""
+				],
+				"not-contain": [
+					"class=\"pfTokens\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "text with autocomplete (list) delegates to tokens widget",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestTWAFormList01/PFTestTWANewPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"class=\"pfTokens createboxInput\"",
+					"name=\"standard input[PFTWAField][]\""
+				],
+				"not-contain": [
+					"class=\"pfComboBox\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "text with autocomplete (scalar) passes parameters through to combobox",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestTWAFormScalarPlaceholder01/PFTestTWANewPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"placeholder=\"TWA placeholder test\""
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

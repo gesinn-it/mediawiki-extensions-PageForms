@@ -40,26 +40,6 @@ class PFTextWithAutocompleteInput extends PFTextInput {
 		return call_user_func( self::getAlias() . "::getOtherPropTypeListsHandled" );
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public static function getDefaultCargoTypes() {
-		return call_user_func( self::getAlias() . "::getDefaultCargoTypes" );
-	}
-
-	public static function getOtherCargoTypesHandled() {
-		return call_user_func( self::getAlias() . "::getOtherCargoTypesHandled" );
-	}
-
-	public static function getDefaultCargoTypeLists() {
-		return call_user_func( self::getAlias() . "::getDefaultCargoTypeLists" );
-	}
-
-	public static function getOtherCargoTypeListsHandled() {
-		return call_user_func( self::getAlias() . "::getOtherCargoTypeListsHandled" );
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
 		return call_user_func(
 			self::getAlias() . "::getHTML", $cur_value, $input_name, $is_mandatory, $is_disabled, $other_args
