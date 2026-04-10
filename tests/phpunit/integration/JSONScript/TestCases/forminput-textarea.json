@@ -11,15 +11,34 @@
 			"page": "Textarea input without other parameters",
 			"contents": "{{{field|Textarea|input type=textarea}}}"
 		},
-        {
+		{
 			"namespace": "PF_NS_FORM",
 			"page": "Textarea input with rows param",
 			"contents": "{{{field|Textarea|input type=textarea|rows=10}}}"
 		},
-        {
+		{
 			"namespace": "PF_NS_FORM",
 			"page": "Textarea input with placeholder param",
 			"contents": "{{{field|Textarea|input type=textarea|placeholder=add text here}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTAPreloadTpl01",
+			"contents": "{{{PFTAPreloadField01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestTAFormPreload01",
+			"contents": "{{{for template|PFTestTAPreloadTpl01}}}\n{{{field|PFTAPreloadField01|input type=textarea}}}\n{{{end template}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestTAFormAutogrow01",
+			"contents": "{{{for template|PFTestTAPreloadTpl01}}}\n{{{field|PFTAPreloadField01|input type=textarea|autogrow}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestTASubjPreload01",
+			"contents": "{{PFTestTAPreloadTpl01|PFTAPreloadField01=PFTAStoredContent01}}"
 		}
 	],
 	"tests": [
@@ -37,7 +56,7 @@
 				]
 			}
 		},
-        {
+		{
 			"type": "special",
 			"about": "Textarea input with rows param",
 			"special-page": {
@@ -51,7 +70,7 @@
 				]
 			}
 		},
-        {
+		{
 			"type": "special",
 			"about": "Textarea input with placeholder param",
 			"special-page": {
@@ -62,6 +81,34 @@
 			"assert-output": {
 				"to-contain": [
 					"<textarea tabindex=\"1\" name=\"standard input[Textarea]\" id=\"input_1\" class=\"createboxInput\" rows=\"5\" cols=\"90\" style=\"width: 100%\" placeholder=\"add text here\">"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "textarea preload: stored value appears as textarea content on re-edit",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestTAFormPreload01/PFTestTASubjPreload01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"PFTAStoredContent01"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "textarea autogrow: autoGrow class is added when autogrow param is set",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestTAFormAutogrow01/PFTestTANewPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"autoGrow"
 				]
 			}
 		}
