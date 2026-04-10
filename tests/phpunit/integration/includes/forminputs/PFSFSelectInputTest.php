@@ -63,7 +63,7 @@ class PFSFSelectInputTest extends MediaWikiIntegrationTestCase {
 		$html = $this->getHtml( '' );
 
 		// Only the blank option — no extra <option> elements after it
-		$this->assertEquals( 1, substr_count( $html, '<option' ) );
+		$this->assertSame( 1, substr_count( $html, '<option' ) );
 	}
 
 	public function testCurValueRendersAsSelectedOption(): void {
