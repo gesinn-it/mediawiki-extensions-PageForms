@@ -153,7 +153,13 @@ class PFComboBoxInput extends PFFormInput {
 		// skip the init AJAX call. Without this the JS would only have the display
 		// title and would need to query the API just to learn the canonical title.
 		$optionAttrs = [ 'selected' => true ];
-		if ( $remoteDataType !== null && $cur_value !== '' && $possible_values !== [] ) {
+		// The canonical-value override only applies when $possible_values is a
+		// [canonicalTitle => displayTitle] map (string keys). For plain string-type
+		// properties the array is numerically indexed, and array_search() would
+		// return the numeric index instead of the canonical title, corrupting the
+		// saved value on re-edit (e.g. "values from property" on a non-page property).
+		if ( $remoteDataType !== null && $cur_value !== '' && $possible_values !== []
+			&& is_string( array_key_first( $possible_values ) ) ) {
 			$canonicalValue = array_search( $cur_value, $possible_values );
 			if ( $canonicalValue !== false ) {
 				$optionAttrs['value'] = (string)$canonicalValue;

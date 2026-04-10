@@ -1,0 +1,78 @@
+{
+	"description": "Combobox with values from property preserves current value on re-edit (regression: array_search on a numerically-indexed possible_values array must not write the integer index into the option's value attribute)",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestVFPropReEdit01",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"page": "PFTestVFVPageReEdit01",
+			"contents": "[[PFTestVFPropReEdit01::Alpha Subject]]"
+		},
+		{
+			"page": "PFTestVFVPageReEdit02",
+			"contents": "[[PFTestVFPropReEdit01::Beta Subject]]"
+		},
+		{
+			"page": "PFTestVFVPageReEdit03",
+			"contents": "[[PFTestVFPropReEdit01::Project Planning]]"
+		},
+		{
+			"page": "PFTestVFVPageReEdit04",
+			"contents": "[[PFTestVFPropReEdit01::Zeta Subject]]"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestVFTemplReEdit01",
+			"contents": "{{{Subject|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFFormReEdit01",
+			"contents": "{{{for template|PFTestVFTemplReEdit01}}}\n{{{field|Subject|input type=combobox|values from property=PFTestVFPropReEdit01}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestVFSubjReEdit01",
+			"contents": "{{PFTestVFTemplReEdit01|Subject=Project Planning}}"
+		}
+	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
+	"tests": [
+		{
+			"type": "special",
+			"about": "Combobox re-edit: selected option must carry the value text, not the numeric array index",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFFormReEdit01/PFTestVFSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<option selected=\"\">Project Planning</option>",
+					"autocompletedatatype=\"property\""
+				],
+				"not-to-contain": [
+					"<option selected=\"\" value=\"2\">Project Planning</option>"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en",
+		"wgArticlePath": "/index.php/$1",
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
