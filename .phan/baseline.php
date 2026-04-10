@@ -9,33 +9,32 @@
  */
 return [
     // # Issue statistics:
-    // PhanUndeclaredClassMethod : 45+ occurrences
+    // PhanUndeclaredClassMethod : 50+ occurrences
     // SecurityCheck-DoubleEscaped : 40+ occurrences
     // MediaWikiNoEmptyIfDefined : 30+ occurrences
     // PhanPossiblyUndeclaredVariable : 25+ occurrences
     // PhanTypeMismatchArgumentProbablyReal : 25+ occurrences
-    // PhanUndeclaredMethod : 20+ occurrences
     // PhanTypeMismatchArgumentNullable : 15+ occurrences
+    // PhanUndeclaredMethod : 15+ occurrences
     // PhanPluginDuplicateConditionalNullCoalescing : 10+ occurrences
-    // PhanTypeMismatchArgument : 10+ occurrences
     // PhanTypeMismatchArgumentNullableInternal : 9 occurrences
+    // PhanTypeMismatchArgument : 8 occurrences
     // PhanUndeclaredStaticMethod : 8 occurrences
     // PhanTypeMismatchArgumentInternal : 7 occurrences
+    // PhanUndeclaredConstant : 7 occurrences
     // PhanTypeMismatchProperty : 6 occurrences
     // PhanUndeclaredClassConstant : 6 occurrences
-    // PhanUndeclaredConstant : 6 occurrences
     // PhanRedundantCondition : 5 occurrences
     // PhanTypeArraySuspiciousNullable : 5 occurrences
     // PhanTypeMismatchPropertyProbablyReal : 4 occurrences
     // PhanTypeMismatchReturn : 4 occurrences
     // PhanTypeMismatchReturnProbablyReal : 4 occurrences
     // PhanTypePossiblyInvalidDimOffset : 4 occurrences
+    // PhanNonClassMethodCall : 2 occurrences
     // PhanTypeMismatchDimFetchNullable : 2 occurrences
     // PhanUndeclaredClassInstanceof : 2 occurrences
     // PhanUndeclaredClassReference : 2 occurrences
-    // PhanNonClassMethodCall : 1 occurrence
     // PhanParamTooFewInPHPDoc : 1 occurrence
-    // PhanTypeExpectedObjectOrClassName : 1 occurrence
     // PhanTypeInvalidLeftOperandOfNumericOp : 1 occurrence
     // PhanTypeMismatchArgumentInternalReal : 1 occurrence
     // PhanTypeMismatchDimEmpty : 1 occurrence
@@ -54,12 +53,12 @@ return [
         'includes/PF_AutoeditAPI.php' => ['PhanPluginDuplicateConditionalNullCoalescing', 'PhanRedundantCondition', 'PhanTypeMismatchArgumentInternalReal', 'PhanTypeMismatchArgumentNullable', 'PhanTypeMismatchArgumentProbablyReal', 'PhanTypeMismatchReturnNullable', 'PhanTypePossiblyInvalidDimOffset', 'PhanUndeclaredConstantOfClass', 'PhanUndeclaredMethod'],
         'includes/PF_CreatePageJob.php' => ['PhanRedundantCondition'],
         'includes/PF_Form.php' => ['MediaWikiNoEmptyIfDefined'],
+        'includes/PF_FormCache.php' => ['PhanPluginDuplicateConditionalNullCoalescing', 'PhanPossiblyUndeclaredVariable', 'PhanTypeMismatchArgument', 'PhanTypeMismatchArgumentNullable', 'PhanTypeMismatchArgumentProbablyReal', 'PhanUndeclaredMethod', 'PhanUndeclaredStaticMethod'],
         'includes/PF_FormEditAction.php' => ['PhanTypeMismatchArgumentProbablyReal', 'PhanTypeMismatchReturn', 'PhanUndeclaredMethod', 'SecurityCheck-DoubleEscaped'],
         'includes/PF_FormField.php' => ['MediaWikiNoEmptyIfDefined', 'PhanTypeMismatchArgumentNullable', 'PhanTypeSuspiciousStringExpression', 'PhanUndeclaredStaticMethod', 'SecurityCheck-DoubleEscaped'],
-        'includes/PF_FormCache.php' => ['PhanPluginDuplicateConditionalNullCoalescing', 'PhanPossiblyUndeclaredVariable', 'PhanTypeMismatchArgument', 'PhanTypeMismatchArgumentNullable', 'PhanTypeMismatchArgumentProbablyReal', 'PhanUndeclaredMethod', 'PhanUndeclaredStaticMethod'],
         'includes/PF_FormLinker.php' => ['PhanParamTooFewInPHPDoc', 'PhanUndeclaredStaticMethod'],
-        'includes/PF_FormPrinter.php' => ['MediaWikiNoEmptyIfDefined', 'PhanNonClassMethodCall', 'PhanPossiblyUndeclaredVariable', 'PhanRedundantCondition', 'PhanTypeInvalidLeftOperandOfNumericOp', 'PhanTypeMismatchArgument', 'PhanTypeMismatchArgumentInternal', 'PhanTypeMismatchArgumentNullable', 'PhanTypeMismatchArgumentNullableInternal', 'PhanTypeMismatchArgumentProbablyReal', 'PhanTypeMismatchDimFetchNullable', 'PhanTypeMismatchProperty', 'PhanTypeMismatchPropertyProbablyReal', 'PhanUndeclaredMethod', 'SecurityCheck-DoubleEscaped', 'SecurityCheck-ReDoS'],
-        'includes/PF_FormUtils.php' => ['SecurityCheck-DoubleEscaped'],
+        'includes/PF_FormPrinter.php' => ['MediaWikiNoEmptyIfDefined', 'PhanNonClassMethodCall', 'PhanPossiblyUndeclaredVariable', 'PhanRedundantCondition', 'PhanTypeMismatchArgument', 'PhanTypeMismatchArgumentInternal', 'PhanTypeMismatchArgumentNullable', 'PhanTypeMismatchArgumentNullableInternal', 'PhanTypeMismatchArgumentProbablyReal', 'PhanTypeMismatchDimFetchNullable', 'PhanTypeMismatchProperty', 'PhanTypeMismatchPropertyProbablyReal', 'PhanUndeclaredMethod', 'SecurityCheck-DoubleEscaped', 'SecurityCheck-ReDoS'],
+        'includes/PF_FormUtils.php' => ['PhanPossiblyUndeclaredVariable', 'PhanTypeInvalidLeftOperandOfNumericOp', 'PhanTypeMismatchArgumentInternal', 'PhanTypeMismatchArgumentNullableInternal', 'SecurityCheck-DoubleEscaped'],
         'includes/PF_HelperFormAction.php' => ['PhanUndeclaredMethod'],
         'includes/PF_Hooks.php' => ['PhanTypeMismatchArgumentProbablyReal', 'PhanUndeclaredClassMethod', 'PhanUndeclaredClassReference', 'PhanUndeclaredMethod'],
         'includes/PF_Template.php' => ['MediaWikiNoEmptyIfDefined', 'PhanPossiblyUndeclaredVariable', 'PhanUndeclaredStaticMethod'],
@@ -74,7 +73,7 @@ return [
         'includes/forminputs/PF_LeafletInput.php' => ['PhanPossiblyUndeclaredVariable'],
         'includes/forminputs/PF_OpenLayersInput.php' => ['PhanPossiblyUndeclaredVariable', 'PhanTypeMismatchArgumentNullable', 'PhanTypeMismatchArgumentProbablyReal', 'PhanTypeMismatchReturn'],
         'includes/forminputs/PF_RadioButtonInput.php' => ['PhanTypeArraySuspiciousNullable'],
-        'includes/forminputs/PF_RegExpInput.php' => ['PhanTypeExpectedObjectOrClassName'],
+        'includes/forminputs/PF_RegExpInput.php' => ['PhanNonClassMethodCall'],
         'includes/forminputs/PF_SFSelectAPIRequestProcessor.php' => ['PhanUndeclaredClassConstant', 'PhanUndeclaredClassMethod', 'PhanUndeclaredConstant'],
         'includes/forminputs/PF_SFSelectField.php' => ['PhanUndeclaredClassConstant', 'PhanUndeclaredClassMethod', 'PhanUndeclaredConstant'],
         'includes/forminputs/PF_TextInput.php' => ['PhanTypeMismatchArgumentProbablyReal', 'PhanUndeclaredMethod', 'SecurityCheck-DoubleEscaped'],

@@ -13,6 +13,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\InputTypeRegistry;
 use MediaWiki\MediaWikiServices;
 
 class PFFormPrinter {
@@ -42,22 +43,15 @@ class PFFormPrinter {
 	 */
 	public $mPageTitle;
 
-	private $mInputTypeClasses;
-	private $mDefaultInputForPropType;
-	private $mDefaultInputForPropTypeList;
-	private $mPossibleInputsForPropType;
-	private $mPossibleInputsForPropTypeList;
+	/** Owned by InputTypeRegistry; FormPrinter delegates to it for all input-type lookups. */
+	private InputTypeRegistry $inputTypeRegistry;
 
 	public function __construct() {
 		global $wgPageFormsDisableOutsideServices;
 		// Initialize variables.
 		$this->mSemanticTypeHooks = [];
 		$this->mInputTypeHooks = [];
-		$this->mInputTypeClasses = [];
-		$this->mDefaultInputForPropType = [];
-		$this->mDefaultInputForPropTypeList = [];
-		$this->mPossibleInputsForPropType = [];
-		$this->mPossibleInputsForPropTypeList = [];
+		$this->inputTypeRegistry = new InputTypeRegistry();
 
 		$this->standardInputsIncluded = false;
 
@@ -118,36 +112,21 @@ class PFFormPrinter {
 	 * Must be derived from PFFormInput.
 	 */
 	public function registerInputType( $inputTypeClass ) {
+		// Delegate the five private lookup tables to InputTypeRegistry.
+		$this->inputTypeRegistry->register( $inputTypeClass );
+
+		// Keep $mInputTypeHooks and $mSemanticTypeHooks in sync on FormPrinter
+		// for backward compatibility with external code that reads them directly.
 		$inputTypeName = call_user_func( [ $inputTypeClass, 'getName' ] );
-		$this->mInputTypeClasses[$inputTypeName] = $inputTypeClass;
 		$this->setInputTypeHook( $inputTypeName, $inputTypeClass, [] );
 
 		$defaultProperties = call_user_func( [ $inputTypeClass, 'getDefaultPropTypes' ] );
 		foreach ( $defaultProperties as $propertyType => $additionalValues ) {
 			$this->setSemanticTypeHook( $propertyType, false, $inputTypeClass, $additionalValues );
-			$this->mDefaultInputForPropType[$propertyType] = $inputTypeName;
 		}
 		$defaultPropertyLists = call_user_func( [ $inputTypeClass, 'getDefaultPropTypeLists' ] );
 		foreach ( $defaultPropertyLists as $propertyType => $additionalValues ) {
 			$this->setSemanticTypeHook( $propertyType, true, $inputTypeClass, $additionalValues );
-			$this->mDefaultInputForPropTypeList[$propertyType] = $inputTypeName;
-		}
-
-		$otherProperties = call_user_func( [ $inputTypeClass, 'getOtherPropTypesHandled' ] );
-		foreach ( $otherProperties as $propertyTypeID ) {
-			if ( array_key_exists( $propertyTypeID, $this->mPossibleInputsForPropType ) ) {
-				$this->mPossibleInputsForPropType[$propertyTypeID][] = $inputTypeName;
-			} else {
-				$this->mPossibleInputsForPropType[$propertyTypeID] = [ $inputTypeName ];
-			}
-		}
-		$otherPropertyLists = call_user_func( [ $inputTypeClass, 'getOtherPropTypeListsHandled' ] );
-		foreach ( $otherPropertyLists as $propertyTypeID ) {
-			if ( array_key_exists( $propertyTypeID, $this->mPossibleInputsForPropTypeList ) ) {
-				$this->mPossibleInputsForPropTypeList[$propertyTypeID][] = $inputTypeName;
-			} else {
-				$this->mPossibleInputsForPropTypeList[$propertyTypeID] = [ $inputTypeName ];
-			}
 		}
 
 		// FIXME: No need to register these functions explicitly. Instead
@@ -167,47 +146,19 @@ class PFFormPrinter {
 	}
 
 	public function getInputType( $inputTypeName ) {
-		if ( array_key_exists( $inputTypeName, $this->mInputTypeClasses ) ) {
-			return $this->mInputTypeClasses[$inputTypeName];
-		} else {
-			return null;
-		}
+		return $this->inputTypeRegistry->getClass( $inputTypeName );
 	}
 
 	public function getDefaultInputTypeSMW( $isList, $propertyType ) {
-		if ( $isList ) {
-			if ( array_key_exists( $propertyType, $this->mDefaultInputForPropTypeList ) ) {
-				return $this->mDefaultInputForPropTypeList[$propertyType];
-			} else {
-				return null;
-			}
-		} else {
-			if ( array_key_exists( $propertyType, $this->mDefaultInputForPropType ) ) {
-				return $this->mDefaultInputForPropType[$propertyType];
-			} else {
-				return null;
-			}
-		}
+		return $this->inputTypeRegistry->getDefaultInputType( (bool)$isList, $propertyType );
 	}
 
 	public function getPossibleInputTypesSMW( $isList, $propertyType ) {
-		if ( $isList ) {
-			if ( array_key_exists( $propertyType, $this->mPossibleInputsForPropTypeList ) ) {
-				return $this->mPossibleInputsForPropTypeList[$propertyType];
-			} else {
-				return [];
-			}
-		} else {
-			if ( array_key_exists( $propertyType, $this->mPossibleInputsForPropType ) ) {
-				return $this->mPossibleInputsForPropType[$propertyType];
-			} else {
-				return [];
-			}
-		}
+		return $this->inputTypeRegistry->getPossibleInputTypes( (bool)$isList, $propertyType );
 	}
 
 	public function getAllInputTypes() {
-		return array_keys( $this->mInputTypeClasses );
+		return $this->inputTypeRegistry->getAllTypeNames();
 	}
 
 	/**
@@ -592,51 +543,10 @@ END;
 	 * @param string $includeTimezone
 	 * @return string
 	 */
+
+	/** @deprecated — use PFFormUtils::getStringForCurrentTime() instead. */
 	public function getStringForCurrentTime( $includeTime, $includeTimezone ) {
-		global $wgLocaltimezone, $wgAmericanDates, $wgPageForms24HourTime;
-
-		if ( isset( $wgLocaltimezone ) ) {
-			$serverTimezone = date_default_timezone_get();
-			date_default_timezone_set( $wgLocaltimezone );
-		}
-		$cur_time = time();
-		$year = date( "Y", $cur_time );
-		$month = date( "n", $cur_time );
-		$day = date( "j", $cur_time );
-		if ( $wgAmericanDates == true ) {
-			$month_names = PFFormUtils::getMonthNames();
-			$month_name = $month_names[$month - 1];
-			$curTimeString = "$month_name $day, $year";
-		} else {
-			$curTimeString = "$year-$month-$day";
-		}
-		if ( isset( $wgLocaltimezone ) ) {
-			date_default_timezone_set( $serverTimezone );
-		}
-		if ( !$includeTime ) {
-			return $curTimeString;
-		}
-
-		if ( $wgPageForms24HourTime ) {
-			$hour = str_pad( intval( substr( date( "G", $cur_time ), 0, 2 ) ), 2, '0', STR_PAD_LEFT );
-		} else {
-			$hour = str_pad( intval( substr( date( "g", $cur_time ), 0, 2 ) ), 2, '0', STR_PAD_LEFT );
-		}
-		$minute = str_pad( intval( substr( date( "i", $cur_time ), 0, 2 ) ), 2, '0', STR_PAD_LEFT );
-		$second = str_pad( intval( substr( date( "s", $cur_time ), 0, 2 ) ), 2, '0', STR_PAD_LEFT );
-		if ( $wgPageForms24HourTime ) {
-			$curTimeString .= " $hour:$minute:$second";
-		} else {
-			$ampm = date( "A", $cur_time );
-			$curTimeString .= " $hour:$minute:$second $ampm";
-		}
-
-		if ( $includeTimezone ) {
-			$timezone = date( "T", $cur_time );
-			$curTimeString .= " $timezone";
-		}
-
-		return $curTimeString;
+		return PFFormUtils::getStringForCurrentTime( $includeTime, $includeTimezone );
 	}
 
 	/**
@@ -1385,7 +1295,7 @@ END;
 									$input_type == 'year' ||
 									( $input_type == ''
 										&& $form_field->getTemplateField()->getPropertyType() == '_dat' ) ) {
-								$cur_value_in_template = self::getStringForCurrentTime(
+								$cur_value_in_template = PFFormUtils::getStringForCurrentTime(
 								$input_type == 'datetime', $form_field->hasFieldArg( 'include timezone' )
 								);
 							}

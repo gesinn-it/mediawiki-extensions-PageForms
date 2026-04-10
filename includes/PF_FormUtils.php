@@ -642,6 +642,63 @@ END;
 	}
 
 	/**
+	 * Returns a string representing the current date (and optionally time).
+	 *
+	 * Extracted from PFFormPrinter, where a forwarding alias is kept for
+	 * backward compatibility with external callers.
+	 *
+	 * @param bool $includeTime Whether to append the current time.
+	 * @param bool $includeTimezone Whether to append the timezone abbreviation.
+	 * @return string
+	 */
+	public static function getStringForCurrentTime( $includeTime, $includeTimezone ) {
+		global $wgLocaltimezone, $wgAmericanDates, $wgPageForms24HourTime;
+
+		if ( isset( $wgLocaltimezone ) ) {
+			$serverTimezone = date_default_timezone_get();
+			date_default_timezone_set( $wgLocaltimezone );
+		}
+		$cur_time = time();
+		$year = date( "Y", $cur_time );
+		$month = date( "n", $cur_time );
+		$day = date( "j", $cur_time );
+		if ( $wgAmericanDates == true ) {
+			$month_names = self::getMonthNames();
+			$month_name = $month_names[$month - 1];
+			$curTimeString = "$month_name $day, $year";
+		} else {
+			$curTimeString = "$year-$month-$day";
+		}
+		if ( isset( $wgLocaltimezone ) ) {
+			date_default_timezone_set( $serverTimezone );
+		}
+		if ( !$includeTime ) {
+			return $curTimeString;
+		}
+
+		if ( $wgPageForms24HourTime ) {
+			$hour = str_pad( intval( substr( date( "G", $cur_time ), 0, 2 ) ), 2, '0', STR_PAD_LEFT );
+		} else {
+			$hour = str_pad( intval( substr( date( "g", $cur_time ), 0, 2 ) ), 2, '0', STR_PAD_LEFT );
+		}
+		$minute = str_pad( intval( substr( date( "i", $cur_time ), 0, 2 ) ), 2, '0', STR_PAD_LEFT );
+		$second = str_pad( intval( substr( date( "s", $cur_time ), 0, 2 ) ), 2, '0', STR_PAD_LEFT );
+		if ( $wgPageForms24HourTime ) {
+			$curTimeString .= " $hour:$minute:$second";
+		} else {
+			$ampm = date( "A", $cur_time );
+			$curTimeString .= " $hour:$minute:$second $ampm";
+		}
+
+		if ( $includeTimezone ) {
+			$timezone = date( "T", $cur_time );
+			$curTimeString .= " $timezone";
+		}
+
+		return $curTimeString;
+	}
+
+	/**
 	 * Generates a random UUID v4 string.
 	 *
 	 * Extracted from PFFormPrinter (was private), now public so it can be
