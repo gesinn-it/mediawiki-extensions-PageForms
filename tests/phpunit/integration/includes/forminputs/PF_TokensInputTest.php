@@ -1,5 +1,11 @@
 <?php
 
+declare( strict_types=1 );
+
+/**
+ * @covers \PFTokensInput
+ * @group Database
+ */
 class PFTokensInputTest extends MediaWikiIntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
@@ -10,10 +16,79 @@ class PFTokensInputTest extends MediaWikiIntegrationTestCase {
 		$wgPageFormsEDSettings = [];
 	}
 
-	/**
-	 * @covers \PFTokensInput::getHTML
-	 */
-	public function testMappedPossibleValuesUseCanonicalOptionValues() {
+	private function getHtml(
+		string $curValue,
+		array $possibleValues = [],
+		bool $isMandatory = false,
+		bool $isDisabled = false,
+		array $extraArgs = []
+	): string {
+		return PFTokensInput::getHTML(
+			$curValue,
+			'TestField',
+			$isMandatory,
+			$isDisabled,
+			array_merge( [ 'possible_values' => $possibleValues ], $extraArgs )
+		);
+	}
+
+	public function testGetHtmlRendersMultiSelectWithArrayInputName(): void {
+		$html = $this->getHtml( '' );
+
+		$this->assertStringContainsString( 'name="TestField[]"', $html );
+		$this->assertStringContainsString( 'multiple=""', $html );
+		$this->assertStringContainsString( 'class="pfTokens createboxInput"', $html );
+	}
+
+	public function testGetHtmlRendersIsListHiddenInput(): void {
+		$html = $this->getHtml( '' );
+
+		$this->assertStringContainsString( 'name="TestField[is_list]"', $html );
+	}
+
+	public function testGetHtmlMarksStoredValuesAsSelected(): void {
+		$html = $this->getHtml(
+			'PFTokAlpha,PFTokGamma',
+			[ 'PFTokAlpha', 'PFTokBeta', 'PFTokGamma' ]
+		);
+
+		$this->assertStringContainsString( '<option value="PFTokAlpha" selected="">PFTokAlpha</option>', $html );
+		$this->assertStringContainsString( '<option value="PFTokGamma" selected="">PFTokGamma</option>', $html );
+		$this->assertStringNotContainsString( '<option value="PFTokBeta" selected', $html );
+	}
+
+	public function testGetHtmlAppendsUnknownCurrentValueAsSelectedOption(): void {
+		// A value stored in the page that is not in possible_values must
+		// still appear as a selected option so re-editing does not lose it.
+		$html = $this->getHtml(
+			'PFTokKnown,PFTokUnknown',
+			[ 'PFTokKnown' ]
+		);
+
+		$this->assertStringContainsString( '<option value="PFTokUnknown" selected="">PFTokUnknown</option>', $html );
+	}
+
+	public function testGetHtmlMandatoryAddsMandatoryFieldSpan(): void {
+		$html = $this->getHtml( '', [], true );
+
+		$this->assertStringContainsString( 'mandatoryFieldSpan', $html );
+		$this->assertStringContainsString( 'mandatoryField', $html );
+	}
+
+	public function testGetHtmlCustomDelimiterSplitsCurrentValue(): void {
+		$html = $this->getHtml(
+			'PFTokAlpha;PFTokBeta',
+			[ 'PFTokAlpha', 'PFTokBeta' ],
+			false,
+			false,
+			[ 'delimiter' => ';' ]
+		);
+
+		$this->assertStringContainsString( '<option value="PFTokAlpha" selected="">PFTokAlpha</option>', $html );
+		$this->assertStringContainsString( '<option value="PFTokBeta" selected="">PFTokBeta</option>', $html );
+	}
+
+	public function testMappedPossibleValuesUseCanonicalOptionValues(): void {
 		$html = PFTokensInput::getHTML(
 			'',
 			'TestTemplate[Tokens]',
@@ -36,9 +111,6 @@ class PFTokensInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertNotContains( 'Values From Category 3 (DisplayTitle)', $optionValues );
 	}
 
-	/**
-	 * @covers \PFTokensInput::getHTML
-	 */
 	public function testCurrentCanonicalValueDoesNotCreateDuplicateOption() {
 		$html = PFTokensInput::getHTML(
 			'Values From Category 3',
@@ -65,9 +137,6 @@ class PFTokensInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertTrue( $matchingOptions[0]['selected'] );
 	}
 
-	/**
-	 * @covers \PFTokensInput::getHTML
-	 */
 	public function testCurrentDisplayLabelValueMapsBackToCanonicalOption() {
 		$html = PFTokensInput::getHTML(
 			'Values From Category 3 (DisplayTitle)',

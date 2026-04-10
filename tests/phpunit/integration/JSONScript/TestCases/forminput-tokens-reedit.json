@@ -1,0 +1,48 @@
+{
+	"description": "Tokens with static values preserves selected options on re-edit",
+	"setup": [
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTokTplReEdit01",
+			"contents": "{{{PFTokTags|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestTokFormReEdit01",
+			"contents": "{{{for template|PFTestTokTplReEdit01}}}\n{{{field|PFTokTags|input type=tokens|values=PFTokAlpha,PFTokBeta,PFTokGamma,PFTokDelta}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestTokSubjReEdit01",
+			"contents": "{{PFTestTokTplReEdit01|PFTokTags=PFTokAlpha,PFTokGamma}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Tokens re-edit: stored values appear as selected options, unset values are not selected",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestTokFormReEdit01/PFTestTokSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<option value=\"PFTokAlpha\" selected=\"\">PFTokAlpha</option>",
+					"<option value=\"PFTokGamma\" selected=\"\">PFTokGamma</option>"
+				],
+				"not-contain": [
+					"<option value=\"PFTokBeta\" selected",
+					"<option value=\"PFTokDelta\" selected"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

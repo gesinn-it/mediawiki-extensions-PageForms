@@ -45,28 +45,6 @@ class PFTokensInput extends PFFormInput {
 		}
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public static function getDefaultCargoTypes() {
-		return [];
-	}
-
-	public static function getOtherCargoTypesHandled() {
-		return [ 'Page', 'String' ];
-	}
-
-	public static function getDefaultCargoTypeLists() {
-		return [
-			'Page' => [ 'is_list' => true, 'size' => 100 ]
-		];
-	}
-
-	public static function getOtherCargoTypeListsHandled() {
-		return [ 'String' ];
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
 		global $wgPageFormsTabIndex, $wgPageFormsFieldNum, $wgPageFormsEDSettings;
 
