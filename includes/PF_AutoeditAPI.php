@@ -1229,14 +1229,11 @@ END;
 
 	/**
 	 * Returns a string that identifies the version of the class.
-	 * Includes the class name, the svn revision, timestamp, and
-	 * last author.
 	 *
 	 * @return string
 	 */
 	public function getVersion(): string {
-		$gitSha1 = SpecialVersion::getGitHeadSha1( $this->getConfig()->get( 'PageFormsIP' ) );
-		return __CLASS__ . '-' . PF_VERSION . ( $gitSha1 !== false ? ' (' . substr( $gitSha1, 0, 7 ) . ')' : '' );
+		return __CLASS__ . '-' . PF_VERSION;
 	}
 
 }
