@@ -17,16 +17,6 @@ class PFDateInput extends PFFormInput {
 		return [ '_dat' => [] ];
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public static function getDefaultCargoTypes() {
-		return [
-			'Date' => []
-		];
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	public static function monthDropdownHTML( $cur_month, $input_name, $is_disabled ) {
 		global $wgPageFormsTabIndex, $wgAmericanDates;
 

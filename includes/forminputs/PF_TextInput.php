@@ -51,38 +51,6 @@ class PFTextInput extends PFFormInput {
 		return [ '_wpg' ];
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public static function getDefaultCargoTypes() {
-		return [
-			'Integer' => [ 'field_type' => 'integer' ],
-			'Float' => [ 'field_type' => 'number' ],
-			'URL' => [ 'field_type' => 'URL' ],
-			'Email' => [ 'field_type' => 'email' ],
-			'File' => [ 'field_type' => 'string', 'uploadable' => true ],
-			'String' => [ 'field_type' => 'string' ]
-		];
-	}
-
-	public static function getOtherCargoTypesHandled() {
-		return [ 'Page', 'Coordinates' ];
-	}
-
-	public static function getDefaultCargoTypeLists() {
-		return [
-			'Number' => [ 'field_type' => 'number', 'is_list' => 'true', 'size' => '100' ],
-			'URL' => [ 'field_type' => 'URL', 'is_list' => 'true' ],
-			'Email' => [ 'field_type' => 'email', 'is_list' => 'true' ],
-			'String' => [ 'field_type' => 'text', 'is_list' => 'true', 'size' => '100' ]
-		];
-	}
-
-	public static function getOtherCargoTypeListsHandled() {
-		return [ 'Page' ];
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	/**
 	 * Gets the HTML for the preview image or null if there is none.
 	 *

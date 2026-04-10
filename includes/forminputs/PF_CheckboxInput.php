@@ -17,14 +17,6 @@ class PFCheckboxInput extends PFFormInput {
 		return [ '_boo' => [] ];
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public static function getDefaultCargoTypes() {
-		return [ 'Boolean' => [] ];
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
 		global $wgPageFormsTabIndex, $wgPageFormsFieldNum;
 

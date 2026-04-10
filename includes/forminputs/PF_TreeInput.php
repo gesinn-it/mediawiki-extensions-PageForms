@@ -38,30 +38,6 @@ class PFTreeInput extends PFFormInput {
 		}
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public static function getDefaultCargoTypes() {
-		return [
-			'Hierarchy' => []
-		];
-	}
-
-	public static function getDefaultCargoTypeLists() {
-		return [
-			'Hierarchy' => []
-		];
-	}
-
-	public static function getOtherCargoTypesHandled() {
-		return [ 'String', 'Page' ];
-	}
-
-	public static function getOtherCargoTypeListsHandled() {
-		return [ 'String', 'Page' ];
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
 		// Handle the now-deprecated 'category' and 'categories'
 		// input types.

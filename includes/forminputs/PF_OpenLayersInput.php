@@ -17,14 +17,6 @@ class PFOpenLayersInput extends PFFormInput {
 		return [];
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public static function getDefaultCargoTypes() {
-		return [ 'Coordinates' => [] ];
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	public static function getHeight( $other_args ) {
 		if ( array_key_exists( 'height', $other_args ) ) {
 			$height = $other_args['height'];

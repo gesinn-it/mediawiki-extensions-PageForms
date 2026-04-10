@@ -17,16 +17,6 @@ class PFRatingInput extends PFFormInput {
 		return [ '_num' ];
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public static function getDefaultCargoTypes() {
-		return [
-			'Rating' => []
-		];
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	public static function getParameters() {
 		$params = parent::getParameters();
 

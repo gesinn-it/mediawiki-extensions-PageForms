@@ -16,14 +16,6 @@ abstract class PFEnumInput extends PFFormInput {
 		return [ 'enumeration', '_boo' ];
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public static function getOtherCargoTypesHandled() {
-		return [ 'Enumeration', 'Boolean' ];
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	public static function getValuesParameters() {
 		$params = [];
 		$params[] = [

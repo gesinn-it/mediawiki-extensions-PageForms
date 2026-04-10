@@ -223,20 +223,6 @@ class PFDatePickerInput extends PFFormInput {
 		return [ '_dat' ];
 	}
 
-	// @codeCoverageIgnoreStart
-
-	/**
-	 * Returns the set of Cargo field types which this input can
-	 * handle, but for which it isn't the default input.
-	 *
-	 * @return string[]
-	 */
-	public static function getOtherCargoTypesHandled() {
-		return [ 'Date' ];
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	/**
 	 * Creates the HTML text for an input.
 	 *

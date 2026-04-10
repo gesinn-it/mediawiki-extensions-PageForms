@@ -21,24 +21,6 @@ class PFTextAreaInput extends PFFormInput {
 		return 'textarea';
 	}
 
-	// @codeCoverageIgnoreStart
-
-	public static function getDefaultCargoTypes() {
-		return [
-			'Text' => [],
-			'Searchtext' => []
-		];
-	}
-
-	public static function getDefaultCargoTypeLists() {
-		return [
-			'Text' => [ 'field_type' => 'text', 'is_list' => 'true' ],
-			'Searchtext' => [ 'field_type' => 'text', 'is_list' => 'true' ]
-		];
-	}
-
-	// @codeCoverageIgnoreEnd
-
 	/**
 	 * @param string $input_number The number of the input in the form. For a simple HTML input
 	 *  element this should end up in the id attribute in the format 'input_<number>'.
