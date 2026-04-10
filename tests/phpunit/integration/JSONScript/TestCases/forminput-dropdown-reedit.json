@@ -1,0 +1,79 @@
+{
+	"description": "Dropdown with static values preserves selected option on re-edit",
+	"setup": [
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestDDTplReEdit01",
+			"contents": "{{{PFDDStatus|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestDDFormReEdit01",
+			"contents": "{{{for template|PFTestDDTplReEdit01}}}\n{{{field|PFDDStatus|input type=dropdown|values=PFDDOpen,PFDDInProgress,PFDDDone}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestDDSubjReEdit01",
+			"contents": "{{PFTestDDTplReEdit01|PFDDStatus=PFDDInProgress}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestDDTplMandatory01",
+			"contents": "{{{PFDDPriority|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestDDFormMandatory01",
+			"contents": "{{{for template|PFTestDDTplMandatory01}}}\n{{{field|PFDDPriority|input type=dropdown|values=PFDDLow,PFDDHigh|mandatory}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestDDSubjMandatory01",
+			"contents": "{{PFTestDDTplMandatory01|PFDDPriority=PFDDHigh}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Dropdown re-edit: stored value is pre-selected, other options are not",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestDDFormReEdit01/PFTestDDSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<option value=\"PFDDInProgress\" selected=\"\">PFDDInProgress</option>"
+				],
+				"not-contain": [
+					"<option value=\"PFDDOpen\" selected",
+					"<option value=\"PFDDDone\" selected"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Dropdown mandatory re-edit: blank option is omitted when a value is stored",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestDDFormMandatory01/PFTestDDSubjMandatory01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<option value=\"PFDDHigh\" selected=\"\">PFDDHigh</option>",
+					"mandatoryFieldSpan"
+				],
+				"not-contain": [
+					"<option value=\"\"></option>"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
