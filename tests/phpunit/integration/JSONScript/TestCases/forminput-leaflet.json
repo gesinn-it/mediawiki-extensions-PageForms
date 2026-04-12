@@ -7,6 +7,20 @@
 			"contents": "[[Has type::Text]]"
 		},
 		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestLFTplReEdit01",
+			"contents": "{{{PFLFFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestLFFormReEdit01",
+			"contents": "{{{for template|PFTestLFTplReEdit01}}}\n{{{field|PFLFFieldReEdit01|input type=leaflet}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestLFSubjReEdit01",
+			"contents": "{{PFTestLFTplReEdit01|PFLFFieldReEdit01=47.123,8.456}}"
+		},
+		{
 			"namespace": "PF_NS_FORM",
 			"page": "Leaflet without other parameters",
 			"contents": "{{{field|Leaflet|input type=leaflet}}}"
@@ -28,6 +42,20 @@
                     "<input tabindex=\"3\" class=\"pfCoordsInput\" name=\"standard input[Leaflet]\" size=\"40\"",
                     "<span class='oo-ui-labelElement-label'>Calculate coordinates using address</span>",
 					"<div class=\"pfMapCanvas\" id=\"pfMapCanvas1\" style=\"height: 500px; width: 500px;\">"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Leaflet re-edit: stored coordinates pre-fill the coords input",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestLFFormReEdit01/PFTestLFSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"value=\"47.123, 8.456\""
 				]
 			}
 		}

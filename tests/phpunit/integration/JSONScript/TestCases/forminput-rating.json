@@ -7,6 +7,20 @@
 			"contents": "[[Has type::Text]]"
 		},
 		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestRatingTplReEdit01",
+			"contents": "{{{PFRatingFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestRatingFormReEdit01",
+			"contents": "{{{for template|PFTestRatingTplReEdit01}}}\n{{{field|PFRatingFieldReEdit01|input type=rating}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestRatingSubjReEdit01",
+			"contents": "{{PFTestRatingTplReEdit01|PFRatingFieldReEdit01=3}}"
+		},
+		{
 			"namespace": "PF_NS_FORM",
 			"page": "Rating without other parameters",
 			"contents": "{{{field|Rating|input type=rating}}}"
@@ -81,6 +95,20 @@
 			"assert-output": {
 				"to-contain": [
 					"<div class=\"pfRating\" data-starwidth=\"24px\" data-numstars=\"5\" data-allows-half=\"1\">"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Rating re-edit: stored value appears in data-curvalue",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestRatingFormReEdit01/PFTestRatingSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"data-curvalue=\"3\""
 				]
 			}
 		}
