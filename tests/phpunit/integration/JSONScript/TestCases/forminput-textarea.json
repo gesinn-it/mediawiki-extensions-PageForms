@@ -18,6 +18,11 @@
 		},
 		{
 			"namespace": "PF_NS_FORM",
+			"page": "Textarea input with cols param",
+			"contents": "{{{field|Textarea|input type=textarea|cols=50}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
 			"page": "Textarea input with placeholder param",
 			"contents": "{{{field|Textarea|input type=textarea|placeholder=add text here}}}"
 		},
@@ -67,6 +72,23 @@
 			"assert-output": {
 				"to-contain": [
 					"<textarea tabindex=\"1\" name=\"standard input[Textarea]\" id=\"input_1\" class=\"createboxInput\" rows=\"10\" cols=\"90\" style=\"width: 100%\"></textarea>"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Textarea input with cols param",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Textarea input with cols param/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"cols=\"50\""
+				],
+				"not-contain": [
+					"cols=\"90\""
 				]
 			}
 		},

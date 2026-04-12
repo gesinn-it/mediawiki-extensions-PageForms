@@ -10,6 +10,20 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Datetimepicker with values",
 			"contents": "{{{field|Datetimepicker|input type=datetimepicker}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestDTPTplReEdit01",
+			"contents": "{{{PFDTPFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestDTPFormReEdit01",
+			"contents": "{{{for template|PFTestDTPTplReEdit01}}}\n{{{field|PFDTPFieldReEdit01|input type=datetimepicker}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestDTPSubjReEdit01",
+			"contents": "{{PFTestDTPTplReEdit01|PFDTPFieldReEdit01=2024-06-15 14:30:00}}"
 		}
 	],
 	"tests": [
@@ -27,6 +41,21 @@
                     "'pfDateTimePicker",
                     "standard input[Datetimepicker]",
 					"<label for=\"input_1\" class=\"oo-ui-labelWidget oo-ui-inline-help\" style=\"margin-top: 4px;\">Time should be entered in 24-hour format.</label>"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Datetimepicker re-edit: stored datetime pre-fills picker as ISO 8601",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestDTPFormReEdit01/PFTestDTPSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"pfDateTimePicker",
+					"2024-06-15T14:30:00Z"
 				]
 			}
 		}

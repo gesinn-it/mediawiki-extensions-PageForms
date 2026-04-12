@@ -34,6 +34,11 @@
 		{
 			"page": "PFTestCbSubjReEdit01",
 			"contents": "{{PFTestCbTplReEdit01|PFCbColors=PFCbAlpha,PFCbGamma}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestCbFormShowOnSelect01",
+			"contents": "{{{field|PFCbField|input type=checkboxes|values=PFCbAlpha,PFCbBeta|show on select=Test}}}"
 		}
 	],
 	"tests": [
@@ -128,6 +133,20 @@
 				],
 				"not-contain": [
 					"value='PFCbBeta' checked='checked'"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Checkboxes show on select: pfShowIfChecked class is added to outer span",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestCbFormShowOnSelect01/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"pfShowIfChecked"
 				]
 			}
 		}
