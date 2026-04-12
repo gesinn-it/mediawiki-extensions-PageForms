@@ -10,6 +10,20 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Year without other parameters",
 			"contents": "{{{field|Year|input type=year}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestYrTplReEdit01",
+			"contents": "{{{PFYrFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestYrFormReEdit01",
+			"contents": "{{{for template|PFTestYrTplReEdit01}}}\n{{{field|PFYrFieldReEdit01|input type=year}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestYrSubjReEdit01",
+			"contents": "{{PFTestYrTplReEdit01|PFYrFieldReEdit01=2023}}"
 		}
 	],
 	"tests": [
@@ -26,6 +40,21 @@
 					"<span class=\"inputSpan\" data-input-type=\"text\">",
 					"createboxInput",
 					"standard input[Year]"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Year re-edit: stored value pre-fills the input with size 4",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestYrFormReEdit01/PFTestYrSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"value=\"2023\"",
+					"size=\"4\""
 				]
 			}
 		}

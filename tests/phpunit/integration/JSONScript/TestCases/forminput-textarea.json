@@ -23,6 +23,11 @@
 		},
 		{
 			"namespace": "PF_NS_FORM",
+			"page": "Textarea input with maxlength param",
+			"contents": "{{{field|Textarea|input type=textarea|maxlength=100}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
 			"page": "Textarea input with placeholder param",
 			"contents": "{{{field|Textarea|input type=textarea|placeholder=add text here}}}"
 		},
@@ -117,6 +122,20 @@
 			"assert-output": {
 				"to-contain": [
 					"PFTAStoredContent01"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Textarea input with maxlength param: onKeyDown handler is added",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Textarea input with maxlength param/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"onkeydown"
 				]
 			}
 		},

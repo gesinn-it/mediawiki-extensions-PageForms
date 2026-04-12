@@ -10,6 +10,20 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Timepicker without other parameters",
 			"contents": "{{{field|Timepicker|input type=timepicker}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTPTplReEdit01",
+			"contents": "{{{PFTPFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestTPFormReEdit01",
+			"contents": "{{{for template|PFTestTPTplReEdit01}}}\n{{{field|PFTPFieldReEdit01|input type=timepicker}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestTPSubjReEdit01",
+			"contents": "{{PFTestTPTplReEdit01|PFTPFieldReEdit01=14:30}}"
 		}
 	],
 	"tests": [
@@ -24,6 +38,20 @@
 			"assert-output": {
 				"to-contain": [
 					"<input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" name=\"standard input[Timepicker]\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Timepicker re-edit: stored value pre-fills the input",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestTPFormReEdit01/PFTestTPSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"value=\"14:30\""
 				]
 			}
 		}
