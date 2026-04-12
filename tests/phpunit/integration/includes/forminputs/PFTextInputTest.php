@@ -155,4 +155,52 @@ class PFTextInputTest extends MediaWikiIntegrationTestCase {
 	public function testGetNameReturnsText(): void {
 		$this->assertSame( 'text', PFTextInput::getName() );
 	}
+
+	// ---- autocapitalize ----
+
+	public function testGetHtmlAutocapitalizeAttributeIsRendered(): void {
+		$html = $this->getHtml( '', false, false, [ 'autocapitalize' => 'none' ] );
+
+		$this->assertStringContainsString( 'autocapitalize="none"', $html );
+	}
+
+	// ---- unique ----
+
+	public function testGetHtmlUniqueAddsUniqueFieldClassToInput(): void {
+		$html = $this->getHtml( '', false, false, [ 'unique' => true ] );
+
+		$this->assertStringContainsString( 'uniqueField', $html );
+	}
+
+	public function testGetHtmlUniqueAddsUniqueFieldSpanClassToWrapper(): void {
+		$html = $this->getHtml( '', false, false, [ 'unique' => true ] );
+
+		$this->assertStringContainsString( 'uniqueFieldSpan', $html );
+	}
+
+	// ---- is_list ----
+
+	public function testGetHtmlIsListImplodesArrayValueWithDefaultDelimiter(): void {
+		$html = PFTextInput::getHTML(
+			[ 'apple', 'banana', 'cherry' ],
+			'PFTIField01',
+			false,
+			false,
+			[ 'is_list' => true ]
+		);
+
+		$this->assertStringContainsString( 'value="apple, banana, cherry"', $html );
+	}
+
+	public function testGetHtmlIsListWithCustomDelimiterImplodesValues(): void {
+		$html = PFTextInput::getHTML(
+			[ 'alpha', 'beta' ],
+			'PFTIField01',
+			false,
+			false,
+			[ 'is_list' => true, 'delimiter' => ';' ]
+		);
+
+		$this->assertStringContainsString( 'value="alpha; beta"', $html );
+	}
 }

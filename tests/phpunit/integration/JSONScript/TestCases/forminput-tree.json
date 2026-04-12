@@ -8,6 +8,16 @@
 		},
 		{
 			"namespace": "PF_NS_FORM",
+			"page": "Tree with search-input param",
+			"contents": "{{{field|Tree|input type=tree|structure=*Test**Test1**Test2|search-input}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "Tree with mandatory param",
+			"contents": "{{{field|Tree|input type=tree|structure=*Test**Test1**Test2|mandatory}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
 			"page": "Tree with structure params",
 			"contents": "{{{field|Tree|input type=tree|structure=*Test**Test1**Test2}}}"
 		},
@@ -80,6 +90,34 @@
 					"<input type='hidden' class='PFTree_data' name='standard input[Tree]'>",
 					"data=\"[{&quot;level&quot;:1,&quot;text&quot;:&quot;Test**Test1**Test2&quot;,&quot;node_id&quot;:0,&quot;state&quot;:{&quot;opened&quot;:true}}]",
 					"params=\"{&quot;multiple&quot;:false,&quot;delimiter&quot;:&quot;:&quot;,&quot;cur_value&quot;:&quot;&quot;}\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Tree with search-input param: renders PFTreeSearchInput",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Tree with search-input param/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"PFTreeSearchInput"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Tree with mandatory param: adds mandatory class to wrapper",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "Tree with mandatory param/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"class=\"pfTreeInputWrapper mandatory\""
 				]
 			}
 		}

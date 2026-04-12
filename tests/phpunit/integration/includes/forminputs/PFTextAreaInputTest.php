@@ -140,4 +140,32 @@ class PFTextAreaInputTest extends MediaWikiIntegrationTestCase {
 	public function testValidCovers(): void {
 		$this->assertSame( 'textarea', PFTextAreaInput::getName() );
 	}
+
+	// ---- autocapitalize ----
+
+	public function testGetHtmlAutocapitalizeAttributeIsRendered(): void {
+		$html = $this->getHtml( '', false, false, [ 'autocapitalize' => 'none' ] );
+
+		$this->assertStringContainsString( 'autocapitalize="none"', $html );
+	}
+
+	// ---- unique ----
+
+	public function testGetHtmlUniqueAddsUniqueFieldClassToTextarea(): void {
+		$html = $this->getHtml( '', false, false, [ 'unique' => true ] );
+
+		$this->assertStringContainsString( 'uniqueField', $html );
+	}
+
+	public function testGetHtmlUniqueAddsUniqueFieldSpanClassToWrapper(): void {
+		$html = $this->getHtml( '', false, false, [ 'unique' => true ] );
+
+		$this->assertStringContainsString( 'uniqueFieldSpan', $html );
+	}
+
+	public function testGetHtmlWithoutUniqueHasNoUniqueFieldClass(): void {
+		$html = $this->getHtml();
+
+		$this->assertStringNotContainsString( 'uniqueField', $html );
+	}
 }
