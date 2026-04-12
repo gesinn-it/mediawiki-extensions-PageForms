@@ -40,6 +40,20 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Radiobutton with values and default param",
 			"contents": "{{{field|Radiobutton|input type=radiobutton|values=Button1,Button2|default=Button2}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestRBTplReEdit01",
+			"contents": "{{{PFRBFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestRBFormReEdit01",
+			"contents": "{{{for template|PFTestRBTplReEdit01}}}\n{{{field|PFRBFieldReEdit01|input type=radiobutton|values=PFRBOptionA01,PFRBOptionB01,PFRBOptionC01}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestRBSubjReEdit01",
+			"contents": "{{PFTestRBTplReEdit01|PFRBFieldReEdit01=PFRBOptionB01}}"
 		}
 	],
     "tests": [
@@ -180,6 +194,24 @@
 					"&nbsp;Button1",
 					"<input id=\"input_4\" tabindex=\"4\" data-original-value=\"2\" checked=\"\" type=\"radio\" value=\"Button2\" name=\"standard input[Radiobutton]\"",
 					"&nbsp;Button2"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Radiobutton re-edit: stored value PFRBOptionB01 pre-selects matching radio button",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestRBFormReEdit01/PFTestRBSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"checked=\"\" type=\"radio\" value=\"PFRBOptionB01\""
+				],
+				"not-contain": [
+					"checked=\"\" type=\"radio\" value=\"PFRBOptionA01\"",
+					"checked=\"\" type=\"radio\" value=\"PFRBOptionC01\""
 				]
 			}
 		}

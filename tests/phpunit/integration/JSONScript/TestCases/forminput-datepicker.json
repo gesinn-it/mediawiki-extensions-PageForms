@@ -20,6 +20,20 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Datepicker with date format parameter",
 			"contents": "{{{field|Datepicker|input type=datepicker|date format=DD-MM-YYYY}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestDPTplReEdit01",
+			"contents": "{{{PFDPFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestDPFormReEdit01",
+			"contents": "{{{for template|PFTestDPTplReEdit01}}}\n{{{field|PFDPFieldReEdit01|input type=datepicker}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestDPSubjReEdit01",
+			"contents": "{{PFTestDPTplReEdit01|PFDPFieldReEdit01=2024-06-15}}"
 		}
 	],
 	"tests": [
@@ -82,6 +96,21 @@
 				],
 				"not-contain": [
 					"placeholder='YYYY-MM-DD'"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Datepicker re-edit: stored value 2024-06-15 is pre-filled in picker",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestDPFormReEdit01/PFTestDPSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"pfDatePicker",
+					"2024-06-15"
 				]
 			}
 		}

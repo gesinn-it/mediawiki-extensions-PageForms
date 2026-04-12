@@ -15,6 +15,34 @@
 			"namespace": "PF_NS_FORM",
 			"page": "PFTestTWAFormScalarPlaceholder01",
 			"contents": "{{{field|PFTWAField|input type=text with autocomplete|placeholder=TWA placeholder test}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTWATplScalarRE01",
+			"contents": "{{{PFTWAFieldScalarRE01|}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTWATplListRE01",
+			"contents": "{{{PFTWAFieldListRE01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestTWAFormScalarRE01",
+			"contents": "{{{for template|PFTestTWATplScalarRE01}}}\n{{{field|PFTWAFieldScalarRE01|input type=text with autocomplete}}}\n{{{end template}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestTWAFormListRE01",
+			"contents": "{{{for template|PFTestTWATplListRE01}}}\n{{{field|PFTWAFieldListRE01|input type=text with autocomplete|list|values=PFTWAValA01,PFTWAValB01}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestTWASubjScalarRE01",
+			"contents": "{{PFTestTWATplScalarRE01|PFTWAFieldScalarRE01=PFTWAScalarStoredVal01}}"
+		},
+		{
+			"page": "PFTestTWASubjListRE01",
+			"contents": "{{PFTestTWATplListRE01|PFTWAFieldListRE01=PFTWAValA01}}"
 		}
 	],
 	"tests": [
@@ -65,6 +93,39 @@
 			"assert-output": {
 				"to-contain": [
 					"placeholder=\"TWA placeholder test\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "text with autocomplete (scalar) re-edit: stored value appears in combobox input",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestTWAFormScalarRE01/PFTestTWASubjScalarRE01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"class=\"pfComboBox\"",
+					"PFTWAScalarStoredVal01"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "text with autocomplete (list) re-edit: stored value is selected in tokens",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestTWAFormListRE01/PFTestTWASubjListRE01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"class=\"pfTokens createboxInput\"",
+					"<option value=\"PFTWAValA01\" selected=\"\">PFTWAValA01</option>"
+				],
+				"not-contain": [
+					"<option value=\"PFTWAValB01\" selected"
 				]
 			}
 		}

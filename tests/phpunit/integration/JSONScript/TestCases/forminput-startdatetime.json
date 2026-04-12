@@ -1,0 +1,156 @@
+{
+	"description": "form inputs start datetime and end datetime — basic render and re-edit with stored value",
+	"setup": [
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestStartDatetimeFormBasic01",
+			"contents": "{{{field|PFStartDatetimeField01|input type=start datetime}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestEndDatetimeFormBasic01",
+			"contents": "{{{field|PFEndDatetimeField01|input type=end datetime}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestStartDatetimeMandatoryForm01",
+			"contents": "{{{field|PFStartDatetimeField01|input type=start datetime|mandatory}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestStartDatetimeTplReEdit01",
+			"contents": "{{{PFStartDatetimeFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestEndDatetimeTplReEdit01",
+			"contents": "{{{PFEndDatetimeFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestStartDatetimeFormReEdit01",
+			"contents": "{{{for template|PFTestStartDatetimeTplReEdit01}}}\n{{{field|PFStartDatetimeFieldReEdit01|input type=start datetime}}}\n{{{end template}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestEndDatetimeFormReEdit01",
+			"contents": "{{{for template|PFTestEndDatetimeTplReEdit01}}}\n{{{field|PFEndDatetimeFieldReEdit01|input type=end datetime}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestStartDatetimeSubjReEdit01",
+			"contents": "{{PFTestStartDatetimeTplReEdit01|PFStartDatetimeFieldReEdit01=2024-06-15 14:30:00}}"
+		},
+		{
+			"page": "PFTestEndDatetimeSubjReEdit01",
+			"contents": "{{PFTestEndDatetimeTplReEdit01|PFEndDatetimeFieldReEdit01=2024-09-20 09:45:00}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Start datetime basic render: span class, day/month/year/hour/minute fields",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestStartDatetimeFormBasic01/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"dateTimeInput startDateTimeInput\">",
+					"dayInput",
+					"monthInput",
+					"yearInput",
+					"hoursInput",
+					"minutesInput"
+				],
+				"not-contain": [
+					"endDateTimeInput"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "End datetime basic render: span class, day/month/year/hour/minute fields",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestEndDatetimeFormBasic01/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"dateTimeInput endDateTimeInput\">",
+					"dayInput",
+					"monthInput",
+					"yearInput",
+					"hoursInput",
+					"minutesInput"
+				],
+				"not-contain": [
+					"startDateTimeInput"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Start datetime mandatory adds mandatoryFieldSpan",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestStartDatetimeMandatoryForm01/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"mandatoryFieldSpan",
+					"startDateTimeInput"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Start datetime re-edit: stored value 2024-06-15 14:30:00 pre-fills all fields",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestStartDatetimeFormReEdit01/PFTestStartDatetimeSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"startDateTimeInput",
+					"value=\"2024\"",
+					"value=\"15\" size=\"2\"",
+					"<option value=\"06\" selected=\"\">",
+					"class=\"hoursInput\" value=\"14\"",
+					"class=\"minutesInput\" value=\"30\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "End datetime re-edit: stored value 2024-09-20 09:45:00 pre-fills all fields",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestEndDatetimeFormReEdit01/PFTestEndDatetimeSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"endDateTimeInput",
+					"value=\"2024\"",
+					"value=\"20\" size=\"2\"",
+					"<option value=\"09\" selected=\"\">",
+					"class=\"hoursInput\" value=\"9\"",
+					"class=\"minutesInput\" value=\"45\""
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en",
+		"wgPageForms24HourTime": true
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

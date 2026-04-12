@@ -15,6 +15,24 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Checkbox with parameter label",
 			"contents": "{{{field|Checkbox|input type=checkbox|label=Test1}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestCBTplReEdit01",
+			"contents": "{{{PFCBFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestCBFormReEdit01",
+			"contents": "{{{for template|PFTestCBTplReEdit01}}}\n{{{field|PFCBFieldReEdit01|input type=checkbox}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestCBSubjCheckedReEdit01",
+			"contents": "{{PFTestCBTplReEdit01|PFCBFieldReEdit01=Yes}}"
+		},
+		{
+			"page": "PFTestCBSubjUncheckedReEdit01",
+			"contents": "{{PFTestCBTplReEdit01|PFCBFieldReEdit01=No}}"
 		}
 	],
 	"tests": [
@@ -56,7 +74,41 @@
 					"Test1</label>"
                 ]
 		    }
-	    }
+	    },
+		{
+			"type": "special",
+			"about": "Checkbox re-edit: stored value Yes renders checkbox as checked",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestCBFormReEdit01/PFTestCBSubjCheckedReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<input type='checkbox'",
+					"checked='checked'",
+					"name='PFTestCBTplReEdit01[PFCBFieldReEdit01][value]'"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Checkbox re-edit: stored value No renders checkbox as unchecked",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestCBFormReEdit01/PFTestCBSubjUncheckedReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<input type='checkbox'",
+					"name='PFTestCBTplReEdit01[PFCBFieldReEdit01][value]'"
+				],
+				"not-contain": [
+					"checked='checked'"
+				]
+			}
+		}
 	],
 	"settings": {
 		"wgLang": "en"
