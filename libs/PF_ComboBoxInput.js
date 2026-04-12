@@ -35,6 +35,19 @@
     // every keystroke (setValue() is called by onEdit during typing).
     pf.ComboBoxInput.prototype.onMenuChoose = function ( item ) {
         pf.ComboBoxInput.super.prototype.onMenuChoose.call( this, item );
+        // Mark that the user explicitly picked an existing value from the list.
+        // Without this, the blur handler (which fires on TAB / click-away) clears
+        // the input for fields with existingvaluesonly=true, because setValues /
+        // _renderItems only set itemFound=true when the in-progress search term
+        // exactly matches a result label — the chosen label (e.g. "Daimler Actros")
+        // never equals the typed search term (e.g. "C").
+        this.itemFound = true;
+        // Abort any in-flight remote fetch so it cannot land after the choose event
+        // and reset itemFound back to false inside _renderItems.
+        if ( this.dataSource && this.dataSource._pendingRequest ) {
+            this.dataSource._pendingRequest.abort();
+            this.dataSource._pendingRequest = null;
+        }
         this.$input.trigger( 'pf-combobox-choose' );
     };
 
@@ -121,7 +134,16 @@
                 this.setValues(false);
             }
         });
-        this.$element.mouseup( () => {
+        this.$element.mouseup( ( e ) => {
+            // Skip re-fetching when the mouseup originated from inside the
+            // dropdown menu (e.g. releasing the native scrollbar at the end of
+            // a scroll drag). Without this guard the event bubbles from the
+            // menu, triggers setValues(), rebuilds the option list via
+            // _renderItems() → setOptions() and resets the scroll position to
+            // the top, while also firing an unnecessary API call.
+            if ( this.menu.$element[ 0 ].contains( e.target ) ) {
+                return;
+            }
             this.setValues(false);
         })
         this.$element.focusout( () => {
