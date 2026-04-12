@@ -55,7 +55,7 @@
 			$form.append ( $target );
 		}
 
-		$target.attr( 'value', result.$target );
+		$target.attr( 'value', result.target !== undefined ? result.target : result.$target );
 
 		// Store the form name
 		$target = $form.find( 'input[name="form"]' );
@@ -89,10 +89,19 @@
 			let i;
 			for ( i = 0; i < errors.length; i += 1 ) {
 				if ( errors[i].level < 2 ) { // show errors and warnings
+					const $errorBox = $( '<div>' )
+						.attr( 'id', 'form_error_header' )
+						.addClass( 'errorbox' )
+						.css( 'font-size', 'medium' );
+					$( '<img>' )
+						.attr( 'src', mw.config.get( 'wgPageFormsScriptPath' ) + '/skins/MW-Icon-AlertMark.png' )
+						.appendTo( $errorBox );
+					$errorBox.append( ' ' );
+					$errorBox.append( document.createTextNode( errors[i].message ) );
+
 					$( '#contentSub' )
-					.append( '<div id="form_error_header" class="errorbox" style="font-size: medium">' +
-						'<img src="' + mw.config.get( 'wgPageFormsScriptPath' ) + '/skins/MW-Icon-AlertMark.png" />' +
-						'&nbsp;' + errors[i].message + '</div><br clear="both" />' );
+						.append( $errorBox )
+						.append( $( '<br>' ).attr( 'clear', 'both' ) );
 				}
 			}
 

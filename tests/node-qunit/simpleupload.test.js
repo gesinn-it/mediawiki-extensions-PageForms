@@ -165,6 +165,47 @@ QUnit.test('sends the actual File object when SelectFileInputWidget emits change
 	assert.strictEqual( capturedAjaxData.get( 'file' ), file, 'must send the actual File object, not a fake-path string' );
 });
 
+QUnit.test( 'adds token option via DOM-safe value/text assignment', ( assert ) => {
+	let selectedFileCallback;
+	let mockWidget;
+	const maliciousFileName = 'x\"><img id="pf-upload-xss" src="x">';
+
+	global.pf = global.pf || {};
+	global.pf.select2 = {
+		tokens: function() {
+			this.refresh = () => {};
+		}
+	};
+
+	const widgetProp = OO.ui.SelectFileInputWidget ? 'SelectFileInputWidget' : 'SelectFileWidget';
+	sinon.replace( OO.ui, widgetProp, function() {
+		mockWidget = this;
+		this.currentFiles = [];
+		this.on = function( trigger, callback ) {
+			if ( trigger === 'change' ) {
+				selectedFileCallback = callback;
+			}
+		};
+	} );
+
+	sinon.replace( $, 'ajax', ( { data, success } ) => {
+		success( {
+			upload: { filename: data.get( 'filename' ) }
+		} );
+	} );
+
+	const { $starter, $input } = createTokensInput();
+	$starter.initializeSimpleUpload();
+
+	mockWidget.currentFiles = [ { name: maliciousFileName } ];
+	selectedFileCallback();
+
+	const $option = $input.find( 'option' ).first();
+	assert.strictEqual( $option.val(), maliciousFileName, 'option value preserves full file name as plain text' );
+	assert.strictEqual( $option.text(), maliciousFileName, 'option label preserves full file name as plain text' );
+	assert.strictEqual( $( '#pf-upload-xss' ).length, 0, 'no injected DOM node is created' );
+} );
+
 function createInput() {
 	$(`
 		<span id="parent">
@@ -173,4 +214,14 @@ function createInput() {
 		</span>
     `).appendTo(document.body);
 	return { $starter: $('.simpleUploadInterface'), $input: $('#input_1'), $parent: $('#parent') };
+}
+
+function createTokensInput() {
+	$(`
+		<span id="parent">
+			<select id="input_1" class="pfTokens" multiple></select>
+			<span class="simpleUploadInterface" data-input-id="input_1" />
+		</span>
+	`).appendTo( document.body );
+	return { $starter: $( '.simpleUploadInterface' ), $input: $( '#input_1' ), $parent: $( '#parent' ) };
 }

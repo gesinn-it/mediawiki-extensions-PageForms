@@ -40,7 +40,7 @@
 					return value.map((s) => s.trim());
 				},
 				addFile: function(filename) {
-					$input.append('<option value="' + filename + '">' + filename + '</option>');
+					$input.append( $( '<option>' ).val( filename ).text( filename ) );
 					$input.val([ ...getFilenames(), filename ]);
 					// refresh Select2 tokens
 					(new pf.select2.tokens()).refresh($input);
