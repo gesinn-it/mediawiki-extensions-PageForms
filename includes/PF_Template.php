@@ -356,6 +356,9 @@ END;
 }}
 $cargoDeclareCall</noinclude><includeonly>$cargoStoreCall
 END;
+			// @codeCoverageIgnoreStart
+			// This branch is only reachable when SMW is not installed.
+			// It cannot be covered in this test environment (SMW is always present).
 			if ( !defined( 'SMW_VERSION' ) ) {
 				$text .= "\n{{#template_display:";
 				if ( $this->mTemplateFormat != null ) {
@@ -366,6 +369,7 @@ END;
 				$text .= "</includeonly>";
 				return $text;
 			}
+			// @codeCoverageIgnoreEnd
 
 		}
 

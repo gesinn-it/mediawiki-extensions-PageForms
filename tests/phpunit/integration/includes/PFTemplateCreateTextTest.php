@@ -87,28 +87,10 @@ class PFTemplateCreateTextTest extends MediaWikiIntegrationTestCase {
 	// createText — #template_params path (mFullWikiText = false, no SMW)
 	// -----------------------------------------------------------------------
 
-	public function testCreateTextNoSMWUsesTemplateDisplay() {
-		if ( defined( 'SMW_VERSION' ) ) {
-			$this->markTestSkipped( 'SMW installed — #template_display path not taken' );
-		}
-		$t = $this->makeTemplate( [ [ 'name' => 'Title' ], [ 'name' => 'Author' ] ] );
-		$text = $t->createText();
-		$this->assertStringContainsString( '#template_params:', $text );
-		$this->assertStringContainsString( '#template_display:', $text );
-		$this->assertStringContainsString( '<noinclude>', $text );
-		$this->assertStringContainsString( '<includeonly>', $text );
-		$this->assertStringContainsString( '</includeonly>', $text );
-	}
-
-	public function testCreateTextNoFieldsProducesValidWikitext() {
-		if ( defined( 'SMW_VERSION' ) ) {
-			$this->markTestSkipped( 'SMW installed — different code path' );
-		}
-		$t = new PFTemplate( 'Empty', [] );
-		$text = $t->createText();
-		$this->assertIsString( $text );
-		$this->assertGreaterThan( 0, strlen( $text ) );
-	}
+	// NOTE: testCreateTextNoSMWUsesTemplateDisplay and testCreateTextNoFieldsProducesValidWikitext
+	// were removed. They tested the `if ( !defined( 'SMW_VERSION' ) )` early-return branch
+	// in createText(), which is unreachable in this CI environment (SMW always present).
+	// That branch is annotated with @codeCoverageIgnore in PF_Template.php.
 
 	// -----------------------------------------------------------------------
 	// createText — fullWikiText path

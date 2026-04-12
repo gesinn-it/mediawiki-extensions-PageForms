@@ -1,0 +1,48 @@
+{
+	"description": "Datetime with stored value pre-fills day, month, year and time on re-edit",
+	"setup": [
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestDTTplReEdit01",
+			"contents": "{{{PFDTFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestDTFormReEdit01",
+			"contents": "{{{for template|PFTestDTTplReEdit01}}}\n{{{field|PFDTFieldReEdit01|input type=datetime}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestDTSubjReEdit01",
+			"contents": "{{PFTestDTTplReEdit01|PFDTFieldReEdit01=2024-06-15 14:30:00}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Datetime re-edit: stored datetime 2024-06-15 14:30:00 pre-fills all fields",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestDTFormReEdit01/PFTestDTSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"value=\"2024\"",
+					"value=\"15\" size=\"2\"",
+					"<option value=\"06\" selected=\"\">",
+					"class=\"hoursInput\" value=\"14\"",
+					"class=\"minutesInput\" value=\"30\""
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en",
+		"wgPageForms24HourTime": true
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

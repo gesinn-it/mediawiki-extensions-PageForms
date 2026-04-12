@@ -10,6 +10,20 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Date without other parameters",
 			"contents": "{{{field|Date|input type=date}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestDateTplReEdit01",
+			"contents": "{{{PFDateFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestDateFormReEdit01",
+			"contents": "{{{for template|PFTestDateTplReEdit01}}}\n{{{field|PFDateFieldReEdit01|input type=date}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestDateSubjReEdit01",
+			"contents": "{{PFTestDateTplReEdit01|PFDateFieldReEdit01=2024-06-15}}"
 		}
 	],
 	"tests": [
@@ -30,6 +44,22 @@
                     "standard input[Date][month]",
                     "yearInput",
                     "standard input[Date][year]"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Date re-edit: stored date 2024-06-15 pre-fills day, month and year",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestDateFormReEdit01/PFTestDateSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"value=\"2024\"",
+					"value=\"15\" size=\"2\"",
+					"<option value=\"06\" selected=\"\">"
 				]
 			}
 		}

@@ -20,6 +20,24 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Listbox with show on select",
 			"contents": "{{{field|Listbox|input type=listbox|show on select=Test}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestLBTplReEdit01",
+			"contents": "{{{PFLBFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestLBFormReEdit01",
+			"contents": "{{{for template|PFTestLBTplReEdit01}}}\n{{{field|PFLBFieldReEdit01|input type=listbox|values=PFLBOptReA,PFLBOptReB,PFLBOptReC}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestLBSubjReEdit01",
+			"contents": "{{PFTestLBTplReEdit01|PFLBFieldReEdit01=PFLBOptReB}}"
+		},
+		{
+			"page": "PFTestLBSubjMultiReEdit01",
+			"contents": "{{PFTestLBTplReEdit01|PFLBFieldReEdit01=PFLBOptReA,PFLBOptReC}}"
 		}
 	],
 	"tests": [
@@ -65,6 +83,42 @@
 			"assert-output": {
 				"to-contain": [
 					"<select id=\"input_1\" tabindex=\"1\" name=\"standard input[Listbox][]\" class=\"createboxInput pfShowIfSelected\" multiple=\"\"></select>"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Listbox re-edit: single stored value is pre-selected",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestLBFormReEdit01/PFTestLBSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<option value=\"PFLBOptReB\" selected=\"\">PFLBOptReB</option>"
+				],
+				"not-contain": [
+					"<option value=\"PFLBOptReA\" selected",
+					"<option value=\"PFLBOptReC\" selected"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Listbox re-edit: multiple stored values are all pre-selected",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestLBFormReEdit01/PFTestLBSubjMultiReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<option value=\"PFLBOptReA\" selected=\"\">PFLBOptReA</option>",
+					"<option value=\"PFLBOptReC\" selected=\"\">PFLBOptReC</option>"
+				],
+				"not-contain": [
+					"<option value=\"PFLBOptReB\" selected"
 				]
 			}
 		}

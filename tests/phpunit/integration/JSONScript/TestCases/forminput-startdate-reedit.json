@@ -1,0 +1,77 @@
+{
+	"description": "Start date and end date inputs with stored values pre-fill day, month and year on re-edit",
+	"setup": [
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestSDTplReEdit01",
+			"contents": "{{{PFSDFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestEDTplReEdit01",
+			"contents": "{{{PFEDFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestSDFormReEdit01",
+			"contents": "{{{for template|PFTestSDTplReEdit01}}}\n{{{field|PFSDFieldReEdit01|input type=start date}}}\n{{{end template}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestEDFormReEdit01",
+			"contents": "{{{for template|PFTestEDTplReEdit01}}}\n{{{field|PFEDFieldReEdit01|input type=end date}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestSDSubjReEdit01",
+			"contents": "{{PFTestSDTplReEdit01|PFSDFieldReEdit01=2024-06-15}}"
+		},
+		{
+			"page": "PFTestEDSubjReEdit01",
+			"contents": "{{PFTestEDTplReEdit01|PFEDFieldReEdit01=2024-09-20}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "Start date re-edit: stored date 2024-06-15 pre-fills day, month and year",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestSDFormReEdit01/PFTestSDSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"startDateInput",
+					"value=\"2024\"",
+					"value=\"15\" size=\"2\"",
+					"<option value=\"06\" selected=\"\">"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "End date re-edit: stored date 2024-09-20 pre-fills day, month and year",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestEDFormReEdit01/PFTestEDSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"endDateInput",
+					"value=\"2024\"",
+					"value=\"20\" size=\"2\"",
+					"<option value=\"09\" selected=\"\">"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

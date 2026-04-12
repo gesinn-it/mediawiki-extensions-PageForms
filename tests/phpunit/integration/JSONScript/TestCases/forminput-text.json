@@ -20,6 +20,20 @@
 			"namespace": "PF_NS_FORM",
 			"page": "Text input with placeholder parameter",
 			"contents": "{{{field|Text|input type=text|placeholder=This is TEXT placeholder}}}"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTextTplReEdit01",
+			"contents": "{{{PFTextFieldReEdit01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestTextFormReEdit01",
+			"contents": "{{{for template|PFTestTextTplReEdit01}}}\n{{{field|PFTextFieldReEdit01|input type=text}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestTextSubjReEdit01",
+			"contents": "{{PFTestTextTplReEdit01|PFTextFieldReEdit01=PFTextStoredValue01}}"
 		}
 	],
 	"tests": [
@@ -66,6 +80,20 @@
 			"assert-output": {
 				"to-contain": [
 					"<input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" placeholder=\"This is TEXT placeholder\" name=\"standard input[Text]\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Text re-edit: stored value appears as input field value",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestTextFormReEdit01/PFTestTextSubjReEdit01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"value=\"PFTextStoredValue01\""
 				]
 			}
 		}

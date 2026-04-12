@@ -66,6 +66,7 @@ class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 			'wgAllowDisplayTitle',
 			'wgRestrictDisplayTitle',
 			'wgArticlePath',
+			'wgPageForms24HourTime',
 			'smwgEnabledDeferredUpdate',
 		] );
 	}
