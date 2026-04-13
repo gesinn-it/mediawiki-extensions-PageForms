@@ -13,6 +13,11 @@ class PFFormFieldTest extends TestCase {
 	private $mockTemplateInForm;
 	private $mockUser;
 	private $mockTemplateField;
+	private $mockParser;
+	private $f;
+	private $mockTemplateFieldOne;
+	private $mockTemplateFieldTwo;
+	private $mockTemplateFieldThree;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -158,12 +163,10 @@ class PFFormFieldTest extends TestCase {
 		if ( $this->mockTemplateInForm->strictParsing() ) {
 
 			$formField->template_field = new PFTemplateField();
-			$this->mockTemplateField->mIsList = false;
 
-			// Assert that mIsList is set to false if strictParsing is set to TRUE
+			// Assert that mIsList is null (not set) when a fresh PFTemplateField is assigned
 			$this->assertInstanceOf( PFTemplateField::class, $formField->template_field );
 			$this->assertNull( $formField->template_field->isList() );
-			$this->assertFalse( $this->mockTemplateField->mIsList );
 		}
 	}
 
@@ -431,7 +434,6 @@ class PFFormFieldTest extends TestCase {
 	public function testGetCurrentValue() {
 		// Mock TemplateField
 		$this->mockTemplateField->method( 'getFieldName' )->willReturn( 'TestField' );
-		$this->mockTemplateField->mFieldName = 'TestField';
 
 		// Create the PFFormField object
 		$field = PFFormField::create( $this->mockTemplateField );
@@ -457,7 +459,6 @@ class PFFormFieldTest extends TestCase {
 	public function testGetCurrentValue_WithAppending() {
 		// Mock TemplateField
 		$this->mockTemplateField->method( 'getFieldName' )->willReturn( 'TestField' );
-		$this->mockTemplateField->mFieldName = 'TestField';
 
 		// Create the PFFormField object
 		$field = PFFormField::create( $this->mockTemplateField );
@@ -480,7 +481,6 @@ class PFFormFieldTest extends TestCase {
 	public function testGetCurrentValue_WithPrepending() {
 		// Mock TemplateField
 		$this->mockTemplateField->method( 'getFieldName' )->willReturn( 'TestField' );
-		$this->mockTemplateField->mFieldName = 'TestField';
 
 		// Create the PFFormField object
 		$field = PFFormField::create( $this->mockTemplateField );
