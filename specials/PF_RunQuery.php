@@ -106,9 +106,11 @@ class PFRunQuery extends IncludableSpecialPage {
 				$out->addHeadItem( $key, "\t\t" . $item . "\n" );
 			}
 
-			PFUtils::getParser()->mOptions = ParserOptions::newFromUser( $user );
+			// Parser::$mOptions was deprecated in MW 1.35; pass options
+			// directly as a local variable instead of accessing the property.
+			$parserOptions = ParserOptions::newFromUser( $user );
 			$resultsText = PFUtils::getParser()->parse(
-				$data_text, $this->getPageTitle(), PFUtils::getParser()->mOptions, true, false
+				$data_text, $this->getPageTitle(), $parserOptions, true, false
 			)->getText();
 		}
 
