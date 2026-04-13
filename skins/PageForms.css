@@ -91,10 +91,12 @@ span.mandatoryFieldsSpan {
 	margin-bottom: 0;
 }
 
-/* SelectFileInputWidget (MW ≥ 1.43) always renders an info search-input and its
-   ActionFieldLayout container; hide both since PF uses button-only mode. */
+/* SelectFileInputWidget (MW ≥ 1.43) always renders an info search-input, its
+   ActionFieldLayout container, and a fieldLayout-header with an empty label;
+   hide all three since PF uses button-only mode with no widget-level label. */
 #pfForm span.simpleUploadInterface .oo-ui-selectFileInputWidget-info,
-#pfForm span.simpleUploadInterface .oo-ui-actionFieldLayout-input {
+#pfForm span.simpleUploadInterface .oo-ui-actionFieldLayout-input,
+#pfForm span.simpleUploadInterface .oo-ui-fieldLayout-header {
 	display: none;
 }
 
