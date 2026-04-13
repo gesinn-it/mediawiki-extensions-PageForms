@@ -157,10 +157,16 @@
 						window.alert("Error: " + error);
 					}
 					loadingImage.hide();
+					// Reset the widget so re-selecting the same file fires 'change'
+					// again. Without this, the browser's native file input silently
+					// suppresses the event when the path is unchanged, causing
+					// duplicate-detection errors to appear only once.
+					uploadWidget.setValue( null );
 				},
 				error: function( xhr,status, error ) {
 					window.alert(mw.msg( 'pf-simpleupload-unspecified-upload-error' ));
 					loadingImage.hide();
+					uploadWidget.setValue( null );
 					mw.log(error);
 				}
 			});

@@ -78,6 +78,7 @@ QUnit.test('sets input value and creates preview after selecting a file', (asser
 				selectedFileCallback = callback;
 			}
 		};
+		this.setValue = function() {};
 	});
 	sinon.replace($, 'ajax', ({data, success}) => {
 		success({
@@ -114,6 +115,7 @@ QUnit.test('strips wiki link syntax from duplicate-upload error message', (asser
  cb();
 }
 };
+		this.setValue = function() {};
 	});
 
 	const alerts = [];
@@ -186,6 +188,7 @@ QUnit.test( 'adds token option via DOM-safe value/text assignment', ( assert ) =
 				selectedFileCallback = callback;
 			}
 		};
+		this.setValue = function() {};
 	} );
 
 	sinon.replace( $, 'ajax', ( { data, success } ) => {
