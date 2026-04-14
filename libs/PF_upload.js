@@ -20,9 +20,8 @@
 
 /* global Uint8Array */
 
-//( function ( $, jQuery, mw ) {
-	let uploadWarning;
-	const $license = $( '#wpLicense' );
+( function ( $, mw ) {
+	'use strict';
 
 	$( () => {
 		// fillDestFile setup
@@ -65,4 +64,4 @@
 		} );
 	} );
 
-//}( jQuery, mediaWiki ) );
+}( jQuery, mediaWiki ) );

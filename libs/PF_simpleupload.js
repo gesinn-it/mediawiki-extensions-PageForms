@@ -68,7 +68,7 @@
 				for (const filename of filenames) {
 					const thumbnailURL =
 						mw.config.get('wgArticlePath').replace('$1', 'Special:Redirect/file/' + encodeURIComponent(filename)) + '?width=150';
-					$('<img src="' + thumbnailURL + '">').appendTo($container);
+					$( '<img>' ).attr( 'src', thumbnailURL ).appendTo( $container );
 				}
 				$container.prependTo($parent);
 			}
