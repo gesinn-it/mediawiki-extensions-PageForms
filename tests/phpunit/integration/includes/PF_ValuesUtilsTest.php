@@ -96,30 +96,35 @@ class PFValuesUtilsTest extends TestCase {
 	}
 
 	/**
-	 * @covers \PFValuesUtils::shiftShortestMatch
+	 * Regression test: getSMWPropertyValues() must preserve the order the SMW store returns.
+	 * Previously, shiftShortestMatch() was applied, moving the shortest value to position 0
+	 * regardless of the actual sort order. This broke enum value ordering for input types
+	 * such as radiobutton, dropdown, and checkboxes when values came from a property.
+	 *
+	 * @covers \PFValuesUtils::getSMWPropertyValues
 	 */
-	public function testShiftShortestMatchWithEmptyArray(): void {
-		$this->assertSame( [], PFValuesUtils::shiftShortestMatch( [] ) );
-	}
+	public function testGetSMWPropertyValuesPreservesStoreOrderWithoutShortestFirstShift(): void {
+		if ( !class_exists( '\SMW\Store' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
 
-	/**
-	 * @covers \PFValuesUtils::shiftShortestMatch
-	 */
-	public function testShiftShortestMatchMovesShortestToFront(): void {
-		$this->assertSame(
-			[ 'ab', 'abc', 'abcd' ],
-			PFValuesUtils::shiftShortestMatch( [ 'abc', 'ab', 'abcd' ] )
-		);
-	}
+		// Arrange: three string data items where the SHORTEST is NOT first.
+		// shiftShortestMatch() would move '(7) Bug' (7 chars) before '(0) Emergency'.
+		$item1 = $this->createMock( \SMWDataItem::class );
+		$item1->method( 'getSortKey' )->willReturn( '(0) Emergency' );
+		$item2 = $this->createMock( \SMWDataItem::class );
+		$item2->method( 'getSortKey' )->willReturn( '(7) Bug' );
+		$item3 = $this->createMock( \SMWDataItem::class );
+		$item3->method( 'getSortKey' )->willReturn( '(1) Security' );
 
-	/**
-	 * @covers \PFValuesUtils::shiftShortestMatch
-	 */
-	public function testShiftShortestMatchLeavesArrayUnchangedWhenShortestAlreadyFirst(): void {
-		$this->assertSame(
-			[ 'a', 'bc', 'dee' ],
-			PFValuesUtils::shiftShortestMatch( [ 'a', 'bc', 'dee' ] )
-		);
+		$store = $this->createMock( \SMW\Store::class );
+		$store->method( 'getPropertyValues' )->willReturn( [ $item1, $item2, $item3 ] );
+
+		// Act
+		$result = PFValuesUtils::getSMWPropertyValues( $store, null, 'IssueType' );
+
+		// Assert: store insertion order must be preserved — no shortest-first reordering.
+		$this->assertSame( [ '(0) Emergency', '(7) Bug', '(1) Security' ], $result );
 	}
 
 	/**

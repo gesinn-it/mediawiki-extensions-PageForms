@@ -49,7 +49,6 @@ class PFValuesUtils {
 				$values[] = str_replace( '_', ' ', $value->getSortKey() );
 			}
 		}
-		$values = self::shiftShortestMatch( $values );
 		return $values;
 	}
 
@@ -122,7 +121,6 @@ class PFValuesUtils {
 		$requestoptions->limit = $wgPageFormsMaxAutocompleteValues;
 		$values = self::getSMWPropertyValues( $store, null, $property_name, $requestoptions );
 		sort( $values );
-		$values = self::shiftShortestMatch( $values );
 
 		if ( !$wgPageFormsUseDisplayTitle || empty( $values ) ) {
 			return $values;
@@ -1038,31 +1036,5 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 	public static function standardizeNamespace( $namespaceStr ) {
 		$dummyTitle = Title::newFromText( "$namespaceStr:ABC" );
 		return $dummyTitle ? $dummyTitle->getNsText() : $namespaceStr;
-	}
-
-	/**
-	 * We want the result string matching what the user has currently typed (if
-	 * there is one) to be at the top. However, with local autocompletion, we
-	 * unfortunately don't know what the user's current input is. So instead we
-	 * just take the shortest result string and move that to the top, and hope
-	 * that it's a match.
-	 *
-	 * @param array $values
-	 * @return array $values
-	 */
-	public static function shiftShortestMatch( $values ) {
-		if ( empty( $values ) ) {
-			return $values;
-		}
-		$shortestString = $values[ 0 ];
-		foreach ( $values as $val ) {
-			if ( strlen( $val ) < strlen( $shortestString ) ) {
-				$shortestString = $val;
-			}
-		}
-		$firstMatchIdx = array_search( $shortestString, $values );
-		unset( $values[ $firstMatchIdx ] );
-		array_unshift( $values, $shortestString );
-		return $values;
 	}
 }
