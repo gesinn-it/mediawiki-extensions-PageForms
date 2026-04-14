@@ -34,7 +34,7 @@ QUnit.module( 'PF_autoedit', {
 		mw.config = {
 			get: sinon.stub().callsFake( ( key ) => key === 'wgUserName' ? 'TestUser' : null )
 		};
-		sinon.stub( $, 'ajax' );
+		sinon.stub( mw.Api.prototype, 'post' ).returns( $.Deferred().resolve( { status: 200, responseText: '' } ) );
 	}
 } );
 
@@ -46,14 +46,14 @@ QUnit.test( 'autoEditHandler does nothing when called without an event', ( asser
 	freshRequire();
 
 	setTimeout( () => {
-		// Click fires with a real jQuery event → should reach $.ajax
-		$trigger.trigger( 'click' );
-		assert.true( $.ajax.calledOnce, 'ajax called on real click' );
+			// Click fires with a real jQuery event → should reach mw.Api().post()
+			$trigger.trigger( 'click' );
+			assert.true( mw.Api.prototype.post.calledOnce, 'post called on real click' );
 
-		$.ajax.resetHistory();
-		// Simulate the instant-trigger call style (plain object, not real Event)
-		$trigger.trigger( 'click' );
-		assert.true( $.ajax.calledOnce, 'ajax called again' );
+			mw.Api.prototype.post.resetHistory();
+			// Simulate the instant-trigger call style (plain object, not real Event)
+			$trigger.trigger( 'click' );
+			assert.true( mw.Api.prototype.post.calledOnce, 'post called again' );
 		done();
 	}, 50 );
 } );
@@ -70,7 +70,7 @@ QUnit.test( 'shows confirm dialog and aborts when anonymous user declines', ( as
 	setTimeout( () => {
 		$trigger.trigger( 'click' );
 		assert.true( global.confirm.calledOnce, 'confirm dialog shown' );
-		assert.false( $.ajax.called, 'ajax not called when user declines' );
+			assert.false( mw.Api.prototype.post.called, 'post not called when user declines' );
 		done();
 	}, 50 );
 } );
@@ -84,7 +84,7 @@ QUnit.test( 'proceeds when anonymous user accepts', ( assert ) => {
 
 	setTimeout( () => {
 		$trigger.trigger( 'click' );
-		assert.true( $.ajax.calledOnce, 'ajax called after anon user accepts' );
+			assert.true( mw.Api.prototype.post.calledOnce, 'post called after anon user accepts' );
 		done();
 	}, 50 );
 } );
@@ -93,52 +93,51 @@ QUnit.test( 'proceeds when anonymous user accepts', ( assert ) => {
 
 QUnit.test( 'sendData: success status 200 sets ok classes', ( assert ) => {
 	const done = assert.async();
-	$.ajax.callsFake( ( opts ) => {
-		opts.success( { status: 200, responseText: 'ok' } );
-	} );
+	mw.Api.prototype.post.returns( $.Deferred().resolve( { status: 200, responseText: 'ok' } ) );
 	const { $trigger, $result } = createAutoedit();
 	freshRequire();
 
 	setTimeout( () => {
 		$trigger.trigger( 'click' );
-		assert.true( $trigger.hasClass( 'autoedit-trigger-ok' ), 'trigger has ok class' );
-		assert.true( $result.hasClass( 'autoedit-result-ok' ), 'result has ok class' );
-		done();
+		setTimeout( () => {
+			assert.true( $trigger.hasClass( 'autoedit-trigger-ok' ), 'trigger has ok class' );
+			assert.true( $result.hasClass( 'autoedit-result-ok' ), 'result has ok class' );
+			done();
+		}, 0 );
 	}, 50 );
 } );
 
 QUnit.test( 'sendData: non-200 status sets error classes', ( assert ) => {
 	const done = assert.async();
-	$.ajax.callsFake( ( opts ) => {
-		opts.success( { status: 500, responseText: 'error' } );
-	} );
+	mw.Api.prototype.post.returns( $.Deferred().resolve( { status: 500, responseText: 'error' } ) );
 	const { $trigger, $result } = createAutoedit();
 	freshRequire();
 
 	setTimeout( () => {
 		$trigger.trigger( 'click' );
-		assert.true( $trigger.hasClass( 'autoedit-trigger-error' ), 'trigger has error class' );
-		assert.true( $result.hasClass( 'autoedit-result-error' ), 'result has error class' );
-		done();
+		setTimeout( () => {
+			assert.true( $trigger.hasClass( 'autoedit-trigger-error' ), 'trigger has error class' );
+			assert.true( $result.hasClass( 'autoedit-result-error' ), 'result has error class' );
+			done();
+		}, 0 );
 	}, 50 );
 } );
 
 QUnit.test( 'sendData: ajax error handler sets error classes', ( assert ) => {
 	const done = assert.async();
-	$.ajax.callsFake( ( opts ) => {
-		opts.error(
-			{ responseText: JSON.stringify( { responseText: 'fail', errors: [ { message: 'bad' } ] } ) },
-			'error',
-			'Internal Server Error'
-		);
-	} );
+	mw.Api.prototype.post.returns( $.Deferred().reject(
+		'http',
+		{ xhr: { responseText: JSON.stringify( { responseText: 'fail', errors: [ { message: 'bad' } ] } ) } }
+	) );
 	const { $trigger, $result } = createAutoedit();
 	freshRequire();
 
 	setTimeout( () => {
 		$trigger.trigger( 'click' );
-		assert.true( $result.hasClass( 'autoedit-result-error' ), 'result has error class' );
-		done();
+		setTimeout( () => {
+			assert.true( $result.hasClass( 'autoedit-result-error' ), 'result has error class' );
+			done();
+		}, 0 );
 	}, 50 );
 } );
 
@@ -146,14 +145,12 @@ QUnit.test( 'sendData: ajax error handler sets error classes', ( assert ) => {
 
 QUnit.test( 'autoedit-trigger-instant fires sendData immediately on ready', ( assert ) => {
 	const done = assert.async();
-	$.ajax.callsFake( ( opts ) => {
-		opts.success( { status: 200, responseText: 'ok' } );
-	} );
+	mw.Api.prototype.post.returns( $.Deferred().resolve( { status: 200, responseText: 'ok' } ) );
 	createAutoedit( { instant: true } );
 	freshRequire();
 
 	setTimeout( () => {
-		assert.true( $.ajax.calledOnce, 'ajax called for instant trigger' );
+		assert.true( mw.Api.prototype.post.calledOnce, 'post called for instant trigger' );
 		done();
 	}, 50 );
 } );

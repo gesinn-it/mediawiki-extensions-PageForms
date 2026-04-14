@@ -34,7 +34,7 @@ QUnit.module( 'PF_AutoEditRating', {
 		mw.config = {
 			get: sinon.stub().callsFake( ( key ) => key === 'wgUserName' ? 'TestUser' : null )
 		};
-		sinon.stub( $, 'ajax' );
+			sinon.stub( mw.Api.prototype, 'post' ).returns( $.Deferred().resolve( { status: 200, responseText: '' } ) );
 		// rateYo is defined by jquery.rateyo.js (excluded from nyc) — provide a minimal
 		// stub on $.fn so sinon.stub() can wrap it.
 		if ( !$.fn.rateYo ) {
@@ -93,11 +93,9 @@ QUnit.test( 'applyRatingInput defaults curValue to 0 when empty', ( assert ) => 
 
 // ── handleAutoEditRating / sendData ───────────────────────────────────────────
 
-QUnit.test( 'rateyo.set triggers sendData → ajax called on success', ( assert ) => {
+QUnit.test( 'rateyo.set triggers sendData → post called on success', ( assert ) => {
 	const done = assert.async();
-	$.ajax.callsFake( ( opts ) => {
-		opts.success( { status: 200, responseText: 'ok' } );
-	} );
+	mw.Api.prototype.post.returns( $.Deferred().resolve( { status: 200, responseText: 'ok' } ) );
 	const { $trigger, $result } = createAutoeditRating();
 	freshRequire();
 
@@ -106,19 +104,20 @@ QUnit.test( 'rateyo.set triggers sendData → ajax called on success', ( assert 
 	$trigger.trigger( 'rateyo.set', { rating: 4 } );
 
 	setTimeout( () => {
-		assert.true( $.ajax.calledOnce, 'ajax called' );
-		assert.true( $result.hasClass( 'autoedit-result-ok' ), 'ok class set' );
-		done();
+		assert.true( mw.Api.prototype.post.calledOnce, 'post called' );
+		setTimeout( () => {
+			assert.true( $result.hasClass( 'autoedit-result-ok' ), 'ok class set' );
+			done();
+		}, 0 );
 	}, 50 );
 } );
 
 QUnit.test( 'sendData: ajax error sets error class', ( assert ) => {
 	const done = assert.async();
-	$.ajax.callsFake( ( opts ) => {
-		opts.error( {
-			responseText: JSON.stringify( { responseText: 'fail', errors: [ { message: 'err' } ] } )
-		} );
-	} );
+	mw.Api.prototype.post.returns( $.Deferred().reject(
+		'http',
+		{ xhr: { responseText: JSON.stringify( { responseText: 'fail', errors: [ { message: 'err' } ] } ) } }
+	) );
 	const { $trigger, $result } = createAutoeditRating();
 	freshRequire();
 
@@ -126,8 +125,10 @@ QUnit.test( 'sendData: ajax error sets error class', ( assert ) => {
 	$trigger.trigger( 'rateyo.set', { rating: 2 } );
 
 	setTimeout( () => {
-		assert.true( $result.hasClass( 'autoedit-result-error' ), 'error class set' );
-		done();
+		setTimeout( () => {
+			assert.true( $result.hasClass( 'autoedit-result-error' ), 'error class set' );
+			done();
+		}, 0 );
 	}, 50 );
 } );
 
@@ -142,7 +143,7 @@ QUnit.test( 'anon user declining confirm aborts sendData', ( assert ) => {
 	$trigger.trigger( 'rateyo.set', { rating: 3 } );
 
 	setTimeout( () => {
-		assert.false( $.ajax.called, 'ajax not called when anon declines' );
+		assert.false( mw.Api.prototype.post.called, 'post not called when anon declines' );
 		done();
 	}, 50 );
 } );

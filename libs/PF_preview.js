@@ -126,8 +126,7 @@ const resultReceivedHandler = ( result ) => {
 
 		// data array to be sent to the server
 		const data = {
-			action: 'pfautoedit',
-			format: 'json'
+			action: 'pfautoedit'
 		};
 
 		// do we have a URL like .../index.php?title=pagename&action=formedit ?
@@ -166,14 +165,7 @@ const resultReceivedHandler = ( result ) => {
 
 		data.query += 'wpPreview=' + encodeURIComponent( $( this ).attr( 'value' ) );
 
-		$.ajax( {
-
-			type: 'POST', // request type ( GET or POST )
-			url: mw.util.wikiScript( 'api' ), // URL to which the request is sent
-			data: data, // data to be sent to the server
-			dataType: 'json', // type of data expected back from the server
-			success: resultReceivedHandler // function to be called if the request succeeds
-		} );
+		new mw.Api().post( data ).done( resultReceivedHandler );
 	};
 
 	/**

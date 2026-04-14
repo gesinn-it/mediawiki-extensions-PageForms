@@ -46,7 +46,7 @@
 	 * @param {Mixed} textStatus
 	 * @param {Mixed} jqXHR
 	 */
-	const resultReceivedHandler = ( result, textStatus, jqXHR ) => {
+	const resultReceivedHandler = ( result ) => {
 		// Store the target name
 		let $target = $form.find( 'input[name="target"]' );
 
@@ -74,8 +74,10 @@
 
 	};
 
-	const resultReceivedErrorHandler = ( jqXHR ) => {
-		const errors = JSON.parse( jqXHR.responseText ).errors;
+	const resultReceivedErrorHandler = ( code, error ) => {
+		// pfautoedit returns HTTP 4xx on error; mw.Api rejects with ('http', {xhr, ...})
+		const response = code === 'http' ? JSON.parse( error.xhr.responseText ) : error;
+		const errors = ( response && response.errors ) || [];
 
 		$sacButtons
 		.addClass( 'pf-save_and_continue-error' )
@@ -184,20 +186,12 @@
 
 			const data = {
 				action: 'pfautoedit',
-				format: 'json',
 				query: collectData() // add form values to the data
 			};
 
 			data.query += '&wpSave=' + encodeURIComponent( $( event.currentTarget ).attr( 'value' ) );
 
-			$.ajax( {
-				type: 'POST', // request type ( GET or POST )
-				url: mw.util.wikiScript( 'api' ), // URL to which the request is sent
-				data: data, // data to be sent to the server
-				dataType: 'json', // type of data expected back from the server
-				success: resultReceivedHandler, // function to be called if the request succeeds
-				error: resultReceivedErrorHandler // function to be called on error
-			} );
+			new mw.Api().post( data ).then( resultReceivedHandler, resultReceivedErrorHandler );
 
 		}
 
