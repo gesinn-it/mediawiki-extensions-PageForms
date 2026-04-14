@@ -429,17 +429,9 @@
 		const data_source = autocomplete_opts.autocompletesettings.split(',')[0];
 		let my_server = mw.util.wikiScript( 'api' );
 		const autocomplete_type = autocomplete_opts.autocompletedatatype;
-		if ( autocomplete_type === 'cargo field' ) {
-			const table_and_field = data_source.split('|');
-			my_server += "?action=pfautocomplete&format=json&cargo_table=" + table_and_field[0] + "&cargo_field=" + table_and_field[1];
-			if ( table_and_field.length > 2 ) {
-				my_server += '&cargo_where=' + table_and_field[2];
-			}
-		} else {
-			my_server += "?action=pfautocomplete&format=json&" +
-				autocomplete_opts.autocompletedatatype + "=" +
-				encodeURIComponent( data_source );
-		}
+		my_server += "?action=pfautocomplete&format=json&" +
+			autocomplete_opts.autocompletedatatype + "=" +
+			encodeURIComponent( data_source );
 
 		const ajaxOpts = {
 			url: my_server,

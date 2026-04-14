@@ -10,7 +10,7 @@
  * @author Harold Solbrig
  * @author Eugene Mednikov
  */
-/*global wgPageFormsShowOnSelect, wgPageFormsFieldProperties, wgPageFormsCargoFields, wgPageFormsDependentFields, validateAll, alert, mwTinyMCEInit, pf, Sortable*/
+/*global wgPageFormsShowOnSelect, wgPageFormsFieldProperties, wgPageFormsDependentFields, validateAll, alert, mwTinyMCEInit, pf, Sortable*/
 
 ( function ( $, mw ) {
 
@@ -482,7 +482,7 @@ $.fn.validateUniqueField = function() {
 
 	const categoryFieldName = field.prop("id") + "_unique_for_category";
 	const $categoryField = $("[name=" + categoryFieldName + "]");
-	let category = $categoryField.val();
+	const category = $categoryField.val();
 
 	const namespaceFieldName = field.prop("id") + "_unique_for_namespace";
 	const $namespaceField = $("[name=" + namespaceFieldName + "]");
@@ -533,61 +533,6 @@ $.fn.validateUniqueField = function() {
 			async: false,
 			success: function(data) {
 				if (data.query.meta.count === 0) {
-					isNotUnique = false;
-				}
-			}
-		});
-		if (isNotUnique) {
-			this.addErrorMessage( 'pf_not_unique_error' );
-			return false;
-		} else {
-			return true;
-		}
-	}
-
-	// Cargo
-	const cargoTableFieldName = field.prop("id") + "_unique_cargo_table";
-	const $cargoTableField = $("[name=" + cargoTableFieldName + "]");
-	let cargoTable = $cargoTableField.val();
-	const cargoFieldFieldName = field.prop("id") + "_unique_cargo_field";
-	const $cargoFieldField = $("[name=" + cargoFieldFieldName + "]");
-	const cargoField = $cargoFieldField.val();
-	if (typeof cargoTable !== UNDEFINED && cargoTable.replace(/\s+/, '') !== ''
-		&& typeof cargoField !== UNDEFINED
-		&& cargoField.replace(/\s+/, '') !== '') {
-
-		query = "&where=" + cargoField + "+=+'" + fieldVal + "'";
-
-		if (typeof category !== UNDEFINED &&
-			category.replace(/\s+/, '') !== '') {
-			category = category.replace(/\s/, '_');
-			query += "+AND+cl_to=" + category + "+AND+cl_from=_pageID";
-			cargoTable += ",categorylinks";
-		}
-
-		if (typeof namespace !== UNDEFINED) {
-			query += "+AND+_pageNamespace=";
-			if (namespace.replace(/\s+/, '') !== '') {
-				const ns = mw.config.get('wgNamespaceIds')[namespace.toLowerCase()];
-				if (typeof ns !== UNDEFINED) {
-					query += ns;
-				}
-			} else {
-				query += "0";
-			}
-		}
-
-		query += "&limit=1";
-
-		url += "cargoquery&tables=" + cargoTable + "&fields=" + cargoField +
-			query;
-		isNotUnique = true;
-		$.ajax({
-			url: url,
-			dataType: 'json',
-			async: false,
-			success: function(data) {
-				if (data.cargoquery.length === 0) {
 					isNotUnique = false;
 				}
 			}
@@ -1520,26 +1465,13 @@ $.fn.addInstance = function( addAboveCurInstance ) {
 // regular inputs, and the 'origName' attribute for inputs in multiple-instance
 // templates.
 $.fn.setDependentAutocompletion = function( dependentField, baseField, baseValue ) {
-	// Get data from either Cargo or Semantic MediaWiki.
+	// Get data from Semantic MediaWiki.
 	let myServer = mw.config.get( 'wgScriptPath' ) + "/api.php";
-	const wgPageFormsCargoFields = mw.config.get( 'wgPageFormsCargoFields' ),
-		wgPageFormsFieldProperties = mw.config.get( 'wgPageFormsFieldProperties' );
+	const wgPageFormsFieldProperties = mw.config.get( 'wgPageFormsFieldProperties' );
 	myServer += "?action=pfautocomplete&format=json";
-	if ( wgPageFormsCargoFields.hasOwnProperty( dependentField ) ) {
-		const cargoTableAndFieldStr = wgPageFormsCargoFields[dependentField];
-		const cargoTableAndField = cargoTableAndFieldStr.split('|');
-		const cargoTable = cargoTableAndField[0];
-		const cargoField = cargoTableAndField[1];
-		const baseCargoTableAndFieldStr = wgPageFormsCargoFields[baseField];
-		const baseCargoTableAndField = baseCargoTableAndFieldStr.split('|');
-		const baseCargoTable = baseCargoTableAndField[0];
-		const baseCargoField = baseCargoTableAndField[1];
-		myServer += "&cargo_table=" + cargoTable + "&cargo_field=" + cargoField + "&is_array=true" + "&base_cargo_table=" + baseCargoTable + "&base_cargo_field=" + baseCargoField + "&basevalue=" + baseValue;
-	} else {
-		const propName = wgPageFormsFieldProperties[dependentField];
-		const baseProp = wgPageFormsFieldProperties[baseField];
-		myServer += "&property=" + propName + "&baseprop=" + baseProp + "&basevalue=" + baseValue;
-	}
+	const propName = wgPageFormsFieldProperties[dependentField];
+	const baseProp = wgPageFormsFieldProperties[baseField];
+	myServer += "&property=" + propName + "&baseprop=" + baseProp + "&basevalue=" + baseValue;
 	const dependentValues = [];
 	const $thisInput = $(this);
 	// We use $.ajax() here instead of $.getJSON() so that the

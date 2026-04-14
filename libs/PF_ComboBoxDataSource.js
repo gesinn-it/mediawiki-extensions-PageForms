@@ -63,7 +63,7 @@
 
 	/**
 	 * Fetch items from the pfautocomplete API for remote data types
-	 * (category, namespace, property, concept, cargo field, wikidata).
+	 * (category, namespace, property, concept, wikidata).
 	 *
 	 * @private
 	 * @param {string} substr
@@ -200,21 +200,9 @@
 		}
 
 		const params = { action: 'pfautocomplete', format: 'json' };
-		if ( !depOpts.prop.includes( '|' ) ) {
-			// SMW
-			params.property = depOpts.prop;
-			params.baseprop = depOpts.base_prop;
-			params.basevalue = depOpts.base_value;
-		} else {
-			// Cargo
-			const propParts = depOpts.prop.split( '|' );
-			const baseParts = depOpts.base_prop.split( '|' );
-			params.cargo_table = propParts[ 0 ];
-			params.cargo_field = propParts[ 1 ];
-			params.base_cargo_table = baseParts[ 0 ];
-			params.base_cargo_field = baseParts[ 1 ];
-			params.basevalue = depOpts.base_value;
-		}
+		params.property = depOpts.prop;
+		params.baseprop = depOpts.base_prop;
+		params.basevalue = depOpts.base_value;
 
 		const onAllChars = mw.config.get( 'wgPageFormsAutocompleteOnAllChars' );
 		const self = this;

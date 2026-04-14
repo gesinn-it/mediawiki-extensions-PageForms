@@ -247,7 +247,7 @@ const dataValues = [];
 			// that means we are in Special:MultipageEdit
 			// here we take attributes from the column head,
 			// to use other types of autocompletion( apart from
-			// "cargo field" and "property" ), the attributes in
+			// "property" ), the attributes in
 			// each cell can also be set.
 			const data_x = jQuery(cell).attr('data-x');
 			const $table = jQuery(cell).parents().find('table');
@@ -279,7 +279,7 @@ const dataValues = [];
 			data_y: y,
 			autocompletedatatype: autocompletedatatype,
 		};
-		if ( autocompletedatatype == 'category' || autocompletedatatype == 'cargo field'
+		if ( autocompletedatatype == 'category'
 			|| autocompletedatatype == 'property' || autocompletedatatype == 'concept' ) {
 			pfSpreadsheetAutocomplete = true;
 			config['autocompletesettings'] = autocompletesettings;

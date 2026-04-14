@@ -82,24 +82,9 @@ pf.SpreadsheetComboBoxInput.prototype.setValues = function() {
 		}
 		let my_server = mw.util.wikiScript( 'api' );
 		my_server += "?action=pfautocomplete&format=json";
-		if ( data_type == 'cargo field' ) {
-			const table_and_field = data_source.split('|');
-			my_server += "&cargo_table=" + table_and_field[0] + "&cargo_field=" + table_and_field[1] + "&substr=" + curValue;
-		} else if ( data_type == 'dep_on' ) {
+		if ( data_type == 'dep_on' ) {
 			const dep_field_opts = this.getDependentFieldOpts( this.config.data_y, this.config.dep_on_field );
-			if (!dep_field_opts.prop.includes('|')) {
-				my_server += "&property=" + dep_field_opts.prop + "&baseprop=" + dep_field_opts.base_prop + "&basevalue=" + dep_field_opts.base_value + "&substr=" + curValue;
-			} else {
-				const cargoTableAndFieldStr = dep_field_opts.prop;
-				const cargoTableAndField = cargoTableAndFieldStr.split('|');
-				const cargoTable = cargoTableAndField[0];
-				const cargoField = cargoTableAndField[1];
-				const baseCargoTableAndFieldStr = dep_field_opts.base_prop;
-				const baseCargoTableAndField = baseCargoTableAndFieldStr.split('|');
-				const baseCargoTable = baseCargoTableAndField[0];
-				const baseCargoField = baseCargoTableAndField[1];
-				my_server += "&cargo_table=" + cargoTable + "&cargo_field=" + cargoField + "&base_cargo_table=" + baseCargoTable + "&base_cargo_field=" + baseCargoField + "&basevalue=" + dep_field_opts.base_value + "&substr=" + curValue;
-			}
+			my_server += "&property=" + dep_field_opts.prop + "&baseprop=" + dep_field_opts.base_prop + "&basevalue=" + dep_field_opts.base_value + "&substr=" + curValue;
 		} else {
 			my_server += "&" + data_type + "=" + data_source + "&substr=" + curValue;
 		}

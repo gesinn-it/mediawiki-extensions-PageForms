@@ -2,14 +2,7 @@ global.pageforms = global.pageforms || {};
 // Minimal stub for pf.buildAutocompleteParams used inside _fetchRemote
 global.pageforms.buildAutocompleteParams = function ( dataType, settings, substr ) {
 	const params = { action: 'pfautocomplete', format: 'json', substr: substr };
-	if ( dataType === 'cargo field' ) {
-		const parts = settings.split( '|' );
-		params.cargo_table = parts[ 0 ];
-		params.cargo_field = parts[ 1 ];
-		if ( parts.length > 2 ) {
-			params.cargo_where = parts[ 2 ];
-		}
-	} else if ( dataType ) {
+	if ( dataType ) {
 		params[ dataType ] = settings;
 	}
 	return params;

@@ -40,18 +40,8 @@ pf.spreadsheetAutocompleteWidget.prototype.getLookupRequest = function () {
 	if ( this.config.autocompletedatatype === 'dep_on' ) {
 		requestParams = { action: 'pfautocomplete', format: 'json', substr: value };
 		const dep_field_opts = this.getDependentFieldOpts( this.config.data_y, this.config.dep_on_field );
-		if (!dep_field_opts.prop.includes('|')) {
-			requestParams.property = dep_field_opts.prop;
-			requestParams.baseprop = dep_field_opts.base_prop;
-			requestParams.basevalue = dep_field_opts.base_value;
-		} else {
-			const cargoTableAndFieldStr = dep_field_opts.prop;
-			const baseCargoTableAndFieldStr = dep_field_opts.base_prop;
-			requestParams.cargo_table = cargoTableAndFieldStr.split( '|' )[0];
-			requestParams.cargo_field = cargoTableAndFieldStr.split( '|' )[1];
-			requestParams.base_cargo_table = baseCargoTableAndFieldStr.split('|')[0];
-			requestParams.base_cargo_field = baseCargoTableAndFieldStr.split('|')[1];
-		}
+		requestParams.property = dep_field_opts.prop;
+		requestParams.baseprop = dep_field_opts.base_prop;
 		requestParams.basevalue = dep_field_opts.base_value;
 	} else {
 		requestParams = pf.buildAutocompleteParams(
@@ -74,7 +64,6 @@ pf.spreadsheetAutocompleteWidget.prototype.getLookupMenuOptionsFromData = functi
 		return this.getNoMatchesOOUIMenuOptionWidget();
 	}
 	if( this.config.autocompletedatatype == 'category'
-		|| this.config.autocompletedatatype == 'cargo field'
 		|| this.config.autocompletedatatype == 'dep_on'
 		|| this.config.autocompletedatatype == 'concept'
 		|| this.config.autocompletedatatype == 'property' ) {
