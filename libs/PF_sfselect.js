@@ -291,6 +291,7 @@
 
 	/**
 	 * Build a jQuery selector pattern matching all dependent select elements.
+	 *
 	 * @param {Object} nameObj
 	 * @param {Object} f sfsObject config
 	 * @return {string} jQuery selector string
@@ -368,6 +369,12 @@
 		}
 		return true;
 	}
+
+	// Expose pure helpers on the pf namespace so Node QUnit tests can reach them
+	// without needing to trigger DOM events.
+	pf.parseFieldIdentifier = parseFieldIdentifier;
+	pf.parsePlainlistQueryResult = parsePlainlistQueryResult;
+	pf.arrayEqual = arrayEqual;
 
 	initialize();
 
