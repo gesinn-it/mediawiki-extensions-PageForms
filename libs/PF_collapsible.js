@@ -10,33 +10,38 @@
  * removed in jQuery 1.9.
  */
 
-function pfHideFieldsetContent($obj){
-	$obj.find('div').slideUp( 'medium' );
-	$obj.removeClass("pfExpandedFieldset");
-	$obj.addClass("pfCollapsedFieldset");
-}
+( function( $ ) {
+	'use strict';
 
-function pfShowFieldsetContent($obj){
-	$obj.find('div').slideDown( 'medium' );
-	$obj.removeClass("pfCollapsedFieldset");
-	$obj.addClass("pfExpandedFieldset");
-}
+	function pfHideFieldsetContent( $obj ) {
+		$obj.find( 'div' ).slideUp( 'medium' );
+		$obj.removeClass( 'pfExpandedFieldset' );
+		$obj.addClass( 'pfCollapsedFieldset' );
+	}
 
-jQuery.fn.pfMakeCollapsible = function(){
-	this.each(function(){
-		const $fieldset = jQuery(this);
+	function pfShowFieldsetContent( $obj ) {
+		$obj.find( 'div' ).slideDown( 'medium' );
+		$obj.removeClass( 'pfCollapsedFieldset' );
+		$obj.addClass( 'pfExpandedFieldset' );
+	}
 
-		$fieldset.children('legend').click( () => {
-			if ($fieldset.hasClass('pfCollapsedFieldset')) {
-				pfShowFieldsetContent($fieldset);
-			} else {
-				pfHideFieldsetContent($fieldset);
-			}
-		});
-		pfHideFieldsetContent($fieldset);
-	});
-};
+	$.fn.pfMakeCollapsible = function() {
+		this.each( function() {
+			const $fieldset = $( this );
 
-jQuery(document).ready(() => {
-	jQuery('.pfCollapsibleFieldset').pfMakeCollapsible();
-});
+			$fieldset.children( 'legend' ).click( () => {
+				if ( $fieldset.hasClass( 'pfCollapsedFieldset' ) ) {
+					pfShowFieldsetContent( $fieldset );
+				} else {
+					pfHideFieldsetContent( $fieldset );
+				}
+			} );
+			pfHideFieldsetContent( $fieldset );
+		} );
+	};
+
+	$( () => {
+		$( '.pfCollapsibleFieldset' ).pfMakeCollapsible();
+	} );
+
+}( jQuery ) );

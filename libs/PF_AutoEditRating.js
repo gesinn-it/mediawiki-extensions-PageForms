@@ -73,11 +73,11 @@
 		}
 	};
 
-	jQuery.fn.applyRatingInput = function( fromCalendar ) {
+	$.fn.applyRatingInput = function( fromCalendar ) {
 		const starWidth = $( this )
 			.attr( 'data-starwidth' );
 		let curValue = $( this )
-			.attr( 'data-curvalue' );;
+			.attr( 'data-curvalue' );
 		const numStars = $( this )
 			.attr( 'data-numstars' );
 		const allowsHalf = $( this )
@@ -103,20 +103,18 @@
 
 		$( this )
 			.rateYo( ratingsSettings )
-			.on( "rateyo.set", function( e, data ) {
+			.on( 'rateyo.set', function( e, data ) {
 				handleAutoEditRating( $( this )
 					.parent(), data.rating );
 			} );
 	};
 
-	jQuery( document )
-		.ready( function() {
-			$( this )
-				.find( '.pfRating' )
-				.each( function() {
-					$( this )
-						.applyRatingInput();
-				} )
-		} );
+	$( () => {
+		$( document )
+			.find( '.pfRating' )
+			.each( function() {
+				$( this ).applyRatingInput();
+			} );
+	} );
 
 }( jQuery, mediaWiki ) );
