@@ -44,12 +44,12 @@
 				'data' : this.data,
 				'multiple': this.multiple,
 				'themes' : {
-					"icons": false
+					'icons': false
 				}
 			},
 			'checkbox': {
 				'three_state': false,
-				'cascade': "none"
+				'cascade': 'none'
 			}
 		};
 
@@ -105,7 +105,7 @@
 	};
 
 	TreeInput_proto.setCurValue = function () {
-		if ( this.cur_value !== null && this.cur_value !== undefined && this.cur_value !== "" ) {
+		if ( this.cur_value !== null && this.cur_value !== undefined && this.cur_value !== '' ) {
 			const $input = $( this.element ).next( 'input.PFTree_data' );
 
 			$input.attr( 'value', this.cur_value );
@@ -145,12 +145,12 @@ $.fn.extend({
 				return false;
 			});
         } else {
-            $(this).bind('select_node.jstree', (evt, data) => {
-                tree.check(data.node.text);
-            });
-            $(this).bind('deselect_node.jstree', (evt, data) => {
-                tree.uncheck(data.node.text);
-            });
+            $( this ).on( 'select_node.jstree', ( evt, data ) => {
+                tree.check( data.node.text );
+            } );
+            $( this ).on( 'deselect_node.jstree', ( evt, data ) => {
+                tree.uncheck( data.node.text );
+            } );
         }
 		// ==== GESINN PATCH END ====
 

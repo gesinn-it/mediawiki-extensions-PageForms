@@ -132,12 +132,12 @@
 			}
 
 			const formdata = new FormData(); // see https://developer.mozilla.org/en-US/docs/Web/API/FormData/Using_FormData_Objects
-			formdata.append("action", "upload");
-			formdata.append("format", "json");
-			formdata.append("ignorewarnings", "true");
-			formdata.append("filename", file.name);
-			formdata.append("token", mw.user.tokens.get( 'csrfToken' ) );
-			formdata.append("file", file);
+			formdata.append( 'action', 'upload' );
+			formdata.append( 'format', 'json' );
+			formdata.append( 'ignorewarnings', 'true' );
+			formdata.append( 'filename', file.name );
+			formdata.append( 'token', mw.user.tokens.get( 'csrfToken' ) );
+			formdata.append( 'file', file );
 
 			loadingImage.show();
 			$.ajax( { // http://stackoverflow.com/questions/6974684/how-to-send-formdata-objects-with-ajax-requests-in-jquery
