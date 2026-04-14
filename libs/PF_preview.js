@@ -10,6 +10,8 @@
 
 	'use strict';
 
+	const api = new mw.Api();
+
 	let $form;
 	let $previewpane;
 	let previewHeight;
@@ -165,7 +167,19 @@ const resultReceivedHandler = ( result ) => {
 
 		data.query += 'wpPreview=' + encodeURIComponent( $( this ).attr( 'value' ) );
 
-		new mw.Api().post( data ).done( resultReceivedHandler );
+		api.post( data ).then(
+			resultReceivedHandler,
+			( code, error ) => {
+				// pfautoedit returns HTTP 4xx on error; mw.Api rejects with ('http', {xhr, ...})
+				const response = code === 'http' ? JSON.parse( error.xhr.responseText ) : error;
+				let text = ( response && response.responseText ) || '';
+				const errors = ( response && response.errors ) || [];
+				for ( let i = 0; i < errors.length; i++ ) {
+					text += ' ' + errors[ i ].message;
+				}
+				$previewpane.show().empty().append( $( '<p>' ).text( text ) );
+			}
+		);
 	};
 
 	/**

@@ -103,7 +103,9 @@ function prepareMediaWiki() {
 		};
 		mw.util = {};
 		mw.Api = function Api() {};
-		mw.Api.prototype.post = function () { return $.Deferred().promise(); };
+		mw.Api.prototype.post = function () {
+			return $.Deferred().promise();
+		};
 	}
 
 	doReset();

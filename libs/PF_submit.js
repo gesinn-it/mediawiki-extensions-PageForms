@@ -10,6 +10,8 @@
 
 	'use strict';
 
+	const api = new mw.Api();
+
 	let $sacButtons;
 	let $form;
 
@@ -191,7 +193,7 @@
 
 			data.query += '&wpSave=' + encodeURIComponent( $( event.currentTarget ).attr( 'value' ) );
 
-			new mw.Api().post( data ).then( resultReceivedHandler, resultReceivedErrorHandler );
+			api.post( data ).then( resultReceivedHandler, resultReceivedErrorHandler );
 
 		}
 

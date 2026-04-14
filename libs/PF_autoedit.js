@@ -9,6 +9,9 @@
 ( function ( $, mw ) {
 
 	'use strict';
+
+	const api = new mw.Api();
+
 	function sendData( $trigger ){
 		const $autoedit = $trigger.closest( '.autoedit' );
 		const $result = $autoedit.find( '.autoedit-result' );
@@ -25,7 +28,7 @@
 			query: $autoedit.find( 'form.autoedit-data' ).serialize()
 		};
 
-		new mw.Api().post( data ).then(
+		api.post( data ).then(
 			( result ) => {
 				$result.empty().append( result.responseText );
 
