@@ -46,7 +46,7 @@
 		return this;
 	};
 
-	$().ready( () => {
+	$( () => {
 		$( '.checkboxesSpan.select-all' ).appendSelectionSwitches();
 	} );
 

@@ -46,7 +46,7 @@
 	 * @param {Mixed} textStatus
 	 * @param {Mixed} jqXHR
 	 */
-	const resultReceivedHandler = function handleResultReceived( result, textStatus, jqXHR ) {
+	const resultReceivedHandler = ( result, textStatus, jqXHR ) => {
 		// Store the target name
 		let $target = $form.find( 'input[name="target"]' );
 
@@ -74,8 +74,8 @@
 
 	};
 
-	const resultReceivedErrorHandler = function handleError( jqXHR ){
-		const errors = $.parseJSON( jqXHR.responseText ).errors;
+	const resultReceivedErrorHandler = ( jqXHR ) => {
+		const errors = JSON.parse( jqXHR.responseText ).errors;
 
 		$sacButtons
 		.addClass( 'pf-save_and_continue-error' )

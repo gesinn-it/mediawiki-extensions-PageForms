@@ -38,7 +38,7 @@
 		);
 	};
 
-	$( document ).ready( () => {
+	$( () => {
 		$( '.pfImagePreview' ).each( ( index, domElement ) => {
 			const $uploadLink = $( domElement );
 			const inputId = $uploadLink.attr( 'data-input-id' );

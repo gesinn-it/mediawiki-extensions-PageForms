@@ -68,7 +68,7 @@
 						// necessary, to get the type right.
 						newText = $element.textSelection( 'getContents' ) + '';
 					}
-					if ( origText != newText ) {
+					if ( origText !== newText ) {
 						changesWereMade = true;
 						return false;
 					}

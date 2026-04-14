@@ -125,7 +125,7 @@
 		// needed, so we'll leave that to the PHP to do.
 	};
 
-	$(document).ready( () => {
+	$( () => {
 		$( '.pfFormInputWrapper' ).each( function() {
 			$(this).displayPFFormInput();
 		});

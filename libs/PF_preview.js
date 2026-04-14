@@ -19,7 +19,7 @@
 	 *
 	 * @return {Mixed}
 	 */
-	const loadFrameHandler = function handleLoadFrame() {
+const loadFrameHandler = function () {
 
 		const $iframe = $( this );
 		const $iframecontents = $iframe.contents();
@@ -83,7 +83,7 @@
 	 *
 	 * @param {Mixed} result
 	 */
-	const resultReceivedHandler = function handleResultReceived( result ) {
+const resultReceivedHandler = ( result ) => {
 
 		const htm = result.result;
 
@@ -118,7 +118,7 @@
 	/**
 	 * Called when the preview button was clicked
 	 */
-	const previewButtonClickedHandler = function handlePreviewButtonClicked() {
+	const previewButtonClickedHandler = function () {
 
 		if ( !validateAll() ) {
 			return;
@@ -200,7 +200,7 @@
 		return this;
 	};
 
-	$( document ).ready( () => {
+	$( () => {
 		if ( mw.config.get( 'wgAction' ) === 'formedit' ||
 			mw.config.get( 'wgCanonicalSpecialPageName' ) === 'FormEdit' ) {
 			$( '#wpPreview' ).pfAjaxPreview();
