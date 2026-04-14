@@ -35,28 +35,8 @@ class PFYearInput extends PFTextInput {
 	}
 
 	public static function getParameters() {
-		$params = [];
-		$params[] = [
-			'name' => 'mandatory',
-			'type' => 'boolean',
-			'description' => wfMessage( 'pf_forminputs_mandatory' )->text()
-		];
-		$params[] = [
-			'name' => 'restricted',
-			'type' => 'boolean',
-			'description' => wfMessage( 'pf_forminputs_restricted' )->text()
-		];
-		$params[] = [
-			'name' => 'class',
-			'type' => 'string',
-			'description' => wfMessage( 'pf_forminputs_class' )->text()
-		];
-		$params[] = [
-			'name' => 'default',
-			'type' => 'string',
-			'description' => wfMessage( 'pf_forminputs_default' )->text()
-		];
-		$params[] = [
+		$params = parent::getParameters();
+		$params['size'] = [
 			'name' => 'size',
 			'type' => 'int',
 			'description' => wfMessage( 'pf_forminputs_size' )->text()
