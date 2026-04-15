@@ -389,6 +389,14 @@ div.editOptions {
 	border: 1px solid #c8ccd1;
 }
 
+/* Wrapper for minor-edit and watch checkboxes rendered by PFFormUtils.
+ * Using an inline element keeps the HTML valid when placed inside a <p>.
+ * em units so spacing scales with the user's font-size setting. */
+span.pf-submit-option {
+	display: inline-block;
+	padding: 0.3em 1em 0.3em 0;
+}
+
 span#wpMinoredit {
 	margin-right: 13px;
 }

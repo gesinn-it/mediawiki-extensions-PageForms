@@ -119,7 +119,8 @@ class PFFormUtils {
 			[ 'title' => wfMessage( 'tooltip-minoredit' )->parse() ],
 			new OOUI\CheckboxInputWidget( $attrs ) . $labelWidget
 		);
-		$text = Html::rawElement( 'div', [ 'style' => 'display: inline-block; padding: 12px 16px 12px 0;' ], $text );
+		// Inline element so it is valid inside both <div> and <p> containers
+		$text = Html::rawElement( 'span', [ 'class' => 'pf-submit-option' ], $text );
 
 		return $text;
 	}
@@ -185,7 +186,8 @@ class PFFormUtils {
 			[ 'title' => wfMessage( 'tooltip-watch' )->parse() ],
 			new OOUI\CheckboxInputWidget( $attrs ) . $labelWidget
 		);
-		$text = Html::rawElement( 'div', [ 'style' => 'display: inline-block; padding: 12px 16px 12px 0;' ], $text );
+		// Inline element so it is valid inside both <div> and <p> containers
+		$text = Html::rawElement( 'span', [ 'class' => 'pf-submit-option' ], $text );
 
 		return $text;
 	}
@@ -348,39 +350,27 @@ class PFFormUtils {
 	 * @return string
 	 */
 	public static function formBottom( $form_submitted, $is_disabled ) {
-		$text = <<<END
-	<br />
-	<div class='editOptions'>
-
-END;
 		$req = RequestContext::getMain()->getRequest();
 		$summary = $req->getVal( 'wpSummary' );
-		$text .= self::summaryInputHTML( $is_disabled, null, [], $summary );
 		$user = RequestContext::getMain()->getUser();
+
+		$optionsContent = self::summaryInputHTML( $is_disabled, null, [], $summary );
 		if ( $user->isAllowed( 'minoredit' ) ) {
-			$text .= self::minorEditInputHTML( $form_submitted, $is_disabled, false );
+			$optionsContent .= self::minorEditInputHTML( $form_submitted, $is_disabled, false );
+		}
+		if ( $user->isRegistered() ) {
+			$optionsContent .= self::watchInputHTML( $form_submitted, $is_disabled );
 		}
 
-		$userIsRegistered = $user->isRegistered();
-		if ( $userIsRegistered ) {
-			$text .= self::watchInputHTML( $form_submitted, $is_disabled );
-		}
+		$buttonsContent = self::saveButtonHTML( $is_disabled );
+		$buttonsContent .= self::showPreviewButtonHTML( $is_disabled );
+		$buttonsContent .= self::showChangesButtonHTML( $is_disabled );
+		$buttonsContent .= self::cancelLinkHTML( $is_disabled );
 
-		$text .= <<<END
-	<br />
-	<div class='editButtons'>
-
-END;
-		$text .= self::saveButtonHTML( $is_disabled );
-		$text .= self::showPreviewButtonHTML( $is_disabled );
-		$text .= self::showChangesButtonHTML( $is_disabled );
-		$text .= self::cancelLinkHTML( $is_disabled );
-		$text .= <<<END
-	</div><!-- editButtons -->
-	</div><!-- editOptions -->
-
-END;
-		return $text;
+		return Html::rawElement( 'div', [ 'class' => 'editOptions' ],
+			$optionsContent .
+			Html::rawElement( 'div', [ 'class' => 'editButtons' ], $buttonsContent )
+		);
 	}
 
 	/** @deprecated since PageForms 6.x — use PFFormCache::getPreloadedText() instead. */
