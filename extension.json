@@ -269,13 +269,15 @@
 			"scripts": "libs/PF_popupform.js",
 			"styles": "skins/PF_popupform.css",
 			"dependencies": [
-				"ext.pageforms.browser"
+				"ext.pageforms.browser",
+				"mediawiki.api"
 			]
 		},
 		"ext.pageforms.autoedit": {
 			"scripts": "libs/PF_autoedit.js",
 			"styles": "skins/PF_autoedit.css",
 			"dependencies": [
+				"mediawiki.api",
 				"oojs-ui-windows"
 			],
 			"messages": [
@@ -295,6 +297,7 @@
 			],
 			"styles": "skins/jquery.rateyo.css",
 			"dependencies": [
+				"mediawiki.api",
 				"oojs-ui-windows"
 			],
 			"messages": [
@@ -310,6 +313,9 @@
 		"ext.pageforms.submit": {
 			"scripts": [
 				"libs/PF_submit.js"
+			],
+			"dependencies": [
+				"mediawiki.api"
 			],
 			"messages": [
 				"pf_formedit_saveandcontinue_summary",
@@ -440,6 +446,9 @@
 			"scripts": [
 				"libs/PF_simpleupload.js"
 			],
+			"dependencies": [
+				"mediawiki.util"
+			],
 			"messages": [
 				"pf_forminputs_change_file",
 				"pf-simpleupload",
@@ -458,7 +467,8 @@
 			],
 			"dependencies": [
 				"ext.pageforms",
-				"mediawiki.jqueryMsg"
+				"mediawiki.jqueryMsg",
+				"mediawiki.util"
 			],
 			"messages": [
 				"pf-autocomplete-searching",
@@ -483,6 +493,7 @@
 			],
 			"dependencies": [
 				"ext.pageforms",
+				"mediawiki.api",
 				"oojs-ui-core",
 				"oojs-ui-widgets"
 			],
@@ -501,6 +512,7 @@
 			],
 			"dependencies": [
 				"ext.pageforms",
+				"mediawiki.util",
 				"oojs-ui-core",
 				"oojs-ui-widgets"
 			],
@@ -571,6 +583,8 @@
 			],
 			"dependencies": [
 				"ext.pageforms.select2",
+				"mediawiki.api",
+				"mediawiki.util",
 				"mediawiki.language.months",
 				"oojs-ui-core",
 				"oojs-ui-widgets",
