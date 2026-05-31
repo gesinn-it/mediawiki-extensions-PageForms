@@ -13,13 +13,11 @@ no annotations.
 **Coding Conventions — General**
 
 All source files regardless of language must follow these baseline
-rules. They are enforced by `make ci` (lint + phpcs + eslint).
+rules.
 
 - Encoding: UTF-8 without BOM
 
 - Line endings: Unix-style LF (not CR+LF)
-
-- Indentation: tabs, not spaces
 
 - Maximum line length: 120 characters
 
@@ -75,7 +73,8 @@ via PHPCS. Run locally: `make composer-phpcs` (or `make ci`).
 
 - Prefer `??` (null coalescing) and `??=` over ternary isset checks
 
-- Use arrow functions `fn( $x ) ⇒ $x * 2` for single-expression closures
+- Use arrow functions `fn( $x ) => $x * 2` for single-expression
+  closures
 
 **Modern PHP features (target: PHP 8.1+)**
 
@@ -88,6 +87,8 @@ via PHPCS. Run locally: `make composer-phpcs` (or `make ci`).
 - `match()` instead of `switch` when returning a value
 
 **Code style**
+
+- Indentation: tabs, not spaces
 
 - 1TBS brace style — opening brace on same line, `else`/`elseif` on
   closing brace line
