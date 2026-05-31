@@ -135,21 +135,19 @@ jobs:
               -o /tmp/${SCOPE}.md
 
             # --- Copilot output: .github/instructions/{scope}.instructions.md ---
-            cat > .github/instructions/${SCOPE}.instructions.md << HEADER
----
-applyTo: "${APPLYTO}"
----
-<!-- AUTO-GENERATED from docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions/${SCOPE}.adoc -->
-
-HEADER
-            cat /tmp/${SCOPE}.md >> .github/instructions/${SCOPE}.instructions.md
+            printf '%s\n%s\n%s\n%s\n\n' \
+              '---' \
+              "applyTo: \"${APPLYTO}\"" \
+              '---' \
+              "<!-- AUTO-GENERATED from docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions/${SCOPE}.adoc -->" \
+              | cat - /tmp/${SCOPE}.md \
+              > .github/instructions/${SCOPE}.instructions.md
 
             # --- Other agents output: {dir}/AGENTS.md ---
-            cat > ${DIR}/AGENTS.md << HEADER
-<!-- AUTO-GENERATED from docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions/${SCOPE}.adoc -->
-
-HEADER
-            cat /tmp/${SCOPE}.md >> ${DIR}/AGENTS.md
+            printf '%s\n\n' \
+              "<!-- AUTO-GENERATED from docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions/${SCOPE}.adoc -->" \
+              | cat - /tmp/${SCOPE}.md \
+              > ${DIR}/AGENTS.md
           done
 
       - name: Commit generated instruction files
