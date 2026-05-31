@@ -93,6 +93,7 @@ jobs:
           mkdir -p src libs tests .github
 
       - name: Build instructions (scope loop)
+        shell: bash
         run: |
           BASE="docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions"
 
@@ -149,6 +150,7 @@ jobs:
         with:
           add: |
             .github/instructions/
+            .github/AGENTS.md
             src/AGENTS.md
             libs/AGENTS.md
             tests/AGENTS.md
