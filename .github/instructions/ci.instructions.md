@@ -1,3 +1,8 @@
+---
+applyTo: ".github/**,Makefile,build/**"
+---
+<!-- AUTO-GENERATED from docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions/ci.adoc -->
+
 **Test environment setup**
 
 All tests run inside a containerized MediaWiki environment managed via

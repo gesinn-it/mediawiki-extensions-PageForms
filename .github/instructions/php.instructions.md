@@ -1,3 +1,8 @@
+---
+applyTo: "**/*.php"
+---
+<!-- AUTO-GENERATED from docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions/php.adoc -->
+
 **Coding Procedure**
 
 Before writing any code, identify the task type and follow the

@@ -1,21 +1,4 @@
----
-applyTo: "tests/**"
----
-<!-- AUTO-GENERATED from docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions/testing.adoc -->
-
-**Test-first approach**
-
-Before making any code changes to fix a bug or implement a feature:
-
-1.  Check whether an existing test already covers the described
-    behavior.
-
-2.  If not, write or adapt a test that reproduces the issue — it must
-    fail first.
-
-3.  Only after a failing test exists, make the code changes.
-
-4.  Re-run the test to confirm it passes (green).
+<!-- AUTO-GENERATED from docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions/ci.adoc -->
 
 **Test environment setup**
 
@@ -60,6 +43,39 @@ make bash
 > composer phpunit -- --filter YourTestName
 ```
 
+**Phan — static analysis**
+
+Run Phan against the codebase:
+
+``` console
+make composer-phan
+```
+
+**Fixing issues**
+
+- Fix genuine type errors, undeclared-method, and undeclared-class
+  issues in new code
+
+- For issues in legacy code not touched by the current change, update
+  the baseline instead of adding `@suppress`:
+
+  ``` console
+  make composer-phan-update-baseline
+  ```
+
+  This target re-generates the baseline and post-processes it with
+  `unexpand` to convert Phan’s hardcoded 4-space indentation to tabs.
+  Never run `--save-baseline` directly — the unprocessed output fails
+  MediaWiki PHPCS.
+
+- When `@suppress` is unavoidable, add an explanatory comment directly
+  above it
+
+**Baseline updates**
+
+`.phan/baseline.php` is auto-generated. After updating it, commit it
+together with the code change that necessitated the update.
+
 **Node QUnit tests**
 
 Run all JavaScript tests:
@@ -82,3 +98,21 @@ Filter by test description:
 make bash
 > npx qunit --require ./tests/node-qunit/setup.js 'tests/node-qunit/**/*.test.js' --filter "your test description"
 ```
+
+**Pre-commit validation gate**
+
+Before every commit, run the full CI suite to confirm nothing is broken:
+
+``` console
+make ci
+```
+
+For interactive use (volume-mounted extension, no container rebuild),
+use the faster pre-commit gate:
+
+``` console
+make dev-test
+```
+
+`dev-test` runs: lint → PHPCS → Phan → PHPUnit — without destroying
+Docker volumes. Reserve `make ci` for the full pipeline verification.
