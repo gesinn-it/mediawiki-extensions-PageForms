@@ -8,6 +8,89 @@ Support for Cargo and PageSchemas is dropped. Delete any
 Cargo/PageSchemas code immediately upon discovery — no tests, no docs,
 no annotations.
 
+# Coding Procedure
+
+**Coding Procedure**
+
+Before writing any code, identify the task type and follow the
+corresponding procedure:
+
+**feat — implement new functionality**
+
+1.  Write a failing test that specifies the expected behavior. The test
+    must fail before you write any implementation.
+
+2.  Write the minimum implementation to make the test pass.
+
+3.  Refactor if needed — tests must stay green.
+
+4.  Never write implementation before a failing test exists.
+
+**fix — correct a bug**
+
+1.  Reproduce the bug with a failing test first. This test is the proof
+    the bug exists.
+
+2.  Fix the code until the test passes.
+
+3.  Never fix code without a reproducing test — you cannot verify the
+    fix is correct.
+
+**refactor — improve structure without changing behavior**
+
+1.  Run the full test suite first. All tests must be green before you
+    start.
+
+2.  Check test coverage for the files you intend to change. If coverage
+    is below ~80% on the affected code paths, warn explicitly before
+    proceeding: low coverage means the refactoring cannot be verified
+    safely. Do not block, but make the risk visible.
+
+3.  Make structural changes (extract method, rename, move class, etc.).
+
+4.  Run the full test suite again. All tests must still be green.
+
+5.  If a test breaks, you changed behavior — revert the change or
+    explicitly justify updating the test.
+
+6.  Never change test logic during a refactor unless the test itself was
+    wrong.
+
+**test:write — verify existing behavior by closing coverage gaps**
+
+The goal is correct code, not just passing tests. Use the
+**specification** (issue, docs, method name, contract) as the source of
+truth — never the current output of the production code.
+
+1.  Check whether the described behavior is already covered by existing
+    tests.
+
+2.  Understand the **intent** of the code under test: what should it do,
+    for whom, under which conditions? Read the specification, not just
+    the implementation.
+
+    - If no specification exists (no issue description, no docs, no
+      method contract) and the intent cannot be confidently derived from
+      the code alone: **stop and ask**. State what is unclear and what
+      information is needed before proceeding. Do not infer tests from
+      implementation details alone.
+
+3.  Write the new test(s) that assert the intended behavior —
+    independently of how the code currently works.
+
+4.  Run the targeted test class.
+
+    - If all new tests are green: the code matches its specification.
+      Done.
+
+    - If a new test fails: the code deviates from its specification —
+      this is a bug discovery. Do **not** adjust the test to match the
+      actual output. Fix the production code so it fulfills the
+      specification (follow the `fix` procedure for the code change).
+      The test stays as written.
+
+5.  Never adjust a test to match incorrect production code behavior.
+
 # Coding Conventions
 
 **Coding Conventions — General**
