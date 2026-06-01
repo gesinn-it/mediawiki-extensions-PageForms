@@ -13,6 +13,10 @@
 Support for Cargo and PageSchemas is dropped.
 Delete any Cargo/PageSchemas code immediately upon discovery — no tests, no docs, no annotations.
 
+== Coding Procedure
+
+include::docs/gesinn-it-docs-master-pub/snippets/universal/coding-procedure.adoc[]
+
 == Coding Conventions
 
 include::docs/gesinn-it-docs-master-pub/snippets/{project_type}/coding-conventions.adoc[]
@@ -24,6 +28,8 @@ include::docs/gesinn-it-docs-master-pub/snippets/{project_type}/test-first-appro
 include::docs/gesinn-it-docs-master-pub/snippets/{project_type}/ci-install.adoc[]
 
 include::docs/gesinn-it-docs-master-pub/snippets/{project_type}/ci-phpunit.adoc[]
+
+include::docs/gesinn-it-docs-master-pub/snippets/{project_type}/ci-phan.adoc[]
 
 include::docs/gesinn-it-docs-master-pub/snippets/{project_type}/ci-npm.adoc[]
 
