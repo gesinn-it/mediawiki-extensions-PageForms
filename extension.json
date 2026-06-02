@@ -467,6 +467,7 @@
 			],
 			"dependencies": [
 				"ext.pageforms",
+				"ext.pageforms.sortable",
 				"mediawiki.jqueryMsg",
 				"mediawiki.util"
 			],

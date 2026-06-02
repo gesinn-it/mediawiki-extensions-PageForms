@@ -24,6 +24,11 @@ const DEPENDENCY_RULES = [
 		pattern: /\bmw\.util\b/,
 		dependency: 'mediawiki.util',
 		description: 'mw.util'
+	},
+	{
+		pattern: /\bSortable\.create\(/,
+		dependency: 'ext.pageforms.sortable',
+		description: 'Sortable.create()'
 	}
 ];
 
