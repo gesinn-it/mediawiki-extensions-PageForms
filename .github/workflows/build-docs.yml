@@ -85,6 +85,9 @@ jobs:
         run: |
           rm -f AGENTS.adoc AGENTS.xml
 
+      - name: Create CLAUDE.md from AGENTS.md
+        run: cp AGENTS.md .claude/CLAUDE.md
+
       # --- Instructions ---
 
       - name: Create output directories
@@ -171,6 +174,7 @@ jobs:
             README.adoc
             docs/CONTRIBUTING.adoc
             AGENTS.md
+            .claude/CLAUDE.md
             .github/instructions/
             .github/AGENTS.md
             src/AGENTS.md
