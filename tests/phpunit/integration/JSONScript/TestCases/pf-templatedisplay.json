@@ -1,0 +1,199 @@
+{
+	"description": "#template_display parser function — format and field-display rules",
+	"setup": [
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTDTpl01",
+			"contents": "<noinclude>{{#template_params:PFTestTDFieldName|PFTestTDFieldDesc (display=nonempty)|PFTestTDFieldSecret (display=hidden)|PFTestTDFieldTags (list; delimiter=,)}}</noinclude><includeonly>{{#template_display:_format=table}}</includeonly>"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTDTpl02",
+			"contents": "<noinclude>{{#template_params:PFTestTDFieldName|PFTestTDFieldRole}}</noinclude><includeonly>{{#template_display:_format=infobox}}</includeonly>"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTDTpl03",
+			"contents": "<noinclude>{{#template_params:PFTestTDFieldIntro|PFTestTDFieldDetails}}</noinclude><includeonly>{{#template_display:_format=sections}}</includeonly>"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTDTpl04",
+			"contents": "<noinclude>{{#template_params:PFTestTDFieldName|PFTestTDFieldAge}}</noinclude><includeonly>{{#template_display:_format=plain}}</includeonly>"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTDTpl05",
+			"contents": "<includeonly>{{#template_display:_format=table}}</includeonly>"
+		},
+		{
+			"page": "PFTestTDSubj01",
+			"contents": "{{PFTestTDTpl01|PFTestTDFieldName=PFTestTDValue01|PFTestTDFieldDesc=PFTestTDValue02}}"
+		},
+		{
+			"page": "PFTestTDSubj02",
+			"contents": "{{PFTestTDTpl01|PFTestTDFieldName=PFTestTDValue03|PFTestTDFieldSecret=PFTestTDValue04}}"
+		},
+		{
+			"page": "PFTestTDSubj03",
+			"contents": "{{PFTestTDTpl01|PFTestTDFieldName=PFTestTDValue05|PFTestTDFieldDesc=}}"
+		},
+		{
+			"page": "PFTestTDSubj04",
+			"contents": "{{PFTestTDTpl01|PFTestTDFieldName=PFTestTDValue06|PFTestTDFieldDesc=PFTestTDValue07}}"
+		},
+		{
+			"page": "PFTestTDSubj05",
+			"contents": "{{PFTestTDTpl01|PFTestTDFieldTags=PFTestTDValue08,PFTestTDValue09,PFTestTDValue10}}"
+		},
+		{
+			"page": "PFTestTDSubj06",
+			"contents": "{{PFTestTDTpl02|PFTestTDFieldName=PFTestTDValue11|PFTestTDFieldRole=PFTestTDValue12}}"
+		},
+		{
+			"page": "PFTestTDSubj07",
+			"contents": "{{PFTestTDTpl03|PFTestTDFieldIntro=PFTestTDValue13|PFTestTDFieldDetails=PFTestTDValue14}}"
+		},
+		{
+			"page": "PFTestTDSubj08",
+			"contents": "{{PFTestTDTpl04|PFTestTDFieldName=PFTestTDValue15|PFTestTDFieldAge=PFTestTDValue16}}"
+		},
+		{
+			"page": "PFTestTDSubj09",
+			"contents": "{{PFTestTDTpl05|PFTestTDFieldName=PFTestTDValue17}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "parser",
+			"about": "table format renders wikitable with field rows",
+			"subject": "PFTestTDSubj01",
+			"assert-output": {
+				"to-contain": [
+					"class=\"wikitable\"",
+					"<th>PFTestTDFieldName</th><td>PFTestTDValue01</td>",
+					"<th>PFTestTDFieldDesc</th><td>PFTestTDValue02</td>"
+				],
+				"not-contain": [
+					"class=\"infoboxTable\""
+				]
+			}
+		},
+		{
+			"type": "parser",
+			"about": "hidden fields are not rendered",
+			"subject": "PFTestTDSubj02",
+			"assert-output": {
+				"to-contain": [
+					"<th>PFTestTDFieldName</th><td>PFTestTDValue03</td>"
+				],
+				"not-contain": [
+					"<th>PFTestTDFieldSecret</th>",
+					"PFTestTDValue04"
+				]
+			}
+		},
+		{
+			"type": "parser",
+			"about": "nonempty field is suppressed when its value is empty",
+			"subject": "PFTestTDSubj03",
+			"assert-output": {
+				"to-contain": [
+					"<th>PFTestTDFieldName</th><td>PFTestTDValue05</td>"
+				],
+				"not-contain": [
+					"<th>PFTestTDFieldDesc</th>"
+				]
+			}
+		},
+		{
+			"type": "parser",
+			"about": "nonempty field is rendered when its value is non-empty",
+			"subject": "PFTestTDSubj04",
+			"assert-output": {
+				"to-contain": [
+					"<th>PFTestTDFieldDesc</th><td>PFTestTDValue07</td>"
+				]
+			}
+		},
+		{
+			"type": "parser",
+			"about": "string list field values are joined with CargoDelimiter bullets",
+			"subject": "PFTestTDSubj05",
+			"assert-output": {
+				"to-contain": [
+					"<th>PFTestTDFieldTags</th>",
+					"class=\"CargoDelimiter\"",
+					"PFTestTDValue08",
+					"PFTestTDValue09",
+					"PFTestTDValue10"
+				]
+			}
+		},
+		{
+			"type": "parser",
+			"about": "infobox format renders infoboxTable with page-title header row",
+			"subject": "PFTestTDSubj06",
+			"assert-output": {
+				"to-contain": [
+					"class=\"infoboxTable\"",
+					"class=\"infoboxTitle\"",
+					"<th>PFTestTDFieldName</th><td>PFTestTDValue11</td>",
+					"<th>PFTestTDFieldRole</th><td>PFTestTDValue12</td>"
+				],
+				"not-contain": [
+					"class=\"wikitable\""
+				]
+			}
+		},
+		{
+			"type": "parser",
+			"about": "sections format renders field labels as h2 headings",
+			"subject": "PFTestTDSubj07",
+			"assert-output": {
+				"to-contain": [
+					"<h2>PFTestTDFieldIntro</h2>",
+					"PFTestTDValue13",
+					"<h2>PFTestTDFieldDetails</h2>",
+					"PFTestTDValue14"
+				],
+				"not-contain": [
+					"class=\"wikitable\"",
+					"class=\"infoboxTable\""
+				]
+			}
+		},
+		{
+			"type": "parser",
+			"about": "plain format renders field labels as strong elements",
+			"subject": "PFTestTDSubj08",
+			"assert-output": {
+				"to-contain": [
+					"<strong>PFTestTDFieldName:</strong> PFTestTDValue15",
+					"<strong>PFTestTDFieldAge:</strong> PFTestTDValue16"
+				],
+				"not-contain": [
+					"class=\"wikitable\"",
+					"<h2>"
+				]
+			}
+		},
+		{
+			"type": "parser",
+			"about": "missing #template_params call returns error block",
+			"subject": "PFTestTDSubj09",
+			"assert-output": {
+				"to-contain": [
+					"class=\"error\"",
+					"#template_params must be called in the template"
+				]
+			}
+		}
+	],
+	"settings": {},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
