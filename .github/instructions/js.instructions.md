@@ -3,12 +3,7 @@ applyTo: "**/*.{js,css,less}"
 ---
 <!-- AUTO-GENERATED from docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions/js.adoc -->
 
-**Coding Procedure**
-
-Before writing any code, identify the task type and follow the
-corresponding procedure:
-
-**feat — implement new functionality**
+**Procedure — code:write**
 
 1.  Write a failing test that specifies the expected behavior. The test
     must fail before you write any implementation.
@@ -19,7 +14,7 @@ corresponding procedure:
 
 4.  Never write implementation before a failing test exists.
 
-**fix — correct a bug**
+**Procedure — code:fix**
 
 1.  Reproduce the bug with a failing test first. This test is the proof
     the bug exists.
@@ -29,7 +24,7 @@ corresponding procedure:
 3.  Never fix code without a reproducing test — you cannot verify the
     fix is correct.
 
-**refactor — improve structure without changing behavior**
+**Procedure — code:refactor**
 
 1.  Run the full test suite first. All tests must be green before you
     start.
@@ -49,7 +44,42 @@ corresponding procedure:
 6.  Never change test logic during a refactor unless the test itself was
     wrong.
 
-**Coding Conventions — General**
+**Procedure — test:write**
+
+The goal is correct code, not just passing tests. Use the
+**specification** (issue, docs, method name, contract) as the source of
+truth — never the current output of the production code.
+
+1.  Check whether the described behavior is already covered by existing
+    tests.
+
+2.  Understand the **intent** of the code under test: what should it do,
+    for whom, under which conditions? Read the specification, not just
+    the implementation.
+
+    - If no specification exists (no issue description, no docs, no
+      method contract) and the intent cannot be confidently derived from
+      the code alone: **stop and ask**. State what is unclear and what
+      information is needed before proceeding. Do not infer tests from
+      implementation details alone.
+
+3.  Write the new test(s) that assert the intended behavior —
+    independently of how the code currently works.
+
+4.  Run the targeted test class.
+
+    - If all new tests are green: the code matches its specification.
+      Done.
+
+    - If a new test fails: the code deviates from its specification —
+      this is a bug discovery. Do **not** adjust the test to match the
+      actual output. Fix the production code so it fulfills the
+      specification (follow the `fix` procedure for the code change).
+      The test stays as written.
+
+5.  Never adjust a test to match incorrect production code behavior.
+
+**Coding Conventions — MediaWiki**
 
 All source files regardless of language must follow these baseline
 rules. They are enforced by `make ci` (lint + phpcs + eslint).
@@ -66,7 +96,7 @@ rules. They are enforced by `make ci` (lint + phpcs + eslint).
 
 - Newline at end of file
 
-**Coding Conventions — JavaScript**
+**Coding Conventions — JavaScript · MediaWiki**
 
 Tooling: [ESLint](https://eslint.org/) with
 [eslint-config-wikimedia](https://github.com/wikimedia/eslint-config-wikimedia).
@@ -151,13 +181,13 @@ Every repository must have a `.eslintrc.json` at root with
 - Storage keys: `mw`-prefix + camelCase/hyphens (e.g.
   `mwedit-state-foo`)
 
-**Coding Conventions — CSS / LESS**
+**Coding Conventions — CSS/LESS · MediaWiki**
 
 Tooling: [stylelint](https://stylelint.io/) via `npm run lint:styles`
 (or `make ci`). ResourceLoader natively compiles `.less` files; prefer
 LESS over plain CSS.
 
-**Naming**
+**Class and ID naming**
 
 - Classes and IDs: all-lowercase, hyphen-separated
 

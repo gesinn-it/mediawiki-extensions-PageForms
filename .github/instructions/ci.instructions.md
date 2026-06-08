@@ -3,7 +3,7 @@ applyTo: ".github/**,Makefile,build/**"
 ---
 <!-- AUTO-GENERATED from docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions/ci.adoc -->
 
-**Test environment setup**
+**Execution — Install Dependencies · MediaWiki**
 
 All tests run inside a containerized MediaWiki environment managed via
 [docker-compose-ci](https://github.com/gesinn-it-pub/docker-compose-ci)
@@ -15,11 +15,21 @@ latest file changes are copied into the container. Changes to source or
 test files on the host are **not** automatically reflected in a running
 container.
 
+<div class="note">
+
+When a `docker-compose.override.yml` with a bind-mount of the extension
+source directory is active (local development setup), `make install` is
+only required at the start of a new session or after dependency changes.
+For iterative test runs, use `make php-test` or `make dev-test`
+directly.
+
+</div>
+
 ``` console
 make install
 ```
 
-**PHPUnit tests**
+**Execution — Run Tests (PHPUnit) · MediaWiki**
 
 Run all PHPUnit tests:
 
@@ -46,7 +56,7 @@ make bash
 > composer phpunit -- --filter YourTestName
 ```
 
-**Phan — static analysis**
+**Execution — Run Phan · MediaWiki**
 
 Run Phan against the codebase:
 
@@ -79,7 +89,7 @@ make composer-phan
 `.phan/baseline.php` is auto-generated. After updating it, commit it
 together with the code change that necessitated the update.
 
-**Node QUnit tests**
+**Execution — Run Tests (QUnit) · MediaWiki**
 
 Run all JavaScript tests:
 
@@ -102,7 +112,7 @@ make bash
 > npx qunit --require ./tests/node-qunit/setup.js 'tests/node-qunit/**/*.test.js' --filter "your test description"
 ```
 
-**Pre-commit validation gate**
+**Execution — Pre-Commit Gate · MediaWiki**
 
 Before every commit, run the full CI suite to confirm nothing is broken:
 

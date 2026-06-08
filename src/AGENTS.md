@@ -1,11 +1,6 @@
 <!-- AUTO-GENERATED from docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions/php.adoc -->
 
-**Coding Procedure**
-
-Before writing any code, identify the task type and follow the
-corresponding procedure:
-
-**feat — implement new functionality**
+**Procedure — code:write**
 
 1.  Write a failing test that specifies the expected behavior. The test
     must fail before you write any implementation.
@@ -16,7 +11,7 @@ corresponding procedure:
 
 4.  Never write implementation before a failing test exists.
 
-**fix — correct a bug**
+**Procedure — code:fix**
 
 1.  Reproduce the bug with a failing test first. This test is the proof
     the bug exists.
@@ -26,7 +21,7 @@ corresponding procedure:
 3.  Never fix code without a reproducing test — you cannot verify the
     fix is correct.
 
-**refactor — improve structure without changing behavior**
+**Procedure — code:refactor**
 
 1.  Run the full test suite first. All tests must be green before you
     start.
@@ -46,7 +41,42 @@ corresponding procedure:
 6.  Never change test logic during a refactor unless the test itself was
     wrong.
 
-**Coding Conventions — General**
+**Procedure — test:write**
+
+The goal is correct code, not just passing tests. Use the
+**specification** (issue, docs, method name, contract) as the source of
+truth — never the current output of the production code.
+
+1.  Check whether the described behavior is already covered by existing
+    tests.
+
+2.  Understand the **intent** of the code under test: what should it do,
+    for whom, under which conditions? Read the specification, not just
+    the implementation.
+
+    - If no specification exists (no issue description, no docs, no
+      method contract) and the intent cannot be confidently derived from
+      the code alone: **stop and ask**. State what is unclear and what
+      information is needed before proceeding. Do not infer tests from
+      implementation details alone.
+
+3.  Write the new test(s) that assert the intended behavior —
+    independently of how the code currently works.
+
+4.  Run the targeted test class.
+
+    - If all new tests are green: the code matches its specification.
+      Done.
+
+    - If a new test fails: the code deviates from its specification —
+      this is a bug discovery. Do **not** adjust the test to match the
+      actual output. Fix the production code so it fulfills the
+      specification (follow the `fix` procedure for the code change).
+      The test stays as written.
+
+5.  Never adjust a test to match incorrect production code behavior.
+
+**Coding Conventions — MediaWiki**
 
 All source files regardless of language must follow these baseline
 rules. They are enforced by `make ci` (lint + phpcs + eslint).
@@ -65,10 +95,6 @@ rules. They are enforced by `make ci` (lint + phpcs + eslint).
 
 **Coding Conventions — PHP**
 
-Tooling:
-[mediawiki-codesniffer](https://github.com/wikimedia/mediawiki-tools-codesniffer)
-via PHPCS. Run locally: `make composer-phpcs` (or `make ci`).
-
 **File structure**
 
 - Every file starts with `declare( strict_types=1 );`
@@ -78,26 +104,19 @@ via PHPCS. Run locally: `make composer-phpcs` (or `make ci`).
 - One class per file; filename matches class name (UpperCamelCase, e.g.
   `MyClass.php`)
 
-- New code belongs in `src/` following PSR-4; `includes/` is legacy and
-  should be migrated incrementally
-
 **Namespaces and autoloading**
 
 - PSR-4 via Composer (`autoload.psr-4` in `composer.json`)
-
-- Top-level namespace = extension name (e.g.
-  `MediaWiki\Extension\FooBar...`)
 
 - Acronyms treated as single words: `HtmlId`, not `HTMLId`
 
 **Naming**
 
-| Element                     | Convention     | Example                |
-|-----------------------------|----------------|------------------------|
-| Classes, interfaces, traits | UpperCamelCase | `PageFormParser`       |
-| Methods, variables          | lowerCamelCase | `getFormContent()`     |
-| Constants                   | UPPER_CASE     | `MAX_FORM_SIZE`        |
-| Global variables            | `$wg` prefix   | `$wgPageFormsSettings` |
+| Element                     | Convention     | Example            |
+|-----------------------------|----------------|--------------------|
+| Classes, interfaces, traits | UpperCamelCase | `PageFormParser`   |
+| Methods, variables          | lowerCamelCase | `getFormContent()` |
+| Constants                   | UPPER_CASE     | `MAX_FORM_SIZE`    |
 
 **Type system**
 
@@ -156,15 +175,37 @@ via PHPCS. Run locally: `make composer-phpcs` (or `make ci`).
 
 - Single Responsibility: one class, one concern
 
+- Order class members: `public` → `protected` → `private`
+
+**Coding Conventions — PHP · MediaWiki**
+
+Tooling:
+[mediawiki-codesniffer](https://github.com/wikimedia/mediawiki-tools-codesniffer)
+via PHPCS. Run locally: `make composer-phpcs` (or `make ci`).
+
+**Source directories**
+
+- New code belongs in `src/` following PSR-4; `includes/` is legacy and
+  should be migrated incrementally
+
+**Namespaces**
+
+- Top-level namespace = extension name (e.g.
+  `MediaWiki\Extension\FooBar...`)
+
+**Global variable prefix**
+
+- Global variables: `$wg` prefix (e.g. `$wgPageFormsSettings`)
+
+**Request handling**
+
 - No superglobals (`$_GET`, `$_POST`) — use `WebRequest` via
   `RequestContext`
 
 - No new global functions — use static utility classes (`Html`, `IP`) if
   needed
 
-- Order class members: `public` → `protected` → `private`
-
-**Static Analysis — Phan**
+**Static Analysis — Phan · PHP**
 
 Tooling: [Phan](https://github.com/phan/phan) with
 [mediawiki-phan-config](https://github.com/wikimedia/mediawiki-phan-config).

@@ -1,6 +1,6 @@
 <!-- AUTO-GENERATED from docs/gesinn-it-docs-master-pub/documents/mediawiki/instructions/testing.adoc -->
 
-**Test-first approach**
+**Procedure — test:write · MediaWiki**
 
 Before making any code changes to fix a bug or implement a feature:
 
@@ -14,7 +14,38 @@ Before making any code changes to fix a bug or implement a feature:
 
 4.  Re-run the test to confirm it passes (green).
 
-**Test environment setup**
+**MediaWiki test base classes**
+
+Use the appropriate base class:
+
+- `MediaWikiUnitTestCase` — pure unit tests (no database, no service
+  container); fastest
+
+- `MediaWikiIntegrationTestCase` — integration tests that need the
+  service container or database
+
+- `MediaWikiLangTestCase` — when language handling is under test
+
+Do **not** extend `MediaWikiIntegrationTestCase` by default — use
+`MediaWikiUnitTestCase` unless integration with MW services is required.
+
+**Test fixtures**
+
+- Use `setUp()` and `tearDown()` for test-scoped fixtures
+
+- For database fixtures, use `addDBDataOnce()` (run once per class) or
+  `addDBData()` (run per test)
+
+- Use `getMockBuilder()` / `createMock()` for dependencies; prefer
+  constructor injection so mocks can be passed in
+
+**Running tests**
+
+See the **Execution — Install Dependencies · MediaWiki** and **Execution
+— Run Tests (PHPUnit) · MediaWiki** reference files loaded by this
+skill.
+
+**Execution — Install Dependencies · MediaWiki**
 
 All tests run inside a containerized MediaWiki environment managed via
 [docker-compose-ci](https://github.com/gesinn-it-pub/docker-compose-ci)
@@ -26,11 +57,21 @@ latest file changes are copied into the container. Changes to source or
 test files on the host are **not** automatically reflected in a running
 container.
 
+<div class="note">
+
+When a `docker-compose.override.yml` with a bind-mount of the extension
+source directory is active (local development setup), `make install` is
+only required at the start of a new session or after dependency changes.
+For iterative test runs, use `make php-test` or `make dev-test`
+directly.
+
+</div>
+
 ``` console
 make install
 ```
 
-**PHPUnit tests**
+**Execution — Run Tests (PHPUnit) · MediaWiki**
 
 Run all PHPUnit tests:
 
@@ -57,7 +98,7 @@ make bash
 > composer phpunit -- --filter YourTestName
 ```
 
-**Node QUnit tests**
+**Execution — Run Tests (QUnit) · MediaWiki**
 
 Run all JavaScript tests:
 

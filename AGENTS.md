@@ -10,12 +10,7 @@ no annotations.
 
 # Coding Procedure
 
-**Coding Procedure**
-
-Before writing any code, identify the task type and follow the
-corresponding procedure:
-
-**feat — implement new functionality**
+**Procedure — code:write**
 
 1.  Write a failing test that specifies the expected behavior. The test
     must fail before you write any implementation.
@@ -26,7 +21,7 @@ corresponding procedure:
 
 4.  Never write implementation before a failing test exists.
 
-**fix — correct a bug**
+**Procedure — code:fix**
 
 1.  Reproduce the bug with a failing test first. This test is the proof
     the bug exists.
@@ -36,7 +31,7 @@ corresponding procedure:
 3.  Never fix code without a reproducing test — you cannot verify the
     fix is correct.
 
-**refactor — improve structure without changing behavior**
+**Procedure — code:refactor**
 
 1.  Run the full test suite first. All tests must be green before you
     start.
@@ -56,7 +51,7 @@ corresponding procedure:
 6.  Never change test logic during a refactor unless the test itself was
     wrong.
 
-**test:write — verify existing behavior by closing coverage gaps**
+**Procedure — test:write**
 
 The goal is correct code, not just passing tests. Use the
 **specification** (issue, docs, method name, contract) as the source of
@@ -93,14 +88,16 @@ truth — never the current output of the production code.
 
 # Coding Conventions
 
-**Coding Conventions — General**
+**Coding Conventions — MediaWiki**
 
 All source files regardless of language must follow these baseline
-rules.
+rules. They are enforced by `make ci` (lint + phpcs + eslint).
 
 - Encoding: UTF-8 without BOM
 
 - Line endings: Unix-style LF (not CR+LF)
+
+- Indentation: tabs, not spaces
 
 - Maximum line length: 120 characters
 
@@ -109,10 +106,6 @@ rules.
 - Newline at end of file
 
 **Coding Conventions — PHP**
-
-Tooling:
-[mediawiki-codesniffer](https://github.com/wikimedia/mediawiki-tools-codesniffer)
-via PHPCS. Run locally: `make composer-phpcs` (or `make ci`).
 
 **File structure**
 
@@ -123,26 +116,19 @@ via PHPCS. Run locally: `make composer-phpcs` (or `make ci`).
 - One class per file; filename matches class name (UpperCamelCase, e.g.
   `MyClass.php`)
 
-- New code belongs in `src/` following PSR-4; `includes/` is legacy and
-  should be migrated incrementally
-
 **Namespaces and autoloading**
 
 - PSR-4 via Composer (`autoload.psr-4` in `composer.json`)
-
-- Top-level namespace = extension name (e.g.
-  `MediaWiki\Extension\FooBar...`)
 
 - Acronyms treated as single words: `HtmlId`, not `HTMLId`
 
 **Naming**
 
-| Element                     | Convention     | Example                |
-|-----------------------------|----------------|------------------------|
-| Classes, interfaces, traits | UpperCamelCase | `PageFormParser`       |
-| Methods, variables          | lowerCamelCase | `getFormContent()`     |
-| Constants                   | UPPER_CASE     | `MAX_FORM_SIZE`        |
-| Global variables            | `$wg` prefix   | `$wgPageFormsSettings` |
+| Element                     | Convention     | Example            |
+|-----------------------------|----------------|--------------------|
+| Classes, interfaces, traits | UpperCamelCase | `PageFormParser`   |
+| Methods, variables          | lowerCamelCase | `getFormContent()` |
+| Constants                   | UPPER_CASE     | `MAX_FORM_SIZE`    |
 
 **Type system**
 
@@ -201,15 +187,121 @@ via PHPCS. Run locally: `make composer-phpcs` (or `make ci`).
 
 - Single Responsibility: one class, one concern
 
+- Order class members: `public` → `protected` → `private`
+
+**Coding Conventions — PHP · MediaWiki**
+
+Tooling:
+[mediawiki-codesniffer](https://github.com/wikimedia/mediawiki-tools-codesniffer)
+via PHPCS. Run locally: `make composer-phpcs` (or `make ci`).
+
+**Source directories**
+
+- New code belongs in `src/` following PSR-4; `includes/` is legacy and
+  should be migrated incrementally
+
+**Namespaces**
+
+- Top-level namespace = extension name (e.g.
+  `MediaWiki\Extension\FooBar...`)
+
+**Global variable prefix**
+
+- Global variables: `$wg` prefix (e.g. `$wgPageFormsSettings`)
+
+**Request handling**
+
 - No superglobals (`$_GET`, `$_POST`) — use `WebRequest` via
   `RequestContext`
 
 - No new global functions — use static utility classes (`Html`, `IP`) if
   needed
 
-- Order class members: `public` → `protected` → `private`
+**Static Analysis — Phan · PHP**
 
-**Coding Conventions — JavaScript**
+Tooling: [Phan](https://github.com/phan/phan) with
+[mediawiki-phan-config](https://github.com/wikimedia/mediawiki-phan-config).
+Run locally: `make composer-phan` (or `make dev-test`).
+
+**Setup**
+
+Add the Phan script to `composer.json`:
+
+``` json
+"scripts": {
+    "phan": "phan --allow-polyfill-parser"
+}
+```
+
+<div class="note">
+
+`--allow-polyfill-parser` activates a pure-PHP AST fallback. Required
+when the native `php-ast` extension is not available (e.g. Debian trixie
+/ PHP 8.3 where `php-ast` has no apt package). Without this flag Phan
+exits immediately if `php-ast` is absent.
+
+</div>
+
+Add the following targets to the extension `Makefile`:
+
+``` makefile
+composer-phan: .init ## Run Phan static analysis
+    $(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer phan $(COMPOSER_PARAMS)"
+
+composer-phan-update-baseline: .init ## Re-generate baseline and fix indentation for PHPCS
+    $(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer phan -- --save-baseline=.phan/baseline.php"
+    unexpand --first-only -t 4 .phan/baseline.php > /tmp/baseline.php && mv /tmp/baseline.php .phan/baseline.php
+```
+
+<div class="note">
+
+The `unexpand` post-processing step is required because Phan hardcodes
+4-space indentation in `BaselineSavingPlugin.php` — this cannot be
+configured via CLI or `config.php`. MediaWiki PHPCS enforces tabs, so
+committing the unmodified baseline will cause PHPCS failures. On macOS
+where `unexpand --first-only` is unavailable, use `sed` instead:  
+`sed -i 's/ /\t/g' .phan/baseline.php`
+
+</div>
+
+**Configuration**
+
+`.phan/config.php` inherits from `mediawiki-phan-config`:
+
+``` php
+$cfg = require __DIR__ . '/../vendor/mediawiki/mediawiki-phan-config/src/config.php';
+
+$cfg['baseline_path'] = __DIR__ . '/baseline.php';
+
+$cfg['directory_list'] = array_merge(
+    $cfg['directory_list'],
+    ['src', 'includes', 'specials']
+);
+
+$cfg['exclude_analysis_directory_list'] = array_merge(
+    $cfg['exclude_analysis_directory_list'],
+    ['vendor/']
+);
+
+return $cfg;
+```
+
+**Baseline**
+
+- `.phan/baseline.php` is auto-generated — do not edit it manually
+
+- New code must not introduce Phan issues beyond the current baseline
+
+- When deliberately deferring a pre-existing issue, update the baseline
+  via the dedicated target:  
+  `make composer-phan-update-baseline`  
+  This re-generates `.phan/baseline.php` and converts Phan’s hardcoded
+  4-space indentation to tabs (required by MediaWiki PHPCS). Never run
+  `--save-baseline` directly without this post-processing step.
+
+- When suppressing with `@suppress`, always add an explanatory comment
+
+**Coding Conventions — JavaScript · MediaWiki**
 
 Tooling: [ESLint](https://eslint.org/) with
 [eslint-config-wikimedia](https://github.com/wikimedia/eslint-config-wikimedia).
@@ -294,13 +386,13 @@ Every repository must have a `.eslintrc.json` at root with
 - Storage keys: `mw`-prefix + camelCase/hyphens (e.g.
   `mwedit-state-foo`)
 
-**Coding Conventions — CSS / LESS**
+**Coding Conventions — CSS/LESS · MediaWiki**
 
 Tooling: [stylelint](https://stylelint.io/) via `npm run lint:styles`
 (or `make ci`). ResourceLoader natively compiles `.less` files; prefer
 LESS over plain CSS.
 
-**Naming**
+**Class and ID naming**
 
 - Classes and IDs: all-lowercase, hyphen-separated
 
@@ -365,7 +457,7 @@ LESS over plain CSS.
 
 # Test Workflow
 
-**Test-first approach**
+**Procedure — test:write · MediaWiki**
 
 Before making any code changes to fix a bug or implement a feature:
 
@@ -379,7 +471,38 @@ Before making any code changes to fix a bug or implement a feature:
 
 4.  Re-run the test to confirm it passes (green).
 
-**Test environment setup**
+**MediaWiki test base classes**
+
+Use the appropriate base class:
+
+- `MediaWikiUnitTestCase` — pure unit tests (no database, no service
+  container); fastest
+
+- `MediaWikiIntegrationTestCase` — integration tests that need the
+  service container or database
+
+- `MediaWikiLangTestCase` — when language handling is under test
+
+Do **not** extend `MediaWikiIntegrationTestCase` by default — use
+`MediaWikiUnitTestCase` unless integration with MW services is required.
+
+**Test fixtures**
+
+- Use `setUp()` and `tearDown()` for test-scoped fixtures
+
+- For database fixtures, use `addDBDataOnce()` (run once per class) or
+  `addDBData()` (run per test)
+
+- Use `getMockBuilder()` / `createMock()` for dependencies; prefer
+  constructor injection so mocks can be passed in
+
+**Running tests**
+
+See the **Execution — Install Dependencies · MediaWiki** and **Execution
+— Run Tests (PHPUnit) · MediaWiki** reference files loaded by this
+skill.
+
+**Execution — Install Dependencies · MediaWiki**
 
 All tests run inside a containerized MediaWiki environment managed via
 [docker-compose-ci](https://github.com/gesinn-it-pub/docker-compose-ci)
@@ -405,7 +528,7 @@ directly.
 make install
 ```
 
-**PHPUnit tests**
+**Execution — Run Tests (PHPUnit) · MediaWiki**
 
 Run all PHPUnit tests:
 
@@ -432,7 +555,40 @@ make bash
 > composer phpunit -- --filter YourTestName
 ```
 
-**Node QUnit tests**
+**Execution — Run Phan · MediaWiki**
+
+Run Phan against the codebase:
+
+``` console
+make composer-phan
+```
+
+**Fixing issues**
+
+- Fix genuine type errors, undeclared-method, and undeclared-class
+  issues in new code
+
+- For issues in legacy code not touched by the current change, update
+  the baseline instead of adding `@suppress`:
+
+  ``` console
+  make composer-phan-update-baseline
+  ```
+
+  This target re-generates the baseline and post-processes it with
+  `unexpand` to convert Phan’s hardcoded 4-space indentation to tabs.
+  Never run `--save-baseline` directly — the unprocessed output fails
+  MediaWiki PHPCS.
+
+- When `@suppress` is unavoidable, add an explanatory comment directly
+  above it
+
+**Baseline updates**
+
+`.phan/baseline.php` is auto-generated. After updating it, commit it
+together with the code change that necessitated the update.
+
+**Execution — Run Tests (QUnit) · MediaWiki**
 
 Run all JavaScript tests:
 
@@ -455,13 +611,23 @@ make bash
 > npx qunit --require ./tests/node-qunit/setup.js 'tests/node-qunit/**/*.test.js' --filter "your test description"
 ```
 
-**Pre-commit validation gate**
+**Execution — Pre-Commit Gate · MediaWiki**
 
 Before every commit, run the full CI suite to confirm nothing is broken:
 
 ``` console
 make ci
 ```
+
+For interactive use (volume-mounted extension, no container rebuild),
+use the faster pre-commit gate:
+
+``` console
+make dev-test
+```
+
+`dev-test` runs: lint → PHPCS → Phan → PHPUnit — without destroying
+Docker volumes. Reserve `make ci` for the full pipeline verification.
 
 **PageForms local development workflow (volume mount)**
 
