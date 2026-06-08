@@ -1,5 +1,4 @@
-:project_name: Page Forms
-:project_type: mediawiki
+include::docs/attributes.adoc[]
 = {project_name}
 
 image:https://github.com/gesinn-it/mediawiki-extensions-PageForms/actions/workflows/ci.yml/badge.svg[CI,link=https://github.com/gesinn-it/mediawiki-extensions-PageForms/actions/workflows/ci.yml]
@@ -15,9 +14,11 @@ Page Forms, previously known as Semantic Forms, is a MediaWiki extension aimed a
 == Documentation
 For documentation see: https://++www.mediawiki.org/wiki/Extension:Page Forms++
 
-include::docs/gesinn-it-docs-master-pub/snippets/semver.adoc[]
+include::docs/gesinn-it-docs-master-pub/sections/universal/semver.adoc[]
 
-include::docs/gesinn-it-docs-master-pub/sections/contributing.adoc[]
+== Contributing
+
+See link:docs/CONTRIBUTING.adoc[CONTRIBUTING].
 
 == Local testing notes
 
