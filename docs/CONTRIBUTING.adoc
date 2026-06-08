@@ -476,6 +476,10 @@ Reserve `make ci` for the full pipeline verification.
 
 == Conventional Commits Policy
 
+'''
+
+*Commit Convention — Conventional Commits*
+
 Commit messages follow the https://www.conventionalcommits.org/[Conventional Commits specification].
 
 Commit format:
@@ -522,6 +526,7 @@ Guidelines:
 * Use the commit body to explain *why*, not only *what*
 * Scopes should be short, lowercase identifiers (e.g. `api`, `parser`, `smw`, `mediawiki`, `docker`)
 * Use `chore` only for repository maintenance tasks that do not affect runtime behavior, dependencies, CI configuration, or tests
+* Do *not* add a `Co-Authored-By:` trailer or any agent attribution line to the commit message
 
 :leveloffset!:
 
