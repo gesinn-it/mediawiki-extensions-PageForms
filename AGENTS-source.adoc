@@ -13,45 +13,7 @@ include::docs/attributes.adoc[]
 Support for Cargo and PageSchemas is dropped.
 Delete any Cargo/PageSchemas code immediately upon discovery — no tests, no docs, no annotations.
 
-== Coding Procedure
-
-include::docs/gesinn-it-docs-master-pub/snippets/universal/procedures/code-write.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/universal/procedures/code-fix.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/universal/procedures/code-refactor.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/universal/procedures/test-write.adoc[]
-
-== Coding Conventions
-
-include::docs/gesinn-it-docs-master-pub/snippets/mediawiki/conventions/general.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/php/conventions/php.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/mediawiki/conventions/php.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/php/conventions/phan.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/mediawiki/conventions/js.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/mediawiki/conventions/css.adoc[]
-
-== Test Workflow
-
-include::docs/gesinn-it-docs-master-pub/snippets/mediawiki/procedures/test-write-php-mediawiki.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/mediawiki/execution/install-deps.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/mediawiki/execution/run-tests-phpunit.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/mediawiki/execution/run-phan.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/mediawiki/execution/run-tests-npm.adoc[]
-
-include::docs/gesinn-it-docs-master-pub/snippets/mediawiki/execution/run-pre-commit.adoc[]
-
-**PageForms local development workflow (volume mount)**
+== Local Development Workflow (volume mount)
 
 This repository uses a `build/docker-compose.override.yml` (developer-local, git-ignored)
 that bind-mounts the extension source directory into the running container. This means
