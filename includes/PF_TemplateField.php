@@ -164,7 +164,7 @@ class PFTemplateField {
 		}
 		$label_formats = PFValuesUtils::getSMWPropertyValues( $store, $proptitle, "Has field label format" );
 		$propValue = DIProperty::newFromUserLabel( $this->mSemanticProperty );
-		$this->mPropertyType = $propValue->findPropertyTypeID();
+		$this->mPropertyType = $propValue->findPropertyValueType();
 
 		foreach ( $allowed_values as $allowed_value ) {
 			// HTML-unencode each value
