@@ -54,7 +54,7 @@ jobs:
             database_type: mysql
             database_image: "mysql:8"
             coverage: false
-            experimental: false
+            experimental: true
 
     env:
       MW_VERSION: ${{ matrix.mediawiki_version }}
