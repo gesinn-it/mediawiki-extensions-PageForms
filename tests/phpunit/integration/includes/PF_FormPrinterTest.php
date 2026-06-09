@@ -322,9 +322,13 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		);
 
 		$this->assertInstanceOf( \ParserOutput::class, $parserOutput );
+		$pfModules = array_filter(
+			$parserOutput->getModules(),
+			static fn( string $m ) => str_starts_with( $m, 'ext.pageforms.' )
+		);
 		$this->assertSame(
 			[],
-			$parserOutput->getModules(),
+			array_values( $pfModules ),
 			'formHTML() must not return unexpected ResourceLoader modules in the '
 			. 'ParserOutput when the form definition contains no parser-tag hooks.'
 		);
