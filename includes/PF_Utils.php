@@ -478,7 +478,7 @@ END;
 		}
 
 		foreach ( $wgPageFormsIgnoreTitlePattern as $pattern ) {
-			if ( preg_match( '/' . $pattern . '/', $formName ) ) {
+			if ( $pattern !== '' && preg_match( '/' . $pattern . '/', $formName ) ) {
 				return true;
 			}
 		}
