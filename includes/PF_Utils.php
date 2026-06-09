@@ -23,16 +23,6 @@ class PFUtils {
 		return MediaWikiServices::getInstance()->getContentLanguage();
 	}
 
-	public static function getSMWContLang() {
-		if ( function_exists( 'smwfContLang' ) ) {
-			// SMW 3.2+
-			return smwfContLang();
-		} else {
-			global $smwgContLang;
-			return $smwgContLang;
-		}
-	}
-
 	/**
 	 * Get a parser object.
 	 *

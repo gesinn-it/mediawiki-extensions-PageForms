@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ### Changed
 - Upgrade `nyc` from 15 to 18, fix `brace-expansion` security vulnerability via `npm audit fix`
 - Remove dead SMWSQLStore2 branches from `PF_AutocompleteAPI` and `PF_Template`; always use SMWSQLStore3 table names
+- Remove unused `PFUtils::getSMWContLang()` shim (references `smwfContLang()`/`$smwgContLang` which no longer exist in SMW 7)
 
 ### Fixed
 - Replace removed `DIProperty::findPropertyTypeID()` with `findPropertyValueType()` for SMW 7 compatibility
