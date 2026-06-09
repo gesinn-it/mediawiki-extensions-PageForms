@@ -69,6 +69,24 @@ Key methods available in tests:
 Annotate the class with `@group Database` when the test writes to the
 database.
 
+If the special page requires a permission (e.g. `upload`), pass a
+matching performer as the fourth argument — otherwise
+`executeSpecialPage()` runs as an anonymous user and throws
+`PermissionsError`:
+
+``` php
+$performer = $this->getTestUser( [ 'sysop' ] )->getAuthority();
+[ $html, ] = $this->executeSpecialPage( '', new FauxRequest( [] ), null, $performer );
+```
+
+If the page checks a feature flag via config (e.g.
+`UploadBase::isEnabled()` reads `wgEnableUploads`), set it before
+calling `executeSpecialPage()`:
+
+``` php
+$this->setMwGlobals( 'wgEnableUploads', true );
+```
+
 **Asserting HTML output**
 
 Parse the returned `$html` with `DomDocument` and `DomXPath` to assert
