@@ -1914,15 +1914,6 @@ END;
 		$parser->replaceLinkHolders( $form_text );
 		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::RenderingEnd', [ &$form_text ] );
 
-		// Propagate ResourceLoader modules that parser hooks registered on the
-		// internal ParserOutput during form rendering — e.g. ext.headertabs added
-		// by <headertabs /> — to the real OutputPage. recursiveTagParse() reuses
-		// the parser's own mOutput, so the modules are already collected there;
-		// they just need to be forwarded.
-		$parserOutput = $parser->getOutput();
-		$wgOut->addModules( $parserOutput->getModules() );
-		$wgOut->addModuleStyles( $parserOutput->getModuleStyles() );
-
 		// Send the autocomplete values to the browser, along with the
 		// mappings of which values should apply to which fields.
 		// If doing a replace, the page text is actually the modified
