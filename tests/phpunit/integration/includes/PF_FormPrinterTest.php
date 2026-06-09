@@ -297,6 +297,91 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// formHTML() – ResourceLoader module forwarding
+	// -------------------------------------------------------------------------
+
+	/**
+	 * A plain form (no extension tags) must not register unexpected modules on
+	 * OutputPage. This guards against the module-forwarding code accidentally
+	 * polluting the page with modules from an unrelated parser run.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLDoesNotAddSpuriousModulesToOutputPage(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+		$modulesBefore = $wgOut->getModules();
+
+		$formDef = "{{{for template|PFTestModTpl01}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null, 'PFTestModPage01',
+			null, false, false, false, [], self::getTestUser()->getUser()
+		);
+
+		$addedModules = array_diff( $wgOut->getModules(), $modulesBefore );
+		$this->assertSame(
+			[],
+			array_values( $addedModules ),
+			'formHTML() must not add unexpected ResourceLoader modules to OutputPage '
+			. 'when the form definition contains no parser-tag hooks.'
+		);
+	}
+
+	/**
+	 * A form that contains a parser tag which registers a ResourceLoader module
+	 * must forward that module to OutputPage after rendering.
+	 *
+	 * This is the generic regression test for the fix in formHTML(): parser hooks
+	 * call $parser->getOutput()->addModules() — those modules must reach $wgOut
+	 * so the browser can load them. The test uses a throwaway parser hook
+	 * registered via ParserFirstCallInit, so it has no dependency on any optional
+	 * extension.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLForwardsParserTagModulesToOutputPage(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		// Register a one-shot parser tag via ParserFirstCallInit — the same hook
+		// real extensions use — so it is picked up by the parser formHTML() creates
+		// internally. This mimics what HeaderTabs does in its <headertabs /> handler.
+		MediaWikiServices::getInstance()->getHookContainer()->register(
+			'ParserFirstCallInit',
+			static function ( \Parser $parser ) {
+				$parser->setHook( 'pf-test-module-tag', static function (
+					$input, array $args, \Parser $p
+				) {
+					$p->getOutput()->addModules( [ 'ext.pageforms.test.sentinel' ] );
+					return '';
+				} );
+			}
+		);
+
+		$formDef = "<pf-test-module-tag />\n{{{standard input|save}}}";
+
+		$wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null, 'PFTestModPage02',
+			null, false, false, false, [], self::getTestUser()->getUser()
+		);
+
+		$this->assertContains(
+			'ext.pageforms.test.sentinel',
+			$wgOut->getModules(),
+			'formHTML() must forward ResourceLoader modules registered by parser tag '
+			. 'hooks to OutputPage. Without this, extensions like HeaderTabs whose '
+			. '<headertabs /> tag calls $parser->getOutput()->addModules() will not '
+			. 'have their JS loaded in the browser.'
+		);
+	}
+
+	// -------------------------------------------------------------------------
 
 	/**
 	 * Returns a mock Title for test
