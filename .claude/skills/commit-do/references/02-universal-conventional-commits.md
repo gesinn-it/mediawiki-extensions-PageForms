@@ -73,3 +73,9 @@ Guidelines:
 
 - Do **not** add a `Co-Authored-By:` trailer or any agent attribution
   line to the commit message
+
+Changelog:
+
+- After committing a `feat`, `fix`, `deps`, `refactor`, or `docs`
+  change, add a corresponding entry to the `[Unreleased]` section of
+  `CHANGELOG.md` — do not wait until release time.

@@ -6,5 +6,7 @@ description: >
 
 Load the following reference files before starting work:
 
-- `references/01-universal-general.md`
-- `references/02-universal-semver.md`
+- `references/01-universal-semver.md`
+- `references/02-universal-conventional-commits.md`
+- `references/03-universal-changelog.md`
+- `references/04-universal-release.md`
