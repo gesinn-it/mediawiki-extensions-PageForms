@@ -18,3 +18,7 @@ coverage
 # Local DCI volume-mount override — not committed, survives submodule updates
 build/docker-compose.override.yml
 .env
+
+# Local DCI custom extensions — not committed, only for local development
+extensions.local.json
+install-extensions.sh
