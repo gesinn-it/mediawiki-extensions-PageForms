@@ -17,7 +17,7 @@ DB_TYPE?=mysql
 DB_IMAGE?="mysql:8"
 
 # extensions
-SMW_VERSION?=6.0.1
+SMW_VERSION?=7.0.0
 DT_VERSION?=4.0.3
 
 # composer
