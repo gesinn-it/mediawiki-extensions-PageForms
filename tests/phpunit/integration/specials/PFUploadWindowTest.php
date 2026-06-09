@@ -117,7 +117,7 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 	 * getInitialPageText() with no copyright upload returns only the comment.
 	 */
 	public function testGetInitialPageTextReturnsStringWithoutCopyrightUpload() {
-		$this->overrideConfigValues( [ 'UseCopyrightUpload' => false ] );
+		$this->setMwGlobals( 'wgUseCopyrightUpload', false );
 
 		$result = PFUploadWindow::getInitialPageText( 'My comment', '', '', '' );
 
@@ -130,10 +130,7 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 	 * text that contains all four section headers.
 	 */
 	public function testGetInitialPageTextWithCopyrightUploadContainsSections() {
-		$this->overrideConfigValues( [ 'UseCopyrightUpload' => true ] );
-		// Set the global flag that the method reads directly
-		global $wgUseCopyrightUpload;
-		$wgUseCopyrightUpload = true;
+		$this->setMwGlobals( 'wgUseCopyrightUpload', true );
 
 		$result = PFUploadWindow::getInitialPageText( 'desc', 'cc-by-sa', 'Public Domain', 'Web' );
 
