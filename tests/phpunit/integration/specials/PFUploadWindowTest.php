@@ -20,34 +20,16 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 	}
 
 	/**
-	 * Build a PFUploadWindow with a fully wired RequestContext so that
-	 * getOutput(), getUser(), getSkin(), getLanguage() etc. all work.
-	 */
-	private function newPageWithContext(): PFUploadWindow {
-		/** @var PFUploadWindow $page */
-		$page = $this->newSpecialPage();
-
-		$context = new RequestContext();
-		$context->setRequest( new FauxRequest( [], false ) );
-		$context->setTitle( Title::newFromText( 'Special:UploadWindow' ) );
-		$page->setContext( $context );
-
-		return $page;
-	}
-
-	/**
 	 * showViewDeletedLinks() must not crash when mDesiredDestName is empty,
 	 * because Title::makeTitleSafe( NS_FILE, '' ) returns null.
 	 *
 	 * Regression test for: "Call to a member function isDeleted() on null"
 	 */
 	public function testShowViewDeletedLinksDoesNotCrashOnEmptyDestName() {
-		$page = $this->newPageWithContext();
-
-		// Ensure mDesiredDestName is empty so makeTitleSafe returns null
+		/** @var PFUploadWindow $page */
+		$page = $this->newSpecialPage();
 		$page->mDesiredDestName = '';
 
-		// Call the protected method via reflection — must not throw
 		$method = new ReflectionMethod( PFUploadWindow::class, 'showViewDeletedLinks' );
 		$method->setAccessible( true );
 
@@ -69,7 +51,8 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 	 * given a fully wired context.
 	 */
 	public function testGetUploadFormReturnsAPFUploadFormInstance() {
-		$page = $this->newPageWithContext();
+		/** @var PFUploadWindow $page */
+		$page = $this->newSpecialPage();
 
 		$method = new ReflectionMethod( PFUploadWindow::class, 'getUploadForm' );
 		$method->setAccessible( true );
@@ -84,33 +67,16 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 	}
 
 	/**
-	 * showUploadForm() must not throw when called with a valid PFUploadForm.
-	 * The form's show() method prints directly, so we buffer output.
+	 * executeSpecialPage() must not throw — this exercises showUploadForm()
+	 * via the normal execute() path and verifies the page renders without error.
 	 */
-	public function testShowUploadFormDoesNotThrow() {
-		$page = $this->newPageWithContext();
+	public function testExecuteRendersUploadForm() {
+		$this->setMwGlobals( 'wgEnableUploads', true );
 
-		$getFormMethod = new ReflectionMethod( PFUploadWindow::class, 'getUploadForm' );
-		$getFormMethod->setAccessible( true );
-		$form = $getFormMethod->invoke( $page );
+		$performer = $this->getTestUser( [ 'sysop' ] )->getAuthority();
+		[ $html ] = $this->executeSpecialPage( '', new FauxRequest( [] ), null, $performer );
 
-		$showMethod = new ReflectionMethod( PFUploadWindow::class, 'showUploadForm' );
-		$showMethod->setAccessible( true );
-
-		$exception = null;
-		ob_start();
-		try {
-			$showMethod->invoke( $page, $form );
-		} catch ( Exception $e ) {
-			$exception = $e;
-		} finally {
-			ob_end_clean();
-		}
-
-		$this->assertNull(
-			$exception,
-			'showUploadForm() must not throw given a valid PFUploadForm'
-		);
+		$this->assertIsString( $html );
 	}
 
 	/**
