@@ -384,11 +384,10 @@ END;
 		// are quite similar, so we don't need too much extra logic.
 		$internalObjText = null;
 		if ( $this->mConnectingProperty ) {
-			global $smwgDefaultStore;
 			if ( defined( 'SIO_VERSION' ) ) {
 				$useSubobject = false;
 				$internalObjText = '{{#set_internal:' . $this->mConnectingProperty;
-			} elseif ( $smwgDefaultStore == "SMWSQLStore3" ) {
+			} else {
 				$useSubobject = true;
 				$internalObjText = '{{#subobject:-|' . $this->mConnectingProperty . '={{PAGENAME}}';
 			}

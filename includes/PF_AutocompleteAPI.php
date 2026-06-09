@@ -216,7 +216,6 @@ class PFAutocompleteAPI extends ApiBase {
 	) {
 		$maxAutocompleteValues = $this->getConfig()->get( 'PageFormsMaxAutocompleteValues' );
 		$useDisplayTitle = $this->getConfig()->get( 'PageFormsUseDisplayTitle' );
-		$smwgDefaultStore = $GLOBALS['smwgDefaultStore'] ?? null;
 
 		$db = PFUtils::getReplicaDB();
 		$sqlOptions = [];
@@ -231,14 +230,8 @@ class PFAutocompleteAPI extends ApiBase {
 		// properly quote and prefix them when tables are passed as an array.
 		if ( $propertyHasTypePage ) {
 			$valueField = 'o_ids.smw_title';
-			if ( $smwgDefaultStore === 'SMWSQLStore2' ) {
-				$idsTableRaw = 'smw_ids';
-				$propsTableRaw = 'smw_rels2';
-			} else {
-				// SMWSQLStore3 - also the backup for SMWSPARQLStore
-				$idsTableRaw = 'smw_object_ids';
-				$propsTableRaw = 'smw_di_wikipage';
-			}
+			$idsTableRaw = 'smw_object_ids';
+			$propsTableRaw = 'smw_di_wikipage';
 			$tables = [ 'p' => $propsTableRaw, 'p_ids' => $idsTableRaw, 'o_ids' => $idsTableRaw ];
 			$joinConds = [
 				'p_ids' => [ 'JOIN', 'p.p_id = p_ids.smw_id' ],
@@ -257,16 +250,9 @@ class PFAutocompleteAPI extends ApiBase {
 				] ];
 			}
 		} else {
-			if ( $smwgDefaultStore === 'SMWSQLStore2' ) {
-				$valueField = 'p.value_xsd';
-				$idsTableRaw = 'smw_ids';
-				$propsTableRaw = 'smw_atts2';
-			} else {
-				// SMWSQLStore3 - also the backup for SMWSPARQLStore
-				$valueField = 'p.o_hash';
-				$idsTableRaw = 'smw_object_ids';
-				$propsTableRaw = 'smw_di_blob';
-			}
+			$valueField = 'p.o_hash';
+			$idsTableRaw = 'smw_object_ids';
+			$propsTableRaw = 'smw_di_blob';
 			$tables = [ 'p' => $propsTableRaw, 'p_ids' => $idsTableRaw ];
 			$joinConds = [
 				'p_ids' => [ 'JOIN', 'p.p_id = p_ids.smw_id' ],
@@ -280,13 +266,8 @@ class PFAutocompleteAPI extends ApiBase {
 			$basePropertyName = str_replace( ' ', '_', $basePropertyName );
 			$conditions['base_p_ids.smw_title'] = $basePropertyName;
 			if ( $basePropertyHasTypePage ) {
-				if ( $smwgDefaultStore === 'SMWSQLStore2' ) {
-					$baseIdsTableRaw = 'smw_ids';
-					$basePropsTableRaw = 'smw_rels2';
-				} else {
-					$baseIdsTableRaw = 'smw_object_ids';
-					$basePropsTableRaw = 'smw_di_wikipage';
-				}
+				$baseIdsTableRaw = 'smw_object_ids';
+				$basePropsTableRaw = 'smw_di_wikipage';
 				$tables['p_base'] = $basePropsTableRaw;
 				$tables['base_p_ids'] = $baseIdsTableRaw;
 				$tables['base_o_ids'] = $baseIdsTableRaw;
@@ -296,15 +277,9 @@ class PFAutocompleteAPI extends ApiBase {
 				$baseValue = str_replace( ' ', '_', $baseValue );
 				$conditions['base_o_ids.smw_title'] = $baseValue;
 			} else {
-				if ( $smwgDefaultStore === 'SMWSQLStore2' ) {
-					$baseValueField = 'p_base.value_xsd';
-					$baseIdsTableRaw = 'smw_ids';
-					$basePropsTableRaw = 'smw_atts2';
-				} else {
-					$baseValueField = 'p_base.o_hash';
-					$baseIdsTableRaw = 'smw_object_ids';
-					$basePropsTableRaw = 'smw_di_blob';
-				}
+				$baseValueField = 'p_base.o_hash';
+				$baseIdsTableRaw = 'smw_object_ids';
+				$basePropsTableRaw = 'smw_di_blob';
 				$tables['p_base'] = $basePropsTableRaw;
 				$tables['base_p_ids'] = $baseIdsTableRaw;
 				$joinConds['p_base'] = [ 'JOIN', 'p.s_id = p_base.s_id' ];
