@@ -324,7 +324,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertInstanceOf( \ParserOutput::class, $parserOutput );
 		$pfModules = array_filter(
 			$parserOutput->getModules(),
-			static fn( string $m ) => str_starts_with( $m, 'ext.pageforms.' )
+			static fn ( string $m ) => str_starts_with( $m, 'ext.pageforms.' )
 		);
 		$this->assertSame(
 			[],
