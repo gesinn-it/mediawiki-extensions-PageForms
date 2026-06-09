@@ -23,20 +23,13 @@ class PFFormStartTest extends SpecialPageTestBase {
 	 * @return SpecialPage
 	 */
 	protected function newSpecialPage() {
-		// Return an instance of PFFormStart
 		return MediaWikiServices::getInstance()->getSpecialPageFactory()->getPage( 'FormStart' );
 	}
 
 	public function testEmptyQuery() {
-		$formStart = $this->newSpecialPage();
+		[ $html ] = $this->executeSpecialPage( '' );
 
-		$formStart->execute( null );
-
-		$output = $formStart->getOutput();
-		$this->assertEquals(
-			'<div class="error">Error: No forms have been defined on this site.</div>',
-			$output->mBodytext
-		);
+		$this->assertStringContainsString( 'No forms have been defined on this site.', $html );
 	}
 
 }

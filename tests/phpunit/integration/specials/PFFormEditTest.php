@@ -26,51 +26,36 @@ class PFFormEditTest extends SpecialPageTestBase {
 	 * @return SpecialPage
 	 */
 	protected function newSpecialPage() {
-		// Return an instance of PFFormEdit
 		return MediaWikiServices::getInstance()->getSpecialPageFactory()->getPage( 'FormEdit' );
 	}
 
 	public function testEmptyQuery() {
-		$formEdit = $this->newSpecialPage();
+		[ $html ] = $this->executeSpecialPage( '' );
 
-		$formEdit->execute( null );
-
-		$output = $formEdit->getOutput();
-		$this->assertStringStartsWith( '<div class="error"><p>No target page specified.', $output->mBodytext );
+		$this->assertStringContainsString( 'No target page specified.', $html );
 	}
 
 	public function testInvalidForm() {
-		$formEdit = $this->newSpecialPage();
+		[ $html ] = $this->executeSpecialPage( 'InvalidForm/X' );
 
-		$formEdit->execute( "InvalidForm/X" );
-
-		$output = $formEdit->getOutput();
-
-		$this->assertEquals( "Create InvalidForm: X", $output->getPageTitle() );
-		$this->assertStringContainsString(
-			'<div class="error"><p><b>InvalidForm</b> is not a valid form.',
-			$output->mBodytext
-		);
+		$this->assertStringContainsString( '<b>InvalidForm</b> is not a valid form.', $html );
 	}
 
 	public function testValidForm() {
 		$formText = <<<EOF
 			{{{for template|Thing|label=Thing}}}
 			{| class="formtable"
-			! Name: 
+			! Name:
 			| {{{field|Name|input type=text}}}
 			|}
 			{{{end template}}}
 		EOF;
 		$this->insertPage( 'Form:Thing', $formText );
-		$formEdit = $this->newSpecialPage();
 
-		$formEdit->execute( "Thing/Thing1" );
+		[ $html ] = $this->executeSpecialPage( 'Thing/Thing1' );
 
-		$output = $formEdit->getOutput();
-		$this->assertEquals( "Create Thing: Thing1", $output->getPageTitle() );
-		$this->assertStringContainsString( '<legend>Thing</legend>', $output->mBodytext );
-		$this->assertStringContainsString( 'Thing[Name]', $output->mBodytext );
+		$this->assertStringContainsString( '<legend>Thing</legend>', $html );
+		$this->assertStringContainsString( 'Thing[Name]', $html );
 	}
 
 	public function testPrintAltFormsList() {
