@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Changed
+- Upgrade `nyc` from 15 to 18, fix `brace-expansion` security vulnerability via `npm audit fix`
+
 ### Fixed
 - Forward parser tag ResourceLoader modules to OutputPage after form render [`d9de6a6`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/d9de6a60522f61ed4df731ed5ab9ddf350aba8e0)
 - Skip empty patterns in `ignoreFormName()` [`4d55220`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/4d552200006449e80154cba6cbea880a8cf4705b)
