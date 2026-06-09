@@ -13,3 +13,4 @@ Load the following reference files before starting work:
 - `references/05-mediawiki-install-deps.md`
 - `references/06-mediawiki-run-tests-npm.md`
 - `references/07-mediawiki-run-pre-commit.md`
+- `references/08-mediawiki-debug-browser-playwright.md`

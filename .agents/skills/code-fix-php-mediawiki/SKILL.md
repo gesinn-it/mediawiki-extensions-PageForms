@@ -17,3 +17,4 @@ Load the following reference files before starting work:
 - `references/09-mediawiki-install-deps.md`
 - `references/10-mediawiki-run-tests-phpunit.md`
 - `references/11-mediawiki-run-pre-commit.md`
+- `references/12-mediawiki-debug-browser-playwright.md`
