@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - Upgrade `nyc` from 15 to 18, fix `brace-expansion` security vulnerability via `npm audit fix`
 
 ### Fixed
+- Fix "EditPage does not have a context title set" error when clicking the preview standard input on MW 1.43 [`b41bc21`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/b41bc219)
 - Forward parser tag ResourceLoader modules to OutputPage after form render [`d9de6a6`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/d9de6a60522f61ed4df731ed5ab9ddf350aba8e0)
 - Skip empty patterns in `ignoreFormName()` [`4d55220`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/4d552200006449e80154cba6cbea880a8cf4705b)
 - Fix null pointer and remove removed MW config vars in UploadWindow [`bc7e9ee`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/bc7e9ee6f9812338a59e3279ffb68196e70941fb)
