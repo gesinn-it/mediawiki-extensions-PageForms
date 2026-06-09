@@ -21,6 +21,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [1.2.0] - 2026-06-09
 
+Adds autocomplete support and fixes parser edge cases. Removes the deprecated
+`oldMethod()` API — see Breaking Changes below.
+
 ### Breaking Changes
 - Remove deprecated `oldMethod()` API [`a1b2c3d`](https://github.com/org/repo/commit/a1b2c3d)
 
@@ -33,7 +36,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - Update installation documentation [`78d57e5`](https://github.com/org/repo/commit/78d57e5)
 
 ### Fixed
-- Handle empty token list in parser [`43b9f08`](https://github.com/org/repo/commit/43b9f08)
+- Handle empty token list in parser [`43b9f08`](https://github.com/org/repo/commit/43b9f08) ([#42](https://github.com/org/repo/issues/42))
 
 [Unreleased]: https://github.com/org/repo/compare/1.2.0...HEAD
 [1.2.0]: https://github.com/org/repo/compare/1.1.0...1.2.0
@@ -60,8 +63,14 @@ Map conventional commit types to changelog categories as follows:
 
 - Latest version comes first. `[Unreleased]` is always at the top.
 
+- Each version may open with a short introductory sentence summarising
+  the release theme (optional but recommended for notable releases).
+
 - Each entry includes the short commit hash as a link, appended at the
   end of the line.
+
+- If the change relates to a GitHub issue or PR, append the issue/PR
+  link after the commit hash: `` [`commit ``\](url) (\[#42\](url))\`.
 
 - Dates use ISO 8601 format (`YYYY-MM-DD`).
 

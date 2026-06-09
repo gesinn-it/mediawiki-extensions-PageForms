@@ -33,9 +33,18 @@
           [Unreleased]: https://github.com/org/repo/compare/X.Y.Z...HEAD
           [X.Y.Z]: https://github.com/org/repo/compare/PREV...X.Y.Z
 
-5.  Present the `[X.Y.Z]` changelog section as the release notes draft
-    for user approval. Present inside a fenced markdown code block for
-    easy review. Do not proceed until the user explicitly approves.
+5.  Draft the release notes:
+
+    - Write a short introductory sentence summarising the release theme
+      (optional but recommended for notable releases).
+
+    - Ensure each entry has a commit hash link; add an issue/PR link
+      where applicable.
+
+    - Present the full `[X.Y.Z]` changelog section inside a fenced
+      markdown code block for easy review.
+
+    - Do not proceed until the user explicitly approves.
 
 6.  After approval — commit all changes:
 
