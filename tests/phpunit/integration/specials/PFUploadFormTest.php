@@ -107,4 +107,109 @@ class PFUploadFormTest extends MediaWikiIntegrationTestCase {
 			'UploadFile field must exist when no sessionkey is set'
 		);
 	}
+
+	/**
+	 * When the user lacks upload_by_url permission the UploadFileURL field
+	 * must not be present, but UploadFile must still exist.
+	 */
+	public function testUploadByUrlFieldAbsentWhenPermissionMissing() {
+		$this->setMwGlobals( 'wgAllowCopyUploads', false );
+
+		$form = new PFUploadForm( $this->defaultOptions() );
+
+		$this->assertFalse(
+			$form->hasField( 'UploadFileURL' ),
+			'UploadFileURL field must not exist when upload_by_url is not permitted'
+		);
+		$this->assertTrue(
+			$form->hasField( 'UploadFile' ),
+			'UploadFile field must still exist when upload_by_url is not permitted'
+		);
+	}
+
+	/**
+	 * getExtensionsMessage() with CheckFileExtensions=true and
+	 * StrictFileExtensions=true must return a div with id mw-upload-permitted
+	 * and must not include mw-upload-preferred or mw-upload-prohibited.
+	 */
+	public function testGetExtensionsMessageStrictReturnsPermittedOnly() {
+		$this->setMwGlobals( [
+			'wgCheckFileExtensions' => true,
+			'wgStrictFileExtensions' => true,
+			'wgFileExtensions' => [ 'png', 'jpg' ],
+		] );
+
+		$form = new PFUploadForm( $this->defaultOptions() );
+		$method = new ReflectionMethod( PFUploadForm::class, 'getExtensionsMessage' );
+		$method->setAccessible( true );
+
+		$result = $method->invoke( $form );
+
+		$this->assertStringContainsString( 'mw-upload-permitted', $result );
+		$this->assertStringNotContainsString( 'mw-upload-preferred', $result );
+		$this->assertStringNotContainsString( 'mw-upload-prohibited', $result );
+	}
+
+	/**
+	 * getExtensionsMessage() with CheckFileExtensions=true and
+	 * StrictFileExtensions=false must return both mw-upload-preferred and
+	 * mw-upload-prohibited divs.
+	 */
+	public function testGetExtensionsMessageNonStrictReturnsBothLists() {
+		$this->setMwGlobals( [
+			'wgCheckFileExtensions' => true,
+			'wgStrictFileExtensions' => false,
+			'wgFileExtensions' => [ 'png', 'jpg' ],
+			'wgFileBlacklist' => [ 'exe', 'php' ],
+		] );
+
+		$form = new PFUploadForm( $this->defaultOptions() );
+		$method = new ReflectionMethod( PFUploadForm::class, 'getExtensionsMessage' );
+		$method->setAccessible( true );
+
+		$result = $method->invoke( $form );
+
+		$this->assertStringContainsString( 'mw-upload-preferred', $result );
+		$this->assertStringContainsString( 'mw-upload-prohibited', $result );
+	}
+
+	/**
+	 * getExtensionsMessage() with CheckFileExtensions=false must return an
+	 * empty string — everything is permitted, nothing to display.
+	 */
+	public function testGetExtensionsMessageDisabledReturnsEmptyString() {
+		$this->setMwGlobals( 'wgCheckFileExtensions', false );
+
+		$form = new PFUploadForm( $this->defaultOptions() );
+		$method = new ReflectionMethod( PFUploadForm::class, 'getExtensionsMessage' );
+		$method->setAccessible( true );
+
+		$result = $method->invoke( $form );
+
+		$this->assertSame( '', $result );
+	}
+
+	/**
+	 * The PF-specific hidden fields pfInputID and pfDelimiter must be
+	 * registered on the form after construction.
+	 *
+	 * We inspect the protected mHiddenFields property directly to avoid
+	 * triggering the full render chain (which requires a Title context).
+	 */
+	public function testPfHiddenFieldsAreRegisteredOnForm() {
+		$options = $this->defaultOptions();
+		$options['pfInputID'] = 'input_42';
+		$options['pfDelimiter'] = ',';
+
+		$form = new PFUploadForm( $options );
+
+		$prop = new ReflectionProperty( HTMLForm::class, 'mHiddenFields' );
+		$prop->setAccessible( true );
+		$hiddenFields = $prop->getValue( $form );
+
+		$names = array_column( array_column( $hiddenFields, 1 ), 'name' );
+
+		$this->assertContains( 'pfInputID', $names, 'pfInputID must be registered as a hidden field' );
+		$this->assertContains( 'pfDelimiter', $names, 'pfDelimiter must be registered as a hidden field' );
+	}
 }
