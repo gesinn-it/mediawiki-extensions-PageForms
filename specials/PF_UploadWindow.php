@@ -316,10 +316,12 @@ class PFUploadWindow extends UnlistedSpecialPage {
 	 */
 	protected function showViewDeletedLinks() {
 		$title = Title::makeTitleSafe( NS_FILE, $this->mDesiredDestName );
+		if ( !$title instanceof Title ) {
+			return;
+		}
 		// Show a subtitle link to deleted revisions (to sysops et al only)
 		$count = $title->isDeleted();
-		if ( $title instanceof Title && ( $count ) > 0
-			&& $this->getUser()->isAllowed( 'deletedhistory' ) ) {
+		if ( $count > 0 && $this->getUser()->isAllowed( 'deletedhistory' ) ) {
 			$link = $this->msg( $this->getUser()->isAllowed( 'delete' ) ? 'thisisdeleted' : 'viewdeleted' )
 				->rawParams( $this->getSkin()->linkKnown(
 					SpecialPage::getTitleFor( 'Undelete', $title->getPrefixedText() ),
@@ -330,7 +332,7 @@ class PFUploadWindow extends UnlistedSpecialPage {
 		}
 
 		// Show the relevant lines from deletion log (for still deleted files only)
-		if ( $title instanceof Title && $title->isDeletedQuick() && !$title->exists() ) {
+		if ( $title->isDeletedQuick() && !$title->exists() ) {
 			$this->showDeletionLog( $this->getOutput(), $title->getPrefixedText() );
 		}
 	}

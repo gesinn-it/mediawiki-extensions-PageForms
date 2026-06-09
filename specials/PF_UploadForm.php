@@ -348,8 +348,6 @@ class PFUploadForm extends HTMLForm {
 		$languageCode = $config->get( 'LanguageCode' );
 		$scriptPath = $config->get( 'ScriptPath' );
 		$pageFormsScriptPath = $config->get( 'PageFormsScriptPath' );
-		$xhtmlDefaultNamespace = $config->get( 'XhtmlDefaultNamespace' );
-		$xhtmlNamespaces = $config->get( 'XhtmlNamespaces' );
 		$titleGlobal = RequestContext::getMain()->getTitle();
 
 		$out = $this->getOutput();
@@ -357,14 +355,8 @@ class PFUploadForm extends HTMLForm {
 		$out->disable();
 		$titleGlobal = SpecialPage::getTitleFor( 'Upload' );
 
-		$text = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"' .
-			' "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' . "\n" .
-			'<html xmlns="' . $xhtmlDefaultNamespace . '"' . "\n";
-		foreach ( $xhtmlNamespaces as $tag => $ns ) {
-			$text .= "xmlns:{$tag}=\"{$ns}\" ";
-		}
 		$dir = PFUtils::getContLang()->isRTL() ? "rtl" : "ltr";
-		$text .= "xml:lang=\"{$languageCode}\" lang=\"{$languageCode}\" dir=\"{$dir}\">";
+		$text = "<!DOCTYPE html>\n<html lang=\"{$languageCode}\" dir=\"{$dir}\">";
 
 		$text .= <<<END
 
