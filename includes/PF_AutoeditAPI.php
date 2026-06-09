@@ -334,6 +334,7 @@ class PFAutoeditAPI extends ApiBase {
 		// set up a normal edit page
 		// we'll feed it our data to simulate a normal edit
 		$editor = new EditPage( $article );
+		$editor->setContextTitle( $targetTitle );
 
 		// set up form data:
 		// merge data coming from the web request on top of some defaults
@@ -477,9 +478,6 @@ class PFAutoeditAPI extends ApiBase {
 							}
 						}
 					} );
-
-				// Context title needed for correct Cancel link
-				$editor->setContextTitle( $title );
 
 				$editor->showEditForm();
 				// success
