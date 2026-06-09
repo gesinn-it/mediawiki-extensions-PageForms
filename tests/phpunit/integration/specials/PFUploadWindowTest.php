@@ -69,8 +69,14 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 	/**
 	 * executeSpecialPage() must not throw — this exercises showUploadForm()
 	 * via the normal execute() path and verifies the page renders without error.
+	 *
+	 * Requires MW >= 1.36 for TestUser::getAuthority().
 	 */
 	public function testExecuteRendersUploadForm() {
+		if ( version_compare( MW_VERSION, '1.36', '<' ) ) {
+			$this->markTestSkipped( 'TestUser::getAuthority() requires MW >= 1.36' );
+		}
+
 		$this->setMwGlobals( 'wgEnableUploads', true );
 
 		$performer = $this->getTestUser( [ 'sysop' ] )->getAuthority();
