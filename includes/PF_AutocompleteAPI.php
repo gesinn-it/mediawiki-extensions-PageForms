@@ -181,6 +181,27 @@ class PFAutocompleteAPI extends ApiBase {
 	}
 
 	/**
+	 * Query SMW property values directly via SQL for autocomplete.
+	 *
+	 * Why not use the SMW Store API (Store::getPropertyValues / getAllPropertySubjects)?
+	 *
+	 * Three requirements cannot be satisfied simultaneously through the public Store API:
+	 *
+	 * 1. Substring filtering with LIKE on DB level — RequestOptions::addStringCondition()
+	 *    translates to SQL LIKE internally, so this part would be doable.
+	 *
+	 * 2. base-property filtering ($basePropertyName / $baseValue) — restricts results to
+	 *    subjects that also carry a second property with a specific value. This is a
+	 *    multi-property JOIN that the Store API cannot express in a single call; the only
+	 *    alternative would be fetching all subjects first and filtering in PHP (N+1 problem)
+	 *    or rewriting as an #ask query, which loses the LIKE substring behaviour.
+	 *
+	 * 3. DisplayTitle resolution — the join on page_props for displaytitle is PF-specific
+	 *    and outside the SMW API surface entirely.
+	 *
+	 * The SMW internal table names used here (smw_object_ids, smw_di_wikipage, smw_di_blob)
+	 * have been stable since SMWSQLStore3 (SMW 2.x) and are unchanged in SMW 7.
+	 *
 	 * @param string $property_name
 	 * @param string $substring
 	 * @param string|null $basePropertyName
