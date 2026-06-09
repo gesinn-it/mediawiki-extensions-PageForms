@@ -911,6 +911,7 @@ class PFAutoeditAPI extends ApiBase {
 		$targetContent = '';
 		$form_page_title = '';
 		$generatedTargetNameFormula = '';
+		$formParserOutput = null;
 
 		// preload data if not explicitly excluded and if the preload page exists
 		if ( !isset( $this->mOptions['preload'] ) || $this->mOptions['preload'] !== false ) {
@@ -967,7 +968,7 @@ class PFAutoeditAPI extends ApiBase {
 				// extracts it back into $this->mOptions.
 				$session = RequestContext::getMain()->getRequest()->getSession();
 				RequestContext::getMain()->setRequest( new FauxRequest( $this->mOptions, true, $session ) );
-				[ $formHTML, $targetContent, $form_page_title, $generatedTargetNameFormula ] =
+				[ $formHTML, $targetContent, $form_page_title, $generatedTargetNameFormula, $formParserOutput ] =
 					$formPrinter->formHTML(
 						// Special handling for autoedit edits — otherwise, multi-instance
 						// templates don't get saved, for some convoluted reason.
@@ -997,7 +998,7 @@ class PFAutoeditAPI extends ApiBase {
 			// Spoof request context for PFFormPrinter::formHTML().
 			$session = RequestContext::getMain()->getRequest()->getSession();
 			RequestContext::getMain()->setRequest( new FauxRequest( $this->mOptions, true, $session ) );
-			[ $formHTML, $targetContent, $generatedFormName, $generatedTargetNameFormula ] =
+			[ $formHTML, $targetContent, $generatedFormName, $generatedTargetNameFormula, $formParserOutput ] =
 				$formPrinter->formHTML(
 					$formContent, $isFormSubmitted, $pageExists,
 					$formArticleId, $preloadContent, $targetName, $targetNameFormula,
@@ -1046,8 +1047,9 @@ class PFAutoeditAPI extends ApiBase {
 			}
 		} elseif ( $this->mAction === self::ACTION_FORMEDIT ) {
 			$out = $this->getOutput();
-			$parserOutput = PFUtils::getParser()->getOutput();
-			$out->addParserOutputMetadata( $parserOutput );
+			if ( $formParserOutput !== null ) {
+				$out->addParserOutputMetadata( $formParserOutput );
+			}
 
 			$this->getResult()->addValue( [ 'form' ], 'HTML', $formHTML );
 		}

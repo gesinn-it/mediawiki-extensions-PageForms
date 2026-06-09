@@ -880,6 +880,12 @@ END;
 		$parser->clearState();
 
 		$form_def = PFFormCache::getFormDefinition( $parser, $form_def, $form_id );
+		// Snapshot RL modules registered by parser tag hooks during form-definition
+		// parsing. PFFormField calls $parser->clearState() during field rendering,
+		// which resets $parser->mOutput and discards these modules. We save them
+		// here and merge them back into the final ParserOutput before returning.
+		$formDefParserModules = $parser->getOutput()->getModules();
+		$formDefParserModuleStyles = $parser->getOutput()->getModuleStyles();
 
 		$free_text_was_included = false;
 		$preloaded_free_text = null;
@@ -1914,6 +1920,21 @@ END;
 		$parser->replaceLinkHolders( $form_text );
 		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::RenderingEnd', [ &$form_text ] );
 
+		// Capture the internal parser's output so callers can forward
+		// ResourceLoader modules (and other metadata) registered by parser
+		// tag hooks (e.g. <headertabs />) to the real OutputPage via
+		// addParserOutputMetadata(). This must be done by the caller because
+		// formHTML() has no handle on the caller's OutputPage instance.
+		$parserOutput = $parser->getOutput();
+		// Restore modules that were registered during form-definition parsing
+		// but cleared by PFFormField::clearState() during field rendering.
+		if ( $formDefParserModules ) {
+			$parserOutput->addModules( $formDefParserModules );
+		}
+		if ( $formDefParserModuleStyles ) {
+			$parserOutput->addModuleStyles( $formDefParserModuleStyles );
+		}
+
 		// Send the autocomplete values to the browser, along with the
 		// mappings of which values should apply to which fields.
 		// If doing a replace, the page text is actually the modified
@@ -1924,7 +1945,7 @@ END;
 			$form_page_title = null;
 		}
 
-		return [ $form_text, $page_text, $form_page_title, $generated_page_name ];
+		return [ $form_text, $page_text, $form_page_title, $generated_page_name, $parserOutput ];
 	}
 
 	/**

@@ -297,6 +297,82 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// formHTML() – ParserOutput returned as 5th element (issue #15)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * formHTML() must return a ParserOutput as its 5th element with no
+	 * unexpected modules when the form contains no parser-tag hooks.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLReturnsParserOutputWithNoSpuriousModules(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestModTpl01}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ , , , , $parserOutput ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null, 'PFTestModPage01',
+			null, false, false, false, [], self::getTestUser()->getUser()
+		);
+
+		$this->assertInstanceOf( \ParserOutput::class, $parserOutput );
+		$this->assertSame(
+			[],
+			$parserOutput->getModules(),
+			'formHTML() must not return unexpected ResourceLoader modules in the '
+			. 'ParserOutput when the form definition contains no parser-tag hooks.'
+		);
+	}
+
+	/**
+	 * formHTML() must return a ParserOutput as its 5th element containing any
+	 * ResourceLoader modules registered by parser tag hooks during rendering.
+	 * The caller (e.g. PFAutoeditAPI) uses addParserOutputMetadata() to forward
+	 * these to the real OutputPage.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLReturnsParserOutputWithParserTagModules(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		MediaWikiServices::getInstance()->getHookContainer()->register(
+			'ParserFirstCallInit',
+			static function ( \Parser $parser ) {
+				$parser->setHook( 'pf-test-module-tag', static function (
+					$input, array $args, \Parser $p
+				) {
+					$p->getOutput()->addModules( [ 'ext.pageforms.test.sentinel' ] );
+					return '';
+				} );
+			}
+		);
+
+		$formDef = "<pf-test-module-tag />\n{{{standard input|save}}}";
+
+		[ , , , , $parserOutput ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null, 'PFTestModPage02',
+			null, false, false, false, [], self::getTestUser()->getUser()
+		);
+
+		$this->assertInstanceOf( \ParserOutput::class, $parserOutput );
+		$this->assertContains(
+			'ext.pageforms.test.sentinel',
+			$parserOutput->getModules(),
+			'formHTML() must return the internal ParserOutput as its 5th element so '
+			. 'callers can forward parser-tag-registered RL modules to OutputPage via '
+			. 'addParserOutputMetadata().'
+		);
+	}
+
+	// -------------------------------------------------------------------------
 
 	/**
 	 * Returns a mock Title for test
