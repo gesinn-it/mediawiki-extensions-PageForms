@@ -29,8 +29,96 @@ Use the appropriate base class:
 
 - `MediaWikiLangTestCase` — when language handling is under test
 
+- `SpecialPageTestBase` — extends `MediaWikiIntegrationTestCase`; use
+  when testing Special Pages
+
+- `HookRunnerTestBase` — unit test base for `HookRunner` classes;
+  validates hook delegation automatically
+
 Do **not** extend `MediaWikiIntegrationTestCase` by default — use
 `MediaWikiUnitTestCase` unless integration with MW services is required.
+
+**Testing Special Pages with SpecialPageTestBase**
+
+Extend `SpecialPageTestBase` and implement `newSpecialPage()` to return
+the page instance:
+
+``` php
+class SpecialFooTest extends SpecialPageTestBase {
+    protected function newSpecialPage() {
+        return MediaWikiServices::getInstance()
+            ->getSpecialPageFactory()->getPage( 'Foo' );
+    }
+}
+```
+
+Key methods available in tests:
+
+- `$this→executeSpecialPage( $subpage, new FauxRequest( $query, $isPosted ) )`
+  — renders the special page and returns `[ $html, $context ]`
+
+- `$this→setUserLang( 'qqx' )` — use `qqx` locale so message keys appear
+  literally in output, making assertions locale-independent
+
+- `$this→setGroupPermissions( '*', 'edit', false )` — adjust
+  permissions; combine with
+  `$this→expectException( PermissionsError::class )` to test access
+  control
+
+- `$this→insertPage( $title, $content )` — create a page as fixture
+
+- `$this→getServiceContainer()` — access MW services
+
+Annotate the class with `@group Database` when the test writes to the
+database.
+
+**Asserting HTML output**
+
+Parse the returned `$html` with `DomDocument` and `DomXPath` to assert
+on form fields, links, or rendered content:
+
+``` php
+[ $html, ] = $this->executeSpecialPage( '', new FauxRequest( [] ) );
+$dom = new DomDocument;
+$dom->loadHTML( $html );
+$xpath = new DomXpath( $dom );
+$input = $xpath->query( '//input[@name="wpFoo"]' )->item( 0 );
+$this->assertNotNull( $input );
+```
+
+**Testing HookRunner classes with HookRunnerTestBase**
+
+If the extension has a `HookRunner` class (a class that implements hook
+interfaces and delegates to `HookContainer::run()`), add a unit test
+that extends `HookRunnerTestBase`. This test automatically verifies that
+every hook method delegates correctly — right hook name, right argument
+signature.
+
+First check whether a `HookRunner` exists:
+
+``` console
+find includes -name "*HookRunner.php" | head -1
+```
+
+If one exists, the test is a one-liner:
+
+``` php
+use MediaWiki\Tests\HookContainer\HookRunnerTestBase;
+
+/**
+ * @covers \FooHookRunner
+ */
+class FooHookRunnerTest extends HookRunnerTestBase {
+    public static function provideHookRunners() {
+        yield FooHookRunner::class => [ FooHookRunner::class ];
+    }
+}
+```
+
+Place the test under `tests/phpunit/unit/` — no database needed.
+
+Do **not** introduce a `HookRunner` class just to have this test. Only
+add the test when the extension already uses the Hook Runner pattern.
 
 **Test fixtures**
 
