@@ -6,17 +6,21 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [1.3.5] - 2026-06-10
+
+SMW 7.0.0 compatibility, preview fix, and UploadWindow hardening.
+
 ### Changed
-- Upgrade `nyc` from 15 to 18, fix `brace-expansion` security vulnerability via `npm audit fix`
-- Remove dead SMWSQLStore2 branches from `PF_AutocompleteAPI` and `PF_Template`; always use SMWSQLStore3 table names
-- Remove unused `PFUtils::getSMWContLang()` shim (references `smwfContLang()`/`$smwgContLang` which no longer exist in SMW 7)
+- Upgrade `nyc` from 15 to 18, fix `brace-expansion` security vulnerability via `npm audit fix` [`6544b33`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/6544b337)
+- Remove dead SMWSQLStore2 branches from `PF_AutocompleteAPI` and `PF_Template`; always use SMWSQLStore3 table names [`0d25af6`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/0d25af61)
+- Remove unused `PFUtils::getSMWContLang()` shim (references `smwfContLang()`/`$smwgContLang` which no longer exist in SMW 7) [`ff09ad3`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/ff09ad3c)
 
 ### Fixed
-- Replace removed `DIProperty::findPropertyTypeID()` with `findPropertyValueType()` for SMW 7 compatibility
+- Replace removed `DIProperty::findPropertyTypeID()` with `findPropertyValueType()` for SMW 7 compatibility [`1e9e759`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/1e9e759d)
 - Fix "EditPage does not have a context title set" error when clicking the preview standard input on MW 1.43 [`b41bc21`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/b41bc219)
-- Forward parser tag ResourceLoader modules to OutputPage after form render [`d9de6a6`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/d9de6a60522f61ed4df731ed5ab9ddf350aba8e0)
-- Skip empty patterns in `ignoreFormName()` [`4d55220`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/4d552200006449e80154cba6cbea880a8cf4705b)
-- Fix null pointer and remove removed MW config vars in UploadWindow [`bc7e9ee`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/bc7e9ee6f9812338a59e3279ffb68196e70941fb)
+- Forward parser tag ResourceLoader modules to OutputPage after form render [`d9de6a6`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/d9de6a60)
+- Skip empty patterns in `ignoreFormName()` [`4d55220`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/4d552200)
+- Fix null pointer and remove removed MW config vars in UploadWindow [`bc7e9ee`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/bc7e9ee6)
 
 ## [1.3.4] - 2026-06-02
 
@@ -224,7 +228,8 @@ Initial release as an independent fork from upstream PageForms 5.5.1, with versi
 ### Changed
 - Simplify `PFAutocompleteAPI` and fix uninitialized `$data` [`debd8c2`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/debd8c28)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.3.4...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.3.5...HEAD
+[1.3.5]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.3.4...1.3.5
 [1.3.4]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.3.3...1.3.4
 [1.3.3]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.3.2...1.3.3
 [1.3.2]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.3.1...1.3.2
