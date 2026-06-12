@@ -66,11 +66,6 @@ Then analyse the log:
 grep -E "OK$|FAILURES|Tests:|pass|fail" /tmp/ci.log | tail -10
 ----
 
-**Coverage analysis**
-
-Use the `coverage-php-mediawiki` skill for full coverage workflow, before/after
-comparison, and Clover XML analysis.
-
 == MediaWiki Version Compatibility
 
 This section documents recurring patterns that must be applied whenever a new
@@ -211,11 +206,3 @@ dependencies in the full suite.
 **Test data naming**: Always use long, test-case-specific names for pages,
 properties, and categories (e.g. `PFTestACPropAllCharsOffText01` rather than
 `FooBar`). This prevents cross-test data pollution within the shared SMW store.
-
-== Conventional Commits
-
-include::docs/gesinn-it-docs-master-pub/sections/universal/conventional-commits-policy.adoc[]
-
-// == SemVer Policy
-
-include::docs/gesinn-it-docs-master-pub/sections/universal/semver-policy.adoc[]
