@@ -370,6 +370,13 @@ input.pfComboBoxActual {
 	border: 1px solid #a6a6a6;
 }
 
+/* OO-UI combobox dropdown menu inherits width from the inner <input> (173px)
+   instead of the widget wrapper (210px) because it uses position:absolute with
+   width:auto. Force it to be at least as wide as the widget. */
+.oo-ui-comboBoxInputWidget .oo-ui-menuSelectWidget {
+	min-width: 100%;
+}
+
 .pfTokensGhost {
 	color: #777;
 	background-color: #f7f7f7 !important;
