@@ -28,27 +28,22 @@ define( "TEST_NAMESPACE", 3000 );
  */
 class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 
-	/** @var array|null Saved Language object cache for SMW 4.2.0 fallback path */
-	private $savedLangObjCache = null;
+	/** @var array Saved Language object cache, restored in tearDown */
+	private $savedLangObjCache = [];
 
 	protected function setUp(): void {
 		parent::setUp();
 
 		// Ensure namespace 3000 is registered in the MW namespace system so that
 		// {{FULLPAGENAME}} resolves to "Test_Namespace:…" instead of "Special:Badtitle/NS3000:…".
-		// setMwGlobals() is unavailable on SMW 4.2.0 (DatabaseTestCase extends PHPUnit_Framework_TestCase
-		// directly, bypassing MW's test infrastructure), so fall back to direct $GLOBALS mutation.
-		if ( method_exists( $this, 'setMwGlobals' ) ) {
-			$this->setMwGlobals( 'wgExtraNamespaces',
-				[ TEST_NAMESPACE => 'Test_Namespace' ] + $GLOBALS['wgExtraNamespaces'] );
-		} else {
-			// SMW 4.2.0: DatabaseTestCase extends PHPUnit_Framework_TestCase directly,
-			// so setMwGlobals() is unavailable. Save and flush the Language object cache
-			// so the new namespace is picked up by getNamespaces(); restore in tearDown.
-			$this->savedLangObjCache = \Language::$mLangObjCache;
-			$GLOBALS['wgExtraNamespaces'][TEST_NAMESPACE] = 'Test_Namespace';
-			\Language::$mLangObjCache = [];
-		}
+		// We cannot use setMwGlobals() here: on SMW 4.2.0 it is unavailable (DatabaseTestCase
+		// bypasses MW test infrastructure), and on SMW 5.x its internal resetServices() call
+		// crashes with ContainerDisabledException because SMW's setUp() leaves the service
+		// container in a transitional state. Direct $GLOBALS mutation + Language cache flush
+		// is the safe approach across all SMW versions.
+		$this->savedLangObjCache = \Language::$mLangObjCache;
+		$GLOBALS['wgExtraNamespaces'][TEST_NAMESPACE] = 'Test_Namespace';
+		\Language::$mLangObjCache = [];
 		\SMW\NamespaceManager::clear();
 
 		// Register parser functions directly
@@ -67,13 +62,8 @@ class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 	}
 
 	protected function tearDown(): void {
-		if ( !method_exists( $this, 'setMwGlobals' ) ) {
-			unset( $GLOBALS['wgExtraNamespaces'][TEST_NAMESPACE] );
-			if ( $this->savedLangObjCache !== null ) {
-				\Language::$mLangObjCache = $this->savedLangObjCache;
-				$this->savedLangObjCache = null;
-			}
-		}
+		unset( $GLOBALS['wgExtraNamespaces'][TEST_NAMESPACE] );
+		\Language::$mLangObjCache = $this->savedLangObjCache;
 		parent::tearDown();
 	}
 
