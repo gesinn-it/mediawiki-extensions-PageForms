@@ -279,37 +279,6 @@ class PFFormPrinter {
 	}
 
 	/**
-	 * Get a string representing the current time, for the time zone
-	 * specified in the wiki.
-	 * @param string $includeTime
-	 * @param string $includeTimezone
-	 * @return string
-	 */
-
-	/** @deprecated — use PFFormUtils::getStringForCurrentTime() instead. */
-	public function getStringForCurrentTime( $includeTime, $includeTimezone ) {
-		return PFFormUtils::getStringForCurrentTime( $includeTime, $includeTimezone );
-	}
-
-	/**
-	 * @deprecated since PageForms 6.x — use PFFormUtils::getStringFromPassedInArray() instead.
-	 * @param array $value
-	 * @param string $delimiter
-	 * @return string
-	 */
-	public static function getStringFromPassedInArray( $value, $delimiter ) {
-		return PFFormUtils::getStringFromPassedInArray( $value, $delimiter );
-	}
-
-	/**
-	 * @deprecated since PageForms 6.x — use PFFormUtils::displayLoadingImage() instead.
-	 * @return string
-	 */
-	public static function displayLoadingImage() {
-		return PFFormUtils::displayLoadingImage();
-	}
-
-	/**
 	 * Extract preloaded field values from an existing page's wikitext using
 	 * the form definition, without generating any HTML.
 	 *
@@ -1702,14 +1671,6 @@ END;
 
 	private function createFormFieldTranslateTag( &$template, &$tif, &$form_field, &$cur_value ) {
 		$this->formFieldHtmlBuilder->createFormFieldTranslateTag( $template, $tif, $form_field, $cur_value );
-	}
-
-	/**
-	 * @deprecated since PageForms 6.x — use PFFormUtils::generateUUID() instead.
-	 * @return string
-	 */
-	private static function generateUUID() {
-		return PFFormUtils::generateUUID();
 	}
 
 }
