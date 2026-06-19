@@ -50,6 +50,11 @@ class PFFormInputParserFunction {
 		array_shift( $params );
 
 		$parser->getOutput()->addModules( [ 'ext.pageforms.forminput' ] );
+		// Also push directly to OutputPage so the module loads when #forminput is
+		// embedded via a system message on a Special page (e.g. MediaWiki:Uploadtext
+		// on Special:Upload). On MW < 1.43, interface-parser ParserOutput modules
+		// are not propagated to OutputPage automatically.
+		RequestContext::getMain()->getOutput()->addModules( [ 'ext.pageforms.forminput' ] );
 
 		// Set defaults.
 		$inFormName = $inValue = $inButtonStr = '';
