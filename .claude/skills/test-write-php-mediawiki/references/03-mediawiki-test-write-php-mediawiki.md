@@ -133,6 +133,66 @@ Place the test under `tests/phpunit/unit/` — no database needed.
 Do **not** introduce a `HookRunner` class just to have this test. Only
 add the test when the extension already uses the Hook Runner pattern.
 
+**Testing parser functions**
+
+Extend `MediaWikiIntegrationTestCase` and use the shared parser
+singleton for simple parse-and-assert tests:
+
+``` php
+$parserOutput = $this->getServiceContainer()->getParser()->parse(
+    $wikitext,
+    Title::makeTitle( NS_MAIN, 'Test' ),
+    ParserOptions::newFromAnon()
+);
+```
+
+Use `getParserFactory()→create()` only when you need to mutate the
+parser instance (e.g. registering a custom tag hook via `setHook()`).
+
+Extract the raw HTML with `getRawText()` — do **not** use `getText()`,
+which is deprecated since MW 1.42 (T353257) and has side-effects on
+`ParserOutput`:
+
+``` php
+$html = $parserOutput->getRawText();
+```
+
+`Parser::parse()` wraps inline content in `<p>…</p>\n`. Strip it with
+`Parser::stripOuterParagraph()` before asserting on plain text output:
+
+``` php
+$text = Parser::stripOuterParagraph( $parserOutput->getRawText() );
+$this->assertSame( 'expected', $text );
+```
+
+Combine with `@dataProvider` to express wikitext → output cases as a
+table:
+
+``` php
+public static function provideParserFunction(): array {
+    return [
+        'basic case'  => [ '{{#myfunc:a|b}}', 'expected output' ],
+        'empty input' => [ '{{#myfunc:}}',    '' ],
+    ];
+}
+
+#[DataProvider( 'provideParserFunction' )]
+public function testMyFunc( string $wikitext, string $expected ): void {
+    $out = $this->getServiceContainer()->getParser()->parse(
+        $wikitext,
+        Title::makeTitle( NS_MAIN, 'Test' ),
+        ParserOptions::newFromAnon()
+    );
+    $this->assertSame(
+        $expected,
+        Parser::stripOuterParagraph( $out->getRawText() )
+    );
+}
+```
+
+Annotate the class with `@group Database` — the parser service requires
+the database to be initialised even when no pages are written.
+
 **Test fixtures**
 
 - Use `setUp()` and `tearDown()` for test-scoped fixtures
