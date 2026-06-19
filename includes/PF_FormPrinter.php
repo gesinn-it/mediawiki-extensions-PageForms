@@ -13,6 +13,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormPlaceholder;
 use MediaWiki\Extension\PageForms\InputTypeRegistry;
 use MediaWiki\MediaWikiServices;
 
@@ -200,13 +201,11 @@ class PFFormPrinter {
 	}
 
 	public static function placeholderFormat( $templateName, $fieldName ) {
-		$templateName = str_replace( '_', ' ', $templateName );
-		$fieldName = str_replace( '_', ' ', $fieldName );
-		return $templateName . '___' . $fieldName;
+		return FormPlaceholder::format( $templateName, $fieldName );
 	}
 
 	public static function makePlaceholderInFormHTML( $str ) {
-		return '@insert"HTML_' . $str . '@';
+		return FormPlaceholder::toHtmlMarker( $str );
 	}
 
 	public function multipleTemplateStartHTML( $tif ) {

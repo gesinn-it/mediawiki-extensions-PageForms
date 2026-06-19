@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Changed
+- Extract `FormPlaceholder` from `PFFormPrinter`: move the `placeholderFormat` and `makePlaceholderInFormHTML` pure string helpers into `src/FormPlaceholder.php`; the old static methods on `PFFormPrinter` are retained as shims for backward compatibility
+
 ### Fixed
 - Fix combobox dropdown scroll position resetting to top when releasing the mouse after dragging the native scrollbar
 - Fix `preg_replace()` deprecation on PHP 8 when `PFUtils::getPageText()` returns null in `PF_Templates`
