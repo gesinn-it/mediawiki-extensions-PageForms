@@ -259,7 +259,7 @@
 	"action-multipageedit": "edit multiple pages using a spreadsheet",
 	"tooltip-ca-formedit": "Edit this page with a form",
 	"accesskey-ca-formedit": "&",
-	"pf-target-input-dialog-title": "Enter page name",
+	"pf-target-input-dialog-title": "Specify target page",
 	"pf-target-input-confirm": "Continue",
 	"pf-target-input-cancel": "Cancel",
 	"pf-target-input-error-empty": "Please enter a page name.",

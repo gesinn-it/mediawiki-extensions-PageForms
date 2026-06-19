@@ -25,11 +25,11 @@
 	 * @param {string} [config.dataSettings] autocomplete settings string (e.g. 'MyCategory')
 	 */
 	function PFTargetInputDialog( config ) {
-		config.title = config.dialogTitle || mw.msg( 'pf-target-input-dialog-title' );
 		PFTargetInputDialog.super.call( this, config );
 		this.defaultValue = config.defaultValue || '';
 		this.dataType = config.dataType || '';
 		this.dataSettings = config.dataSettings || '';
+		this.$windowManagerElement = config.$windowManagerElement || null;
 	}
 	OO.inheritClass( PFTargetInputDialog, OO.ui.ProcessDialog );
 
@@ -51,28 +51,73 @@
 		PFTargetInputDialog.super.prototype.initialize.call( this );
 
 		if ( this.dataType ) {
-			// Reuse pf.ComboBoxInput with a synthetic DOM element so we can
-			// leverage the full autocomplete stack without a real form field.
 			const uniqueId = 'pf-target-input-dialog-' + Date.now();
-			// Build the minimal <select> that pf.ComboBoxInput.apply() expects.
 			this.$syntheticSelect = $( '<select>' ).attr( {
 				id: uniqueId,
 				autocompletesettings: this.dataSettings,
 				autocompletedatatype: this.dataType
 			} );
-			// ComboBoxInput.apply() replaces the element in the DOM; we hide it
-			// in an off-screen container so OOUI can measure/render it properly.
-			this.$syntheticContainer = $( '<div>' )
-				.css( { position: 'absolute', left: '-9999px' } )
-				.append( this.$syntheticSelect );
-			$( document.body ).append( this.$syntheticContainer );
+			// apply() appends a loading icon to $sel.parent() — give it a temp body wrapper.
+			const $wrap = $( '<div>' ).appendTo( document.body ).append( this.$syntheticSelect );
 
-			// $overlay: true renders the dropdown menu in the document body
-			// overlay instead of inside the dialog, preventing clipping by
-			// the dialog's overflow:hidden container.
-			this.inputWidget = new pf.ComboBoxInput( { $overlay: true } );
+			// Use windowManager.$element as the overlay so the menu lives inside the same
+			// stacking context as the dialog. This avoids the offsetParent mismatch that
+			// occurs with $overlay: true (global body overlay): FloatableElement would use
+			// getRelativePosition($floatableContainer, dialogBody) → left=0, and
+			// ClippableElement.clip() would compute maxHeight=0 because getBoundingClientRect
+			// sees the container as off-screen relative to the global overlay's scroll origin.
+			this.inputWidget = new pf.ComboBoxInput( {
+				$overlay: this.$windowManagerElement || true
+			} );
+
+			// Install all menu overrides BEFORE apply() so they are active during the
+			// apply() call itself (apply() triggers onInputChange → toggle(true)).
+			const menu = this.inputWidget.getMenu();
+
+			// Prevent FloatableElement from hiding the menu when the floatable container
+			// appears to be outside the viewport (dialog body is used as scroll container).
+			menu.hideWhenOutOfView = false;
+			// Prevent MenuSelectWidget.toggle() from flipping direction to 'above' based on
+			// a viewport check against the dialog body scroll container.
+			menu.isFloatableOutOfView = () => false;
+			// Prevent ClippableElement.clip() from computing maxHeight=0 when the dialog body
+			// is detected as the scroll container and getBoundingClientRect() returns an
+			// off-screen rect for the menu's floatable container.
+			menu.clip = function () {
+				this.$clippable.css( { maxWidth: '', maxHeight: '', overflowX: '', overflowY: '' } );
+				return this;
+			};
+
+			// Suppress menu opens (apply() init, setValue(), focus(), API responses) until
+			// the user types. Flag lives on the menu instance; released by native 'input'.
+			menu._pfSuppressOpen = true;
+			const origToggle = menu.toggle.bind( menu );
+			menu.toggle = ( show ) => {
+				if ( show && menu._pfSuppressOpen ) {
+					return menu;
+				}
+				return origToggle( show );
+			};
+
 			this.inputWidget.apply( this.$syntheticSelect );
-			this.inputWidget.setValue( this.defaultValue );
+			this.inputWidget.$element.detach();
+			this.$syntheticSelect.remove();
+			$wrap.remove();
+			this.$syntheticSelect = null;
+
+			// Release suppression only on genuine user input (not programmatic setValue).
+			this.inputWidget.$input.on( 'input', () => {
+				menu._pfSuppressOpen = false;
+			} );
+
+			// Fix: PF's blur handler resizes $element to value.length * 11px for short
+			// values. Restore 100% width after each blur via rAF so the layout stays full.
+			this.inputWidget.$element.css( 'width', '100%' );
+			this.inputWidget.$input.on( 'blur', () => {
+				requestAnimationFrame( () => {
+					this.inputWidget.$element.css( 'width', '100%' );
+				} );
+			} );
 		} else {
 			this.inputWidget = new OO.ui.TextInputWidget( {
 				value: this.defaultValue,
@@ -80,13 +125,45 @@
 			} );
 		}
 
-		this.$body.append(
-			new OO.ui.FieldLayout( this.inputWidget, { align: 'top' } ).$element
-		);
+		const panel = new OO.ui.PanelLayout( { padded: true, expanded: false } );
+		panel.$element.append( this.inputWidget.$element );
+		this.$body.append( panel.$element );
 	};
 
 	PFTargetInputDialog.prototype.getBodyHeight = function () {
-		return 120;
+		return 100;
+	};
+
+	PFTargetInputDialog.prototype.getSetupProcess = function ( data ) {
+		return PFTargetInputDialog.super.prototype.getSetupProcess.call( this, data )
+			.next( () => {
+				if ( this.defaultValue && this.inputWidget.setValue ) {
+					if ( this.inputWidget.getMenu ) {
+						this.inputWidget.getMenu()._pfSuppressOpen = true;
+					}
+					this.inputWidget.setValue( this.defaultValue );
+				}
+			}, this );
+	};
+
+	PFTargetInputDialog.prototype.getReadyProcess = function ( data ) {
+		return PFTargetInputDialog.super.prototype.getReadyProcess.call( this, data )
+			.next( () => {
+				if ( this.inputWidget.getMenu ) {
+					const menu = this.inputWidget.getMenu();
+					// Re-set the floatable container after the dialog animation so
+					// computePosition() uses the final viewport-relative coordinates.
+					menu.setFloatableContainer( this.inputWidget.$element );
+					// Keep suppression active through focus() — focus triggers a second
+					// autocomplete query whose API response must also be suppressed.
+					if ( this.defaultValue ) {
+						menu._pfSuppressOpen = true;
+					}
+				}
+				if ( this.inputWidget.focus ) {
+					this.inputWidget.focus();
+				}
+			}, this );
 	};
 
 	PFTargetInputDialog.prototype.getActionProcess = function ( action ) {
@@ -110,14 +187,6 @@
 			} );
 		}
 		return PFTargetInputDialog.super.prototype.getActionProcess.call( this, action );
-	};
-
-	PFTargetInputDialog.prototype.teardown = function ( data ) {
-		if ( this.$syntheticContainer ) {
-			this.$syntheticContainer.remove();
-			this.$syntheticContainer = null;
-		}
-		return PFTargetInputDialog.super.prototype.teardown.call( this, data );
 	};
 
 	// -----------------------------------------------------------------------
@@ -181,14 +250,15 @@
 			dialogTitle: cfg.dialogTitle,
 			defaultValue: cfg.defaultValue,
 			dataType: cfg.dataType,
-			dataSettings: cfg.dataSettings
+			dataSettings: cfg.dataSettings,
+			$windowManagerElement: windowManager.$element
 		} );
 
 		windowManager.addWindows( [ dialog ] );
 		// Move focus away before opening so WindowManager's aria-hidden on the
 		// page content does not trap focus on the trigger element.
 		$trigger[ 0 ].blur();
-		const instance = windowManager.openWindow( dialog );
+		const instance = windowManager.openWindow( dialog, { title: cfg.dialogTitle || mw.msg( 'pf-target-input-dialog-title' ) } );
 		instance.opening.then( () => {
 			instance.closed.then( ( data ) => {
 				windowManager.destroy();

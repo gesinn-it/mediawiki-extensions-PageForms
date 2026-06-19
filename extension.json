@@ -518,7 +518,8 @@
 				"pf-target-input-dialog-title",
 				"pf-target-input-confirm",
 				"pf-target-input-cancel",
-				"pf-target-input-error-empty"
+				"pf-target-input-error-empty",
+				"pf-autocomplete-input-too-short"
 			],
 			"targets": [
 				"desktop",

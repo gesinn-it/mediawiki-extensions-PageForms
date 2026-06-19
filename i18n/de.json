@@ -272,7 +272,7 @@
 	"action-viewedittab": "den Reiter „{{int:edit}}“ auf Seiten zu sehen, die bearbeitet werden können",
 	"action-multipageedit": "mehrere Seiten mithilfe einer Tabelle zu bearbeiten",
 	"tooltip-ca-formedit": "Diese Seite mit einem Formular bearbeiten",
-	"pf-target-input-dialog-title": "Seitenname eingeben",
+	"pf-target-input-dialog-title": "Zielseite angeben",
 	"pf-target-input-confirm": "Weiter",
 	"pf-target-input-cancel": "Abbrechen",
 	"pf-target-input-error-empty": "Bitte einen Seitennamen eingeben.",
