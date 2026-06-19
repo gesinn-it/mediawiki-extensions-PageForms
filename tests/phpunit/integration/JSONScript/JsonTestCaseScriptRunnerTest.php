@@ -28,15 +28,27 @@ define( "TEST_NAMESPACE", 3000 );
  */
 class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 
+	/** @var array|null Saved Language object cache for SMW 4.2.0 fallback path */
+	private $savedLangObjCache = null;
+
 	protected function setUp(): void {
 		parent::setUp();
 
 		// Ensure namespace 3000 is registered in the MW namespace system so that
 		// {{FULLPAGENAME}} resolves to "Test_Namespace:…" instead of "Special:Badtitle/NS3000:…".
-		// The file-scope assignment of $wgExtraNamespaces is not picked up by the MW
-		// language/namespace cache on MW 1.35; setMwGlobals() is the correct per-test API.
-		$this->setMwGlobals( 'wgExtraNamespaces',
-			[ TEST_NAMESPACE => 'Test_Namespace' ] + $GLOBALS['wgExtraNamespaces'] );
+		// setMwGlobals() is unavailable on SMW 4.2.0 (DatabaseTestCase extends PHPUnit_Framework_TestCase
+		// directly, bypassing MW's test infrastructure), so fall back to direct $GLOBALS mutation.
+		if ( method_exists( $this, 'setMwGlobals' ) ) {
+			$this->setMwGlobals( 'wgExtraNamespaces',
+				[ TEST_NAMESPACE => 'Test_Namespace' ] + $GLOBALS['wgExtraNamespaces'] );
+		} else {
+			// SMW 4.2.0: DatabaseTestCase extends PHPUnit_Framework_TestCase directly,
+			// so setMwGlobals() is unavailable. Save and flush the Language object cache
+			// so the new namespace is picked up by getNamespaces(); restore in tearDown.
+			$this->savedLangObjCache = \Language::$mLangObjCache;
+			$GLOBALS['wgExtraNamespaces'][TEST_NAMESPACE] = 'Test_Namespace';
+			\Language::$mLangObjCache = [];
+		}
 		\SMW\NamespaceManager::clear();
 
 		// Register parser functions directly
@@ -52,6 +64,17 @@ class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 		$parser->setFunctionHook( 'autoedit_rating', [ PFAutoEditRating::class, 'run' ] );
 		$parser->setFunctionHook( 'template_params', [ PFTemplateParams::class, 'run' ] );
 		$parser->setFunctionHook( 'template_display', [ PFTemplateDisplay::class, 'run' ], Parser::SFH_OBJECT_ARGS );
+	}
+
+	protected function tearDown(): void {
+		if ( !method_exists( $this, 'setMwGlobals' ) ) {
+			unset( $GLOBALS['wgExtraNamespaces'][TEST_NAMESPACE] );
+			if ( $this->savedLangObjCache !== null ) {
+				\Language::$mLangObjCache = $this->savedLangObjCache;
+				$this->savedLangObjCache = null;
+			}
+		}
+		parent::tearDown();
 	}
 
 	protected function getParser(): Parser {
