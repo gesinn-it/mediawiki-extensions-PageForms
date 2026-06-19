@@ -13,6 +13,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormDefParser;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormPlaceholder;
 use MediaWiki\Extension\PageForms\InputTypeRegistry;
@@ -55,6 +56,8 @@ class PFFormPrinter {
 	private MultipleTemplateHtmlBuilder $multipleTemplateHtmlBuilder;
 
 	private FormFieldHtmlBuilder $formFieldHtmlBuilder;
+
+	private FormDefParser $formDefParser;
 
 	public function __construct() {
 		global $wgPageFormsDisableOutsideServices;
@@ -110,6 +113,7 @@ class PFFormPrinter {
 
 		// Build after all hooks are registered so the builder sees the full type maps.
 		$this->formFieldHtmlBuilder = new FormFieldHtmlBuilder( $this->mInputTypeHooks, $this->mSemanticTypeHooks );
+		$this->formDefParser = new FormDefParser( MediaWikiServices::getInstance()->getParserFactory() );
 	}
 
 	public function setSemanticTypeHook( $type, $is_list, $class_name, $default_args ) {
@@ -303,107 +307,14 @@ class PFFormPrinter {
 	 *   optionally 'pf_free_text' => string for any remaining page content outside templates.
 	 */
 	public function preparePreloadData( string $form_def, string $existing_page_content, ?int $form_id = null ): array {
-		$user = RequestContext::getMain()->getUser();
-
-		// Set up a fresh parser — same approach as formHTML().
-		$globalParser = PFUtils::getParser();
-		if ( method_exists( $globalParser, 'getFreshParser' ) ) {
-			$parser = $globalParser->getFreshParser();
-			if ( !$parser->getOptions() ) {
-				$parser->setOptions( ParserOptions::newFromUser( $user ) );
-			}
-		} else {
-			$parser = MediaWikiServices::getInstance()->getParserFactory()->create();
-			$parser->setOptions( ParserOptions::newFromUser( $user ) );
-		}
-		$parser->clearState();
-		// MW 1.35 requires a non-null Title for Parser::parse(). Provide a
-		// fallback when no title has been set on the parser yet.
-		if ( !is_object( $parser->getTitle() ) ) {
-			$parser->setTitle( Title::newMainPage() );
-		}
-
-		$form_def = PFFormCache::getFormDefinition( $parser, $form_def, $form_id );
-
-		// Neutralise the 'free text' standard input so it doesn't confuse the scan.
-		$form_def = str_replace( 'standard input|free text', 'field|#freetext#', $form_def );
-		$form_def_sections = $this->splitFormDefIntoSections( $form_def );
-
-		// Walk sections and collect preloaded field values.
-		$result = [];
-		$tif = null;
-		$template_key = null;
-
-		foreach ( $form_def_sections as $section ) {
-			$section = ' ' . $section;
-			$start_position = 0;
-
-			while ( true ) {
-				$brackets_loc = strpos( $section, '{{{', $start_position );
-				if ( $brackets_loc === false ) {
-					break;
-				}
-				$brackets_end_loc = strpos( $section, '}}}', $brackets_loc );
-				$bracketed_string = substr(
-					$section, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 )
-				);
-				$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
-				if ( count( $tag_components ) === 0 ) {
-					break;
-				}
-				$tag_title = trim( $tag_components[0] );
-
-				if ( $tag_title === 'for template' ) {
-					$template_name = str_replace( '_', ' ', $parser->recursiveTagParse( $tag_components[1] ) );
-					// Top-level array key: spaces → underscores, matching HtmlFormDataExtractor output.
-					$template_key = str_replace( ' ', '_', $template_name );
-					$tif = PFTemplateInForm::newFromFormTag( $tag_components, $parser );
-					$tif->setPageRelatedInfo( $existing_page_content );
-					if ( $tif->pageCallsThisTemplate() ) {
-						$tif->setFieldValuesFromPage( $existing_page_content );
-						$existing_template_text = $tif->getFullTextInPage();
-						$existing_page_content = $this->strReplaceFirst(
-							$existing_template_text, '', $existing_page_content
-						);
-					}
-				} elseif ( $tag_title === 'end template' ) {
-					$tif = null;
-					$template_key = null;
-				} elseif ( $tag_title === 'field' && $tif !== null && $template_key !== null ) {
-					$field_name = trim( $tag_components[1] );
-					if ( $field_name !== '#freetext#'
-						&& $tif->getFullTextInPage() !== ''
-						&& $tif->hasValueFromPageForField( $field_name )
-					) {
-						$result[$template_key][$field_name] = $tif->getAndRemoveValueFromPageForField( $field_name );
-					}
-				}
-
-				$start_position = $brackets_loc + 1;
-			}
-		}
-
-		// Whatever remains in $existing_page_content after all template text has been
-		// stripped is the free text section — mirror what formHTML() does when
-		// $source_is_page=true (line: $free_text = trim( $existing_page_content )).
-		// Without this, an autoedit SAVE would silently delete any free text on the page.
-		$freeText = trim( $existing_page_content );
-		if ( $freeText !== '' ) {
-			$result['pf_free_text'] = $freeText;
-		}
-
-		return $result;
+		return $this->formDefParser->preparePreloadData( $form_def, $existing_page_content, $form_id );
 	}
 
 	/**
 	 * Split a form definition string into sections on {{{for template}}} / {{{end template}}}
 	 * boundaries.
 	 *
-	 * The first element of the returned array is any text before the first template tag;
-	 * subsequent elements each start with a {{{for template}}} or {{{end template}}} tag.
-	 *
-	 * @param string $form_def Form definition wikitext (with 'standard input|free text' already
-	 *   replaced by 'field|#freetext#' when needed).
+	 * @param string $form_def Form definition wikitext.
 	 * @return list<string>
 	 */
 	private function splitFormDefIntoSections( string $form_def ): array {

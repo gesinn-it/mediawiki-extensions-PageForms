@@ -58,6 +58,7 @@ return [
         'includes/PF_FormField.php' => ['MediaWikiNoEmptyIfDefined', 'PhanTypeMismatchArgumentNullable', 'PhanTypeSuspiciousStringExpression', 'PhanUndeclaredStaticMethod', 'SecurityCheck-DoubleEscaped'],
         'includes/PF_FormLinker.php' => ['PhanParamTooFewInPHPDoc', 'PhanUndeclaredStaticMethod'],
         'includes/PF_FormPrinter.php' => ['MediaWikiNoEmptyIfDefined', 'PhanNonClassMethodCall', 'PhanPossiblyUndeclaredVariable', 'PhanRedundantCondition', 'PhanTypeMismatchArgument', 'PhanTypeMismatchArgumentInternal', 'PhanTypeMismatchArgumentNullable', 'PhanTypeMismatchArgumentNullableInternal', 'PhanTypeMismatchArgumentProbablyReal', 'PhanTypeMismatchDimFetchNullable', 'PhanTypeMismatchProperty', 'PhanTypeMismatchPropertyProbablyReal', 'PhanUndeclaredMethod', 'SecurityCheck-DoubleEscaped', 'SecurityCheck-ReDoS'],
+        'src/FormDefParser.php' => ['PhanRedundantCondition', 'PhanTypeMismatchArgumentProbablyReal', 'PhanUndeclaredMethod'],
         'src/FormFieldHtmlBuilder.php' => ['PhanTypeMismatchArgument', 'PhanTypeMismatchArgumentInternal', 'PhanTypeMismatchArgumentNullable', 'PhanTypeMismatchDimFetchNullable', 'SecurityCheck-DoubleEscaped'],
         'includes/PF_FormUtils.php' => ['PhanPossiblyUndeclaredVariable', 'PhanTypeInvalidLeftOperandOfNumericOp', 'PhanTypeMismatchArgumentInternal', 'PhanTypeMismatchArgumentNullableInternal', 'SecurityCheck-DoubleEscaped'],
         'includes/PF_HelperFormAction.php' => ['PhanUndeclaredMethod'],
