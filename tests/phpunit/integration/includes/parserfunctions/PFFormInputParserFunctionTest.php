@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
 use OOUI\BlankTheme;
 
 /**
@@ -13,16 +14,29 @@ class PFFormInputParserFunctionTest extends MediaWikiIntegrationTestCase {
 		\OOUI\Theme::setSingleton( new BlankTheme() );
 	}
 
+	private function parseWikitext( string $wikitext ): \ParserOutput {
+		// getServiceContainer() is only available from MW 1.36; fall back to the
+		// static service locator on MW 1.35.  Always use getParserFactory()->create()
+		// rather than the deprecated getParser() singleton (deprecated since MW 1.42)
+		// so each call gets a clean, isolated parser instance.
+		if ( version_compare( MW_VERSION, '1.36', '>=' ) ) {
+			$parser = $this->getServiceContainer()->getParserFactory()->create();
+		} else {
+			$parser = MediaWikiServices::getInstance()->getParserFactory()->create();
+		}
+		return $parser->parse(
+			$wikitext,
+			Title::makeTitle( NS_MAIN, 'Test' ),
+			ParserOptions::newFromAnon()
+		);
+	}
+
 	/**
 	 * When #forminput is parsed normally, ext.pageforms.forminput must be
 	 * registered on the ParserOutput.
 	 */
 	public function testModuleAddedToParserOutput(): void {
-		$parserOutput = $this->getServiceContainer()->getParser()->parse(
-			'{{#forminput:form=TestForm}}',
-			Title::makeTitle( NS_MAIN, 'Test' ),
-			ParserOptions::newFromAnon()
-		);
+		$parserOutput = $this->parseWikitext( '{{#forminput:form=TestForm}}' );
 
 		$this->assertContains(
 			'ext.pageforms.forminput',
@@ -69,11 +83,7 @@ class PFFormInputParserFunctionTest extends MediaWikiIntegrationTestCase {
 	 * uses as its mount point.
 	 */
 	public function testRendersFormInputWrapperDiv(): void {
-		$parserOutput = $this->getServiceContainer()->getParser()->parse(
-			'{{#forminput:form=TestForm}}',
-			Title::makeTitle( NS_MAIN, 'Test' ),
-			ParserOptions::newFromAnon()
-		);
+		$parserOutput = $this->parseWikitext( '{{#forminput:form=TestForm}}' );
 
 		$this->assertStringContainsString(
 			'pfFormInputWrapper',
