@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ### Changed
 - Extract `FormPlaceholder` from `PFFormPrinter`: move the `placeholderFormat` and `makePlaceholderInFormHTML` pure string helpers into `src/FormPlaceholder.php`; the old static methods on `PFFormPrinter` are retained as shims for backward compatibility
+- Extract `MultipleTemplateHtmlBuilder` from `PFFormPrinter`: move the four `multipleTemplate*HTML()` methods into `src/MultipleTemplateHtmlBuilder.php`; `PFFormPrinter` retains thin wrapper methods for backward compatibility
 
 ### Fixed
 - Fix combobox dropdown scroll position resetting to top when releasing the mouse after dragging the native scrollbar

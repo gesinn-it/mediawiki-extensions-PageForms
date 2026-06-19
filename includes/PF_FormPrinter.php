@@ -15,6 +15,7 @@
 
 use MediaWiki\Extension\PageForms\FormPlaceholder;
 use MediaWiki\Extension\PageForms\InputTypeRegistry;
+use MediaWiki\Extension\PageForms\MultipleTemplateHtmlBuilder;
 use MediaWiki\MediaWikiServices;
 
 class PFFormPrinter {
@@ -47,12 +48,15 @@ class PFFormPrinter {
 	/** Owned by InputTypeRegistry; FormPrinter delegates to it for all input-type lookups. */
 	private InputTypeRegistry $inputTypeRegistry;
 
+	private MultipleTemplateHtmlBuilder $multipleTemplateHtmlBuilder;
+
 	public function __construct() {
 		global $wgPageFormsDisableOutsideServices;
 		// Initialize variables.
 		$this->mSemanticTypeHooks = [];
 		$this->mInputTypeHooks = [];
 		$this->inputTypeRegistry = new InputTypeRegistry();
+		$this->multipleTemplateHtmlBuilder = new MultipleTemplateHtmlBuilder();
 
 		$this->standardInputsIncluded = false;
 
@@ -209,22 +213,7 @@ class PFFormPrinter {
 	}
 
 	public function multipleTemplateStartHTML( $tif ) {
-		// If placeholder is set, it means we want to insert a
-		// multiple template form's HTML into the main form's HTML.
-		// So, the HTML will be stored in $text.
-		$text = "\t" . '<div class="multipleTemplateWrapper">' . "\n";
-		$attrs = [ 'class' => 'multipleTemplateList' ];
-		if ( $tif->getMinInstancesAllowed() !== null ) {
-			$attrs['minimumInstances'] = $tif->getMinInstancesAllowed();
-		}
-		if ( $tif->getMaxInstancesAllowed() !== null ) {
-			$attrs['maximumInstances'] = $tif->getMaxInstancesAllowed();
-		}
-		if ( $tif->getDisplayedFieldsWhenMinimized() != null ) {
-			$attrs['data-displayed-fields-when-minimized'] = $tif->getDisplayedFieldsWhenMinimized();
-		}
-		$text .= "\t" . Html::openElement( 'div', $attrs ) . "\n";
-		return $text;
+		return $this->multipleTemplateHtmlBuilder->multipleTemplateStartHTML( $tif );
 	}
 
 	/**
@@ -235,31 +224,7 @@ class PFFormPrinter {
 	 * @return string
 	 */
 	public function multipleTemplateInstanceTableHTML( $form_is_disabled, $mainText ) {
-		if ( $form_is_disabled ) {
-			$addAboveButton = $removeButton = '';
-		} else {
-			$addAboveButton = Html::element( 'a', [
-				'class' => "addAboveButton",
-				'title' => wfMessage( 'pf_formedit_addanotherabove' )->text()
-			] );
-			$removeButton = Html::element( 'a', [
-				'class' => "removeButton",
-				'title' => wfMessage( 'pf_formedit_remove' )->text()
-			] );
-		}
-
-		$text = <<<END
-			<table class="multipleTemplateInstanceTable">
-			<tr>
-			<td class="instanceRearranger"></td>
-			<td class="instanceMain">$mainText</td>
-			<td class="instanceAddAbove">$addAboveButton</td>
-			<td class="instanceRemove">$removeButton</td>
-			</tr>
-			</table>
-END;
-
-		return $text;
+		return $this->multipleTemplateHtmlBuilder->multipleTemplateInstanceTableHTML( $form_is_disabled, $mainText );
 	}
 
 	/**
@@ -271,38 +236,9 @@ END;
 	 * @return string
 	 */
 	public function multipleTemplateInstanceHTML( $template_in_form, $form_is_disabled, &$section ) {
-		global $wgPageFormsCalendarHTML;
-
-		$wgPageFormsCalendarHTML[$template_in_form->getTemplateName()] = str_replace( '[num]', "[cf]", $section );
-
-		// Add the character "a" onto the instance number of this input
-		// in the form, to differentiate the inputs the form starts out
-		// with from any inputs added by the Javascript.
-		$section = str_replace( '[num]', "[{$template_in_form->getInstanceNum()}a]", $section );
-		// @TODO - this replacement should be
-		// case- and spacing-insensitive.
-		// Also, keeping the "id=" attribute should not be
-		// necessary; but currently it is, for "show on select".
-		$section = preg_replace_callback(
-			'/ id="(.*?)"/',
-			static function ( $matches ) {
-				$id = htmlspecialchars( $matches[1], ENT_QUOTES );
-				return " id=\"$id\" data-origID=\"$id\" ";
-			},
-			$section
+		return $this->multipleTemplateHtmlBuilder->multipleTemplateInstanceHTML(
+			$template_in_form, $form_is_disabled, $section
 		);
-
-		$text = "\t\t" . Html::rawElement( 'div',
-				[
-				// The "multipleTemplate" class is there for
-				// backwards-compatibility with any custom CSS on people's
-				// wikis before PF 2.0.9.
-				'class' => "multipleTemplateInstance multipleTemplate"
-			],
-			$this->multipleTemplateInstanceTableHTML( $form_is_disabled, $section )
-		) . "\n";
-
-		return $text;
 	}
 
 	/**
@@ -314,35 +250,9 @@ END;
 	 * @return string
 	 */
 	public function multipleTemplateEndHTML( $template_in_form, $form_is_disabled, $section ) {
-		global $wgPageFormsTabIndex;
-
-		$text = "\t\t" . Html::rawElement( 'div',
-			[
-				'class' => "multipleTemplateStarter",
-				'style' => "display: none",
-			],
-			$this->multipleTemplateInstanceTableHTML( $form_is_disabled, $section )
-		) . "\n";
-
-		$attributes = [
-			'tabIndex' => $wgPageFormsTabIndex,
-			'classes' => [ 'multipleTemplateAdder' ],
-			'label' => Sanitizer::decodeCharReferences( $template_in_form->getAddButtonText() ),
-			'icon' => 'add'
-		];
-		if ( $form_is_disabled ) {
-			$attributes['disabled'] = true;
-			$attributes['classes'] = [];
-		}
-		$button = new OOUI\ButtonWidget( $attributes );
-		$text .= <<<END
-	</div><!-- multipleTemplateList -->
-		<p>$button</p>
-		<div class="pfErrorMessages"></div>
-	</div><!-- multipleTemplateWrapper -->
-</fieldset>
-END;
-		return $text;
+		return $this->multipleTemplateHtmlBuilder->multipleTemplateEndHTML(
+			$template_in_form, $form_is_disabled, $section
+		);
 	}
 
 	public function tableHTML( $tif, $instanceNum ) {
