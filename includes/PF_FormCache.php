@@ -62,7 +62,7 @@ class PFFormCache {
 			// @codeCoverageIgnoreEnd
 		}
 
-		$text = PFUtils::getPageText( $preloadTitle );
+		$text = PFUtils::getPageText( $preloadTitle ) ?? '';
 		// Remove <noinclude> sections and <includeonly> tags from text
 		$text = StringUtils::delimiterReplace( '<noinclude>', '</noinclude>', '', $text );
 		$text = strtr( $text, [ '<includeonly>' => '', '</includeonly>' => '' ] );
@@ -92,7 +92,7 @@ class PFFormCache {
 
 		if ( $form_id !== null ) {
 			$form_title = Title::newFromID( $form_id );
-			$form_def = PFUtils::getPageText( $form_title );
+			$form_def = PFUtils::getPageText( $form_title ) ?? '';
 		} elseif ( $form_def == null ) {
 			return '';
 		}

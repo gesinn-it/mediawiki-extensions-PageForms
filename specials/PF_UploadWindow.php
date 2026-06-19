@@ -291,11 +291,23 @@ class PFUploadWindow extends UnlistedSpecialPage {
 		if ( !$this->mTokenOk && !$this->mCancelUpload
 			&& ( $this->mUpload && $this->mUploadClicked )
 		) {
-			$form->addPreText( $this->msg( 'session_fail_preview' )->parse() );
+			if ( version_compare( MW_VERSION, '1.38', '>=' ) ) {
+				$form->addPreHtml( $this->msg( 'session_fail_preview' )->parse() );
+			} else {
+				// @codeCoverageIgnoreStart
+				$form->addPreText( $this->msg( 'session_fail_preview' )->parse() );
+				// @codeCoverageIgnoreEnd
+			}
 		}
 
 		# Add upload error message
-		$form->addPreText( $message );
+		if ( version_compare( MW_VERSION, '1.38', '>=' ) ) {
+			$form->addPreHtml( $message );
+		} else {
+			// @codeCoverageIgnoreStart
+			$form->addPreText( $message );
+			// @codeCoverageIgnoreEnd
+		}
 
 		# Add footer to form
 		if ( !$this->msg( 'uploadfooter' )->isDisabled() ) {
@@ -305,7 +317,14 @@ class PFUploadWindow extends UnlistedSpecialPage {
 			} else {
 				$uploadFooter = $output->parse( $this->msg( 'uploadfooter' )->plain() );
 			}
-			$form->addPostText( '<div id="mw-upload-footer-message">' . $uploadFooter . "</div>\n" );
+			$footerHtml = '<div id="mw-upload-footer-message">' . $uploadFooter . "</div>\n";
+			if ( version_compare( MW_VERSION, '1.38', '>=' ) ) {
+				$form->addPostHtml( $footerHtml );
+			} else {
+				// @codeCoverageIgnoreStart
+				$form->addPostText( $footerHtml );
+				// @codeCoverageIgnoreEnd
+			}
 		}
 
 		return $form;

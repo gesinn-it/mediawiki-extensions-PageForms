@@ -868,7 +868,7 @@ class PFAutoeditAPI extends ApiBase {
 		// Get the form content - remove the <noinclude> tags from the text of the Form: page.
 		$formContent = StringUtils::delimiterReplace(
 			'<noinclude>', '</noinclude>', '',
-			PFUtils::getPageText( $formTitle, RevisionRecord::RAW )
+			PFUtils::getPageText( $formTitle, RevisionRecord::RAW ) ?? ''
 		);
 
 		// signals that the form was submitted

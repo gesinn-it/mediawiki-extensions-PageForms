@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - Fix `preg_replace()` deprecation on PHP 8 when `PFUtils::getPageText()` returns null in `PF_Templates`
 - Add missing qqq.json documentation for `pf-target-input-*` i18n messages added in the formlink feature
 - Fix `#forminput` JS module not loading when embedded in a Special page via a system message (e.g. `MediaWiki:Uploadtext`); on MW < 1.43 the interface-parser ParserOutput modules were not propagated to OutputPage
+- Fix PHP 8 / MW 1.43 deprecation warnings: null-guard `PFUtils::getPageText()` before `StringUtils::delimiterReplace()` calls in `PFFormCache`, `PFTemplate`, and `PFAutoeditAPI`; replace hard-deprecated `HTMLForm::addPreText()`/`addPostText()` with `addPreHtml()`/`addPostHtml()` in `PFUploadWindow` (MW ≥ 1.38)
 
 ## [1.3.5] - 2026-06-10
 
