@@ -20,6 +20,11 @@ use SMW\Tests\Integration\JSONScript\JSONScriptTestCaseRunnerTest;
 
 define( "TEST_NAMESPACE", 3000 );
 
+// Set at file scope so MW 1.39+ picks it up before any service resets.
+// setUp() re-applies it for MW 1.35 + SMW 4.2.0 where resetGlobalInstance()
+// wipes $wgExtraNamespaces between tests.
+$GLOBALS['wgExtraNamespaces'][TEST_NAMESPACE] = 'Test_Namespace';
+
 /**
  * @group PF
  * @group SMWExtension
@@ -28,23 +33,22 @@ define( "TEST_NAMESPACE", 3000 );
  */
 class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 
-	/** @var array Saved Language object cache, restored in tearDown */
-	private $savedLangObjCache = [];
-
 	protected function setUp(): void {
 		parent::setUp();
 
-		// Ensure namespace 3000 is registered in the MW namespace system so that
-		// {{FULLPAGENAME}} resolves to "Test_Namespace:…" instead of "Special:Badtitle/NS3000:…".
-		// We cannot use setMwGlobals() here: on SMW 4.2.0 it is unavailable (DatabaseTestCase
-		// bypasses MW test infrastructure), and on SMW 5.x its internal resetServices() call
-		// crashes with ContainerDisabledException because SMW's setUp() leaves the service
-		// container in a transitional state. Direct $GLOBALS mutation + Language cache flush
-		// is the safe approach across all SMW versions.
-		$this->savedLangObjCache = \Language::$mLangObjCache;
+		// Re-register the namespace after parent::setUp() because SMW 4.2.0's
+		// DatabaseTestCase::setUp() calls MediaWikiServices::resetGlobalInstance()
+		// which reloads MW globals and wipes any file-scope $wgExtraNamespaces entries.
+		// On SMW 5.x/7.x this is a no-op (the global survives the reset).
+		// NamespaceManager::clear() drops any cached namespace maps so the next
+		// lookup reads the updated $wgExtraNamespaces.
 		$GLOBALS['wgExtraNamespaces'][TEST_NAMESPACE] = 'Test_Namespace';
-		\Language::$mLangObjCache = [];
 		\SMW\NamespaceManager::clear();
+		// On MW 1.39+ NamespaceInfo is a service; force it to rebuild from the
+		// updated $wgExtraNamespaces. Not available on SMW 4.2.0 / MW 1.35.
+		if ( method_exists( MediaWikiServices::getInstance(), 'resetServiceForTesting' ) ) {
+			MediaWikiServices::getInstance()->resetServiceForTesting( 'NamespaceInfo' );
+		}
 
 		// Register parser functions directly
 		$parser = $this->getParser();
@@ -59,12 +63,6 @@ class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 		$parser->setFunctionHook( 'autoedit_rating', [ PFAutoEditRating::class, 'run' ] );
 		$parser->setFunctionHook( 'template_params', [ PFTemplateParams::class, 'run' ] );
 		$parser->setFunctionHook( 'template_display', [ PFTemplateDisplay::class, 'run' ], Parser::SFH_OBJECT_ARGS );
-	}
-
-	protected function tearDown(): void {
-		unset( $GLOBALS['wgExtraNamespaces'][TEST_NAMESPACE] );
-		\Language::$mLangObjCache = $this->savedLangObjCache;
-		parent::tearDown();
 	}
 
 	protected function getParser(): Parser {
