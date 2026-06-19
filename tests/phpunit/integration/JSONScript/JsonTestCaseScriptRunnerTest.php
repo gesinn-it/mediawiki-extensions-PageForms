@@ -35,7 +35,8 @@ class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 		// {{FULLPAGENAME}} resolves to "Test_Namespace:…" instead of "Special:Badtitle/NS3000:…".
 		// The file-scope assignment of $wgExtraNamespaces is not picked up by the MW
 		// language/namespace cache on MW 1.35; setMwGlobals() is the correct per-test API.
-		$this->setMwGlobals( 'wgExtraNamespaces', [ TEST_NAMESPACE => 'Test_Namespace' ] + $GLOBALS['wgExtraNamespaces'] );
+		$this->setMwGlobals( 'wgExtraNamespaces',
+			[ TEST_NAMESPACE => 'Test_Namespace' ] + $GLOBALS['wgExtraNamespaces'] );
 		\SMW\NamespaceManager::clear();
 
 		// Register parser functions directly
