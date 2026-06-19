@@ -134,6 +134,16 @@
 				this.setValues(false);
 			}
 		});
+		// Track whether the most recent mousedown started inside the dropdown
+		// menu. When the user drags the native scrollbar, the mousedown target
+		// is inside the menu but the mouseup target may drift outside (into
+		// document.body), causing the contains() check below to fail and
+		// triggering an unnecessary setValues() call that resets the scroll
+		// position. The flag is cleared on every mouseup regardless of path.
+		this._menuScrollDragging = false;
+		this.menu.$element.on( 'mousedown', () => {
+			this._menuScrollDragging = true;
+		} );
 		this.$element.mouseup( ( e ) => {
 			// Skip re-fetching when the mouseup originated from inside the
 			// dropdown menu (e.g. releasing the native scrollbar at the end of
@@ -141,7 +151,8 @@
 			// menu, triggers setValues(), rebuilds the option list via
 			// _renderItems() → setOptions() and resets the scroll position to
 			// the top, while also firing an unnecessary API call.
-			if ( this.menu.$element[ 0 ].contains( e.target ) ) {
+			if ( this.menu.$element[ 0 ].contains( e.target ) || this._menuScrollDragging ) {
+				this._menuScrollDragging = false;
 				return;
 			}
 			this.setValues(false);
