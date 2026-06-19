@@ -45,7 +45,7 @@ class PFTemplates extends QueryPage {
 	}
 
 	public function getCategoryDefinedByTemplate( $templateTitle ) {
-		$templateText = PFUtils::getPageText( $templateTitle );
+		$templateText = PFUtils::getPageText( $templateTitle ) ?? '';
 		$cat_ns_name = PFUtils::getContLang()->getNsText( NS_CATEGORY );
 		// Ignore categories inside <noinclude> tags.
 		$templateText = preg_replace( '/<noinclude>.*<\/noinclude>/isU', '', $templateText );

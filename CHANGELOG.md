@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- Fix `preg_replace()` deprecation on PHP 8 when `PFUtils::getPageText()` returns null in `PF_Templates`
+- Add missing qqq.json documentation for `pf-target-input-*` i18n messages added in the formlink feature
+
 ## [1.3.5] - 2026-06-10
 
 SMW 7.0.0 compatibility, preview fix, and UploadWindow hardening.

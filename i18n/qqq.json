@@ -316,5 +316,9 @@
 	"pf-externalpageempty": "Error message.",
 	"pf-externalpagebadjson": "Error message.",
 	"pf-simpleupload-unspecified-upload-error": "The file could not be uploaded! (Maybe it is too large?) Please check the log for errors.",
-	"pf-field-info-button": "Screen-reader label for the icon-only information button shown next to form fields with a tooltip."
+	"pf-field-info-button": "Screen-reader label for the icon-only information button shown next to form fields with a tooltip.",
+	"pf-target-input-dialog-title": "Title of the dialog shown when clicking a formlink that requires the user to enter a target page name.",
+	"pf-target-input-confirm": "Label for the confirm/continue button in the target-page input dialog.\n{{Identical|Continue}}",
+	"pf-target-input-cancel": "Label for the cancel button in the target-page input dialog.\n{{Identical|Cancel}}",
+	"pf-target-input-error-empty": "Validation error shown in the target-page input dialog when the user submits without entering a page name."
 }
