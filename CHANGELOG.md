@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - Extract `FormPlaceholder` from `PFFormPrinter`: move the `placeholderFormat` and `makePlaceholderInFormHTML` pure string helpers into `src/FormPlaceholder.php`; the old static methods on `PFFormPrinter` are retained as shims for backward compatibility
 - Extract `MultipleTemplateHtmlBuilder` from `PFFormPrinter`: move the four `multipleTemplate*HTML()` methods into `src/MultipleTemplateHtmlBuilder.php`; `PFFormPrinter` retains thin wrapper methods for backward compatibility
 - Extract `SpreadsheetHtmlBuilder` from `PFFormPrinter`: move `tableHTML()`, `getSpreadsheetAutocompleteAttributes()`, and `spreadsheetHTML()` into `src/SpreadsheetHtmlBuilder.php`; `PFFormPrinter` retains thin wrapper methods for backward compatibility; also fixes a bug where `values from wikidata` autocomplete read the wrong array key
+- Extract `FormFieldHtmlBuilder` from `PFFormPrinter`: move `formFieldHTML()`, `addTranslatableInput()`, and `createFormFieldTranslateTag()` into `src/FormFieldHtmlBuilder.php`; `PFFormPrinter` retains a thin `formFieldHTML()` shim for backward compatibility
 
 ### Fixed
 - Fix combobox dropdown scroll position resetting to top when releasing the mouse after dragging the native scrollbar
