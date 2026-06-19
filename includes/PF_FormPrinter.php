@@ -13,6 +13,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormPlaceholder;
 use MediaWiki\Extension\PageForms\InputTypeRegistry;
 use MediaWiki\Extension\PageForms\MultipleTemplateHtmlBuilder;
@@ -52,6 +53,8 @@ class PFFormPrinter {
 	private SpreadsheetHtmlBuilder $spreadsheetHtmlBuilder;
 
 	private MultipleTemplateHtmlBuilder $multipleTemplateHtmlBuilder;
+
+	private FormFieldHtmlBuilder $formFieldHtmlBuilder;
 
 	public function __construct() {
 		global $wgPageFormsDisableOutsideServices;
@@ -104,6 +107,9 @@ class PFFormPrinter {
 		MediaWikiServices::getInstance()->getHookContainer()->run(
 			'PageForms::FormPrinterSetup', [ &$formPrinterRef ]
 		);
+
+		// Build after all hooks are registered so the builder sees the full type maps.
+		$this->formFieldHtmlBuilder = new FormFieldHtmlBuilder( $this->mInputTypeHooks, $this->mSemanticTypeHooks );
 	}
 
 	public function setSemanticTypeHook( $type, $is_list, $class_name, $default_args ) {
@@ -1691,125 +1697,11 @@ END;
 	 * @return string
 	 */
 	public function formFieldHTML( $form_field, $cur_value ) {
-		global $wgPageFormsFieldNum;
-
-		// Also get the actual field, with all the semantic information
-		// (type is PFTemplateField, instead of PFFormField)
-		$template_field = $form_field->getTemplateField();
-		$class_name = null;
-
-		if ( $form_field->isHidden() ) {
-			$attribs = [];
-			if ( $form_field->hasFieldArg( 'class' ) ) {
-				$attribs['class'] = $form_field->getFieldArg( 'class' );
-			}
-			$text = Html::hidden( $form_field->getInputName(), $cur_value, $attribs );
-			$other_args = [];
-		} elseif ( $form_field->getInputType() !== '' &&
-				array_key_exists( $form_field->getInputType(), $this->mInputTypeHooks ) &&
-				$this->mInputTypeHooks[$form_field->getInputType()] != null ) {
-			// Last argument to constructor should be a hash,
-			// merging the default values for this input type with
-			// all other properties set in the form definition, plus
-			// some semantic-related arguments.
-			$hook_values = $this->mInputTypeHooks[$form_field->getInputType()];
-			$class_name = $hook_values[0];
-			$other_args = $form_field->getArgumentsForInputCall( $hook_values[1] );
-		} else {
-			// The input type is not defined in the form.
-			$property_type = $template_field->getPropertyType();
-			$is_list = ( $form_field->isList() || $template_field->isList() );
-			if ( $property_type !== '' &&
-				array_key_exists( $property_type, $this->mSemanticTypeHooks ) &&
-				isset( $this->mSemanticTypeHooks[$property_type][$is_list] ) ) {
-				$hook_values = $this->mSemanticTypeHooks[$property_type][$is_list];
-				$class_name = $hook_values[0];
-				$other_args = $form_field->getArgumentsForInputCall( $hook_values[1] );
-			} else {
-				// Anything else.
-				$class_name = 'PFTextInput';
-				$other_args = $form_field->getArgumentsForInputCall();
-				// Set default size for list inputs.
-				if ( $form_field->isList() ) {
-					if ( !array_key_exists( 'size', $other_args ) ) {
-						$other_args['size'] = 100;
-					}
-				}
-			}
-		}
-
-		if ( $class_name !== null ) {
-			$form_input = new $class_name(
-				$wgPageFormsFieldNum, $cur_value, $form_field->getInputName(),
-				$form_field->isDisabled(), $other_args
-			);
-
-			// If a regex was defined, make this a "regexp" input that wraps
-			// around the real one.
-			if ( $template_field->getRegex() !== null ) {
-				$other_args['regexp'] = $template_field->getRegex();
-				$form_input = PFRegExpInput::newFromInput( $form_input );
-			}
-			$form_input->addJavaScript();
-			$text = $form_input->getHtmlText();
-		}
-
-		$this->addTranslatableInput( $form_field, $cur_value, $text );
-		return $text;
-	}
-
-	/**
-	 * for translatable fields, this function add an hidden input containing the translate tags
-	 *
-	 * @param PFFormField $form_field
-	 * @param string $cur_value
-	 * @param string &$text
-	 */
-	private function addTranslatableInput( $form_field, $cur_value, &$text ) {
-		if ( PFUtils::isTranslateEnabled() || !$form_field->hasFieldArg( 'translatable' )
-			|| !$form_field->getFieldArg( 'translatable' ) ) {
-			return;
-		}
-
-		if ( $form_field->hasFieldArg( 'translate_number_tag' ) ) {
-			$inputName = $form_field->getInputName();
-			$pattern = '/\[([^\\]\\]]+)\]$/';
-			if ( preg_match( $pattern, $inputName, $matches ) ) {
-				$inputName = preg_replace( $pattern, '[${1}_translate_number_tag]', $inputName );
-			} else {
-				$inputName .= '_translate_number_tag';
-			}
-			$translateTag = $form_field->getFieldArg( 'translate_number_tag' );
-			$text .= "<input type='hidden' name='$inputName' value='$translateTag'/>";
-		}
+		return $this->formFieldHtmlBuilder->formFieldHTML( $form_field, $cur_value );
 	}
 
 	private function createFormFieldTranslateTag( &$template, &$tif, &$form_field, &$cur_value ) {
-		if ( PFUtils::isTranslateEnabled() || !$form_field->hasFieldArg( 'translatable' )
-			|| !$form_field->getFieldArg( 'translatable' ) ) {
-			return;
-		}
-
-		// If translatable, add translatable tags when saving, or remove them for displaying form.
-		if ( preg_match( '#^<translate>(.*)</translate>$#', $cur_value, $matches ) ) {
-			$cur_value = $matches[1];
-		} elseif ( substr( $cur_value, 0, strlen( '<translate>' ) ) == '<translate>'
-				&& substr( $cur_value, -1 * strlen( '</translate>' ) ) == '</translate>' ) {
-			// For unknown reasons, the pregmatch regex does not work every time !! :(
-			$cur_value = substr( $cur_value, strlen( '<translate>' ), -1 * strlen( '</translate>' ) );
-		}
-
-		if ( substr( $cur_value, 0, 6 ) == '<!--T:' ) {
-			// hide the tag <!-- T:X --> in another input
-			// if field does not use VisualEditor?
-
-			if ( preg_match( "/<!-- *T:([a-zA-Z0-9]+) *-->( |\n)/", $cur_value, $matches ) ) {
-				// Remove the tag from this input.
-				$cur_value = str_replace( $matches[0], '', $cur_value );
-				// Add a field arg, to add a hidden input in form with the tag.
-				$form_field->setFieldArg( 'translate_number_tag', $matches[0] );
-			}
-		}
+		$this->formFieldHtmlBuilder->createFormFieldTranslateTag( $template, $tif, $form_field, $cur_value );
 	}
 
 	/**
