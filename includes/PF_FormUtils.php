@@ -310,7 +310,14 @@ class PFFormUtils {
 		}
 		$attr['classes'] = [];
 		if ( $titleGlobal == null || $titleGlobal->isSpecial( 'FormEdit' ) ) {
-			$attr['classes'][] = 'pfSendBack';
+			$req = RequestContext::getMain()->getRequest();
+			$returnto = $req->getVal( 'returnto' );
+			$returntoTitle = $returnto !== null ? Title::newFromText( $returnto ) : null;
+			if ( $returntoTitle !== null ) {
+				$attr['href'] = $returntoTitle->getLocalURL();
+			} else {
+				$attr['classes'][] = 'pfSendBack';
+			}
 		} else {
 			$attr['href'] = $titleGlobal->getFullURL();
 		}

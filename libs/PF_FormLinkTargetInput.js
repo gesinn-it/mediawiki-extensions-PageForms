@@ -198,17 +198,26 @@
 				const value = data.value;
 				if ( cfg.isForm ) {
 					if ( cfg.isPost ) {
-						// POST form: inject hidden input for target and submit.
+						// POST form: inject hidden inputs for target and returnto, then submit.
 						$trigger.find( 'input[name="target"]' ).remove();
+						$trigger.find( 'input[name="returnto"]' ).remove();
 						$trigger.append( $( '<input>' ).attr( { type: 'hidden', name: 'target', value: value } ) );
+						$trigger.append( $( '<input>' ).attr( { type: 'hidden', name: 'returnto', value: mw.config.get( 'wgPageName' ) } ) );
 						$trigger[ 0 ].submit();
 					} else {
-						// GET form: update action URL with target path segment.
+						// GET form: update action URL with target path segment and inject
+						// returnto as a hidden input (query string on action is discarded
+						// by the browser on GET submit).
+						$trigger.find( 'input[name="returnto"]' ).remove();
 						$trigger.attr( 'action', buildTargetUrl( cfg.baseUrl, value ) );
+						$trigger.append( $( '<input>' ).attr( { type: 'hidden', name: 'returnto', value: mw.config.get( 'wgPageName' ) } ) );
 						$trigger[ 0 ].submit();
 					}
 				} else {
-					window.location.href = buildTargetUrl( cfg.baseUrl, value );
+					// Plain link: append returnto as query parameter.
+					const returnto = mw.config.get( 'wgPageName' );
+					window.location.href = buildTargetUrl( cfg.baseUrl, value ) +
+						'?returnto=' + encodeURIComponent( returnto );
 				}
 			} );
 		} );
