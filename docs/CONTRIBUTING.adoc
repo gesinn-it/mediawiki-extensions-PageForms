@@ -133,6 +133,31 @@ They are enforced by `make ci` (lint + phpcs + eslint).
 * Single Responsibility: one class, one concern
 * Order class members: `public` → `protected` → `private`
 
+*Deprecation handling*
+
+Treat deprecation warnings as errors — they are signals of technical debt that must be resolved, not suppressed.
+
+Configure `phpunit.xml` to convert `E_USER_DEPRECATED` to a test failure:
+
+[source,xml]
+----
+<phpunit convertDeprecationsToExceptions="true">
+    ...
+</phpunit>
+----
+
+When a test triggers a deprecation from code under your control, fix the code to use the non-deprecated API.
+When the deprecation originates from a third-party dependency outside your control, suppress it at the call site with a comment:
+
+[source,php]
+----
+// @deprecated-call: Foo::bar() deprecated in lib 2.3, remove when lib ≥ 3.0 is required
+@trigger_error( '', E_USER_DEPRECATED );  // suppress in test output
+$result = Foo::bar();
+----
+
+Never use `@` suppression without an explanatory comment and a removal condition.
+
 '''
 
 *Coding Conventions — PHP · MediaWiki*
@@ -156,6 +181,38 @@ Run locally: `make composer-phpcs` (or `make ci`).
 
 * No superglobals (`$_GET`, `$_POST`) — use `WebRequest` via `RequestContext`
 * No new global functions — use static utility classes (`Html`, `IP`) if needed
+
+*Version guards*
+
+Use version guards to call the correct API across supported MediaWiki versions while preventing deprecation warnings.
+
+[source,php]
+----
+if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
+    $html = $parserOutput->getRawText();
+} else {
+    // MW < 1.42: getRawText() did not exist; getText() was the only option
+    $html = $parserOutput->getText();
+}
+----
+
+Rules:
+
+* Use `MW_VERSION` — never read `$wgVersion` directly
+* Use `version_compare()` — never compare version strings with `===` or `>=` operators
+* Write the guard condition so the *new* (non-deprecated) path is the `if`-branch
+* Add a comment on the `else`-branch naming the deprecated call and the minimum version that removes the guard
+* Name version boundaries with the *first* version that ships the new API, not the last that ships the old one
+
+*Removing version guards*
+
+When support for a MediaWiki version is dropped:
+
+. Search for all guards referencing that version: +
+  `grep -rn "version_compare.*MW_VERSION.*'1.XX'" src/ includes/`
+. Delete the entire `if/else` block and keep only the `if`-branch body (the new path)
+. Delete any `@deprecated-call` comments that referenced the dropped version
+. Run the full test suite and linters to confirm nothing regressed
 
 '''
 
@@ -289,6 +346,33 @@ Every repository must have a `.eslintrc.json` at root with `"root": true`:
 * Expose public API via `module.exports` or within the `mw` namespace (e.g. `mw.echo.Foo`)
 * Use `mw.storage` / `mw.storage.session` for localStorage/sessionStorage
 * Storage keys: `mw`-prefix + camelCase/hyphens (e.g. `mwedit-state-foo`)
+
+*Deprecation handling*
+
+Treat deprecation warnings as errors — they indicate APIs that must be migrated before the next version drop.
+
+Enable the https://eslint.org/docs/latest/rules/no-restricted-syntax[`no-restricted-syntax`] or a dedicated deprecated-API rule in `.eslintrc.json` to catch known deprecated +mw.*+ calls at lint time.
+
+For MediaWiki version-conditional JS (e.g. a module available only from MW 1.41+), use `mw.config.get( 'wgVersion' )` as a guard:
+
+[source,javascript]
+----
+var mwVersion = mw.config.get( 'wgVersion' ).split( '.' ).map( Number );
+var hasFoo = mwVersion[ 0 ] > 1 || ( mwVersion[ 0 ] === 1 && mwVersion[ 1 ] >= 41 );
+if ( hasFoo ) {
+    // MW ≥ 1.41: use new API — remove guard when MW < 1.41 support is dropped
+    mw.foo.bar();
+} else {
+    // MW < 1.41 fallback
+    mw.oldFoo.bar();
+}
+----
+
+Rules:
+
+* Add a comment on the `else`-branch with the minimum MW version that makes the guard removable
+* When that version is dropped, delete the entire `if/else` and keep only the `if`-branch body
+* Search for guards to remove: `grep -rn "wgVersion" resources/`
 
 '''
 

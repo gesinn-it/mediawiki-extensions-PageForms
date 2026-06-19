@@ -81,3 +81,31 @@
 - Single Responsibility: one class, one concern
 
 - Order class members: `public` → `protected` → `private`
+
+**Deprecation handling**
+
+Treat deprecation warnings as errors — they are signals of technical
+debt that must be resolved, not suppressed.
+
+Configure `phpunit.xml` to convert `E_USER_DEPRECATED` to a test
+failure:
+
+``` xml
+<phpunit convertDeprecationsToExceptions="true">
+    ...
+</phpunit>
+```
+
+When a test triggers a deprecation from code under your control, fix the
+code to use the non-deprecated API. When the deprecation originates from
+a third-party dependency outside your control, suppress it at the call
+site with a comment:
+
+``` php
+// @deprecated-call: Foo::bar() deprecated in lib 2.3, remove when lib ≥ 3.0 is required
+@trigger_error( '', E_USER_DEPRECATED );  // suppress in test output
+$result = Foo::bar();
+```
+
+Never use `@` suppression without an explanatory comment and a removal
+condition.

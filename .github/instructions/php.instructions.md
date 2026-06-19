@@ -183,6 +183,34 @@ rules. They are enforced by `make ci` (lint + phpcs + eslint).
 
 - Order class members: `public` → `protected` → `private`
 
+**Deprecation handling**
+
+Treat deprecation warnings as errors — they are signals of technical
+debt that must be resolved, not suppressed.
+
+Configure `phpunit.xml` to convert `E_USER_DEPRECATED` to a test
+failure:
+
+``` xml
+<phpunit convertDeprecationsToExceptions="true">
+    ...
+</phpunit>
+```
+
+When a test triggers a deprecation from code under your control, fix the
+code to use the non-deprecated API. When the deprecation originates from
+a third-party dependency outside your control, suppress it at the call
+site with a comment:
+
+``` php
+// @deprecated-call: Foo::bar() deprecated in lib 2.3, remove when lib ≥ 3.0 is required
+@trigger_error( '', E_USER_DEPRECATED );  // suppress in test output
+$result = Foo::bar();
+```
+
+Never use `@` suppression without an explanatory comment and a removal
+condition.
+
 **Coding Conventions — PHP · MediaWiki**
 
 Tooling:
@@ -210,6 +238,51 @@ via PHPCS. Run locally: `make composer-phpcs` (or `make ci`).
 
 - No new global functions — use static utility classes (`Html`, `IP`) if
   needed
+
+**Version guards**
+
+Use version guards to call the correct API across supported MediaWiki
+versions while preventing deprecation warnings.
+
+``` php
+if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
+    $html = $parserOutput->getRawText();
+} else {
+    // MW < 1.42: getRawText() did not exist; getText() was the only option
+    $html = $parserOutput->getText();
+}
+```
+
+Rules:
+
+- Use `MW_VERSION` — never read `$wgVersion` directly
+
+- Use `version_compare()` — never compare version strings with `===` or
+  `>=` operators
+
+- Write the guard condition so the **new** (non-deprecated) path is the
+  `if`-branch
+
+- Add a comment on the `else`-branch naming the deprecated call and the
+  minimum version that removes the guard
+
+- Name version boundaries with the **first** version that ships the new
+  API, not the last that ships the old one
+
+**Removing version guards**
+
+When support for a MediaWiki version is dropped:
+
+1.  Search for all guards referencing that version:  
+    `grep -rn "version_compare.MW_VERSION.'1.XX'" src/ includes/`
+
+2.  Delete the entire `if/else` block and keep only the `if`-branch body
+    (the new path)
+
+3.  Delete any `@deprecated-call` comments that referenced the dropped
+    version
+
+4.  Run the full test suite and linters to confirm nothing regressed
 
 **Static Analysis — Phan · PHP**
 

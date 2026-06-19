@@ -184,6 +184,41 @@ Every repository must have a `.eslintrc.json` at root with
 - Storage keys: `mw`-prefix + camelCase/hyphens (e.g.
   `mwedit-state-foo`)
 
+**Deprecation handling**
+
+Treat deprecation warnings as errors — they indicate APIs that must be
+migrated before the next version drop.
+
+Enable the
+[`no-restricted-syntax`](https://eslint.org/docs/latest/rules/no-restricted-syntax)
+or a dedicated deprecated-API rule in `.eslintrc.json` to catch known
+deprecated mw.\* calls at lint time.
+
+For MediaWiki version-conditional JS (e.g. a module available only from
+MW 1.41+), use `mw.config.get( 'wgVersion' )` as a guard:
+
+``` javascript
+var mwVersion = mw.config.get( 'wgVersion' ).split( '.' ).map( Number );
+var hasFoo = mwVersion[ 0 ] > 1 || ( mwVersion[ 0 ] === 1 && mwVersion[ 1 ] >= 41 );
+if ( hasFoo ) {
+    // MW ≥ 1.41: use new API — remove guard when MW < 1.41 support is dropped
+    mw.foo.bar();
+} else {
+    // MW < 1.41 fallback
+    mw.oldFoo.bar();
+}
+```
+
+Rules:
+
+- Add a comment on the `else`-branch with the minimum MW version that
+  makes the guard removable
+
+- When that version is dropped, delete the entire `if/else` and keep
+  only the `if`-branch body
+
+- Search for guards to remove: `grep -rn "wgVersion" resources/`
+
 **Coding Conventions — CSS/LESS · MediaWiki**
 
 Tooling: [stylelint](https://stylelint.io/) via `npm run lint:styles`
