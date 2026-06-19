@@ -97,6 +97,7 @@ return [
         'specials/PF_UploadForm.php' => ['PhanPluginDuplicateConditionalNullCoalescing', 'PhanTypeMismatchDimEmpty', 'PhanTypeMismatchProperty', 'PhanTypeMismatchPropertyProbablyReal'],
         'specials/PF_UploadSourceField.php' => ['PhanPluginDuplicateConditionalNullCoalescing', 'PhanUndeclaredStaticMethod'],
         'specials/PF_UploadWindow.php' => ['PhanTypeMismatchArgumentNullable', 'PhanTypeMismatchArgumentNullableInternal', 'PhanUndeclaredMethod', 'SecurityCheck-DoubleEscaped', 'SecurityCheck-XSS'],
+        'src/SpreadsheetHtmlBuilder.php' => ['SecurityCheck-DoubleEscaped'],
     ],
     // 'directory_suppressions' => ['src/directory_name' => ['PhanIssueName1', 'PhanIssueName2']] can be manually added if needed.
     // (directory_suppressions will currently be ignored by subsequent calls to --save-baseline, but may be preserved in future Phan releases)

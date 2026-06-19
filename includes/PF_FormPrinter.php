@@ -16,6 +16,7 @@
 use MediaWiki\Extension\PageForms\FormPlaceholder;
 use MediaWiki\Extension\PageForms\InputTypeRegistry;
 use MediaWiki\Extension\PageForms\MultipleTemplateHtmlBuilder;
+use MediaWiki\Extension\PageForms\SpreadsheetHtmlBuilder;
 use MediaWiki\MediaWikiServices;
 
 class PFFormPrinter {
@@ -48,6 +49,8 @@ class PFFormPrinter {
 	/** Owned by InputTypeRegistry; FormPrinter delegates to it for all input-type lookups. */
 	private InputTypeRegistry $inputTypeRegistry;
 
+	private SpreadsheetHtmlBuilder $spreadsheetHtmlBuilder;
+
 	private MultipleTemplateHtmlBuilder $multipleTemplateHtmlBuilder;
 
 	public function __construct() {
@@ -57,6 +60,7 @@ class PFFormPrinter {
 		$this->mInputTypeHooks = [];
 		$this->inputTypeRegistry = new InputTypeRegistry();
 		$this->multipleTemplateHtmlBuilder = new MultipleTemplateHtmlBuilder();
+		$this->spreadsheetHtmlBuilder = new SpreadsheetHtmlBuilder();
 
 		$this->standardInputsIncluded = false;
 
@@ -256,193 +260,16 @@ class PFFormPrinter {
 	}
 
 	public function tableHTML( $tif, $instanceNum ) {
-		global $wgPageFormsFieldNum;
-
-		$allGridValues = $tif->getGridValues();
-		if ( array_key_exists( $instanceNum, $allGridValues ) ) {
-			$gridValues = $allGridValues[$instanceNum];
-		} else {
-			$gridValues = null;
-		}
-
-		$html = '';
-		foreach ( $tif->getFields() as $formField ) {
-			$fieldName = $formField->template_field->getFieldName();
-			if ( $gridValues == null ) {
-				$curValue = null;
-			} else {
-				$curValue = $gridValues[$fieldName];
-			}
-
-			if ( $formField->holdsTemplate() ) {
-				$attribs = [];
-				if ( $formField->hasFieldArg( 'class' ) ) {
-					$attribs['class'] = $formField->getFieldArg( 'class' );
-				}
-				$html .= '</table>' . "\n";
-				$html .= Html::hidden( $formField->getInputName(), $curValue, $attribs );
-				$html .= $formField->additionalHTMLForInput( $curValue, $fieldName, $tif->getTemplateName() );
-				$html .= '<table class="formtable">' . "\n";
-				continue;
-			}
-
-			if ( $formField->isHidden() ) {
-				$attribs = [];
-				if ( $formField->hasFieldArg( 'class' ) ) {
-					$attribs['class'] = $formField->getFieldArg( 'class' );
-				}
-				$html .= Html::hidden( $formField->getInputName(), $curValue, $attribs );
-				continue;
-			}
-
-			$wgPageFormsFieldNum++;
-			if ( $formField->getLabel() !== null ) {
-				$labelText = $formField->getLabel();
-				// Kind of a @HACK - for a checkbox within
-				// display=table, 'label' is used for two
-				// purposes: the label column, and the text
-				// after the checkbox. Unset the value here so
-				// that it's only used for the first purpose,
-				// and doesn't show up twice.
-				$formField->setFieldArg( 'label', '' );
-			} elseif ( $formField->getLabelMsg() !== null ) {
-				$labelText = wfMessage( $formField->getLabelMsg() )->parse();
-			} elseif ( $formField->template_field->getLabel() !== null ) {
-				$labelText = $formField->template_field->getLabel() . ':';
-			} else {
-				$labelText = $fieldName . ': ';
-			}
-			$label = Html::element( 'label',
-				[ 'for' => "input_$wgPageFormsFieldNum" ],
-				$labelText );
-
-			$labelCellAttrs = [];
-			if ( $formField->hasFieldArg( 'tooltip' ) ) {
-				$labelCellAttrs['data-tooltip'] = $formField->getFieldArg( 'tooltip' );
-			}
-
-			$labelCell = Html::rawElement( 'th', $labelCellAttrs, $label );
-			$inputHTML = $this->formFieldHTML( $formField, $curValue );
-			$inputHTML .= $formField->additionalHTMLForInput( $curValue, $fieldName, $tif->getTemplateName() );
-			$inputCell = Html::rawElement( 'td', null, $inputHTML );
-			$html .= Html::rawElement( 'tr', null, $labelCell . $inputCell ) . "\n";
-		}
-
-		$html = Html::rawElement( 'table', [ 'class' => 'formtable' ], $html );
-
-		return $html;
+		return $this->spreadsheetHtmlBuilder->tableHTML( $tif, $instanceNum, [ $this, 'formFieldHTML' ] );
 	}
 
 	public function getSpreadsheetAutocompleteAttributes( $formFieldArgs ) {
-		if ( array_key_exists( 'values from category', $formFieldArgs ) ) {
-			return [ 'category', $formFieldArgs[ 'values from category' ] ];
-		} elseif ( array_key_exists( 'cargo table', $formFieldArgs ) ) {
-			$cargo_table = $formFieldArgs[ 'cargo table' ];
-			$cargo_field = $formFieldArgs[ 'cargo field' ];
-			return [ 'cargo field', $cargo_table . '|' . $cargo_field ];
-		} elseif ( array_key_exists( 'values from property', $formFieldArgs ) ) {
-			return [ 'property', $formFieldArgs['values from property'] ];
-		} elseif ( array_key_exists( 'values from concept', $formFieldArgs ) ) {
-			return [ 'concept', $formFieldArgs['values from concept'] ];
-		} elseif ( array_key_exists( 'values dependent on', $formFieldArgs ) ) {
-			return [ 'dep_on', '' ];
-		} elseif ( array_key_exists( 'values from external data', $formFieldArgs ) ) {
-			return [ 'external data', $formFieldArgs['origName'] ];
-		} elseif ( array_key_exists( 'values from wikidata', $formFieldArgs ) ) {
-			return [ 'wikidata', $formFieldArgs['wikidata'] ];
-		} else {
-			return [ '', '' ];
-		}
+		return $this->spreadsheetHtmlBuilder->getSpreadsheetAutocompleteAttributes( $formFieldArgs );
 	}
 
 	public function spreadsheetHTML( $tif ) {
-		global $wgOut, $wgPageFormsGridValues, $wgPageFormsGridParams;
-		global $wgPageFormsScriptPath;
-
-		if ( empty( $tif->getFields() ) ) {
-			return;
-		}
-
-		$wgOut->addModules( 'ext.pageforms.spreadsheet' );
-
-		$gridParams = [];
-		foreach ( $tif->getFields() as $formField ) {
-			$templateField = $formField->template_field;
-			$formFieldArgs = $formField->getFieldArgs();
-			$possibleValues = $formField->getPossibleValues();
-
-			$inputType = $formField->getInputType();
-			$gridParamValues = [ 'name' => $templateField->getFieldName() ];
-			[ $autocompletedatatype, $autocompletesettings ] =
-				$this->getSpreadsheetAutocompleteAttributes( $formFieldArgs );
-			if ( $formField->getLabel() !== null ) {
-				$gridParamValues['label'] = $formField->getLabel();
-			}
-			if ( $formField->getDefaultValue() !== null ) {
-				$gridParamValues['default'] = $formField->getDefaultValue();
-			}
-			// currently the spreadsheets in Page Forms doesn't support the tokens input
-			// so it's better to take a default jspreadsheet editor for tokens
-			if ( $formField->isList() || $inputType == 'tokens' ) {
-				$autocompletedatatype = '';
-				$autocompletesettings = '';
-				$gridParamValues['type'] = 'text';
-			} elseif ( !empty( $possibleValues )
-				&& $autocompletedatatype != 'category' && $autocompletedatatype != 'cargo field'
-				&& $autocompletedatatype != 'concept' && $autocompletedatatype != 'property' ) {
-				$gridParamValues['values'] = $possibleValues;
-				if ( $formField->isList() ) {
-					$gridParamValues['list'] = true;
-					$gridParamValues['delimiter'] = $formField->getFieldArg( 'delimiter' );
-				}
-			} elseif ( $inputType == 'textarea' ) {
-				$gridParamValues['type'] = 'textarea';
-			} elseif ( $inputType == 'checkbox' ) {
-				$gridParamValues['type'] = 'checkbox';
-			} elseif ( $inputType == 'date' ) {
-				$gridParamValues['type'] = 'date';
-			} elseif ( $inputType == 'datetime' ) {
-				$gridParamValues['type'] = 'datetime';
-			} elseif ( $possibleValues != null ) {
-				array_unshift( $possibleValues, '' );
-				$completePossibleValues = [];
-				foreach ( $possibleValues as $value ) {
-					$completePossibleValues[] = [ 'Name' => $value, 'Id' => $value ];
-				}
-				$gridParamValues['type'] = 'select';
-				$gridParamValues['items'] = $completePossibleValues;
-				$gridParamValues['valueField'] = 'Id';
-				$gridParamValues['textField'] = 'Name';
-			} else {
-				$gridParamValues['type'] = 'text';
-			}
-			$gridParamValues['autocompletedatatype'] = $autocompletedatatype;
-			$gridParamValues['autocompletesettings'] = $autocompletesettings;
-			$gridParamValues['inputType'] = $inputType;
-			$gridParams[] = $gridParamValues;
-		}
-
-		$templateName = $tif->getTemplateName();
-		$templateDivID = str_replace( ' ', '', $templateName ) . "Grid";
-		$templateDivAttrs = [
-			'class' => 'pfSpreadsheet',
-			'id' => $templateDivID,
-			'data-template-name' => $templateName
-		];
-		if ( $tif->getHeight() != null ) {
-			$templateDivAttrs['height'] = $tif->getHeight();
-		}
-
-		$loadingImage = Html::element( 'img', [ 'src' => "$wgPageFormsScriptPath/skins/loading.gif" ] );
-		$loadingImageDiv = '<div class="loadingImage">' . $loadingImage . '</div>';
-		$text = Html::rawElement( 'div', $templateDivAttrs, $loadingImageDiv );
-
-		$wgPageFormsGridParams[$templateName] = $gridParams;
-		$wgPageFormsGridValues[$templateName] = $tif->getGridValues();
-
-		PFFormUtils::setGlobalVarsForSpreadsheet();
-
-		return $text;
+		global $wgOut, $wgPageFormsScriptPath;
+		return $this->spreadsheetHtmlBuilder->spreadsheetHTML( $tif, $wgOut, $wgPageFormsScriptPath );
 	}
 
 	/**
