@@ -15,7 +15,6 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - Extract `FormDefParser` from `PFFormPrinter`: move `preparePreloadData()` and its private helper `splitFormDefIntoSections()` into `src/FormDefParser.php`; `ParserFactory` is injected via constructor; `PFFormPrinter::preparePreloadData()` is retained as a one-line shim
 
 ### Fixed
-- Fix `JsonTestCaseScriptRunnerTest` crashing across SMW 4.2.0–5.x: replace `setMwGlobals()` (unavailable on SMW 4.2.0, causes `ContainerDisabledException` on SMW 5.x) with direct `$GLOBALS` mutation and `Language::$mLangObjCache` save/flush/restore
 - Fix combobox dropdown scroll position resetting to top when releasing the mouse after dragging the native scrollbar
 - Fix `preg_replace()` deprecation on PHP 8 when `PFUtils::getPageText()` returns null in `PF_Templates`
 - Add missing qqq.json documentation for `pf-target-input-*` i18n messages added in the formlink feature
