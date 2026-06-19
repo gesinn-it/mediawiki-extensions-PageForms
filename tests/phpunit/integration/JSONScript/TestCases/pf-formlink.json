@@ -22,6 +22,30 @@
 			"namespace": "TEST_NAMESPACE",
 			"page": "1 & 2 + 3 button",
 			"contents": "{{#formlink:link type=button|form=FORM|link text=LINK TEXT|parameter={{FULLPAGENAME}}}}"
+		},
+		{
+			"page": "formlink with target input link",
+			"contents": "{{#formlink:form=FORM|link text=LINK TEXT|target input}}"
+		},
+		{
+			"page": "formlink with target input link and default target",
+			"contents": "{{#formlink:form=FORM|link text=LINK TEXT|target input|target=My Page}}"
+		},
+		{
+			"page": "formlink with target input link and dialog title",
+			"contents": "{{#formlink:form=FORM|link text=LINK TEXT|target input|target dialog title=Enter a name}}"
+		},
+		{
+			"page": "formlink with target input link and autocomplete category",
+			"contents": "{{#formlink:form=FORM|link text=LINK TEXT|target input|target from category=MyCategory}}"
+		},
+		{
+			"page": "formlink with target input button",
+			"contents": "{{#formlink:form=FORM|link type=button|link text=LINK TEXT|target input}}"
+		},
+		{
+			"page": "formlink with target input button and default target",
+			"contents": "{{#formlink:form=FORM|link type=button|link text=LINK TEXT|target input|target=My Page}}"
 		}
 	],
 	"tests": [
@@ -66,6 +90,87 @@
 					"<form action=\"/index.php/Special:FormEdit/FORM\" method=\"get\" target=\"_self\">",
 					"<span class=\"oo-ui-labelElement-label\">LINK TEXT</span>",
 					"<input type=\"hidden\" value=\"Test Namespace:1 &amp; 2 + 3 button\" name=\"parameter\" />"
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "target input link: activates dialog marker, no target in href",
+			"subject": "formlink with target input link",
+			"assert-output": {
+				"to-contain": [
+					"data-pf-target-input=\"1\""
+				],
+				"not-contain": [
+					"href=\"/index.php/Special:FormEdit/FORM/",
+					"href=\"/index.php/Special:FormEdit/FORM?target="
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "target input link with default target: target omitted from href, carried in data attribute",
+			"subject": "formlink with target input link and default target",
+			"assert-output": {
+				"to-contain": [
+					"data-pf-target-input=\"1\"",
+					"data-pf-target-default=\"My Page\""
+				],
+				"not-contain": [
+					"href=\"/index.php/Special:FormEdit/FORM/My"
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "target input link with dialog title: title carried in data attribute",
+			"subject": "formlink with target input link and dialog title",
+			"assert-output": {
+				"to-contain": [
+					"data-pf-target-input=\"1\"",
+					"data-pf-target-dialog-title=\"Enter a name\""
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "target input link with autocomplete category: data attributes set",
+			"subject": "formlink with target input link and autocomplete category",
+			"assert-output": {
+				"to-contain": [
+					"data-pf-target-input=\"1\"",
+					"data-pf-autocomplete-settings=\"MyCategory\"",
+					"data-pf-autocomplete-datatype=\"category\""
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "target input button: activates dialog marker on form element, no target in action",
+			"subject": "formlink with target input button",
+			"assert-output": {
+				"to-contain": [
+					"data-pf-target-input=\"1\"",
+					"<form action=\"/index.php/Special:FormEdit/FORM\""
+				],
+				"not-contain": [
+					"action=\"/index.php/Special:FormEdit/FORM/",
+					"action=\"/index.php/Special:FormEdit/FORM?target="
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "target input button with default target: target omitted from action, carried in data attribute",
+			"subject": "formlink with target input button and default target",
+			"assert-output": {
+				"to-contain": [
+					"data-pf-target-input=\"1\"",
+					"data-pf-target-default=\"My Page\"",
+					"<form action=\"/index.php/Special:FormEdit/FORM\""
+				],
+				"not-contain": [
+					"action=\"/index.php/Special:FormEdit/FORM/My"
 				]
 			}
 		}

@@ -5,6 +5,7 @@ use MediaWiki\MediaWikiServices;
  * '#formlink' is called as:
  *
  * {{#formlink:form=|link text=|link type=|tooltip=|query string=|target=
+ * |target input|target dialog title=|target from category=
  * |popup|reload|...additional query string values...}}
  *
  * This function returns HTML representing a link to a form; given that
@@ -23,6 +24,16 @@ use MediaWiki\MediaWikiServices;
  * (or, in the case of 'post button', to be sent as hidden inputs).
  * 'target' is an optional value, setting the name of the page to be
  * edited by the form.
+ * 'target input' is an optional flag that, when set, opens an OOUI dialog
+ * prompting the user to enter the target page name before navigating.
+ * 'target dialog title' sets the title of that dialog (parsed, supports i18n
+ * templates like {{int:...}}); falls back to the 'pf-target-input-dialog-title'
+ * message.
+ * 'target from category=X', 'target from namespace=X', 'target from concept=X',
+ * etc. attach autocomplete suggestions to the dialog input, using the same
+ * source syntax as the combobox field type.
+ * When 'target input' and 'target=' are combined, 'target=' pre-fills the
+ * dialog input as a default value.
  * 'reload' is an optional parameter that can be used alongside either
  * 'popup' or 'returnto'; it causes the page that the user ends up on after
  * submitting the form to get reloaded with 'action=purge'.
@@ -50,6 +61,10 @@ class PFFormLink {
 		$inFormName = $inLinkStr = $inExistingPageLinkStr = $inLinkType =
 			$inTooltip = $inTargetName = '';
 		$hasPopup = $hasReturnTo = false;
+		$inTargetInput = false;
+		$inTargetDialogTitle = '';
+		$inTargetAutocompleteSettings = '';
+		$inTargetRemoteDataType = '';
 		$className = static::class;
 		if ( $className == 'PFQueryFormLink' ) {
 			$inLinkStr = wfMessage( 'runquery' )->parse();
@@ -95,6 +110,15 @@ class PFFormLink {
 				$inTooltip = Sanitizer::decodeCharReferences( $value );
 			} elseif ( $param_name == 'target' ) {
 				$inTargetName = Sanitizer::decodeCharReferences( $value );
+			} elseif ( $param_name == null && $value == 'target input' ) {
+				$inTargetInput = true;
+			} elseif ( $param_name == 'target dialog title' ) {
+				$inTargetDialogTitle = $value;
+			} elseif ( $param_name !== null && str_starts_with( $param_name, 'target from ' ) ) {
+				$sourceKey = str_replace( 'target from ', 'values from ', $param_name );
+				$fieldArgs = [ $sourceKey => $value ];
+				[ $inTargetAutocompleteSettings, $inTargetRemoteDataType ] =
+					array_slice( PFValuesUtils::setAutocompleteValues( $fieldArgs, false ), 0, 2 );
 			} elseif ( $param_name == null && $value == 'popup' ) {
 				self::loadScriptsForPopupForm( $parser );
 				$classStr = 'popupformlink';
@@ -158,16 +182,19 @@ class PFFormLink {
 		}
 		$formSpecialPageTitle = $formSpecialPage->getPageTitle();
 
+		// When target input is active, the target is supplied by the dialog at
+		// click-time; omit it from the base URL so JS can append it cleanly.
+		$urlTargetName = $inTargetInput ? '' : $inTargetName;
 		if ( $inFormName == '' ) {
-			$query = [ 'target' => $inTargetName ];
+			$query = [ 'target' => $urlTargetName ];
 			$link_url = $formSpecialPageTitle->getLocalURL( $query );
 		} elseif ( strpos( $inFormName, '/' ) == true ) {
-			$query = [ 'form' => $inFormName, 'target' => $inTargetName ];
+			$query = [ 'form' => $inFormName, 'target' => $urlTargetName ];
 			$link_url = $formSpecialPageTitle->getLocalURL( $query );
 		} else {
 			$link_url = $formSpecialPageTitle->getLocalURL() . "/$inFormName";
-			if ( !empty( $inTargetName ) ) {
-				$link_url .= "/$inTargetName";
+			if ( !empty( $urlTargetName ) ) {
+				$link_url .= "/$urlTargetName";
 			}
 			$link_url = str_replace( ' ', '_', $link_url );
 		}
@@ -197,6 +224,10 @@ class PFFormLink {
 					break;
 			}
 		}
+		if ( $inTargetInput ) {
+			$parser->getOutput()->addModules( [ 'ext.pageforms.formlink.targetinput' ] );
+		}
+
 		if ( $inLinkType == 'button' || $inLinkType == 'post button' ) {
 			$parser->getOutput()->setEnableOOUI( true );
 			OutputPage::setupOOUI();
@@ -213,11 +244,22 @@ class PFFormLink {
 				'class' => $classStr,
 				'target' => $targetWindow
 			];
+			if ( $inTargetInput ) {
+				$formAttrs['data-pf-target-input'] = '1';
+				$formAttrs['data-pf-target-default'] = $inTargetName;
+				$formAttrs['data-pf-target-dialog-title'] = $inTargetDialogTitle;
+				if ( $inTargetAutocompleteSettings !== '' ) {
+					$formAttrs['data-pf-autocomplete-settings'] = $inTargetAutocompleteSettings;
+				}
+				if ( $inTargetRemoteDataType !== '' ) {
+					$formAttrs['data-pf-autocomplete-datatype'] = $inTargetRemoteDataType;
+				}
+			}
 			$str = Html::rawElement( 'form', $formAttrs, $buttonHTML . $hidden_inputs );
 		} else {
 			// If a target page has been specified but it doesn't
 			// exist, make it a red link.
-			if ( !empty( $inTargetName ) ) {
+			if ( !empty( $inTargetName ) && !$inTargetInput ) {
 				if ( !$targetPageExists ) {
 					$classStr .= " new";
 				}
@@ -227,10 +269,22 @@ class PFFormLink {
 					$inLinkStr = $inTargetName;
 				}
 			}
-			$str = Html::rawElement( 'a', [
+			$linkAttrs = [
 				'href' => $link_url, 'class' => $classStr,
 				'title' => $inTooltip, 'target' => $targetWindow
-			], $inLinkStr );
+			];
+			if ( $inTargetInput ) {
+				$linkAttrs['data-pf-target-input'] = '1';
+				$linkAttrs['data-pf-target-default'] = $inTargetName;
+				$linkAttrs['data-pf-target-dialog-title'] = $inTargetDialogTitle;
+				if ( $inTargetAutocompleteSettings !== '' ) {
+					$linkAttrs['data-pf-autocomplete-settings'] = $inTargetAutocompleteSettings;
+				}
+				if ( $inTargetRemoteDataType !== '' ) {
+					$linkAttrs['data-pf-autocomplete-datatype'] = $inTargetRemoteDataType;
+				}
+			}
+			$str = Html::rawElement( 'a', $linkAttrs, $inLinkStr );
 		}
 
 		return $str;

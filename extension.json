@@ -506,6 +506,25 @@
 				"mobile"
 			]
 		},
+		"ext.pageforms.formlink.targetinput": {
+			"scripts": [
+				"libs/PF_FormLinkTargetInput.js"
+			],
+			"dependencies": [
+				"oojs-ui-windows",
+				"ext.pageforms.ooui.combobox"
+			],
+			"messages": [
+				"pf-target-input-dialog-title",
+				"pf-target-input-confirm",
+				"pf-target-input-cancel",
+				"pf-target-input-error-empty"
+			],
+			"targets": [
+				"desktop",
+				"mobile"
+			]
+		},
 		"ext.pageforms.ooui.combobox": {
 			"scripts": [
 				"libs/PF_ComboBoxDataSource.js",
