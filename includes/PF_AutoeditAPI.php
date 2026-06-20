@@ -343,8 +343,7 @@ class PFAutoeditAPI extends ApiBase {
 				'wpUnicodeCheck' => 'ℳ𝒲♥𝓊𝓃𝒾𝒸ℴ𝒹ℯ',
 				'wpSummary' => '',
 				'wpStarttime' => wfTimestampNow(),
-				'wpEditToken' => isset( $this->mOptions[ 'token' ] )
-					? $this->mOptions[ 'token' ] : $this->getUser()->getEditToken(),
+				'wpEditToken' => $this->mOptions[ 'token' ] ?? $this->getUser()->getEditToken(),
 				'action' => 'submit',
 			],
 			$this->mOptions
@@ -909,9 +908,10 @@ class PFAutoeditAPI extends ApiBase {
 		$formParserOutput = null;
 
 		// preload data if not explicitly excluded and if the preload page exists
-		if ( !isset( $this->mOptions['preload'] ) || $this->mOptions['preload'] !== false ) {
-			if ( isset( $this->mOptions['preload'] ) && is_string( $this->mOptions['preload'] ) ) {
-				$preloadTitle = Title::newFromText( $this->mOptions['preload'] );
+		$preloadOption = $this->mOptions['preload'] ?? null;
+		if ( $preloadOption !== false ) {
+			if ( is_string( $preloadOption ) ) {
+				$preloadTitle = Title::newFromText( $preloadOption );
 			} else {
 				$preloadTitle = Title::newFromText( $targetName );
 			}
@@ -923,9 +923,9 @@ class PFAutoeditAPI extends ApiBase {
 				$pageExists = true;
 
 			} else {
-				if ( isset( $this->mOptions['preload'] ) ) {
+				if ( $preloadOption !== null ) {
 					$this->logMessage( $this->msg(
-						'pf_autoedit_invalidpreloadspecified', $this->mOptions['preload']
+						'pf_autoedit_invalidpreloadspecified', $preloadOption
 					)->parse(), self::WARNING );
 				}
 			}

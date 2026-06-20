@@ -12,7 +12,6 @@ return [
     // PhanUndeclaredClassMethod : 50+ occurrences
     // SecurityCheck-DoubleEscaped : 45+ occurrences
     // PhanTypeMismatchArgumentProbablyReal : 25+ occurrences
-    // PhanPluginDuplicateConditionalNullCoalescing : 10+ occurrences
     // PhanTypeMismatchArgumentNullable : 10+ occurrences
     // PhanUndeclaredMethod : 10+ occurrences
     // PhanTypeMismatchArgument : 7 occurrences
@@ -32,6 +31,7 @@ return [
     // PhanUndeclaredClassInstanceof : 2 occurrences
     // PhanUndeclaredClassReference : 2 occurrences
     // PhanParamTooFewInPHPDoc : 1 occurrence
+    // PhanPluginDuplicateConditionalNullCoalescing : 1 occurrence
     // PhanRedundantValueComparison : 1 occurrence
     // PhanTypeArraySuspiciousNullable : 1 occurrence
     // PhanTypeInvalidLeftOperandOfNumericOp : 1 occurrence
@@ -54,7 +54,7 @@ return [
             'PhanUndeclaredClassMethod' => ['\\PFAutocompleteAPI::computeAllValuesForProperty']
         ],
         'includes/PF_AutoeditAPI.php' => [
-            'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFAutoeditAPI::doStore', '\\PFAutoeditAPI::setupEditPage'],
+            'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFAutoeditAPI::doStore'],
             'PhanRedundantCondition' => ['\\PFAutoeditAPI::doStore'],
             'PhanRedundantValueComparison' => ['\\PFAutoeditAPI::doStore'],
             'PhanTypeMismatchArgumentInternalReal' => ['\\PFAutoeditAPI::generateTargetName'],
@@ -68,7 +68,6 @@ return [
             'PhanRedundantCondition' => ['\\PFCreatePageJob::run']
         ],
         'includes/PF_FormCache.php' => [
-            'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFFormCache::getFormCache'],
             'PhanTypeMismatchArgument' => ['\\PFFormCache::getFormDefinition'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormCache::purgeCache']
         ],
@@ -175,9 +174,6 @@ return [
             'PhanRedundantCondition' => ['\\PFTreeInput::makeTitle'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFTreeInput::getHTML']
         ],
-        'includes/parserfunctions/PF_ArrayMap.php' => [
-            'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFArrayMap::run']
-        ],
         'includes/parserfunctions/PF_AutoEdit.php' => [
             'PhanTypeMismatchArgumentNullableInternal' => ['\\PFAutoEdit::convertQueryString'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoEdit::run'],
@@ -198,13 +194,11 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFFormLink::createFormLink']
         ],
         'specials/PF_FormEdit.php' => [
-            'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFFormEdit::execute'],
             'PhanUndeclaredClassMethod' => ['\\PFFormEdit::showCaptcha'],
             'PhanUndeclaredClassReference' => ['\\PFFormEdit::showCaptcha'],
             'PhanUndeclaredMethod' => ['\\PFFormEdit::printForm']
         ],
         'specials/PF_FormStart.php' => [
-            'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFFormStart::execute'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormStart::execute'],
             'SecurityCheck-DoubleEscaped' => ['\\PFFormStart::execute']
         ],
@@ -225,13 +219,11 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFTemplates::formatResult']
         ],
         'specials/PF_UploadForm.php' => [
-            'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFUploadForm::__construct'],
             'PhanTypeMismatchDimEmpty' => ['\\PFUploadForm::__construct'],
             'PhanTypeMismatchProperty' => ['\\PFUploadForm::__construct'],
             'PhanTypeMismatchPropertyProbablyReal' => ['\\PFUploadForm::__construct']
         ],
         'specials/PF_UploadSourceField.php' => [
-            'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFUploadSourceField::getSize'],
             'PhanUndeclaredStaticMethod' => ['\\PFUploadSourceField::userCanExecute']
         ],
         'specials/PF_UploadWindow.php' => [

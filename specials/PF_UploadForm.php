@@ -62,13 +62,12 @@ class PFUploadForm extends HTMLForm {
 		}
 		$this->mWatch = !empty( $options['watch'] );
 		$this->mForReUpload = !empty( $options['forreupload'] );
-		$this->mSessionKey = isset( $options['sessionkey'] )
-				? $options['sessionkey'] : '';
+		$this->mSessionKey = $options['sessionkey'] ?? '';
 		$this->mHideIgnoreWarning = !empty( $options['hideignorewarning'] );
-		$this->mDestFile = isset( $options['destfile'] ) ? $options['destfile'] : '';
+		$this->mDestFile = $options['destfile'] ?? '';
 
-		$this->mTextTop = isset( $options['texttop'] ) ? $options['texttop'] : '';
-		$this->mTextAfterSummary = isset( $options['textaftersummary'] ) ? $options['textaftersummary'] : '';
+		$this->mTextTop = $options['texttop'] ?? '';
+		$this->mTextAfterSummary = $options['textaftersummary'] ?? '';
 
 		$sourceDescriptor = $this->getSourceSection();
 		$descriptor = $sourceDescriptor

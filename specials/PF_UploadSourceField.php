@@ -40,9 +40,7 @@ class PFUploadSourceField extends HTMLTextField {
 	}
 
 	public function getSize() {
-		return isset( $this->mParams['size'] )
-			? $this->mParams['size']
-			: 60;
+		return $this->mParams['size'] ?? 60;
 	}
 
 	/**

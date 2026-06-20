@@ -273,9 +273,7 @@ class PFFormCache {
 	 */
 	public static function getFormCache(): BagOStuff {
 		global $wgPageFormsFormCacheType, $wgParserCacheType;
-		return ObjectCache::getInstance(
-			( $wgPageFormsFormCacheType !== null ) ? $wgPageFormsFormCacheType : $wgParserCacheType
-		);
+		return ObjectCache::getInstance( $wgPageFormsFormCacheType ?? $wgParserCacheType );
 	}
 
 	/**
