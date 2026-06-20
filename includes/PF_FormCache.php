@@ -121,8 +121,7 @@ class PFFormCache {
 		);
 
 		// Parse wiki-text.
-		// @phan-suppress-next-line PhanRedundantCondition for BC with old MW
-		$title = is_object( $parser->getTitle() ) ? $parser->getTitle() : $form_title;
+		$title = $parser->getTitle();
 		// We need to pass "false" in to the parse() $clearState param so that
 		// embedding Special:RunQuery will work.
 		$output = $parser->parse( $form_def, $title, $parser->getOptions(), true, false );
