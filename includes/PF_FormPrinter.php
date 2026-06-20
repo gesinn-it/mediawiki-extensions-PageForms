@@ -19,6 +19,7 @@ use MediaWiki\Extension\PageForms\FormPlaceholder;
 use MediaWiki\Extension\PageForms\InputTypeRegistry;
 use MediaWiki\Extension\PageForms\MultipleTemplateHtmlBuilder;
 use MediaWiki\Extension\PageForms\SpreadsheetHtmlBuilder;
+use MediaWiki\Extension\PageForms\StandardInputHtmlBuilder;
 use MediaWiki\MediaWikiServices;
 
 class PFFormPrinter {
@@ -61,6 +62,8 @@ class PFFormPrinter {
 
 	private FormDefParser $formDefParser;
 
+	private StandardInputHtmlBuilder $standardInputHtmlBuilder;
+
 	public function __construct() {
 		global $wgPageFormsDisableOutsideServices;
 		// Initialize variables.
@@ -70,6 +73,7 @@ class PFFormPrinter {
 		$this->calendarHtmlBuilder = new CalendarHtmlBuilder();
 		$this->multipleTemplateHtmlBuilder = new MultipleTemplateHtmlBuilder();
 		$this->spreadsheetHtmlBuilder = new SpreadsheetHtmlBuilder();
+		$this->standardInputHtmlBuilder = new StandardInputHtmlBuilder();
 
 		$this->standardInputsIncluded = false;
 
@@ -993,80 +997,29 @@ END;
 				// standard input processing
 				// =====================================================
 				} elseif ( $tag_title == 'standard input' ) {
-					// handle all the possible values
 					$input_name = $tag_components[1];
-					$input_label = null;
-					$attr = [];
 
 					// if it's a query, ignore all standard inputs except run query
 					if ( ( $is_query && $input_name != 'run query' )
 						|| ( !$is_query && $input_name == 'run query' ) ) {
-						$new_text = "";
 						$section = substr_replace(
-							$section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
+							$section, "", $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
 						);
 						continue;
 					}
 					// set a flag so that the standard 'form bottom' won't get displayed
 					$this->standardInputsIncluded = true;
-					// cycle through the other components
-					$is_checked = false;
-					for ( $i = 2; $i < count( $tag_components ); $i++ ) {
-						$component = $tag_components[$i];
-						$sub_components = array_map( 'trim', explode( '=', $component ) );
-						if ( count( $sub_components ) == 1 ) {
-							if ( $sub_components[0] == 'checked' ) {
-								$is_checked = true;
-							}
-						} elseif ( count( $sub_components ) == 2 ) {
-							switch ( $sub_components[0] ) {
-								case 'label':
-									$input_label = $parser->recursiveTagParse( $sub_components[1] );
-									break;
-								case 'class':
-									$attr['class'] = $sub_components[1];
-									break;
-								case 'style':
-									$attr['style'] = Sanitizer::checkCSS( $sub_components[1] );
-									break;
-							}
-						}
-					}
-					if ( $input_name == 'summary' ) {
-						$value = $request->getVal( 'wpSummary' );
-						$new_text = PFFormUtils::summaryInputHTML(
-							$form_is_disabled, $input_label, $attr, $value
-						);
-					} elseif ( $input_name == 'minor edit' ) {
-						$is_checked = $request->getCheck( 'wpMinoredit' );
-						$new_text = PFFormUtils::minorEditInputHTML(
-						$form_submitted, $form_is_disabled, $is_checked, $input_label, $attr
-						);
-					} elseif ( $input_name == 'watch' ) {
-						$is_checked = $request->getCheck( 'wpWatchthis' );
-						$new_text = PFFormUtils::watchInputHTML(
-							$form_submitted, $form_is_disabled, $is_checked, $input_label, $attr
-						);
-					} elseif ( $input_name == 'save' ) {
-						$new_text = PFFormUtils::saveButtonHTML( $form_is_disabled, $input_label, $attr );
-					} elseif ( $input_name == 'save and continue' ) {
-						// Remove save and continue button in one-step-process
-						if ( $this->mPageTitle == $page_name ) {
-							$new_text = PFFormUtils::saveAndContinueButtonHTML(
-								$form_is_disabled, $input_label, $attr
-							);
-						} else {
-							$new_text = '';
-						}
-					} elseif ( $input_name == 'preview' ) {
-						$new_text = PFFormUtils::showPreviewButtonHTML( $form_is_disabled, $input_label, $attr );
-					} elseif ( $input_name == 'changes' ) {
-						$new_text = PFFormUtils::showChangesButtonHTML( $form_is_disabled, $input_label, $attr );
-					} elseif ( $input_name == 'cancel' ) {
-						$new_text = PFFormUtils::cancelLinkHTML( $form_is_disabled, $input_label, $attr );
-					} elseif ( $input_name == 'run query' ) {
-						$new_text = PFFormUtils::runQueryButtonHTML( $form_is_disabled, $input_label, $attr );
-					}
+
+					$new_text = $this->standardInputHtmlBuilder->buildHtml(
+						$input_name,
+						$tag_components,
+						$form_is_disabled,
+						$form_submitted,
+						$request,
+						$parser,
+						$this->mPageTitle,
+						$page_name
+					);
 					$section = substr_replace(
 						$section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
 					);
