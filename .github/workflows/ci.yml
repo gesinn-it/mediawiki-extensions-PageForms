@@ -17,7 +17,7 @@ jobs:
 
   test:
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     continue-on-error: ${{ matrix.experimental }}
 
     strategy:
@@ -68,7 +68,7 @@ jobs:
       NODE_JS: ${{ matrix.coverage && '1' || '' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           submodules: recursive
                    
