@@ -553,7 +553,7 @@ class PFFormPrinter {
 						if ( count( $tagParts ) == 2 && $tagParts[0] == 'default filename' ) {
 							continue;
 						}
-						if ( strpos( $tag_component, '<' ) !== false && strpos( $tag_component, '>' ) !== false ) {
+						if ( str_contains( $tag_component, '<' ) && str_contains( $tag_component, '>' ) ) {
 							throw new MWException(
 								'<div class="error">Error in form definition!' .
 						' The following field tag contains forbidden characters:</div>' .
@@ -1282,7 +1282,7 @@ END;
 
 				// If there is a placeholder in the text, we
 				// know that we are doing a replace.
-				if ( $existing_page_content && strpos( $existing_page_content, '{{{insertionpoint}}}', 0 ) !== false ) {
+				if ( $existing_page_content && str_contains( $existing_page_content, '{{{insertionpoint}}}' ) ) {
 					$existing_page_content = preg_replace( '/\{\{\{insertionpoint\}\}\}(\r?\n?)/',
 						preg_replace( '/\}\}/m', '}�',
 							preg_replace( '/\{\{/m', '�{', $template_text ) ) .

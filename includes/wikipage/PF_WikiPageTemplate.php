@@ -54,7 +54,7 @@ class PFWikiPageTemplate {
 		$prefix = '_unhandled_' . $templateName . '_';
 		$prefixSize = strlen( $prefix );
 		foreach ( $request->getValues() as $key => $value ) {
-			if ( strpos( $key, $prefix ) === 0 ) {
+			if ( str_starts_with( $key, $prefix ) ) {
 				$paramName = urldecode( substr( $key, $prefixSize ) );
 				$this->addUnhandledParam( $paramName, $value );
 			}

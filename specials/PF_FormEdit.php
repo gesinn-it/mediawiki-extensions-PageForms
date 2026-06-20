@@ -157,7 +157,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 			$pageTitle = $result[ 'formtitle' ];
 			if ( empty( $targetName ) ) {
 				// This is a new page - we're done.
-			} elseif ( strpos( $pageTitle, '&lt;page name&gt;' ) !== false ) {
+			} elseif ( str_contains( $pageTitle, '&lt;page name&gt;' ) ) {
 				$pageTitle = str_replace( '&lt;page name&gt;', $targetName, $pageTitle );
 			} else {
 				$pageTitle = $result[ 'formtitle' ] . ': ' . $targetName;

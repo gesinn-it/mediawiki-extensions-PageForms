@@ -102,7 +102,7 @@ class PFRegExpInput extends PFFormInput {
 			$newOtherArgs = [];
 
 			foreach ( $this->mOtherArgs as $key => $value ) {
-				if ( strpos( $key, $basePrefix ) === 0 ) {
+				if ( str_starts_with( $key, $basePrefix ) ) {
 					$newOtherArgs[substr( $key, strlen( $basePrefix ) )] = $value;
 				} else {
 					$newOtherArgs[$key] = $value;

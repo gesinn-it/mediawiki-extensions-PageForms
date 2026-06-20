@@ -106,7 +106,7 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 		// this will probably require rewriting the checkboxes JS
 		// to some extent, so the relevant part can be called each
 		// time an instance is added.
-		if ( strpos( $input_name, '[num][' ) !== false ) {
+		if ( str_contains( $input_name, '[num][' ) ) {
 			// Multiple-instance template; do nothing.
 		} elseif ( array_key_exists( 'show select all', $other_args ) ||
 			( count( $possible_values ) >= $GLOBALS[ 'wgPageFormsCheckboxesSelectAllMinimum' ] &&

@@ -219,7 +219,7 @@ class PFFormLink {
 				case 'instant':
 					break;
 				default:
-					$link_url .= ( strstr( $link_url, '?' ) ) ? '&' : '?';
+					$link_url .= str_contains( $link_url, '?' ) ? '&' : '?';
 					$link_url .= str_replace( '+', '%20', http_build_query( $inQueryArr, '', '&' ) );
 					break;
 			}

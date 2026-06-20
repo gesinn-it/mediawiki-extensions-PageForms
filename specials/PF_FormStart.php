@@ -64,7 +64,7 @@ class PFFormStart extends SpecialPage {
 			if ( $page_name !== '' ) {
 				// Append the namespace prefix to the page name,
 				// if this namespace was not already entered.
-				if ( $target_namespace != '' && strpos( $page_name, $target_namespace . ':' ) === false ) {
+				if ( $target_namespace != '' && !str_contains( $page_name, $target_namespace . ':' ) ) {
 					$page_name = $target_namespace . ':' . $page_name;
 				}
 				// If there was no page title, it's probably an
@@ -139,7 +139,7 @@ END;
 	public static function getFormEditURL( $formName, $targetName ) {
 		$fe = PFUtils::getSpecialPage( 'FormEdit' );
 		// Special handling for forms whose name contains a slash.
-		if ( strpos( $formName, '/' ) !== false ) {
+		if ( str_contains( $formName, '/' ) ) {
 			return $fe->getPageTitle()->getLocalURL( [ 'form' => $formName, 'target' => $targetName ] );
 		}
 		return $fe->getPageTitle( "$formName/$targetName" )->getLocalURL();

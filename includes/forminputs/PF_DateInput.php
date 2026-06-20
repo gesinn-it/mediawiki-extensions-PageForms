@@ -108,7 +108,7 @@ class PFDateInput extends PFFormInput {
 				'December' ];
 			foreach ( $monthNames as $i => $monthName ) {
 				$monthName = strtolower( $monthName );
-				if ( strpos( $date, $monthName ) !== false ) {
+				if ( str_contains( $date, $monthName ) ) {
 					$englishMonthName = $englishMonthNames[$i];
 					$date = str_replace( $monthName,
 						$englishMonthName, $date );

@@ -98,7 +98,7 @@ class PFSFSelectAPIRequestProcessor {
 	}
 
 	private function getFormattedValuesFrom( $sep, $values ) {
-		if ( strpos( $values ?? '', $sep ) === false ) {
+		if ( !str_contains( $values ?? '', $sep ) ) {
 			return [ $values ];
 		}
 		$values = explode( $sep, $values );

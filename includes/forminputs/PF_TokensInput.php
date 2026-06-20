@@ -76,7 +76,7 @@ class PFTokensInput extends PFFormInput {
 				global $edgValues;
 				for ( $i = 0; $i < count( $edgValues[$image_param] ); $i++ ) {
 					$image = $edgValues[$image_param][$i];
-					if ( strpos( $image, "http" ) !== 0 ) {
+					if ( !str_starts_with( $image, 'http' ) ) {
 						$file = $repoGroup->findFile( $image );
 						if ( $file ) {
 							$url = $file->getFullUrl();

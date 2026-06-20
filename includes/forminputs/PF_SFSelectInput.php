@@ -182,7 +182,7 @@ class PFSFSelectInput extends PFFormInput {
 		}
 		foreach ( $values as $val ) {
 			// Strip HTML-formatted SMW values produced by recent SMW versions.
-			if ( strpos( $val, '<span class="smw-value">' ) !== false ) {
+			if ( str_contains( $val, '<span class="smw-value">' ) ) {
 				preg_match( '/<span class="smw-value">(.*?)<\/span>/', $val, $m );
 				if ( isset( $m[1] ) ) {
 					$val = $m[1];
@@ -211,7 +211,7 @@ class PFSFSelectInput extends PFFormInput {
 		foreach ( $values as $label ) {
 			$labelKey = $label;
 			$labelValue = $label;
-			if ( strpos( $label, '(' ) !== false && strpos( $label, ')' ) !== false ) {
+			if ( str_contains( $label, '(' ) && str_contains( $label, ')' ) ) {
 				$labelArr = str_split( $label );
 				$end = count( $labelArr ) - 1;
 				$iter = $end;

@@ -263,7 +263,7 @@ class PFFormEditAction extends Action {
 			}
 
 			// Special handling for forms whose name contains a slash.
-			if ( strpos( $formName, '/' ) !== false ) {
+			if ( str_contains( $formName, '/' ) ) {
 				$url = $fe->getPageTitle()->getLocalURL( [ 'form' => $formName, 'target' => $targetName ] );
 			} else {
 				$url = $fe->getPageTitle( "$formName/$targetName" )->getLocalURL();

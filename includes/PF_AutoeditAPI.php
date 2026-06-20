@@ -749,7 +749,7 @@ class PFAutoeditAPI extends ApiBase {
 		$randomNumHasPadding = false;
 		$randomNumDigits = 6;
 
-		if ( preg_match( '/{num.*}/', $targetName, $matches ) && strpos( $targetName, '{num' ) !== false ) {
+		if ( preg_match( '/{num.*}/', $targetName, $matches ) && str_contains( $targetName, '{num' ) ) {
 			// Random number
 			if ( preg_match( '/{num;random(;(0)?([1-9][0-9]*))?}/', $targetName, $matches ) ) {
 				$isRandom = true;

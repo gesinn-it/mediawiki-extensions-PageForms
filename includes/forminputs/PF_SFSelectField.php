@@ -46,7 +46,7 @@ class PFSFSelectField {
 		$querystr = str_replace( [ '~', '(', ')' ], [ '=', '[', ']' ], $querystr );
 		$this->mData['selectquery'] = $querystr;
 
-		if ( strpos( $querystr, '@@@@' ) === false ) {
+		if ( !str_contains( $querystr, '@@@@' ) ) {
 			// Static query — resolve immediately if SMW is available.
 			if ( !ExtensionRegistry::getInstance()->isLoaded( 'SemanticMediaWiki' ) ) {
 				// @codeCoverageIgnoreStart
@@ -79,7 +79,7 @@ class PFSFSelectField {
 		$function = str_replace( [ '~', '(', ')' ], [ '=', '[', ']' ], $function );
 		$this->mData['selectfunction'] = $function;
 
-		if ( strpos( $function, '@@@@' ) === false ) {
+		if ( !str_contains( $function, '@@@@' ) ) {
 			$f = str_replace( ';', '|', $function );
 			$this->setValues( $this->mParser->replaceVariables( $f ) );
 			$this->mHasStaticValues = true;
@@ -158,7 +158,7 @@ class PFSFSelectField {
 	}
 
 	private function getFormattedValuesFrom( $sep, $values ) {
-		if ( strpos( $values, $sep ) === false ) {
+		if ( !str_contains( $values, $sep ) ) {
 			return [ $values ];
 		}
 		$values = explode( $sep, $values );

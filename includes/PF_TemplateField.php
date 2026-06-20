@@ -147,7 +147,7 @@ class PFTemplateField {
 		// The presence of "-" at the beginning of a property name
 		// (which happens if PF tries to parse an inverse query)
 		// leads to an error in SMW - just exit if that's the case.
-		if ( strpos( $this->mSemanticProperty, '-' ) === 0 ) {
+		if ( str_starts_with( $this->mSemanticProperty, '-' ) ) {
 			return;
 		}
 
@@ -348,10 +348,10 @@ class PFTemplateField {
 			// name, to be used as the variable.
 			// Default is "x" - also use this if all the attempts fail.
 			$var = "x";
-			if ( strstr( $fieldProperty, $var ) ) {
+			if ( str_contains( $fieldProperty, $var ) ) {
 				$var_options = [ 'y', 'z', 'xx', 'yy', 'zz', 'aa', 'bb', 'cc' ];
 				foreach ( $var_options as $option ) {
-					if ( !strstr( $fieldProperty, $option ) ) {
+					if ( !str_contains( $fieldProperty, $option ) ) {
 						$var = $option;
 						break;
 					}
