@@ -97,7 +97,7 @@ class FormFieldHtmlBuilder {
 			$text = $form_input->getHtmlText();
 		}
 
-		$this->addTranslatableInput( $form_field, $cur_value, $text );
+		$this->addTranslatableInput( $form_field, $text );
 		return $text;
 	}
 
@@ -149,10 +149,9 @@ class FormFieldHtmlBuilder {
 	 * For translatable fields, appends a hidden input containing the translate tags.
 	 *
 	 * @param PFFormField $form_field
-	 * @param string|null $cur_value
 	 * @param string &$text
 	 */
-	private function addTranslatableInput( PFFormField $form_field, ?string $cur_value, string &$text ): void {
+	private function addTranslatableInput( PFFormField $form_field, string &$text ): void {
 		if ( PFUtils::isTranslateEnabled() || !$form_field->hasFieldArg( 'translatable' )
 			|| !$form_field->getFieldArg( 'translatable' ) ) {
 			return;

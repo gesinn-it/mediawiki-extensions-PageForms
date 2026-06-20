@@ -196,7 +196,6 @@ class HtmlFormDataExtractor {
 				$array[$key] = [];
 			}
 
-			// @phan-suppress-next-line PhanTypePossiblyInvalidDimOffset
 			self::addToArray( $array[$key], $matches[2] . $matches[3], $value, false );
 		} else {
 			if ( $key ) {

@@ -72,7 +72,7 @@ class PFTextWithAutocompleteInput extends PFTextInput {
 	}
 
 	protected static function getAlias() {
-		if ( isset( self::$alias ) ) {
+		if ( self::$alias !== null ) {
 			return self::$alias;
 		} else {
 			return 'PFComboBoxInput';

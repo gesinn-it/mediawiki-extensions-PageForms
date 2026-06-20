@@ -103,7 +103,6 @@ class PFFormUtils {
 		if ( $is_disabled ) {
 			$attrs['disabled'] = true;
 		}
-		// @phan-suppress-next-line PhanImpossibleTypeComparison
 		if ( array_key_exists( 'class', $attrs ) ) {
 			$attrs['classes'] = [ $attrs['class'] ];
 		}
@@ -163,7 +162,6 @@ class PFFormUtils {
 		if ( $is_disabled ) {
 			$attrs['disabled'] = true;
 		}
-		// @phan-suppress-next-line PhanImpossibleTypeComparison
 		if ( array_key_exists( 'class', $attrs ) ) {
 			$attrs['classes'] = [ $attrs['class'] ];
 		}
@@ -642,7 +640,7 @@ class PFFormUtils {
 	public static function getStringForCurrentTime( $includeTime, $includeTimezone ) {
 		global $wgLocaltimezone, $wgAmericanDates, $wgPageForms24HourTime;
 
-		if ( isset( $wgLocaltimezone ) ) {
+		if ( $wgLocaltimezone !== null ) {
 			$serverTimezone = date_default_timezone_get();
 			date_default_timezone_set( $wgLocaltimezone );
 		}
@@ -657,7 +655,7 @@ class PFFormUtils {
 		} else {
 			$curTimeString = "$year-$month-$day";
 		}
-		if ( isset( $wgLocaltimezone ) ) {
+		if ( $wgLocaltimezone !== null ) {
 			date_default_timezone_set( $serverTimezone );
 		}
 		if ( !$includeTime ) {

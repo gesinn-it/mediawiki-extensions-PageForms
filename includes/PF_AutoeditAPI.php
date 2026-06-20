@@ -521,7 +521,7 @@ class PFAutoeditAPI extends ApiBase {
 					'ArticleUpdateBeforeRedirect', [ $editor->getArticle(), &$sectionanchor, &$extraQuery ]
 				);
 
-				// @phan-suppress-next-line PhanImpossibleCondition
+				// @phan-suppress-next-line PhanImpossibleCondition -- hook may set $extraQuery
 				if ( $extraQuery ) {
 					if ( $query ) {
 						$query .= '&' . $extraQuery;
@@ -558,7 +558,6 @@ class PFAutoeditAPI extends ApiBase {
 				);
 
 				if ( $resultDetails['redirect'] ) {
-					// @phan-suppress-next-line PhanSuspiciousValueComparison
 					if ( $extraQuery == '' ) {
 						$extraQuery = 'redirect=no';
 					} else {

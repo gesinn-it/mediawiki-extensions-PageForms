@@ -136,7 +136,7 @@ class PFUploadForm extends HTMLForm {
 		$maxUploadSizeFile = ini_get( 'upload_max_filesize' );
 		$maxUploadSizeURL = ini_get( 'upload_max_filesize' );
 		$maxUploadSize = $this->getConfig()->get( 'MaxUploadSize' );
-		if ( isset( $maxUploadSize ) ) {
+		if ( $maxUploadSize !== null ) {
 			if ( gettype( $maxUploadSize ) == "array" ) {
 				$maxUploadSizeFile = $maxUploadSize['*'];
 				$maxUploadSizeURL = $maxUploadSize['url'];

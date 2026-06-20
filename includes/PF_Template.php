@@ -72,7 +72,7 @@ class PFTemplate {
 	 */
 	public function loadTemplateFields() {
 		$templateTitle = Title::makeTitleSafe( NS_TEMPLATE, $this->mTemplateName );
-		if ( !isset( $templateTitle ) ) {
+		if ( $templateTitle === null ) {
 			return;
 		}
 

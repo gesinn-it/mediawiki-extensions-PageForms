@@ -599,10 +599,7 @@ class PFFormField {
 			}
 		}
 
-		if ( isset( $template_instance_query_values ) &&
-			$template_instance_query_values != null &&
-			is_array( $template_instance_query_values )
-		) {
+		if ( is_array( $template_instance_query_values ) ) {
 			// If the field name contains an apostrophe, the array
 			// sometimes has the apostrophe escaped, and sometimes
 			// not. For now, just check for both versions.

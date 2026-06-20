@@ -27,7 +27,7 @@ class PFHelperFormAction extends Action {
 	 * @return false
 	 */
 	public function show() {
-		return self::displayForm( $this->getArticle() );
+		return self::displayForm();
 	}
 
 	/**
@@ -57,7 +57,7 @@ class PFHelperFormAction extends Action {
 		if ( defined( 'SMW_NS_PROPERTY' ) ) {
 			$namespacesWithHelperForms[] = SMW_NS_PROPERTY;
 		}
-		if ( !isset( $title ) ||
+		if ( $title === null ||
 			( !in_array( $title->getNamespace(), $namespacesWithHelperForms ) ) ) {
 			return true;
 		}
@@ -130,10 +130,9 @@ class PFHelperFormAction extends Action {
 	/**
 	 * The function called if we're in index.php (as opposed to one of the
 	 * special pages).
-	 * @param Article $article
 	 * @return false
 	 */
-	private static function displayForm( $article ) {
+	private static function displayForm() {
 		return false;
 	}
 }

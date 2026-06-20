@@ -42,7 +42,7 @@ class PFFormCache {
 		}
 
 		$preloadTitle = Title::newFromText( $preload );
-		if ( !isset( $preloadTitle ) ) {
+		if ( $preloadTitle === null ) {
 			return '';
 		}
 

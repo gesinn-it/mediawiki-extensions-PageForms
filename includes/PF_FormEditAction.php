@@ -55,7 +55,7 @@ class PFFormEditAction extends Action {
 		// but before SMW is fully initialized, it's called on
 		// Special:SMWAdmin for some reason, which is why the
 		// special-page check is there.
-		if ( !isset( $title ) ||
+		if ( $title === null ||
 			( $title->getNamespace() == NS_SPECIAL ) ) {
 			return true;
 		}

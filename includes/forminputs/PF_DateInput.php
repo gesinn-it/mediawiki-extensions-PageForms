@@ -58,7 +58,7 @@ class PFDateInput extends PFFormInput {
 		// Special handling for 'default=now'.
 		if ( $date == 'now' ) {
 			global $wgLocaltimezone;
-			if ( isset( $wgLocaltimezone ) ) {
+			if ( $wgLocaltimezone !== null ) {
 				$serverTimezone = date_default_timezone_get();
 				date_default_timezone_set( $wgLocaltimezone );
 			}
@@ -69,7 +69,7 @@ class PFDateInput extends PFFormInput {
 				$time = date( 'H:i:s' );
 			}
 
-			if ( isset( $wgLocaltimezone ) ) {
+			if ( $wgLocaltimezone !== null ) {
 				date_default_timezone_set( $serverTimezone );
 			}
 			if ( $includeTime ) {
