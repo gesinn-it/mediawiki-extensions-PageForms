@@ -12,6 +12,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\CalendarHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormDefParser;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormPlaceholder;
@@ -50,6 +51,8 @@ class PFFormPrinter {
 	/** Owned by InputTypeRegistry; FormPrinter delegates to it for all input-type lookups. */
 	private InputTypeRegistry $inputTypeRegistry;
 
+	private CalendarHtmlBuilder $calendarHtmlBuilder;
+
 	private SpreadsheetHtmlBuilder $spreadsheetHtmlBuilder;
 
 	private MultipleTemplateHtmlBuilder $multipleTemplateHtmlBuilder;
@@ -64,6 +67,7 @@ class PFFormPrinter {
 		$this->mSemanticTypeHooks = [];
 		$this->mInputTypeHooks = [];
 		$this->inputTypeRegistry = new InputTypeRegistry();
+		$this->calendarHtmlBuilder = new CalendarHtmlBuilder();
 		$this->multipleTemplateHtmlBuilder = new MultipleTemplateHtmlBuilder();
 		$this->spreadsheetHtmlBuilder = new SpreadsheetHtmlBuilder();
 
@@ -267,6 +271,11 @@ class PFFormPrinter {
 	public function spreadsheetHTML( $tif ) {
 		global $wgOut, $wgPageFormsScriptPath;
 		return $this->spreadsheetHtmlBuilder->spreadsheetHTML( $tif, $wgOut, $wgPageFormsScriptPath );
+	}
+
+	public function calendarHTML( $tif ) {
+		global $wgPageFormsScriptPath;
+		return $this->calendarHtmlBuilder->calendarHTML( $tif, $wgPageFormsScriptPath );
 	}
 
 	/**
@@ -1307,71 +1316,8 @@ END;
 					}
 				} elseif ( $tif->getDisplay() == 'calendar' ) {
 					if ( $tif->allInstancesPrinted() ) {
-						global $wgPageFormsCalendarParams, $wgPageFormsCalendarValues;
-						global $wgPageFormsScriptPath;
-						$text = '';
-						$params = [];
-						foreach ( $tif->getFields() as $formField ) {
-							$templateField = $formField->template_field;
-							$inputType = $formField->getInputType();
-							$values = [ 'name' => $templateField->getFieldName() ];
-							if ( $formField->getLabel() !== null ) {
-								$values['title'] = $formField->getLabel();
-							}
-							$possibleValues = $formField->getPossibleValues();
-							if ( $inputType == 'textarea' ) {
-								$values['type'] = 'textarea';
-							} elseif ( $inputType == 'datetime' ) {
-								$values['type'] = 'datetime';
-							} elseif ( $inputType == 'checkbox' ) {
-								$values['type'] = 'checkbox';
-							} elseif ( $inputType == 'checkboxes' ) {
-								$values['type'] = 'checkboxes';
-							} elseif ( $inputType == 'listbox' ) {
-								$values['type'] = 'listbox';
-							} elseif ( $inputType == 'date' ) {
-								$values['type'] = 'date';
-							} elseif ( $inputType == 'rating' ) {
-								$values['type'] = 'rating';
-							} elseif ( $inputType == 'radiobutton' ) {
-								$values['type'] = 'radiobutton';
-							} elseif ( $inputType == 'tokens' ) {
-								$values['type'] = 'tokens';
-							} elseif ( $possibleValues != null ) {
-								array_unshift( $possibleValues, '' );
-								$completePossibleValues = [];
-								foreach ( $possibleValues as $value ) {
-									$completePossibleValues[] = [ 'Name' => $value, 'Id' => $value ];
-								}
-								$values['type'] = 'select';
-								$values['items'] = $completePossibleValues;
-								$values['valueField'] = 'Id';
-								$values['textField'] = 'Name';
-							} else {
-								$values['type'] = 'text';
-							}
-							$params[] = $values;
-						}
-						$templateName = $tif->getTemplateName();
-						$templateDivID = str_replace( ' ', '_', $templateName ) . "FullCalendar";
-						$templateDivAttrs = [
-							'class' => 'pfFullCalendarJS',
-							'id' => $templateDivID,
-							'template-name' => $templateName,
-							'title-field' => $tif->getEventTitleField(),
-							'event-date-field' => $tif->getEventDateField(),
-							'event-start-date-field' => $tif->getEventStartDateField(),
-							'event-end-date-field' => $tif->getEventEndDateField()
-						];
-						$loadingImage = Html::element( 'img', [ 'src' => "$wgPageFormsScriptPath/skins/loading.gif" ] );
-						$text = "<div id='fullCalendarLoading1' style='display: none;'>" . $loadingImage . "</div>";
-						$text .= Html::rawElement( 'div', $templateDivAttrs, $text );
-						$wgPageFormsCalendarParams[$templateName] = $params;
-						$wgPageFormsCalendarValues[$templateName] = $tif->getGridValues();
-						$fullForm = $this->multipleTemplateInstanceHTML( $tif, $form_is_disabled, $section );
-						$multipleTemplateHTML .= $text;
+						$multipleTemplateHTML .= $this->calendarHTML( $tif );
 						$multipleTemplateHTML .= "</fieldset>\n";
-						PFFormUtils::setGlobalVarsForSpreadsheet();
 					}
 				} else {
 					if ( $tif->getDisplay() == 'table' ) {

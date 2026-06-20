@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Changed
+- Extract calendar display-mode rendering from `PFFormPrinter::formHTML()` into `CalendarHtmlBuilder` in `src/`; mirrors the existing `SpreadsheetHtmlBuilder` pattern and reduces `formHTML()` by ~67 lines
 - Replace `isset($x) ? $x : $default` with `$x ?? $default` across 7 files; reduces `PhanPluginDuplicateConditionalNullCoalescing` from 10+ to 1 (one complex control-flow pattern in `PFAutoeditAPI::doStore` remains in the baseline)
 - Remove Cargo integration: drop `PFTemplate::setCargoTable()`, `PFTemplateField::$mCargoField`/`$mCargoTable`, `PFFormField::setValuesWithMappingCargoField()`, `mapping cargo table`/`mapping cargo field` support, `CargoDelimiter` CSS class (renamed to `pf-list-delimiter`), Cargo image path in rating display, and `PageFormsCargoFields` global; removes `PhanUndeclaredStaticMethod` Phan warning for the Cargo mapping method (#56, #57, #58)
 - Replace `empty()` with explicit `=== ''` / `=== []` comparisons across 12 files; removes all `MediaWikiNoEmptyIfDefined` Phan warnings (2 intentional `empty()` calls on `string|false` and `mixed` return values remain)
