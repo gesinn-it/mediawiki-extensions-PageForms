@@ -5,7 +5,6 @@
  * additionally stored by Cargo and/or Semantic MediaWiki.
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 

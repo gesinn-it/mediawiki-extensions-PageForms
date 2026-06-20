@@ -10,7 +10,6 @@
  *
  * @author Jason Zhang
  * @author Toni Hermoso Pulido
- * @file
  * @ingroup PFFormInput
  */
 

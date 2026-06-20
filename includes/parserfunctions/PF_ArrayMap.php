@@ -16,7 +16,6 @@
  *
  * {{#arraymap:blue;red;yellow|;|x|[[x]]|;}}
  */
-
 class PFArrayMap {
 	public static function run( Parser $parser, $frame, $args ) {
 		// Set variables.

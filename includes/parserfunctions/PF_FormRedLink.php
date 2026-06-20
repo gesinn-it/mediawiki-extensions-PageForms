@@ -8,7 +8,6 @@
  * creates a link directly to that page, instead of to a form to edit the
  * page.
  */
-
 class PFFormRedLink extends PFFormLink {
 
 }

@@ -1,7 +1,6 @@
 <?php
 /**
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 

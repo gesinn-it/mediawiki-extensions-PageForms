@@ -45,7 +45,6 @@ use MediaWiki\MediaWikiServices;
  * {{#formlink:form=User|link text=Add a user
  * |query string=namespace=User&preload=UserStub}}
  */
-
 class PFFormLink {
 
 	public static function run( Parser $parser ) {

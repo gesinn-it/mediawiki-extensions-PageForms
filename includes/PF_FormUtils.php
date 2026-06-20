@@ -11,10 +11,8 @@ use OOUI\ButtonInputWidget;
  * @author Jeffrey Stuckman
  * @author Harold Solbrig
  * @author Eugene Mednikov
- * @file
  * @ingroup PF
  */
-
 class PFFormUtils {
 
 	/**

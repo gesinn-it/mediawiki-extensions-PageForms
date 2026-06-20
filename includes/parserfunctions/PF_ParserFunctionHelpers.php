@@ -9,7 +9,6 @@ class PFParserFunctionHelpers {
 	 * @param string $value
 	 * @param array &$inQueryArr
 	 * @param bool &$hasReturnTo
-	 *
 	 */
 	public static function handleFreeParameter( $paramName, $value, &$inQueryArr, &$hasReturnTo ): void {
 		$value = html_entity_decode( $value );

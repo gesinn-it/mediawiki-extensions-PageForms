@@ -4,7 +4,6 @@
  * existing one.
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 

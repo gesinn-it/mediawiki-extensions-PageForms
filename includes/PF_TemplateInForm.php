@@ -2,7 +2,6 @@
 /**
  * Represents a template in a user-defined form.
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 class PFTemplateInForm {

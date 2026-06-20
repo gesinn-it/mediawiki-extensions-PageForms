@@ -3,7 +3,6 @@ declare( strict_types=1 );
 
 /**
  * @author Stephan Gambke
- * @file
  * @ingroup PageForms
  */
 

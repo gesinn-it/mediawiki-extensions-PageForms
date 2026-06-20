@@ -7,10 +7,8 @@ use MediaWiki\MediaWikiServices;
  *
  * @author Yaron Koren
  * @author Stephan Gambke
- * @file
  * @ingroup PF
  */
-
 class PFFormEditAction extends Action {
 
 	/**

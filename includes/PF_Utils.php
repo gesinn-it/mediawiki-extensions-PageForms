@@ -3,7 +3,6 @@
  * Helper functions for the Page Forms extension.
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 

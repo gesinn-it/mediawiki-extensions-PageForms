@@ -7,10 +7,8 @@ use MediaWiki\MediaWikiServices;
  * properties, forms, etc..
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
-
 class PFHelperFormAction extends Action {
 
 	/**

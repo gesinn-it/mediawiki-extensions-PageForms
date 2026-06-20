@@ -4,7 +4,6 @@
  * Represents a user-defined form.
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 class PFForm {

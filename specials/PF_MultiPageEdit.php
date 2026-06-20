@@ -6,7 +6,6 @@
  * available templates.
  *
  *
- * @file
  * @ingroup PF
  * @author Yashdeep Thorat
  * @author Yaron Koren

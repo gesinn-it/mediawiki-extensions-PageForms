@@ -4,7 +4,6 @@
  * @author Stephan Gambke
  * @author Sam Wilson
  * @author Amr El-Absy
- * @file
  * @ingroup PF
  */
 

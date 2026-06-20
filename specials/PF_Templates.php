@@ -3,7 +3,6 @@
  * Shows list of all templates on the site.
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 

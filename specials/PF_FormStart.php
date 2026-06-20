@@ -5,7 +5,6 @@
  *
  * @author Yaron Koren
  * @author Jeffrey Stuckman
- * @file
  * @ingroup PF
  */
 

@@ -10,7 +10,6 @@
  * @author Patrick Nagel
  * @author Sanyam Goyal
  * @author Stephan Gambke
- * @file
  * @ingroup PF
  */
 
@@ -39,7 +38,7 @@ abstract class PFFormInput {
 	 */
 	protected $mInputName;
 	/**
-	 * @deprecated, check for array_key_exists('mandatory', $this->mOtherArgs) instead
+	 * @deprecated check for array_key_exists('mandatory', $this->mOtherArgs) instead
 	 */
 	protected $mIsMandatory;
 	/**
@@ -182,7 +181,6 @@ abstract class PFFormInput {
 	abstract public function getHtmlText();
 
 	/**
-	 *
 	 * @return bool True, if this input type can handle lists
 	 */
 	public static function canHandleLists() {

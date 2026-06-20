@@ -6,7 +6,6 @@
  * extension.
  *
  * @author Alexander Gesinn
- * @file
  * @ingroup PFFormInput
  */
 

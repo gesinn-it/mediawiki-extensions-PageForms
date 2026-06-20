@@ -9,7 +9,6 @@
  * @author Daniel Hansch
  * @author Stephan Gambke
  * @author LY Meng
- * @file
  * @ingroup PF
  */
 

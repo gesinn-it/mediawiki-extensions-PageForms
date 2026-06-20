@@ -18,7 +18,6 @@ use MediaWiki\Revision\RenderedRevision;
  *
  * @author Yaron Koren
  * @author Jeffrey Stuckman
- * @file
  * @ingroup PF
  */
 class PFFormCache {

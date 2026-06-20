@@ -2,9 +2,7 @@
 
 /**
  * @author Stephan Gambke
- * @file
  */
-
 class PFTimePickerInput extends PFFormInput {
 
 	public static function getName(): string {

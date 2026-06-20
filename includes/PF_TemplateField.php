@@ -5,7 +5,6 @@
  * creating templates and displaying user-created forms.
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 

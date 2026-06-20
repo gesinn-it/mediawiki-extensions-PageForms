@@ -18,7 +18,6 @@
  *
  * {{#arraymaptemplate:blue;red;yellow|Beautify|;|;}}
  */
-
 class PFArrayMapTemplate {
 	public static function run( Parser $parser, $frame, $args ) {
 		// Set variables.

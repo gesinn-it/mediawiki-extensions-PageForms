@@ -8,7 +8,6 @@
  * in that category, namespace or page. If called without an argument,
  * it specifies that the relevant page(s) should have no form.
  */
-
 class PFDefaultForm {
 	public static function run( Parser $parser ) {
 		$curTitle = $parser->getTitle();

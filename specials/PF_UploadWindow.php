@@ -6,7 +6,6 @@
  * field in the form with the name of the uploaded form.
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 

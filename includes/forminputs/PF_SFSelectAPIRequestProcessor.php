@@ -11,7 +11,6 @@
  * @author Jason Zhang
  * @author Toni Hermoso Pulido
  * @author mwjames
- * @file
  * @ingroup PFFormInput
  */
 

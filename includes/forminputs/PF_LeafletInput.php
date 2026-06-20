@@ -2,7 +2,6 @@
 /**
  * @author Peter Grassberger
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 

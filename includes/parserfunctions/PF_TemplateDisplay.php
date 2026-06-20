@@ -7,7 +7,6 @@ use MediaWiki\MediaWikiServices;
  *
  * @author Yaron Koren
  */
-
 class PFTemplateDisplay {
 
 	public static function run( &$parser, $frame, $args ) {

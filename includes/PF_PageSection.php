@@ -5,7 +5,6 @@
  * it from the PFWikiPageSection class.
  *
  * @author Himeshi
- * @file
  * @ingroup PF
  */
 class PFPageSection {

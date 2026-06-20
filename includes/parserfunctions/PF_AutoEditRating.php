@@ -4,9 +4,7 @@
  * '#autoedit_rating' is called as:
  *
  * {{#autoedit_rating:form=|target=|rating field=|value=|star width=|num stars=|allow half stars=}}
- *
  */
-
 class PFAutoEditRating {
 	public static function run( Parser $parser ) {
 		global $wgPageFormsAutoeditNamespaces;

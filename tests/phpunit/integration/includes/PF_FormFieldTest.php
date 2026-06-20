@@ -25,9 +25,9 @@ class PFFormFieldTest extends TestCase {
 		// Mocking the Parser object
 		$this->mockParser = $this->createMock( Parser::class );
 		$this->mockParser->method( 'recursivePreprocess' )
-			->willReturnCallback( fn ( $input ) => $input );
+			->willReturnCallback( static fn ( $input ) => $input );
 		$this->mockParser->method( 'recursiveTagParse' )
-			->willReturnCallback( fn ( $input ) => $input );
+			->willReturnCallback( static fn ( $input ) => $input );
 
 		// Mocking the User object
 		$this->mockUser = $this->createMock( User::class );

@@ -8,10 +8,8 @@ use MediaWiki\MediaWikiServices;
  * not-yet-created, red-linked pages.
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
-
 class PFFormLinker {
 
 	private static $formPerNamespace = [];

@@ -11,12 +11,21 @@
 	</rule>
 	<rule ref="MediaWiki.NamingConventions.PrefixedGlobalFunctions">
 		<properties>
-			<property name="ignoreList" type="array" value="registerAutoloaderPath,isReadablePath,addArguments,runTestAutoLoader" />
+			<property name="ignoreList" type="array">
+				<element value="registerAutoloaderPath" />
+				<element value="isReadablePath" />
+				<element value="addArguments" />
+				<element value="runTestAutoLoader" />
+			</property>
 		</properties>
 	</rule>
 	<rule ref="MediaWiki.NamingConventions.ValidGlobalName">
 		<properties>
-			<property name="ignoreList" type="array" value="$smwgContLang,$smwgDefaultStore,$edgValues" />
+			<property name="ignoreList" type="array">
+				<element value="$smwgContLang" />
+				<element value="$smwgDefaultStore" />
+				<element value="$edgValues" />
+			</property>
 		</properties>
 	</rule>
 	<file>.</file>

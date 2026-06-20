@@ -1,7 +1,6 @@
 <?php
 /**
  *
- * @file
  * @ingroup PF
  */
 
@@ -1061,7 +1060,7 @@ class PFFormField {
 	 * @param array|null $default_args
 	 * @return array
 	 */
-	public function getArgumentsForInputCall( array $default_args = null ) {
+	public function getArgumentsForInputCall( ?array $default_args = null ) {
 		// MW 1.43 compat: same typed-property guard as in newFromFormTag() above –
 		// see comment there for the full explanation.
 		$parser = PFUtils::getParser();

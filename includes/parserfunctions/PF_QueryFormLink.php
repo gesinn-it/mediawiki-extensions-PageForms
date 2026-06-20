@@ -7,7 +7,6 @@
  * since it has a default value of 'Run query' (in whatever language the
  * wiki is in).
  */
-
 class PFQueryFormLink extends PFFormLink {
 
 }

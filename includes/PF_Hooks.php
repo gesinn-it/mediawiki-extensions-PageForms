@@ -4,7 +4,6 @@
  * extension.json.
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 

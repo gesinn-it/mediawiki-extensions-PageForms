@@ -3,7 +3,6 @@
  * Displays a pre-defined form that a user can run a query with.
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 

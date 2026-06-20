@@ -2,7 +2,6 @@
 
 /**
  * @author Stephan Gambke
- * @file
  * @ingroup PF
  */
 

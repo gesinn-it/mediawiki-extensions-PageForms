@@ -8,7 +8,6 @@
  * @author Yaron Koren
  * @author Amr El-Absy
  */
-
 class PFTree {
 	/**
 	 * This property stores title value

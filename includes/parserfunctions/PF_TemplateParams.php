@@ -5,7 +5,6 @@
  *
  * @author Yaron Koren
  */
-
 class PFTemplateParams {
 
 	public static function run( Parser $parser ) {

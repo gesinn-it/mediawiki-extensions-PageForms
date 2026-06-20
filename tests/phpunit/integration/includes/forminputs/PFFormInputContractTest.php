@@ -26,7 +26,7 @@ class PFFormInputContractTest extends MediaWikiIntegrationTestCase {
 	// Data provider — all concrete (non-abstract) PFFormInput subclasses
 	// -----------------------------------------------------------------------
 
-	public static function allInputTypes(): array {
+	public static function allInputTypesProvider(): array {
 		return [
 			[ 'PFCheckboxInput' ],
 			[ 'PFCheckboxesInput' ],
@@ -64,7 +64,7 @@ class PFFormInputContractTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * @dataProvider allInputTypes
+	 * @dataProvider allInputTypesProvider
 	 */
 	public function testGetNameReturnsNonEmptyString( string $class ): void {
 		$name = $class::getName();
@@ -77,7 +77,7 @@ class PFFormInputContractTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * @dataProvider allInputTypes
+	 * @dataProvider allInputTypesProvider
 	 */
 	public function testGetDefaultPropTypesReturnsArray( string $class ): void {
 		$this->assertIsArray(
@@ -87,7 +87,7 @@ class PFFormInputContractTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * @dataProvider allInputTypes
+	 * @dataProvider allInputTypesProvider
 	 */
 	public function testGetDefaultPropTypesValuesAreArrays( string $class ): void {
 		$propTypes = $class::getDefaultPropTypes();
@@ -106,7 +106,7 @@ class PFFormInputContractTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * @dataProvider allInputTypes
+	 * @dataProvider allInputTypesProvider
 	 */
 	public function testGetOtherPropTypesHandledReturnsArray( string $class ): void {
 		$this->assertIsArray(
@@ -116,7 +116,7 @@ class PFFormInputContractTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * @dataProvider allInputTypes
+	 * @dataProvider allInputTypesProvider
 	 */
 	public function testGetOtherPropTypesHandledValuesAreStrings( string $class ): void {
 		$propTypes = $class::getOtherPropTypesHandled();
@@ -134,7 +134,7 @@ class PFFormInputContractTest extends MediaWikiIntegrationTestCase {
 	 * A property type must not appear in both getDefaultPropTypes() and
 	 * getOtherPropTypesHandled() of the same class — that would be contradictory.
 	 *
-	 * @dataProvider allInputTypes
+	 * @dataProvider allInputTypesProvider
 	 */
 	public function testNoOverlapBetweenDefaultAndOtherPropTypes( string $class ): void {
 		$defaultKeys = array_keys( $class::getDefaultPropTypes() );
@@ -153,7 +153,7 @@ class PFFormInputContractTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * @dataProvider allInputTypes
+	 * @dataProvider allInputTypesProvider
 	 */
 	public function testGetParametersReturnsArray( string $class ): void {
 		$this->assertIsArray(
@@ -165,7 +165,7 @@ class PFFormInputContractTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * Every input must expose the four base parameters inherited from PFFormInput.
 	 *
-	 * @dataProvider allInputTypes
+	 * @dataProvider allInputTypesProvider
 	 */
 	public function testGetParametersContainsBaseKeys( string $class ): void {
 		$params = $class::getParameters();
@@ -183,7 +183,7 @@ class PFFormInputContractTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * @dataProvider allInputTypes
+	 * @dataProvider allInputTypesProvider
 	 */
 	public function testCanHandleListsReturnsBool( string $class ): void {
 		$this->assertIsBool(
@@ -198,7 +198,7 @@ class PFFormInputContractTest extends MediaWikiIntegrationTestCase {
 
 	public function testGetNameIsUniqueAcrossAllTypes(): void {
 		$names = [];
-		foreach ( self::allInputTypes() as [ $class ] ) {
+		foreach ( self::allInputTypesProvider() as [ $class ] ) {
 			$name = $class::getName();
 			$existing = $names[$name] ?? null;
 			$this->assertArrayNotHasKey(
@@ -212,7 +212,7 @@ class PFFormInputContractTest extends MediaWikiIntegrationTestCase {
 
 	public function testNoTwoClassesClaimSameDefaultPropType(): void {
 		$claimedBy = [];
-		foreach ( self::allInputTypes() as [ $class ] ) {
+		foreach ( self::allInputTypesProvider() as [ $class ] ) {
 			foreach ( array_keys( $class::getDefaultPropTypes() ) as $propType ) {
 				$existing = $claimedBy[$propType] ?? null;
 				$this->assertArrayNotHasKey(

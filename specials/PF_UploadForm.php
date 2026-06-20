@@ -3,7 +3,6 @@
  * Subclass of HTMLForm that provides the form section of Special:Upload.
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 
@@ -57,7 +56,7 @@ class PFUploadForm extends HTMLForm {
 	/** @var string */
 	private $mDestFile;
 
-	public function __construct( $options = [], IContextSource $context = null ) {
+	public function __construct( $options = [], ?IContextSource $context = null ) {
 		if ( $context instanceof IContextSource ) {
 			$this->setContext( $context );
 		}

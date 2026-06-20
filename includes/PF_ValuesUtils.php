@@ -3,7 +3,6 @@
  * Static functions for handling lists of values and labels.
  *
  * @author Yaron Koren
- * @file
  * @ingroup PF
  */
 

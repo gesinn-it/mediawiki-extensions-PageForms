@@ -16,7 +16,6 @@
  * 'reload' - causes the page to reload after the user clicks the button
  * or link.
  */
-
 class PFAutoEdit {
 	public static function run( Parser $parser ) {
 		global $wgPageFormsAutoeditNamespaces;
