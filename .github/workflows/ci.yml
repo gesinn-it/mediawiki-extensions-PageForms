@@ -23,14 +23,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - mediawiki_version: '1.35'
-            smw_version: '4.2.0'    # SemanticMediaWiki
-            php_version: 7.4        # PHP
-            dt_version: 3.1         # DisplayTitle
-            database_type: mysql
-            database_image: "mysql:5.7"
-            coverage: false
-            experimental: false
           - mediawiki_version: '1.39'
             smw_version: '5.1.0'
             php_version: 8.1
