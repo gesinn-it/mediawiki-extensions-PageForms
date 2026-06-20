@@ -14,6 +14,10 @@ class PFFormLinker {
 
 	private static $formPerNamespace = [];
 
+	/**
+	 * @param Title|null $title
+	 * @return string|null
+	 */
 	public static function getDefaultForm( $title ) {
 		// The title passed in can be null in at least one
 		// situation: if the "namespace page" is being checked, and
@@ -36,7 +40,8 @@ class PFFormLinker {
 				// the page property name for
 				// Semantic Forms.
 				'pp_propname' => [ 'PFDefaultForm', 'SFDefaultForm' ]
-			]
+			],
+			__METHOD__
 		);
 
 		$row = $res->fetchRow();

@@ -25,17 +25,7 @@ class PFCreatePageJob extends Job {
 	 * @return bool success
 	 */
 	public function run() {
-		if ( $this->title === null ) {
-			$this->error = "pageFormsCreatePage: Invalid title";
-			return false;
-		}
-
 		$wikiPage = PFUtils::newWikiPageFromTitle( $this->title );
-		if ( !$wikiPage ) {
-			$this->error = 'pageFormsCreatePage: Wiki page not found "' . $this->title->getPrefixedDBkey() . '"';
-			return false;
-		}
-
 		$pageText = $this->params['page_text'];
 		if ( array_key_exists( 'edit_summary', $this->params ) ) {
 			$editSummary = $this->params['edit_summary'];

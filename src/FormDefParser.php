@@ -10,7 +10,6 @@ use PFFormCache;
 use PFTemplateInForm;
 use PFUtils;
 use RequestContext;
-use Title;
 
 /**
  * Parses a PageForms form definition and extracts preloaded field values
@@ -38,22 +37,9 @@ class FormDefParser {
 		$user = RequestContext::getMain()->getUser();
 
 		// Set up a fresh parser — same approach as formHTML().
-		$globalParser = PFUtils::getParser();
-		if ( method_exists( $globalParser, 'getFreshParser' ) ) {
-			$parser = $globalParser->getFreshParser();
-			if ( !$parser->getOptions() ) {
-				$parser->setOptions( ParserOptions::newFromUser( $user ) );
-			}
-		} else {
-			$parser = $this->parserFactory->create();
-			$parser->setOptions( ParserOptions::newFromUser( $user ) );
-		}
+		$parser = $this->parserFactory->create();
+		$parser->setOptions( ParserOptions::newFromUser( $user ) );
 		$parser->clearState();
-		// MW 1.35 requires a non-null Title for Parser::parse(). Provide a
-		// fallback when no title has been set on the parser yet.
-		if ( !is_object( $parser->getTitle() ) ) {
-			$parser->setTitle( Title::newMainPage() );
-		}
 
 		$form_def = PFFormCache::getFormDefinition( $parser, $form_def, $form_id );
 

@@ -20,17 +20,16 @@ return [
     // PhanTypeMismatchProperty : 7 occurrences
     // PhanUndeclaredConstant : 7 occurrences
     // PhanUndeclaredClassConstant : 6 occurrences
-    // PhanRedundantCondition : 5 occurrences
     // PhanTypeMismatchReturn : 5 occurrences
     // PhanTypeMismatchReturnProbablyReal : 4 occurrences
     // PhanPossiblyUndeclaredVariable : 3 occurrences
     // PhanTypeMismatchPropertyProbablyReal : 3 occurrences
     // MediaWikiNoEmptyIfDefined : 2 occurrences
     // PhanNonClassMethodCall : 2 occurrences
+    // PhanRedundantCondition : 2 occurrences
     // PhanTypeMismatchDimFetchNullable : 2 occurrences
     // PhanUndeclaredClassInstanceof : 2 occurrences
     // PhanUndeclaredClassReference : 2 occurrences
-    // PhanParamTooFewInPHPDoc : 1 occurrence
     // PhanPluginDuplicateConditionalNullCoalescing : 1 occurrence
     // PhanRedundantValueComparison : 1 occurrence
     // PhanTypeArraySuspiciousNullable : 1 occurrence
@@ -38,7 +37,6 @@ return [
     // PhanTypeMismatchArgumentInternalReal : 1 occurrence
     // PhanTypeMismatchDimEmpty : 1 occurrence
     // PhanTypeMismatchReturnNullable : 1 occurrence
-    // PhanTypeSuspiciousStringExpression : 1 occurrence
     // PhanUndeclaredClassProperty : 1 occurrence
     // PhanUndeclaredConstantOfClass : 1 occurrence
     // PhanUndeclaredStaticMethod : 1 occurrence
@@ -64,9 +62,6 @@ return [
             'PhanUndeclaredConstantOfClass' => ['\\PFAutoeditAPI::generateTargetName'],
             'PhanUndeclaredMethod' => ['\\PFAutoeditAPI::getFormTitle']
         ],
-        'includes/PF_CreatePageJob.php' => [
-            'PhanRedundantCondition' => ['\\PFCreatePageJob::run']
-        ],
         'includes/PF_FormCache.php' => [
             'PhanTypeMismatchArgument' => ['\\PFFormCache::getFormDefinition'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormCache::purgeCache']
@@ -78,11 +73,7 @@ return [
         ],
         'includes/PF_FormField.php' => [
             'PhanTypeMismatchArgumentNullable' => ['\\PFFormField::newFromFormFieldTag'],
-            'PhanTypeSuspiciousStringExpression' => ['\\PFFormField::createMarkup'],
             'SecurityCheck-DoubleEscaped' => ['\\PFFormField::additionalHTMLForInput', '\\PFFormField::newFromFormFieldTag']
-        ],
-        'includes/PF_FormLinker.php' => [
-            'PhanParamTooFewInPHPDoc' => ['\\PFFormLinker::getDefaultForm']
         ],
         'includes/PF_FormPrinter.php' => [
             'PhanNonClassMethodCall' => ['\\PFFormPrinter::showDeletionLog'],
@@ -171,7 +162,6 @@ return [
             'PhanTypeMismatchArgumentNullable' => ['\\PFTree::addSubCategories']
         ],
         'includes/forminputs/PF_TreeInput.php' => [
-            'PhanRedundantCondition' => ['\\PFTreeInput::makeTitle'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFTreeInput::getHTML']
         ],
         'includes/parserfunctions/PF_AutoEdit.php' => [
@@ -234,9 +224,7 @@ return [
             'SecurityCheck-XSS' => ['\\PFUploadWindow::processUpload']
         ],
         'src/FormDefParser.php' => [
-            'PhanRedundantCondition' => ['\\MediaWiki\\Extension\\PageForms\\FormDefParser::preparePreloadData'],
-            'PhanTypeMismatchArgumentProbablyReal' => ['\\MediaWiki\\Extension\\PageForms\\FormDefParser::preparePreloadData'],
-            'PhanUndeclaredMethod' => ['\\MediaWiki\\Extension\\PageForms\\FormDefParser::preparePreloadData']
+            'PhanTypeMismatchArgumentProbablyReal' => ['\\MediaWiki\\Extension\\PageForms\\FormDefParser::preparePreloadData']
         ],
         'src/FormFieldHtmlBuilder.php' => [
             'PhanTypeMismatchArgument' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML'],

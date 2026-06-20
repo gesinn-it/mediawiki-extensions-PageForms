@@ -16,6 +16,11 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - Add variable initializers before conditional branches in 12 methods (`getAllPagesForNamespace`, `getStringForCurrentTime`, `createText`, `parseDate`, `PF_DateTimeInput::getHTML`, `PF_LeafletInput::getHTML`, `mapLookupHTML`, `PF_AutoEdit::run`, `PF_FormInputParserFunction::run`, `createFormLink`, `printForm`, `PF_FormPrinter::formHTML`); reduces `PhanPossiblyUndeclaredVariable` suppressions in baseline from 20+ to 3
 
 - Remove redundant `is_object()` guard on `Parser::getTitle()` in `PF_FormCache`; `getTitle()` always returns a `Title` object since MW 1.39
+- Remove MW 1.35 compat shims in `FormDefParser`: drop `getFreshParser()` branch and `is_object(Parser::getTitle())` guard; always use `ParserFactory::create()`; removes `PhanRedundantCondition` and `PhanUndeclaredMethod` suppressions
+- Add `__METHOD__` to `PFFormLinker::getDefaultForm()` DB select call and `@param`/`@return` PHPDoc; removes `PhanParamTooFewInPHPDoc` suppression
+- Extract `$inputType` variable in `PFFormField::createMarkup()` to satisfy Phan null-check flow; removes `PhanTypeSuspiciousStringExpression` suppression
+- Remove redundant null-check guards in `PFCreatePageJob::run()` and `PFTreeInput::makeTitle()` where return types are non-nullable; removes `PhanRedundantCondition` suppressions
+- Add `@var string` annotations to `PFTemplateField::$mFieldName` and `$mLabel`
 - Replace `strpos() !== false` with `str_contains()`, `strpos() === 0` with `str_starts_with()`, and `strstr()` bool checks with `str_contains()` across 16 files to use PHP 8 string functions
 - Bump `mediawiki/mediawiki-codesniffer` from 43.0.0 to 48.0.0; fix all new violations (remove `@file` annotations, fix comment-before-class spacing, nullable type syntax, data provider naming, static closures, `.phpcs.xml` array syntax)
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0; regenerate Phan baseline with method-level suppressions; fix surfaced issues (isset → null-checks, unused parameters, stale inline suppressions)

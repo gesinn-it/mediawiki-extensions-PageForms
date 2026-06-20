@@ -934,8 +934,11 @@ class PFFormField {
 		$text .= "{{{field|" . $this->template_field->getFieldName();
 		if ( $this->mIsHidden ) {
 			$text .= "|hidden";
-		} elseif ( $this->getInputType() !== null && $this->getInputType() !== '' ) {
-			$text .= "|input type=" . $this->getInputType();
+		} else {
+			$inputType = $this->getInputType();
+			if ( $inputType !== null && $inputType !== '' ) {
+				$text .= "|input type=" . $inputType;
+			}
 		}
 		foreach ( $this->mFieldArgs as $arg => $value ) {
 			if ( $value === true ) {

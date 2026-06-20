@@ -11,8 +11,10 @@
 use SMW\DIProperty;
 
 class PFTemplateField {
+	/** @var string */
 	private $mFieldName;
 	private $mValueLabels;
+	/** @var string */
 	private $mLabel;
 
 	/**
