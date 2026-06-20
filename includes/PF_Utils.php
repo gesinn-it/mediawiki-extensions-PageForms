@@ -283,9 +283,9 @@ END;
 		$output->addModules( $mainModules );
 		$output->addModuleStyles( $mainModuleStyles );
 
-		/** @var string[] $otherModules */
 		$otherModules = [];
 		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::AddRLModules', [ &$otherModules ] );
+		// @phan-suppress-next-line PhanEmptyForeach -- hook populates $otherModules via reference
 		foreach ( $otherModules as $rlModule ) {
 			$output->addModules( $rlModule );
 		}
