@@ -145,14 +145,7 @@ class PFFormUtils {
 				!$titleGlobal->exists() ) {
 				# Watch creations
 				$is_checked = true;
-			} elseif ( method_exists( $services, 'getWatchlistManager' ) ) {
-				// MediaWiki 1.37+
-				if ( $services->getWatchlistManager()->isWatched( $user, $titleGlobal ) ) {
-					# Already watched
-					$is_checked = true;
-				}
-			} elseif ( $services->getWatchedItemStore()->isWatched( $user, $titleGlobal ) ) {
-				// MediaWiki 1.35–1.36 fallback (User::isWatched() removed in MW 1.43)
+			} elseif ( $services->getWatchlistManager()->isWatched( $user, $titleGlobal ) ) {
 				# Already watched
 				$is_checked = true;
 			}

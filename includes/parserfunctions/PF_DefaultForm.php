@@ -20,12 +20,7 @@ class PFDefaultForm {
 		$defaultForm = $params[1];
 
 		$parserOutput = $parser->getOutput();
-		if ( method_exists( $parserOutput, 'setPageProperty' ) ) {
-			// MW 1.38+
-			$parserOutput->setPageProperty( 'PFDefaultForm', $defaultForm );
-		} else {
-			$parserOutput->setProperty( 'PFDefaultForm', $defaultForm );
-		}
+		$parserOutput->setPageProperty( 'PFDefaultForm', $defaultForm );
 
 		// Display information on the page, if this is a category.
 		if ( $curTitle->getNamespace() == NS_CATEGORY ) {

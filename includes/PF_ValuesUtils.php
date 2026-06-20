@@ -171,12 +171,7 @@ class PFValuesUtils {
 		}
 
 		$services = MediaWikiServices::getInstance();
-		if ( method_exists( $services, 'getPageProps' ) ) {
-			$pageProps = $services->getPageProps();
-		} else {
-			$pageProps = PageProps::getInstance();
-		}
-		$properties = $pageProps->getProperties( array_values( $titleMap ), [ 'displaytitle' ] );
+		$properties = $services->getPageProps()->getProperties( array_values( $titleMap ), [ 'displaytitle' ] );
 
 		$result = [];
 		foreach ( $pageTitles as $titleText ) {
@@ -511,13 +506,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 
 		if ( $wgPageFormsUseDisplayTitle ) {
 			$services = MediaWikiServices::getInstance();
-			if ( method_exists( $services, 'getPageProps' ) ) {
-				// MW 1.36+
-				$pageProps = $services->getPageProps();
-			} else {
-				$pageProps = PageProps::getInstance();
-			}
-			$properties = $pageProps->getProperties( $titles,
+			$properties = $services->getPageProps()->getProperties( $titles,
 				[ 'displaytitle', 'defaultsort' ] );
 			foreach ( $titles as $title ) {
 				if ( array_key_exists( $title->getArticleID(), $properties ) ) {

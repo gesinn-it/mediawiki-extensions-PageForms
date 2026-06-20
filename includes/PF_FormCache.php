@@ -47,19 +47,10 @@ class PFFormCache {
 			return '';
 		}
 
-		if ( method_exists( 'MediaWiki\Permissions\PermissionManager', 'userCan' ) ) {
-			// MW 1.33+
-			$permissionManager = MediaWikiServices::getInstance()->getPermissionManager();
-			$user = RequestContext::getMain()->getUser();
-			if ( !$permissionManager->userCan( 'read', $user, $preloadTitle ) ) {
-				return '';
-			}
-		} else {
-			// @codeCoverageIgnoreStart
-			if ( !$preloadTitle->userCan( 'read' ) ) {
-				return '';
-			}
-			// @codeCoverageIgnoreEnd
+		$permissionManager = MediaWikiServices::getInstance()->getPermissionManager();
+		$user = RequestContext::getMain()->getUser();
+		if ( !$permissionManager->userCan( 'read', $user, $preloadTitle ) ) {
+			return '';
 		}
 
 		$text = PFUtils::getPageText( $preloadTitle ) ?? '';
@@ -266,14 +257,7 @@ class PFFormCache {
 	 */
 	public static function purgeCacheOnSave( RenderedRevision $renderedRevision ): bool {
 		$articleID = $renderedRevision->getRevision()->getPageId();
-		if ( method_exists( MediaWikiServices::class, 'getWikiPageFactory' ) ) {
-			// MW 1.36+
-			$wikiPage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $articleID );
-		} else {
-			// @codeCoverageIgnoreStart
-			$wikiPage = WikiPage::newFromID( $articleID );
-			// @codeCoverageIgnoreEnd
-		}
+		$wikiPage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $articleID );
 		if ( $wikiPage == null ) {
 			return true;
 		}

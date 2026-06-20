@@ -111,11 +111,7 @@ class PFUtils {
 	 * @return WikiPage
 	 */
 	public static function newWikiPageFromTitle( Title $title ): WikiPage {
-		if ( method_exists( MediaWikiServices::class, 'getWikiPageFactory' ) ) {
-			// MW 1.36+
-			return MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
-		}
-		return WikiPage::factory( $title );
+		return MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
 	}
 
 	public static function getSpecialPage( $pageName ) {
@@ -305,7 +301,7 @@ END;
 		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
 			return MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
 		}
-		return wfGetDB( DB_REPLICA );
+		return MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 	}
 
 	/**

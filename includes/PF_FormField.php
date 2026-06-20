@@ -993,7 +993,6 @@ class PFFormField {
 		// template.
 		if (
 			!defined( 'SMW_VERSION' ) &&
-			!defined( 'CARGO_VERSION' ) &&
 			!array_key_exists( 'values', $this->mFieldArgs ) &&
 			is_array( $this->template_field->getPossibleValues() ) &&
 			count( $this->template_field->getPossibleValues() ) > 0
