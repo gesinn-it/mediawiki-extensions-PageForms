@@ -6,20 +6,28 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
-### Changed
-- Remove deprecated utility shims from `PFFormPrinter`: delete `getStringFromPassedInArray()`, `getStringForCurrentTime()`, `displayLoadingImage()`, and the private `generateUUID()`; all call sites already used `PFFormUtils::*` directly
-- Extract `FormPlaceholder` from `PFFormPrinter`: move the `placeholderFormat` and `makePlaceholderInFormHTML` pure string helpers into `src/FormPlaceholder.php`; the old static methods on `PFFormPrinter` are retained as shims for backward compatibility
-- Extract `MultipleTemplateHtmlBuilder` from `PFFormPrinter`: move the four `multipleTemplate*HTML()` methods into `src/MultipleTemplateHtmlBuilder.php`; `PFFormPrinter` retains thin wrapper methods for backward compatibility
-- Extract `SpreadsheetHtmlBuilder` from `PFFormPrinter`: move `tableHTML()`, `getSpreadsheetAutocompleteAttributes()`, and `spreadsheetHTML()` into `src/SpreadsheetHtmlBuilder.php`; `PFFormPrinter` retains thin wrapper methods for backward compatibility; also fixes a bug where `values from wikidata` autocomplete read the wrong array key
-- Extract `FormFieldHtmlBuilder` from `PFFormPrinter`: move `formFieldHTML()`, `addTranslatableInput()`, and `createFormFieldTranslateTag()` into `src/FormFieldHtmlBuilder.php`; `PFFormPrinter` retains a thin `formFieldHTML()` shim for backward compatibility
-- Extract `FormDefParser` from `PFFormPrinter`: move `preparePreloadData()` and its private helper `splitFormDefIntoSections()` into `src/FormDefParser.php`; `ParserFactory` is injected via constructor; `PFFormPrinter::preparePreloadData()` is retained as a one-line shim
+## [1.4.0] - 2026-06-20
+
+Adds a target input dialog to the formlink feature and continues the FormPrinter refactor series.
+
+### Added
+- Add target input dialog for dynamic page name entry in `#formlink` [`64086650`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/640866505fba6412564095340a88efb1c41106e6)
 
 ### Fixed
-- Fix combobox dropdown scroll position resetting to top when releasing the mouse after dragging the native scrollbar
-- Fix `preg_replace()` deprecation on PHP 8 when `PFUtils::getPageText()` returns null in `PF_Templates`
-- Add missing qqq.json documentation for `pf-target-input-*` i18n messages added in the formlink feature
-- Fix `#forminput` JS module not loading when embedded in a Special page via a system message (e.g. `MediaWiki:Uploadtext`); on MW < 1.43 the interface-parser ParserOutput modules were not propagated to OutputPage
-- Fix PHP 8 / MW 1.43 deprecation warnings: null-guard `PFUtils::getPageText()` before `StringUtils::delimiterReplace()` calls in `PFFormCache`, `PFTemplate`, and `PFAutoeditAPI`; replace hard-deprecated `HTMLForm::addPreText()`/`addPostText()` with `addPreHtml()`/`addPostHtml()` in `PFUploadWindow` (MW ≥ 1.38)
+- Fix autocomplete dropdown positioning and UX in target input dialog [`80915d4d`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/80915d4df89e2a36914f4a7e94511b229d7d6ff6)
+- Fix `#formlink` cancel on FormEdit navigates back to originating page [`eac95ddb`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/eac95ddbea7c69b7b0983ac0e37f56482e584796)
+- Fix `#forminput` JS module not loading when embedded in a Special page via a system message (e.g. `MediaWiki:Uploadtext`) [`ab343d89`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/ab343d893230e46d486bfca7e25f875027aac748)
+- Eliminate PHP 8 / MW 1.43 deprecation warnings: null-guard `PFUtils::getPageText()` before `StringUtils::delimiterReplace()` calls in `PFFormCache`, `PFTemplate`, and `PFAutoeditAPI`; replace `HTMLForm::addPreText()`/`addPostText()` with `addPreHtml()`/`addPostHtml()` in `PFUploadWindow` [`1b9f9f18`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/1b9f9f1899604ed3c2ca8c477ad145ba54b28ee7)
+- Fix combobox scroll position resetting to top when releasing the mouse after dragging the native scrollbar [`329ba927`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/329ba927dec5d79b5ffbda30c83a97aa0bd55534)
+- Set min-width 100% on OO-UI menu dropdown in combobox [`4106f347`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/4106f34796d78a237d66ad9c61d2edd7b61acace)
+
+### Changed
+- Extract `FormPlaceholder` from `PFFormPrinter`: move `placeholderFormat` and `makePlaceholderInFormHTML` into `src/FormPlaceholder.php` [`8a91fa39`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/8a91fa39b05712a4b546274ab192f3874eb36d01)
+- Extract `MultipleTemplateHtmlBuilder` from `PFFormPrinter`: move the four `multipleTemplate*HTML()` methods into `src/MultipleTemplateHtmlBuilder.php` [`f9fdb888`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/f9fdb888bf8d56ef95374bb133de9fa82659dd4d)
+- Extract `SpreadsheetHtmlBuilder` from `PFFormPrinter`: move `tableHTML()`, `getSpreadsheetAutocompleteAttributes()`, and `spreadsheetHTML()` into `src/SpreadsheetHtmlBuilder.php` [`ad9bb4ea`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/ad9bb4ea3a434323634d9433d8c1da6d5edcfdda)
+- Extract `FormFieldHtmlBuilder` from `PFFormPrinter`: move `formFieldHTML()`, `addTranslatableInput()`, and `createFormFieldTranslateTag()` into `src/FormFieldHtmlBuilder.php` [`d6ba5c3a`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/d6ba5c3a87b5a26cad34df7cdf5839301c198a75)
+- Extract `FormDefParser` from `PFFormPrinter`: move `preparePreloadData()` and `splitFormDefIntoSections()` into `src/FormDefParser.php` [`3552ddeb`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/3552ddebff7723722ea3def5173cd1e1c8ec8395)
+- Remove deprecated utility shims from `PFFormPrinter`: delete `getStringFromPassedInArray()`, `getStringForCurrentTime()`, `displayLoadingImage()`, and `generateUUID()` [`773c2814`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/773c281439175429f216c090aefa7dded1395d66)
 
 ## [1.3.5] - 2026-06-10
 
@@ -243,7 +251,8 @@ Initial release as an independent fork from upstream PageForms 5.5.1, with versi
 ### Changed
 - Simplify `PFAutocompleteAPI` and fix uninitialized `$data` [`debd8c2`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/debd8c28)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.3.5...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.4.0...HEAD
+[1.4.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.3.5...1.4.0
 [1.3.5]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.3.4...1.3.5
 [1.3.4]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.3.3...1.3.4
 [1.3.3]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.3.2...1.3.3
