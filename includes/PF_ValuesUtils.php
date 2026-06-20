@@ -121,7 +121,7 @@ class PFValuesUtils {
 		$values = self::getSMWPropertyValues( $store, null, $property_name, $requestoptions );
 		sort( $values );
 
-		if ( !$wgPageFormsUseDisplayTitle || empty( $values ) ) {
+		if ( !$wgPageFormsUseDisplayTitle || $values === [] ) {
 			return $values;
 		}
 
@@ -157,7 +157,7 @@ class PFValuesUtils {
 	 * @return array
 	 */
 	public static function addDisplayTitlesForPageValues( array $pageTitles ): array {
-		if ( empty( $pageTitles ) ) {
+		if ( $pageTitles === [] ) {
 			return [];
 		}
 
@@ -786,9 +786,8 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			return $autocompleteFieldType;
 		}
 
-		// @TODO - that empty() check shouldn't be necessary.
 		if ( array_key_exists( 'possible_values', $field_args ) &&
-		!empty( $field_args['possible_values'] ) ) {
+		$field_args['possible_values'] !== [] ) {
 			$autocompleteValues = $field_args['possible_values'];
 		} elseif ( $autocompleteFieldType == 'values' ) {
 			$autocompleteValues = explode( ',', $field_args['values'] );
@@ -886,14 +885,14 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 
 	public static function getValuesFromExternalURL( $external_url_alias, $substring ) {
 		global $wgPageFormsAutocompletionURLs;
-		if ( empty( $wgPageFormsAutocompletionURLs ) ) {
+		if ( $wgPageFormsAutocompletionURLs === [] ) {
 			return wfMessage( 'pf-nocompletionurls' );
 		}
 		if ( !array_key_exists( $external_url_alias, $wgPageFormsAutocompletionURLs ) ) {
 			return wfMessage( 'pf-invalidexturl' );
 		}
 		$url = $wgPageFormsAutocompletionURLs[$external_url_alias];
-		if ( empty( $url ) ) {
+		if ( $url === '' ) {
 			return wfMessage( 'pf-blankexturl' );
 		}
 		$url = str_replace( '<substr>', urlencode( $substring ), $url );

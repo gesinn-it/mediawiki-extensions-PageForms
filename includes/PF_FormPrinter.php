@@ -743,7 +743,7 @@ class PFFormPrinter {
 							if ( $form_field->holdsTemplate() ) {
 								$existing_page_content .= $cur_value;
 							}
-						} elseif ( isset( $cur_value ) && !empty( $cur_value ) ) {
+						} elseif ( $cur_value !== '' ) {
 							// Do nothing.
 						} else {
 							$cur_value = '';

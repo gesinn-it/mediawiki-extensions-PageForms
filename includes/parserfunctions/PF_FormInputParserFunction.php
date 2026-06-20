@@ -155,7 +155,7 @@ class PFFormInputParserFunction {
 		// on whether or not there's autocompletion (and whether the
 		// autocompletion is local or remote).
 		$input_num = 1;
-		if ( !empty( $inAutocompletionSource ) ) {
+		if ( $inAutocompletionSource !== '' ) {
 			self::$num_autocompletion_inputs++;
 			$input_num = self::$num_autocompletion_inputs;
 			$inputID = 'input_' . $input_num;
@@ -201,7 +201,7 @@ class PFFormInputParserFunction {
 
 		// Recreate the passed-in query string as a set of hidden
 		// variables.
-		if ( !empty( $inQueryArr ) ) {
+		if ( $inQueryArr !== [] ) {
 			// Query string has to be turned into hidden inputs.
 			$query_components = explode( '&', http_build_query( $inQueryArr, '', '&' ) );
 

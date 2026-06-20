@@ -65,13 +65,13 @@ $form_input
 
 END;
 		$info = '';
-		if ( !empty( $this->mPageNameFormula ) ) {
+		if ( $this->mPageNameFormula !== '' ) {
 			$info .= "|page name=" . $this->mPageNameFormula;
 		}
-		if ( !empty( $this->mCreateTitle ) ) {
+		if ( $this->mCreateTitle !== '' ) {
 			$info .= "|create title=" . $this->mCreateTitle;
 		}
-		if ( !empty( $this->mEditTitle ) ) {
+		if ( $this->mEditTitle !== '' ) {
 			$info .= "|edit title=" . $this->mEditTitle;
 		}
 		if ( $info ) {

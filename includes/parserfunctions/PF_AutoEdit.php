@@ -132,7 +132,7 @@ class PFAutoEdit {
 		}
 
 		// query string has to be turned into hidden inputs.
-		if ( !empty( $inQueryArr ) ) {
+		if ( $inQueryArr !== [] ) {
 			$query_components = explode( '&', http_build_query( $inQueryArr, '', '&' ) );
 
 			foreach ( $query_components as $query_component ) {

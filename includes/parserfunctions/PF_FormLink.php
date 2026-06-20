@@ -192,13 +192,13 @@ class PFFormLink {
 			$link_url = $formSpecialPageTitle->getLocalURL( $query );
 		} else {
 			$link_url = $formSpecialPageTitle->getLocalURL() . "/$inFormName";
-			if ( !empty( $urlTargetName ) ) {
+			if ( $urlTargetName !== '' ) {
 				$link_url .= "/$urlTargetName";
 			}
 			$link_url = str_replace( ' ', '_', $link_url );
 		}
 		$hidden_inputs = "";
-		if ( !empty( $inQueryArr ) ) {
+		if ( $inQueryArr !== [] ) {
 			// Special handling for the buttons - query string
 			// has to be turned into hidden inputs.
 			switch ( $inLinkType ) {
@@ -258,7 +258,7 @@ class PFFormLink {
 		} else {
 			// If a target page has been specified but it doesn't
 			// exist, make it a red link.
-			if ( !empty( $inTargetName ) && !$inTargetInput ) {
+			if ( $inTargetName !== '' && !$inTargetInput ) {
 				if ( !$targetPageExists ) {
 					$classStr .= " new";
 				}

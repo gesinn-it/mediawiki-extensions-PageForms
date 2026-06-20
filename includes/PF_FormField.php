@@ -329,7 +329,7 @@ class PFFormField {
 					$vals = explode( ';', html_entity_decode( $sub_components[1] ) );
 					foreach ( $vals as $val ) {
 						$val = trim( $val );
-						if ( empty( $val ) ) {
+						if ( $val === '' ) {
 							continue;
 						}
 						$option_div_pair = explode( '=>', $val, 2 );
@@ -457,7 +457,7 @@ class PFFormField {
 			$f->mPossibleValues = PFValuesUtils::disambiguateLabels( $f->mPossibleValues );
 		}
 
-		if ( $mappingType !== null && !empty( $f->mPossibleValues ) ) {
+		if ( $mappingType !== null && $f->mPossibleValues !== [] ) {
 			// If we're going to be mapping values, we need to have
 			// the exact page name - and if these values come from
 			// "values from namespace", the namespace prefix was

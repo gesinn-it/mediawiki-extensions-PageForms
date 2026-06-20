@@ -195,7 +195,7 @@ class PFTemplate {
 		if ( preg_match_all( '/{{{([^|}]*)/mis', $this->mTemplateText, $matches ) ) {
 			foreach ( $matches[1] as $fieldName ) {
 				$fieldName = trim( $fieldName );
-				if ( !empty( $fieldName ) && ( !in_array( $fieldName, $fieldNamesArray ) ) ) {
+				if ( $fieldName !== '' && ( !in_array( $fieldName, $fieldNamesArray ) ) ) {
 					$cur_pos = stripos( $this->mTemplateText, $fieldName );
 					$this->mTemplateFields[$cur_pos] = PFTemplateField::create(
 						$fieldName, PFUtils::getContLang()->ucfirst( $fieldName )

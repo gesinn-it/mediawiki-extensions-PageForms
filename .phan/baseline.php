@@ -11,10 +11,8 @@ return [
     // # Issue statistics:
     // PhanUndeclaredClassMethod : 50+ occurrences
     // SecurityCheck-DoubleEscaped : 45+ occurrences
-    // MediaWikiNoEmptyIfDefined : 25+ occurrences
-    // PhanPossiblyUndeclaredVariable : 25+ occurrences
     // PhanTypeMismatchArgumentProbablyReal : 25+ occurrences
-    // MediaWikiNoIssetIfDefined : 10+ occurrences
+    // PhanPossiblyUndeclaredVariable : 20+ occurrences
     // PhanPluginDuplicateConditionalNullCoalescing : 10+ occurrences
     // PhanTypeMismatchArgumentNullable : 10+ occurrences
     // PhanUndeclaredMethod : 10+ occurrences
@@ -27,14 +25,13 @@ return [
     // PhanRedundantCondition : 5 occurrences
     // PhanTypeMismatchReturn : 5 occurrences
     // PhanTypeMismatchReturnProbablyReal : 4 occurrences
-    // UnusedPluginSuppression : 4 occurrences
     // PhanTypeMismatchPropertyProbablyReal : 3 occurrences
+    // MediaWikiNoEmptyIfDefined : 2 occurrences
     // PhanNonClassMethodCall : 2 occurrences
     // PhanTypeMismatchDimFetchNullable : 2 occurrences
     // PhanUndeclaredClassInstanceof : 2 occurrences
     // PhanUndeclaredClassReference : 2 occurrences
     // PhanUndeclaredStaticMethod : 2 occurrences
-    // PhanUnusedPrivateMethodParameter : 2 occurrences
     // PhanParamTooFewInPHPDoc : 1 occurrence
     // PhanRedundantValueComparison : 1 occurrence
     // PhanTypeArraySuspiciousNullable : 1 occurrence
@@ -48,7 +45,6 @@ return [
     // PhanUndeclaredTypeReturnType : 1 occurrence
     // SecurityCheck-ReDoS : 1 occurrence
     // SecurityCheck-XSS : 1 occurrence
-    // UnusedSuppression : 1 occurrence
 
     'file_suppressions' => [
         'includes/PF_AutocompleteAPI.php' => [
@@ -66,31 +62,22 @@ return [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoeditAPI::finalizeResults'],
             'PhanTypeMismatchReturnNullable' => ['\\PFAutoeditAPI::getStatus'],
             'PhanUndeclaredConstantOfClass' => ['\\PFAutoeditAPI::generateTargetName'],
-            'PhanUndeclaredMethod' => ['\\PFAutoeditAPI::getFormTitle'],
-            'UnusedPluginSuppression' => ['includes/PF_AutoeditAPI.php']
+            'PhanUndeclaredMethod' => ['\\PFAutoeditAPI::getFormTitle']
         ],
         'includes/PF_CreatePageJob.php' => [
             'PhanRedundantCondition' => ['\\PFCreatePageJob::run']
         ],
-        'includes/PF_Form.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFForm::createMarkup']
-        ],
         'includes/PF_FormCache.php' => [
-            'MediaWikiNoIssetIfDefined' => ['\\PFFormCache::getPreloadedText'],
             'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFFormCache::getFormCache'],
-            'PhanPossiblyUndeclaredVariable' => ['\\PFFormCache::getFormDefinition'],
             'PhanTypeMismatchArgument' => ['\\PFFormCache::getFormDefinition'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormCache::purgeCache']
         ],
         'includes/PF_FormEditAction.php' => [
-            'MediaWikiNoIssetIfDefined' => ['\\PFFormEditAction::displayTab'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormEditAction::displayFormChooser'],
             'PhanTypeMismatchReturn' => ['\\PFFormEditAction::displayForm', '\\PFFormEditAction::show'],
             'SecurityCheck-DoubleEscaped' => ['\\PFFormEditAction::displayFormChooser']
         ],
         'includes/PF_FormField.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFFormField::newFromFormFieldTag'],
-            'MediaWikiNoIssetIfDefined' => ['\\PFFormField::getCurrentValue'],
             'PhanTypeMismatchArgumentNullable' => ['\\PFFormField::newFromFormFieldTag'],
             'PhanTypeSuspiciousStringExpression' => ['\\PFFormField::createMarkup'],
             'PhanUndeclaredStaticMethod' => ['\\PFFormField::setValuesWithMappingCargoField'],
@@ -100,8 +87,6 @@ return [
             'PhanParamTooFewInPHPDoc' => ['\\PFFormLinker::getDefaultForm']
         ],
         'includes/PF_FormPrinter.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFFormPrinter::formHTML'],
-            'MediaWikiNoIssetIfDefined' => ['\\PFFormPrinter::formHTML'],
             'PhanNonClassMethodCall' => ['\\PFFormPrinter::showDeletionLog'],
             'PhanPossiblyUndeclaredVariable' => ['\\PFFormPrinter::formHTML'],
             'PhanTypeMismatchArgument' => ['\\PFFormPrinter::formHTML'],
@@ -114,17 +99,11 @@ return [
             'SecurityCheck-ReDoS' => ['\\PFFormPrinter::formHTML']
         ],
         'includes/PF_FormUtils.php' => [
-            'MediaWikiNoIssetIfDefined' => ['\\PFFormUtils::getStringForCurrentTime'],
             'PhanPossiblyUndeclaredVariable' => ['\\PFFormUtils::getStringForCurrentTime'],
             'PhanTypeInvalidLeftOperandOfNumericOp' => ['\\PFFormUtils::getStringForCurrentTime'],
             'PhanTypeMismatchArgumentInternal' => ['\\PFFormUtils::getStringForCurrentTime'],
             'PhanTypeMismatchReturn' => ['\\PFFormUtils::queryFormBottom'],
-            'SecurityCheck-DoubleEscaped' => ['\\PFFormUtils::minorEditInputHTML', '\\PFFormUtils::watchInputHTML'],
-            'UnusedPluginSuppression' => ['includes/PF_FormUtils.php']
-        ],
-        'includes/PF_HelperFormAction.php' => [
-            'MediaWikiNoIssetIfDefined' => ['\\PFHelperFormAction::displayTab'],
-            'PhanUnusedPrivateMethodParameter' => ['\\PFHelperFormAction::displayForm']
+            'SecurityCheck-DoubleEscaped' => ['\\PFFormUtils::minorEditInputHTML', '\\PFFormUtils::watchInputHTML']
         ],
         'includes/PF_Hooks.php' => [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFHooks::showFormPreview'],
@@ -132,12 +111,9 @@ return [
             'PhanUndeclaredClassReference' => ['\\PFHooks::setGlobalJSVariables']
         ],
         'includes/PF_Template.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFTemplate::loadTemplateFieldsSMWAndOther'],
-            'MediaWikiNoIssetIfDefined' => ['\\PFTemplate::loadTemplateFields'],
             'PhanPossiblyUndeclaredVariable' => ['\\PFTemplate::createText']
         ],
         'includes/PF_TemplateField.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFTemplateField::setTypeAndPossibleValues'],
             'PhanTypeMismatchArgumentNullable' => ['\\PFTemplateField::setTypeAndPossibleValues'],
             'PhanUndeclaredClassMethod' => ['\\PFTemplateField::setTypeAndPossibleValues']
         ],
@@ -148,7 +124,7 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFUtils::linkForSpecialPage']
         ],
         'includes/PF_ValuesUtils.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFValuesUtils::addDisplayTitlesForPageValues', '\\PFValuesUtils::getAllValuesForProperty', '\\PFValuesUtils::getValuesFromExternalURL'],
+            'MediaWikiNoEmptyIfDefined' => ['\\PFValuesUtils::getValuesFromExternalURL'],
             'PhanPossiblyUndeclaredVariable' => ['\\PFValuesUtils::getAllPagesForNamespace'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFValuesUtils::getAllCategories', '\\PFValuesUtils::getAllValuesForProperty'],
             'PhanUndeclaredClassConstant' => ['\\PFValuesUtils::getAllPagesForConcept', '\\PFValuesUtils::getAllPagesForQuery'],
@@ -158,7 +134,6 @@ return [
             'PhanUndeclaredConstant' => ['\\PFValuesUtils::getAllPagesForConcept']
         ],
         'includes/forminputs/PF_DateInput.php' => [
-            'MediaWikiNoIssetIfDefined' => ['\\PFDateInput::parseDate'],
             'PhanPossiblyUndeclaredVariable' => ['\\PFDateInput::parseDate'],
             'PhanTypeMismatchArgumentInternal' => ['\\PFDateInput::monthDropdownHTML'],
             'PhanTypeMismatchArgumentNullable' => ['\\PFDateInput::monthDropdownHTML']
@@ -203,15 +178,11 @@ return [
             'PhanUndeclaredMethod' => ['\\PFTextInput::getPreviewImage'],
             'SecurityCheck-DoubleEscaped' => ['\\PFTextInput::uploadableHTML']
         ],
-        'includes/forminputs/PF_TextWithAutocompleteInput.php' => [
-            'MediaWikiNoIssetIfDefined' => ['\\PFTextWithAutocompleteInput::getAlias']
-        ],
         'includes/forminputs/PF_TimePickerInput.php' => [
             'PhanTypeMismatchReturn' => ['\\PFTimePickerInput::setupJsInitAttribs']
         ],
         'includes/forminputs/PF_Tree.php' => [
-            'PhanTypeMismatchArgumentNullable' => ['\\PFTree::addSubCategories'],
-            'UnusedSuppression' => ['\\PFTree::configArray']
+            'PhanTypeMismatchArgumentNullable' => ['\\PFTree::addSubCategories']
         ],
         'includes/forminputs/PF_TreeInput.php' => [
             'PhanRedundantCondition' => ['\\PFTreeInput::makeTitle'],
@@ -221,19 +192,16 @@ return [
             'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFArrayMap::run']
         ],
         'includes/parserfunctions/PF_AutoEdit.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFAutoEdit::run'],
             'PhanPossiblyUndeclaredVariable' => ['\\PFAutoEdit::run'],
             'PhanTypeMismatchArgumentNullableInternal' => ['\\PFAutoEdit::convertQueryString'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoEdit::run'],
             'SecurityCheck-DoubleEscaped' => ['\\PFAutoEdit::run']
         ],
         'includes/parserfunctions/PF_AutoEditRating.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFAutoEditRating::run'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoEditRating::run'],
             'SecurityCheck-DoubleEscaped' => ['\\PFAutoEditRating::run']
         ],
         'includes/parserfunctions/PF_FormInputParserFunction.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFFormInputParserFunction::run'],
             'PhanPossiblyUndeclaredVariable' => ['\\PFFormInputParserFunction::run'],
             'PhanTypeMismatchArgumentNullable' => ['\\PFFormInputParserFunction::run'],
             'PhanTypeMismatchArgumentNullableInternal' => ['\\PFFormInputParserFunction::run'],
@@ -241,13 +209,11 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFFormInputParserFunction::run']
         ],
         'includes/parserfunctions/PF_FormLink.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFFormLink::createFormLink'],
             'PhanPossiblyUndeclaredVariable' => ['\\PFFormLink::createFormLink'],
             'PhanTypeMismatchArgumentNullable' => ['\\PFFormLink::createFormLink'],
             'SecurityCheck-DoubleEscaped' => ['\\PFFormLink::createFormLink']
         ],
         'specials/PF_FormEdit.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFFormEdit::printForm'],
             'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFFormEdit::execute'],
             'PhanPossiblyUndeclaredVariable' => ['\\PFFormEdit::printForm'],
             'PhanUndeclaredClassMethod' => ['\\PFFormEdit::showCaptcha'],
@@ -265,7 +231,6 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFForms::formatResult']
         ],
         'specials/PF_MultiPageEdit.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFMultiPageEdit::displaySpreadsheet'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFMultiPageEdit::displaySpreadsheet', '\\PFMultiPageEdit::getPageHeader'],
             'SecurityCheck-DoubleEscaped' => ['\\PFMultiPageEdit::displaySpreadsheet']
         ],
@@ -277,7 +242,6 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFTemplates::formatResult']
         ],
         'specials/PF_UploadForm.php' => [
-            'MediaWikiNoIssetIfDefined' => ['\\PFUploadForm::getSourceSection'],
             'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFUploadForm::__construct'],
             'PhanTypeMismatchDimEmpty' => ['\\PFUploadForm::__construct'],
             'PhanTypeMismatchProperty' => ['\\PFUploadForm::__construct'],
@@ -303,11 +267,7 @@ return [
             'PhanTypeMismatchArgument' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML'],
             'PhanTypeMismatchArgumentInternal' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML'],
             'PhanTypeMismatchDimFetchNullable' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML'],
-            'PhanUnusedPrivateMethodParameter' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::addTranslatableInput'],
             'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML']
-        ],
-        'src/HtmlFormDataExtractor.php' => [
-            'UnusedPluginSuppression' => ['src/HtmlFormDataExtractor.php']
         ],
         'src/SpreadsheetHtmlBuilder.php' => [
             'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\SpreadsheetHtmlBuilder::spreadsheetHTML', '\\MediaWiki\\Extension\\PageForms\\SpreadsheetHtmlBuilder::tableHTML']

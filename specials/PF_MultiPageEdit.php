@@ -95,13 +95,13 @@ class PFMultiPageEdit extends QueryPage {
 				$autocompletedatatype = '';
 				$autocompletesettings = '';
 				$gridParamValues['type'] = 'text';
-			} elseif ( !empty( $possibleValues ) ) {
+			} elseif ( $possibleValues !== [] ) {
 				$gridParamValues['values'] = $possibleValues;
 				if ( $templateField->isList() ) {
 					$gridParamValues['list'] = true;
 					$gridParamValues['delimiter'] = $templateField->getDelimiter();
 				}
-			} elseif ( !empty( $fieldType ) ) {
+			} elseif ( $fieldType !== '' ) {
 				if ( $fieldType == 'Date' ) {
 					$gridParamValues['type'] = 'date';
 				} elseif ( $fieldType == 'Datetime' ) {
@@ -119,7 +119,7 @@ class PFMultiPageEdit extends QueryPage {
 						$gridParamValues['inputType'] = 'combobox';
 					}
 				}
-			} elseif ( !empty( $propertyType ) ) {
+			} elseif ( $propertyType !== '' ) {
 				if ( $propertyType == '_dat' ) {
 					$gridParamValues['type'] = 'date';
 				} elseif ( $propertyType == '_boo' ) {

@@ -103,7 +103,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 			// If the page was submitted, form data should be
 			// complete => do not preload
 			$module->setOption( 'preload', false );
-		} elseif ( !empty( $targetName ) && Title::newFromText( $targetName )->exists() ) {
+		} elseif ( $targetName !== '' && Title::newFromText( $targetName )->exists() ) {
 			// If target page exists, do not overwrite it with
 			// preload data; just preload the page's data.
 			$module->setOption( 'preload', true );
@@ -154,7 +154,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 		// new or existing page being edited.
 		if ( array_key_exists( 'formtitle', $result ) ) {
 			$pageTitle = $result[ 'formtitle' ];
-			if ( empty( $targetName ) ) {
+			if ( $targetName === '' ) {
 				// This is a new page - we're done.
 			} elseif ( str_contains( $pageTitle, '&lt;page name&gt;' ) ) {
 				$pageTitle = str_replace( '&lt;page name&gt;', $targetName, $pageTitle );
@@ -162,7 +162,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 				$pageTitle = $result[ 'formtitle' ] . ': ' . $targetName;
 			}
 		} elseif ( $result[ 'form' ] !== '' ) {
-			if ( empty( $targetName ) ) {
+			if ( $targetName === '' ) {
 				$pageTitle = $this->msg( 'pf_formedit_createtitlenotarget', $result[ 'form' ] )->text();
 			} elseif ( $targetTitle->exists() ) {
 				$pageTitle = $this->msg( 'pf_formedit_edittitle', $result[ 'form' ], $targetName )->text();

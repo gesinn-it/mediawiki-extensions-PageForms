@@ -92,7 +92,7 @@ class PFAutoEditRating {
 		}
 
 		// query string has to be turned into hidden inputs.
-		if ( !empty( $inQueryArr ) ) {
+		if ( $inQueryArr !== [] ) {
 			$query_components = explode( '&', http_build_query( $inQueryArr, '', '&' ) );
 			foreach ( $query_components as $query_component ) {
 				$var_and_val = explode( '=', $query_component, 2 );
