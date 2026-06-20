@@ -19,7 +19,7 @@ use PFTemplateParams;
 use SMW\Tests\Integration\JSONScript\JSONScriptTestCaseRunnerTest;
 
 define( "TEST_NAMESPACE", 3000 );
-$wgExtraNamespaces[TEST_NAMESPACE] = "Test_Namespace";
+$GLOBALS['wgExtraNamespaces'][TEST_NAMESPACE] = 'Test_Namespace';
 
 /**
  * @group PF
@@ -30,6 +30,10 @@ class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 
 	protected function setUp(): void {
 		parent::setUp();
+
+		$GLOBALS['wgExtraNamespaces'][TEST_NAMESPACE] = 'Test_Namespace';
+		\SMW\NamespaceManager::clear();
+		MediaWikiServices::getInstance()->resetServiceForTesting( 'NamespaceInfo' );
 
 		// Register parser functions directly
 		$parser = $this->getParser();
