@@ -225,15 +225,4 @@ class PFTemplateCreateTextTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( '{{#if:', $text );
 	}
 
-	// -----------------------------------------------------------------------
-	// setCategoryName / setCargoTable
-	// -----------------------------------------------------------------------
-
-	public function testSetCargoTableReplacesSpacesWithUnderscores() {
-		$t = new PFTemplate( 'T', [] );
-		$t->setCargoTable( 'My Table' );
-		// cargoTable is private; verify indirectly via createText not throwing
-		$text = $t->createText();
-		$this->assertIsString( $text );
-	}
 }

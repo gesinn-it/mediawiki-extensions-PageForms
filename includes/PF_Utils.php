@@ -51,8 +51,6 @@ class PFUtils {
 	 * @param array $params query parameters
 	 *
 	 * @return string HTML link
-	 *
-	 * Copied from CargoUtils::makeLink().
 	 */
 	public static function makeLink( $linkRenderer, $title, $msg = null, $attrs = [], $params = [] ) {
 		$titleGlobal = RequestContext::getMain()->getTitle();

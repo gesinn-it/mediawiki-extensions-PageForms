@@ -602,9 +602,9 @@ class PFFormFieldTest extends TestCase {
 	// valueStringToLabels / labelToValue – mapping field value conversion
 	//
 	// These tests exercise the key↔label translation layer used by fields
-	// with mapping template=, mapping property=, or mapping cargo table=.
+	// with mapping template= or mapping property=.
 	// mPossibleValues is set directly (via Reflection) to isolate the logic
-	// from DB / SMW / Cargo dependencies.
+	// from DB / SMW dependencies.
 	// -------------------------------------------------------------------------
 
 	/**

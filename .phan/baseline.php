@@ -31,7 +31,6 @@ return [
     // PhanTypeMismatchDimFetchNullable : 2 occurrences
     // PhanUndeclaredClassInstanceof : 2 occurrences
     // PhanUndeclaredClassReference : 2 occurrences
-    // PhanUndeclaredStaticMethod : 2 occurrences
     // PhanParamTooFewInPHPDoc : 1 occurrence
     // PhanRedundantValueComparison : 1 occurrence
     // PhanTypeArraySuspiciousNullable : 1 occurrence
@@ -42,6 +41,7 @@ return [
     // PhanTypeSuspiciousStringExpression : 1 occurrence
     // PhanUndeclaredClassProperty : 1 occurrence
     // PhanUndeclaredConstantOfClass : 1 occurrence
+    // PhanUndeclaredStaticMethod : 1 occurrence
     // PhanUndeclaredTypeReturnType : 1 occurrence
     // SecurityCheck-ReDoS : 1 occurrence
     // SecurityCheck-XSS : 1 occurrence
@@ -80,7 +80,6 @@ return [
         'includes/PF_FormField.php' => [
             'PhanTypeMismatchArgumentNullable' => ['\\PFFormField::newFromFormFieldTag'],
             'PhanTypeSuspiciousStringExpression' => ['\\PFFormField::createMarkup'],
-            'PhanUndeclaredStaticMethod' => ['\\PFFormField::setValuesWithMappingCargoField'],
             'SecurityCheck-DoubleEscaped' => ['\\PFFormField::additionalHTMLForInput', '\\PFFormField::newFromFormFieldTag']
         ],
         'includes/PF_FormLinker.php' => [

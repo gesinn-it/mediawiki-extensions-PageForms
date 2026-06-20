@@ -30,14 +30,6 @@ class StubFormInput extends PFFormInput {
 		return [];
 	}
 
-	public static function getDefaultCargoTypes(): array {
-		return [];
-	}
-
-	public static function getDefaultCargoTypeLists(): array {
-		return [];
-	}
-
 	public function getHtmlText(): string {
 		return self::STUB_HTML;
 	}

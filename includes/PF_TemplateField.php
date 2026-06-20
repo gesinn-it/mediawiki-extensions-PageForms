@@ -1,7 +1,7 @@
 <?php
 /**
  * Defines a class, PFTemplateField, that represents a field in a template,
- * including any possible Cargo or SMW storage it may have. Used in both
+ * including any possible SMW storage it may have. Used in both
  * creating templates and displaying user-created forms.
  *
  * @author Yaron Koren
@@ -21,11 +21,6 @@ class PFTemplateField {
 	private $mSemanticProperty;
 	private $mPropertyType;
 
-	/**
-	 * Cargo-specific fields
-	 */
-	private $mCargoTable;
-	private $mCargoField;
 	private $mFieldType;
 	private $mRealFieldType = null;
 	private $mHierarchyStructure;
@@ -70,17 +65,10 @@ class PFTemplateField {
 			( $this->mLabel !== $this->mFieldName ) ) {
 			$attribsStrings['label'] = $this->mLabel;
 		}
-		if ( $this->mCargoField != '' && $this->mCargoField !== str_replace( ' ', '_', $this->mFieldName ) ) {
-			$attribsStrings['cargo field'] = $this->mCargoField;
-		}
-		// Only set list and delimiter information if there's no Cargo
-		// field - if there is, they will be set in #cargo_declare.
-		if ( $this->mCargoField == '' ) {
-			if ( $this->mIsList == true ) {
-				$attribsStrings['list'] = true;
-				if ( $this->mDelimiter != ',' ) {
-					$attribsStrings['delimiter'] = $this->mDelimiter;
-				}
+		if ( $this->mIsList == true ) {
+			$attribsStrings['list'] = true;
+			if ( $this->mDelimiter != ',' ) {
+				$attribsStrings['delimiter'] = $this->mDelimiter;
 			}
 		}
 		if ( $this->mSemanticProperty != '' ) {
@@ -113,8 +101,6 @@ class PFTemplateField {
 		foreach ( $fieldParams as $key => $value ) {
 			if ( $key == 'label' ) {
 				$f->mLabel = $value;
-			} elseif ( $key == 'cargo field' ) {
-				$f->mCargoField = $value;
 			} elseif ( $key == 'property' ) {
 				$f->setSemanticProperty( $value );
 			} elseif ( $key == 'list' ) {
@@ -334,15 +320,12 @@ class PFTemplateField {
 		$this->mHierarchyStructure = $hierarchyStructure;
 	}
 
-	public function createText( $cargoInUse ) {
+	public function createText() {
 		$fieldProperty = $this->mSemanticProperty;
 		// If this field is meant to contain a list, and the field has
 		// an associated SMW property, add on an 'arraymap' function,
-		// which will call the property tag on every element in the
-		// list. If, on the other hand, it uses Cargo, use #arraymap
-		// just for the link - but only if it's of type "Page".
-		if ( $this->mIsList && ( $fieldProperty != '' ||
-			( $cargoInUse && $this->mFieldType == 'Page' ) ) ) {
+		// which will call the property tag on every element in the list.
+		if ( $this->mIsList && $fieldProperty != '' ) {
 			// Find a string that's not in the property
 			// name, to be used as the variable.
 			// Default is "x" - also use this if all the attempts fail.
@@ -382,17 +365,6 @@ class PFTemplateField {
 		}
 
 		if ( $fieldProperty == '' ) {
-			if ( $cargoInUse && ( $this->mFieldType == 'Page' || $this->mFieldType == 'File' ) ) {
-				$fieldString = "[[$fieldString]]";
-				// Add an #if around the link, to prevent
-				// anything from getting displayed on the
-				// screen for blank values, if the
-				// ParserFunctions extension is installed.
-				if ( ExtensionRegistry::getInstance()->isLoaded( 'ParserFunctions' ) ) {
-					$fieldString = "{{#if:$fieldParam|$fieldString}}";
-				}
-				return $fieldString;
-			}
 			return $fieldString;
 		} elseif ( $this->mNamespace == 0 ) {
 			return "[[$fieldProperty::$fieldString]]";

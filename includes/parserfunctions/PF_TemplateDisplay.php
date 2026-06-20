@@ -160,7 +160,7 @@ class PFTemplateDisplay {
 				continue;
 			}
 			if ( $i > 0 ) {
-				$text .= ' <span class="CargoDelimiter">&bull;</span> ';
+				$text .= ' <span class="pf-list-delimiter">&bull;</span> ';
 			}
 			$text .= self::pageText( $fieldValue, $templateField );
 		}
@@ -191,14 +191,14 @@ class PFTemplateDisplay {
 	private static function stringListText( $value, $templateField ) {
 		$delimiter = $templateField->getDelimiter();
 		$fieldValues = explode( $delimiter, $value );
-		return implode( ' <span class="CargoDelimiter">&bull;</span> ', $fieldValues );
+		return implode( ' <span class="pf-list-delimiter">&bull;</span> ', $fieldValues );
 	}
 
 	private static function ratingText( $value ) {
 		global $wgServer, $wgScriptPath;
 
 		$rate = $value * 20;
-		$url = $wgServer . $wgScriptPath . '/' . 'extensions/Cargo/resources/images/star-rating-sprite-1.png';
+		$url = $wgServer . $wgScriptPath . '/extensions/PageForms/resources/images/star-rating-sprite-1.png';
 		$text = '<span style="display: block; width: 65px; height: 13px; background: url(\'' .
 			$url . '\') 0 0;">' . "\n\t\t\t" .
 			'<span style="display: block; width: ' . $rate .

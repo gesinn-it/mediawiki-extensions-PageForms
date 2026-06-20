@@ -450,9 +450,6 @@ class PFFormField {
 			$mappingType = 'template';
 		} elseif ( array_key_exists( 'mapping property', $f->mFieldArgs ) ) {
 			$mappingType = 'property';
-		} elseif ( array_key_exists( 'mapping cargo table', $f->mFieldArgs ) &&
-			array_key_exists( 'mapping cargo field', $f->mFieldArgs ) ) {
-			$mappingType = 'cargo field';
 		} elseif ( $f->mUseDisplayTitle ) {
 			$f->mPossibleValues = PFValuesUtils::disambiguateLabels( $f->mPossibleValues );
 		}
@@ -696,8 +693,6 @@ class PFFormField {
 			$this->setValuesWithMappingTemplate();
 		} elseif ( $mappingType == 'property' ) {
 			$this->setValuesWithMappingProperty();
-		} elseif ( $mappingType == 'cargo field' ) {
-			$this->setValuesWithMappingCargoField();
 		}
 
 		$this->mPossibleValues = PFValuesUtils::disambiguateLabels( $this->mPossibleValues );
@@ -754,34 +749,6 @@ class PFFormField {
 				if ( count( $vals ) > 0 ) {
 					$labels[$value] = trim( $vals[0] );
 				}
-			}
-		}
-		$this->mPossibleValues = $labels;
-	}
-
-	/**
-	 * Helper function to get an array of labels from an array of values
-	 * given a mapping Cargo table/field.
-	 */
-	public function setValuesWithMappingCargoField() {
-		$labels = [];
-		foreach ( $this->mPossibleValues as $index => $value ) {
-			if ( $this->mUseDisplayTitle ) {
-				$value = $index;
-			}
-			$labels[$value] = $value;
-			if ( $this->hasFieldArg( 'mapping cargo value field' ) ) {
-				$valueField = $this->mFieldArgs['mapping cargo value field'];
-			} else {
-				$valueField = '_pageName';
-			}
-			$vals = PFValuesUtils::getValuesForCargoField(
-				$this->mFieldArgs['mapping cargo table'],
-				$this->mFieldArgs['mapping cargo field'],
-				$valueField . '="' . $value . '"'
-			);
-			if ( count( $vals ) > 0 ) {
-				$labels[$value] = html_entity_decode( trim( $vals[0] ) );
 			}
 		}
 		$this->mPossibleValues = $labels;
@@ -864,8 +831,6 @@ class PFFormField {
 
 		if ( $this->hasFieldArg( 'mapping template' ) ||
 			$this->hasFieldArg( 'mapping property' ) ||
-			( $this->hasFieldArg( 'mapping cargo table' ) &&
-			$this->hasFieldArg( 'mapping cargo field' ) ) ||
 			$this->mUseDisplayTitle ) {
 			if ( $this->hasFieldArg( 'part_of_multiple' ) ) {
 				$text .= Html::hidden( $template_name . '[num][map_field][' . $field_name . ']', 'true' );

@@ -11,9 +11,6 @@ use MediaWiki\MediaWikiServices;
 
 class PFHooks {
 
-	/**
-	 * Used for caching by addToCargoTablesLinks().
-	 */
 	private static $mMultiPageEditPage = null;
 
 	public static function registerExtension() {

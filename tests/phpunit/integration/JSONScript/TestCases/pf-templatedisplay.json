@@ -118,12 +118,12 @@
 		},
 		{
 			"type": "parser",
-			"about": "string list field values are joined with CargoDelimiter bullets",
+			"about": "string list field values are joined with pf-list-delimiter bullets",
 			"subject": "PFTestTDSubj05",
 			"assert-output": {
 				"to-contain": [
 					"<th>PFTestTDFieldTags</th>",
-					"class=\"CargoDelimiter\"",
+					"class=\"pf-list-delimiter\"",
 					"PFTestTDValue08",
 					"PFTestTDValue09",
 					"PFTestTDValue10"

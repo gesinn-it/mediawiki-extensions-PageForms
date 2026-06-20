@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Changed
+- Remove Cargo integration: drop `PFTemplate::setCargoTable()`, `PFTemplateField::$mCargoField`/`$mCargoTable`, `PFFormField::setValuesWithMappingCargoField()`, `mapping cargo table`/`mapping cargo field` support, `CargoDelimiter` CSS class (renamed to `pf-list-delimiter`), Cargo image path in rating display, and `PageFormsCargoFields` global; removes `PhanUndeclaredStaticMethod` Phan warning for the Cargo mapping method (#56, #57, #58)
 - Replace `empty()` with explicit `=== ''` / `=== []` comparisons across 12 files; removes all `MediaWikiNoEmptyIfDefined` Phan warnings (2 intentional `empty()` calls on `string|false` and `mixed` return values remain)
 - Move `strReplaceFirst()` to `PFUtils` as a public static method; `PFFormPrinter::strReplaceFirst()` is now a deprecated shim and the duplicate in `FormDefParser` is removed
 - Add `@var string|null` annotations to `$sectionanchor` and `$extraQuery` in `PF_AutoeditAPI` so Phan knows the hook may set them; removes `PhanImpossibleCondition` suppression
