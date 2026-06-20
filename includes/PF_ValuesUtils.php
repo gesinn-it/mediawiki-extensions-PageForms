@@ -568,6 +568,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 
 		$allNamespaces = PFUtils::getContLang()->getNamespaces();
 
+		$allEnglishNamespaces = [];
 		if ( $wgLanguageCode !== 'en' ) {
 			$englishLang = MediaWikiServices::getInstance()->getLanguageFactory()->getLanguage( 'en' );
 			$allEnglishNamespaces = $englishLang->getNamespaces();

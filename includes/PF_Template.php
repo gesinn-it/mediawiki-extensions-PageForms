@@ -354,10 +354,10 @@ END;
 		// and on the SMW version.
 		// Thankfully, the syntaxes of #set_internal and #subobject
 		// are quite similar, so we don't need too much extra logic.
+		$useSubobject = false;
 		$internalObjText = null;
 		if ( $this->mConnectingProperty ) {
 			if ( defined( 'SIO_VERSION' ) ) {
-				$useSubobject = false;
 				$internalObjText = '{{#set_internal:' . $this->mConnectingProperty;
 			} else {
 				$useSubobject = true;

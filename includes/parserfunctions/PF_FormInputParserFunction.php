@@ -60,6 +60,7 @@ class PFFormInputParserFunction {
 		$inFormName = $inValue = $inButtonStr = '';
 		$inQueryArr = [];
 		$inAutocompletionSource = '';
+		$autocompletionType = '';
 		$inSize = '';
 		$classStr = "pfFormInput";
 		$inNamespaceSelector = null;

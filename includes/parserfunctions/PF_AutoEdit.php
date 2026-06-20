@@ -38,6 +38,7 @@ class PFAutoEdit {
 		$redirect = '';
 		$bringToPage = false;
 		$linkToPage = '#';
+		$targetTitle = null;
 
 		// Parse parameters.
 		$params = func_get_args();

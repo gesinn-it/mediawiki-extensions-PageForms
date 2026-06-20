@@ -35,6 +35,9 @@ class PFLeafletInput extends PFOpenLayersInput {
 		$wgOut->addHeadItem( $stylesHTML, $stylesHTML );
 		$wgOut->addModules( 'ext.pageforms.maps' );
 
+		$imageWidth = 0;
+		$imageHeight = 0;
+		$file = null;
 		if ( array_key_exists( 'image', $other_args ) ) {
 			global $wgUploadDirectory;
 			$fileName = $other_args['image'];

@@ -152,6 +152,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 		// Set page title depending on whether an explicit title was
 		// specified in the form definition, and whether this is a
 		// new or existing page being edited.
+		$pageTitle = '';
 		if ( array_key_exists( 'formtitle', $result ) ) {
 			$pageTitle = $result[ 'formtitle' ];
 			if ( $targetName === '' ) {

@@ -145,6 +145,7 @@ class PFFormLink {
 			$inLinkType = $inTooltip = null;
 		}
 
+		$targetTitle = null;
 		// If "red link only" was specified, and a target page was
 		// specified, and it exists, just link to the page.
 		if ( $inTargetName != '' ) {

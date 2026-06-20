@@ -29,6 +29,12 @@ class PFDateTimeInput extends PFDateInput {
 
 		$include_timezone = array_key_exists( 'include timezone', $other_args );
 
+		$hour = null;
+		$minute = null;
+		$second = '00';
+		$ampm24h = '';
+		$timezone = '';
+
 		if ( $datetime ) {
 			// Can show up here either as an array or a string,
 			// depending on whether it came from user input or a
@@ -80,13 +86,6 @@ class PFDateTimeInput extends PFDateInput {
 				}
 				$timezone = $dateTimeObject->format( 'T' );
 			}
-		} else {
-			$hour = null;
-			$minute = null;
-			// Default at least the "seconds" field.
-			$second = '00';
-			$ampm24h = '';
-			$timezone = '';
 		}
 
 		$text = parent::getMainHTML( $datetime, $input_name, $is_mandatory, $is_disabled, $other_args );

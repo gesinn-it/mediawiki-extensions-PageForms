@@ -640,6 +640,7 @@ class PFFormUtils {
 	public static function getStringForCurrentTime( $includeTime, $includeTimezone ) {
 		global $wgLocaltimezone, $wgAmericanDates, $wgPageForms24HourTime;
 
+		$serverTimezone = '';
 		if ( $wgLocaltimezone !== null ) {
 			$serverTimezone = date_default_timezone_get();
 			date_default_timezone_set( $wgLocaltimezone );

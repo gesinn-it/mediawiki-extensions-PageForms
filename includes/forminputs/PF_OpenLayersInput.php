@@ -63,11 +63,11 @@ class PFOpenLayersInput extends PFFormInput {
 		global $wgPageFormsFieldNum, $wgPageFormsTabIndex;
 		global $wgPageFormsMapsWithFeeders;
 
+		$addressLookupInput = '';
+		$addressLookupButton = null;
 		if ( $includeAddressLookup ) {
 			// The address input box is not necessary if we are using other form inputs for the address.
-			if ( array_key_exists( $input_name, $wgPageFormsMapsWithFeeders ) ) {
-				$addressLookupInput = '';
-			} else {
+			if ( !array_key_exists( $input_name, $wgPageFormsMapsWithFeeders ) ) {
 				$addressLookupInputAttrs = [
 					'type' => 'text',
 					'tabIndex' => $wgPageFormsTabIndex++,

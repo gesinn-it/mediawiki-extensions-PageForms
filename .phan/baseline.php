@@ -12,7 +12,6 @@ return [
     // PhanUndeclaredClassMethod : 50+ occurrences
     // SecurityCheck-DoubleEscaped : 45+ occurrences
     // PhanTypeMismatchArgumentProbablyReal : 25+ occurrences
-    // PhanPossiblyUndeclaredVariable : 20+ occurrences
     // PhanPluginDuplicateConditionalNullCoalescing : 10+ occurrences
     // PhanTypeMismatchArgumentNullable : 10+ occurrences
     // PhanUndeclaredMethod : 10+ occurrences
@@ -25,6 +24,7 @@ return [
     // PhanRedundantCondition : 5 occurrences
     // PhanTypeMismatchReturn : 5 occurrences
     // PhanTypeMismatchReturnProbablyReal : 4 occurrences
+    // PhanPossiblyUndeclaredVariable : 3 occurrences
     // PhanTypeMismatchPropertyProbablyReal : 3 occurrences
     // MediaWikiNoEmptyIfDefined : 2 occurrences
     // PhanNonClassMethodCall : 2 occurrences
@@ -98,7 +98,6 @@ return [
             'SecurityCheck-ReDoS' => ['\\PFFormPrinter::formHTML']
         ],
         'includes/PF_FormUtils.php' => [
-            'PhanPossiblyUndeclaredVariable' => ['\\PFFormUtils::getStringForCurrentTime'],
             'PhanTypeInvalidLeftOperandOfNumericOp' => ['\\PFFormUtils::getStringForCurrentTime'],
             'PhanTypeMismatchArgumentInternal' => ['\\PFFormUtils::getStringForCurrentTime'],
             'PhanTypeMismatchReturn' => ['\\PFFormUtils::queryFormBottom'],
@@ -108,9 +107,6 @@ return [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFHooks::showFormPreview'],
             'PhanUndeclaredClassMethod' => ['\\PFHooks::addToAdminLinks', '\\PFHooks::setGlobalJSVariables'],
             'PhanUndeclaredClassReference' => ['\\PFHooks::setGlobalJSVariables']
-        ],
-        'includes/PF_Template.php' => [
-            'PhanPossiblyUndeclaredVariable' => ['\\PFTemplate::createText']
         ],
         'includes/PF_TemplateField.php' => [
             'PhanTypeMismatchArgumentNullable' => ['\\PFTemplateField::setTypeAndPossibleValues'],
@@ -124,7 +120,6 @@ return [
         ],
         'includes/PF_ValuesUtils.php' => [
             'MediaWikiNoEmptyIfDefined' => ['\\PFValuesUtils::getValuesFromExternalURL'],
-            'PhanPossiblyUndeclaredVariable' => ['\\PFValuesUtils::getAllPagesForNamespace'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFValuesUtils::getAllCategories', '\\PFValuesUtils::getAllValuesForProperty'],
             'PhanUndeclaredClassConstant' => ['\\PFValuesUtils::getAllPagesForConcept', '\\PFValuesUtils::getAllPagesForQuery'],
             'PhanUndeclaredClassInstanceof' => ['\\PFValuesUtils::getSMWPropertyValues'],
@@ -137,9 +132,6 @@ return [
             'PhanTypeMismatchArgumentInternal' => ['\\PFDateInput::monthDropdownHTML'],
             'PhanTypeMismatchArgumentNullable' => ['\\PFDateInput::monthDropdownHTML']
         ],
-        'includes/forminputs/PF_DateTimeInput.php' => [
-            'PhanPossiblyUndeclaredVariable' => ['\\PFDateTimeInput::getHTML']
-        ],
         'includes/forminputs/PF_DateTimePicker.php' => [
             'PhanTypeMismatchArgumentNullableInternal' => ['\\PFDateTimePicker::__construct'],
             'SecurityCheck-DoubleEscaped' => ['\\PFDateTimePicker::getHtmlText']
@@ -147,11 +139,7 @@ return [
         'includes/forminputs/PF_FormInput.php' => [
             'PhanTypeMismatchReturnProbablyReal' => ['\\PFFormInput::getDefaultParameters', '\\PFFormInput::getHandledPropertyTypes']
         ],
-        'includes/forminputs/PF_LeafletInput.php' => [
-            'PhanPossiblyUndeclaredVariable' => ['\\PFLeafletInput::getHTML']
-        ],
         'includes/forminputs/PF_OpenLayersInput.php' => [
-            'PhanPossiblyUndeclaredVariable' => ['\\PFOpenLayersInput::mapLookupHTML'],
             'PhanTypeMismatchArgumentNullable' => ['\\PFOpenLayersInput::mapLookupHTML'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFOpenLayersInput::mapLookupHTML'],
             'PhanTypeMismatchReturn' => ['\\PFOpenLayersInput::coordinatePartToNumber']
@@ -191,7 +179,6 @@ return [
             'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFArrayMap::run']
         ],
         'includes/parserfunctions/PF_AutoEdit.php' => [
-            'PhanPossiblyUndeclaredVariable' => ['\\PFAutoEdit::run'],
             'PhanTypeMismatchArgumentNullableInternal' => ['\\PFAutoEdit::convertQueryString'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoEdit::run'],
             'SecurityCheck-DoubleEscaped' => ['\\PFAutoEdit::run']
@@ -201,20 +188,17 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFAutoEditRating::run']
         ],
         'includes/parserfunctions/PF_FormInputParserFunction.php' => [
-            'PhanPossiblyUndeclaredVariable' => ['\\PFFormInputParserFunction::run'],
             'PhanTypeMismatchArgumentNullable' => ['\\PFFormInputParserFunction::run'],
             'PhanTypeMismatchArgumentNullableInternal' => ['\\PFFormInputParserFunction::run'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormInputParserFunction::run'],
             'SecurityCheck-DoubleEscaped' => ['\\PFFormInputParserFunction::run']
         ],
         'includes/parserfunctions/PF_FormLink.php' => [
-            'PhanPossiblyUndeclaredVariable' => ['\\PFFormLink::createFormLink'],
             'PhanTypeMismatchArgumentNullable' => ['\\PFFormLink::createFormLink'],
             'SecurityCheck-DoubleEscaped' => ['\\PFFormLink::createFormLink']
         ],
         'specials/PF_FormEdit.php' => [
             'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFFormEdit::execute'],
-            'PhanPossiblyUndeclaredVariable' => ['\\PFFormEdit::printForm'],
             'PhanUndeclaredClassMethod' => ['\\PFFormEdit::showCaptcha'],
             'PhanUndeclaredClassReference' => ['\\PFFormEdit::showCaptcha'],
             'PhanUndeclaredMethod' => ['\\PFFormEdit::printForm']
