@@ -515,14 +515,12 @@ class PFAutoeditAPI extends ApiBase {
 				$anchor = isset( $resultDetails['sectionanchor'] ) ? $resultDetails['sectionanchor'] : '';
 
 				// Give extensions a chance to modify URL query on create
-				/** @var string|null $sectionanchor */
 				$sectionanchor = null;
-				/** @var string|null $extraQuery */
 				$extraQuery = null;
 				MediaWikiServices::getInstance()->getHookContainer()->run(
 					'ArticleUpdateBeforeRedirect', [ $editor->getArticle(), &$sectionanchor, &$extraQuery ]
 				);
-
+				// @phan-suppress-next-line PhanImpossibleCondition -- hook may set $extraQuery
 				if ( $extraQuery ) {
 					if ( $query ) {
 						$query .= '&' . $extraQuery;
