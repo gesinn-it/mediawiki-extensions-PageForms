@@ -94,7 +94,7 @@ class FormDefParser {
 					if ( $tif->pageCallsThisTemplate() ) {
 						$tif->setFieldValuesFromPage( $existing_page_content );
 						$existing_template_text = $tif->getFullTextInPage();
-						$existing_page_content = $this->strReplaceFirst(
+						$existing_page_content = PFUtils::strReplaceFirst(
 							$existing_template_text, '', $existing_page_content
 						);
 					}
@@ -159,11 +159,4 @@ class FormDefParser {
 		return $form_def_sections;
 	}
 
-	private function strReplaceFirst( string $search, string $replace, string $subject ): string {
-		$firstChar = strpos( $subject, $search );
-		if ( $firstChar !== false ) {
-			return substr( $subject, 0, $firstChar ) . $replace . substr( $subject, $firstChar + strlen( $search ) );
-		}
-		return $subject;
-	}
 }

@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Changed
+- Move `strReplaceFirst()` to `PFUtils` as a public static method; `PFFormPrinter::strReplaceFirst()` is now a deprecated shim and the duplicate in `FormDefParser` is removed
 - Add `@var string|null` annotations to `$sectionanchor` and `$extraQuery` in `PF_AutoeditAPI` so Phan knows the hook may set them; removes `PhanImpossibleCondition` suppression
 
 - Remove redundant `is_object()` guard on `Parser::getTitle()` in `PF_FormCache`; `getTitle()` always returns a `Title` object since MW 1.39

@@ -195,26 +195,14 @@ class PFFormPrinter {
 	}
 
 	/**
-	 * Like PHP's str_replace(), but only replaces the first found
-	 * instance - unfortunately, str_replace() doesn't allow for that.
-	 * This code is basically copied directly from
-	 * http://www.php.net/manual/en/function.str-replace.php#86177
-	 * - this might make sense in the PFUtils class, if it's useful in
-	 * other places.
+	 * @deprecated since PageForms 5.x — use PFUtils::strReplaceFirst() instead.
 	 * @param string $search
 	 * @param string $replace
 	 * @param string $subject
 	 * @return string
 	 */
 	public function strReplaceFirst( $search, $replace, $subject ) {
-		$firstChar = strpos( $subject, $search );
-		if ( $firstChar !== false ) {
-			$beforeStr = substr( $subject, 0, $firstChar );
-			$afterStr = substr( $subject, $firstChar + strlen( $search ) );
-			return $beforeStr . $replace . $afterStr;
-		} else {
-			return $subject;
-		}
+		return PFUtils::strReplaceFirst( $search, $replace, $subject );
 	}
 
 	public static function placeholderFormat( $templateName, $fieldName ) {
@@ -593,8 +581,8 @@ class PFFormPrinter {
 							$tif->setFieldValuesFromPage( $existing_page_content );
 							$existing_template_text = $tif->getFullTextInPage();
 							// Now remove this template from the text being edited.
-							$existing_page_content = $this->strReplaceFirst(
-							$existing_template_text, '', $existing_page_content
+							$existing_page_content = PFUtils::strReplaceFirst(
+								$existing_template_text, '', $existing_page_content
 							);
 							// If we've found a match in the source
 							// page, there's a good chance that this

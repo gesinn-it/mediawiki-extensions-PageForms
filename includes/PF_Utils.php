@@ -492,4 +492,19 @@ END;
 	public static function isTranslateEnabled() {
 		return ExtensionRegistry::getInstance()->isLoaded( 'Translate' );
 	}
+
+	/**
+	 * Like PHP's str_replace(), but only replaces the first occurrence.
+	 * @param string $search
+	 * @param string $replace
+	 * @param string $subject
+	 * @return string
+	 */
+	public static function strReplaceFirst( string $search, string $replace, string $subject ): string {
+		$pos = strpos( $subject, $search );
+		if ( $pos !== false ) {
+			return substr( $subject, 0, $pos ) . $replace . substr( $subject, $pos + strlen( $search ) );
+		}
+		return $subject;
+	}
 }
