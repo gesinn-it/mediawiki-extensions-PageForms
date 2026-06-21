@@ -1,0 +1,258 @@
+= Configuration Reference
+:toc: left
+:toclevels: 2
+include::../attributes.adoc[]
+
+All `$wgPageForms*` variables can be set in `LocalSettings.php` after the extension is loaded.
+Variables marked as _read-only_ are set internally by Page Forms and should not be overridden.
+
+== Form editing UI
+
+[cols="3,1,4", options="header"]
+|===
+| Variable | Default | Description
+
+| `$wgPageFormsShowExpandAllLink`
+| `false`
+| Show an "Expand all" link in multi-instance template sections.
+
+| `$wgPageFormsHeightForMinimizingInstances`
+| `800`
+| Pixel height threshold above which multi-instance template sections are collapsed on load.
+
+| `$wgPageFormsRenameEditTabs`
+| `false`
+| Rename the "Edit" and "Edit source" tabs to "Edit with form" and "Edit" respectively.
+
+| `$wgPageFormsRenameMainEditTab`
+| `false`
+| Rename only the main "Edit" tab to "Edit with form", leaving "Edit source" unchanged.
+
+| `$wgPageFormsRunQueryFormAtTop`
+| `false`
+| On `Special:RunQuery`, display the form above the query results instead of below.
+
+| `$wgPageFormsLinkAllRedLinksToForms`
+| `false`
+| Redirect all red links on the wiki to a form-chooser page.
+  See xref:linking-to-forms.adoc#_red_links[Red links].
+
+| `$wgPageFormsUseDisplayTitle`
+| `true`
+| Use the page's display title (if set) in autocomplete suggestions and form labels.
+
+| `$wgPageFormsVisualEditorMaxHeight`
+| `400`
+| Maximum height in pixels for Visual Editor widgets embedded in a form's free-text field.
+|===
+
+== Autocomplete
+
+[cols="3,1,4", options="header"]
+|===
+| Variable | Default | Description
+
+| `$wgPageFormsAutocompleteOnAllChars`
+| `false`
+| Match autocomplete suggestions on any character in the value, not just from the start.
+
+| `$wgPageFormsMaxAutocompleteValues`
+| `1000`
+| Maximum number of autocomplete values loaded for a field. Values beyond this limit are fetched on demand via the API.
+
+| `$wgPageFormsMaxLocalAutocompleteValues`
+| `100`
+| Maximum number of values embedded directly in the page HTML (below this threshold). Above this threshold, values are fetched from the API dynamically as the user types.
+
+| `$wgPageFormsAutocompleteValues`
+| `[]`
+| Global list of custom autocomplete values available to form fields, set as `'alias' => ['val1', 'val2', ...]`.
+
+| `$wgPageFormsAutocompletionURLs`
+| (none)
+| Maps alias names to external URLs that return JSON arrays of autocomplete suggestions.
+  Used by fields with `autocomplete from url=`.
+
+| `$wgPageFormsCacheAutocompleteValues`
+| `false`
+| Cache autocomplete values on the server to reduce database and API load.
+
+| `$wgPageFormsAutocompleteCacheTimeout`
+| `null`
+| Cache TTL in seconds for autocomplete values (requires `$wgPageFormsCacheAutocompleteValues`).
+  `null` uses the wiki's default cache expiry.
+|===
+
+== Date and time
+
+[cols="3,1,4", options="header"]
+|===
+| Variable | Default | Description
+
+| `$wgPageForms24HourTime`
+| `false`
+| Use 24-hour clock format in `datetime` and `timepicker` input fields.
+  When `false`, 12-hour AM/PM format is used.
+
+| `$wgPageFormsContLangYes`
+| `null`
+| Content-language string for "yes" used in checkbox field values. Defaults to the wiki's content language word for "yes".
+
+| `$wgPageFormsContLangNo`
+| `null`
+| Content-language string for "no" used in checkbox field values.
+
+| `$wgPageFormsContLangMonths`
+| `[]`
+| Array of month names in the wiki's content language, used by date fields.
+  Leave empty to use MediaWiki's built-in localized month names.
+|===
+
+== Form caching
+
+[cols="3,1,4", options="header"]
+|===
+| Variable | Default | Description
+
+| `$wgPageFormsCacheFormDefinitions`
+| `false`
+| Cache the parsed form definition to reduce parsing overhead on frequently-visited forms.
+
+| `$wgPageFormsFormCacheType`
+| `null`
+| Cache backend to use for form definition caching.
+  Accepts any MediaWiki `CACHE_*` constant or an `$wgObjectCaches` key.
+  `null` uses the wiki's default object cache.
+|===
+
+== File upload
+
+[cols="3,1,4", options="header"]
+|===
+| Variable | Default | Description
+
+| `$wgPageFormsSimpleUpload`
+| `false`
+| Use a simple file input instead of the OOUI `UploadWidget` in upload fields.
+  Useful in environments where the full widget causes compatibility issues.
+|===
+
+== Autoedit and page creation
+
+[cols="3,1,4", options="header"]
+|===
+| Variable | Default | Description
+
+| `$wgPageFormsAutoeditNamespaces`
+| `[0]`
+| Array of namespace IDs in which `#autoedit` and the `pfautoedit` API are allowed to write.
+  By default only the main namespace (0) is permitted.
+  Example: `$wgPageFormsAutoeditNamespaces[] = NS_USER;`
+
+| `$wgPageFormsAutoCreateUser`
+| `null`
+| Username used as the page author when `#formredlink` creates pages via the job queue
+  (the `create page` parameter). Defaults to user ID 1 (the first user created on the wiki).
+
+| `$wgPageFormsIgnoreTitlePattern`
+| `[]`
+| Array of regex patterns. Target page names matching any of these patterns are silently ignored
+  by the autoedit API (no page is created or edited).
+
+| `$wgPageFormsEmbedQueryCacheTTL`
+| `0`
+| Cache TTL in seconds for embedded query results shown inside form fields. `0` disables caching.
+|===
+
+== External data and mapping
+
+[cols="3,1,4", options="header"]
+|===
+| Variable | Default | Description
+
+| `$wgPageFormsGoogleMapsKey`
+| `null`
+| Google Maps API key required for the `maps` input type (when using Google as the map provider).
+
+| `$wgPageFormsMapsWithFeeders`
+| `[]`
+| Array of map input identifiers that should display feeder controls.
+
+| `$wgPageFormsDisableOutsideServices`
+| `false`
+| Prevent Page Forms from making requests to external services (e.g. Google Maps, Wikidata).
+  Use in air-gapped or privacy-sensitive environments.
+|===
+
+== Multi-value fields
+
+[cols="3,1,4", options="header"]
+|===
+| Variable | Default | Description
+
+| `$wgPageFormsListSeparator`
+| `,`
+| Delimiter used to separate multiple values stored in a single field (list fields).
+  Also used as the default delimiter by `SF_Select` inputs (SemanticFormsSelect integration).
+
+| `$wgPageFormsCheckboxesSelectAllMinimum`
+| `10`
+| Minimum number of checkboxes in a `checkboxes` input before a "Select all / Deselect all" control is shown.
+|===
+
+== Dynamic field behaviour
+
+[cols="3,1,4", options="header"]
+|===
+| Variable | Default | Description
+
+| `$wgPageFormsShowOnSelect`
+| `[]`
+| Maps `input_id => [field_ids_to_show]`. When the named input is selected/checked, the listed form fields become visible. Used for conditional display logic.
+
+| `$wgPageFormsDependentFields`
+| `[]`
+| Maps a field identifier to another field whose value constrains the first field's autocomplete source. Used for chained or filtered dropdowns.
+
+| `$wgPageFormsFieldProperties`
+| `[]`
+| Associates form field identifiers with SMW property names for type-based autocomplete and validation.
+
+| `$wgPageFormsEmbeddedTemplates`
+| `[]`
+| List of template names whose instances are embedded inline within another template's field, rather than appearing as standalone sections.
+|===
+
+== Calendar display
+
+[cols="3,1,4", options="header"]
+|===
+| Variable | Default | Description
+
+| `$wgPageFormsCalendarParams`
+| `[]`
+| Configuration parameters for calendar view displays within forms.
+
+| `$wgPageFormsCalendarValues`
+| `[]`
+| Data values used to populate calendar view displays.
+|===
+
+== Grid display
+
+[cols="3,1,4", options="header"]
+|===
+| Variable | Default | Description
+
+| `$wgPageFormsGridParams`
+| `[]`
+| Configuration parameters for grid view displays within forms.
+
+| `$wgPageFormsGridValues`
+| `[]`
+| Data values used to populate grid view displays.
+|===
+
+== Helper forms (unused in this distribution)
+
+`$wgPageFormsShowTabsForAllHelperForms` is defined in the codebase but has no effect in this distribution, as the Special:Create* helper forms have been removed.
