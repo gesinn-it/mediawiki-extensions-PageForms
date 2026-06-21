@@ -105,7 +105,7 @@ class FormSectionHtmlBuilder {
 			$existing_page_content .= "\n";
 		}
 
-		$equalsSigns = str_repeat( '=', $page_section_in_form->getSectionLevel() );
+		$equalsSigns = str_repeat( '=', (int)$page_section_in_form->getSectionLevel() );
 		$searchStr =
 			'/^' .
 			preg_quote( $equalsSigns, '/' ) .
@@ -129,7 +129,7 @@ class FormSectionHtmlBuilder {
 			$user
 		);
 
-		if ( $section_end_loc === -1 || $section_end_loc === null ) {
+		if ( $section_end_loc === -1 || $section_end_loc === null || $section_end_loc === false ) {
 			$section_text = substr( $existing_page_content, $section_start_loc );
 			$existing_page_content = substr( $existing_page_content, 0, $section_start_loc );
 		} else {
