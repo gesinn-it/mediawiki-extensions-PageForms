@@ -242,6 +242,14 @@ This input contains three separate entries, for the year, month and day.
 
 The "datetime" input is similar to the "date" input, but includes additional entries for hours, minutes, seconds and AM/PM.
 
+By default the time portion uses 12-hour format with AM/PM.
+To switch to 24-hour format wiki-wide, add the following to `LocalSettings.php`:
+
+[source,php]
+----
+$wgPageForms24HourTime = true;
+----
+
 _Special parameters:_
 
 [cols="1,2", options="header"]
@@ -433,7 +441,7 @@ _Special parameters:_
 
 | `delimiter=` / `sep=`
 | The delimiter used to split the query or function output into individual options.
-  Default is `,`.
+  Default is the value of `$wgPageFormsListSeparator` (`,` unless overridden in `LocalSettings.php`).
 
 | `label`
 | If set, interprets values in "Key (Label)" format (as returned by SMW plainlist results) and displays only the label portion.
