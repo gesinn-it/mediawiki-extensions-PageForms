@@ -8,6 +8,13 @@ Support for Cargo and PageSchemas is dropped. Delete any
 Cargo/PageSchemas code immediately upon discovery — no tests, no docs,
 no annotations.
 
+## Documentation in `/docs`
+
+When making functional changes to the code (new behaviour, changed
+behaviour, removed behaviour), update the relevant pages in `docs/` in
+the same commit. Do not leave documentation describing behaviour that no
+longer exists.
+
 # Local Development Workflow (volume mount)
 
 This repository uses a `build/docker-compose.override.yml`
