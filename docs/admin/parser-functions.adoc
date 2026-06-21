@@ -1,0 +1,333 @@
+= Parser Functions Reference
+:toc: left
+:toclevels: 2
+include::../attributes.adoc[]
+
+{project_name} registers the following parser functions.
+For conceptual background on when to use which function, see xref:linking-to-forms.adoc[Linking to Forms].
+
+== Overview
+
+[cols="2,1,3", options="header"]
+|===
+| Function | Context | Purpose
+
+| `#forminput`
+| Any wiki page
+| Renders a text input that navigates to a form for creating or editing the named page (two-step process).
+
+| `#formlink`
+| Any wiki page
+| Renders a link or button that navigates directly to a form for a specific target page (one-step process).
+
+| `#formredlink`
+| Templates
+| Renders a link that goes to a form when the target page does not exist, and a normal link when it does.
+
+| `#autoedit`
+| Any wiki page
+| Renders a link or button that creates or edits a page silently in the background without opening a form.
+
+| `#autoedit_rating`
+| Any wiki page
+| Renders a star-rating widget that writes the selected rating to a target page field via autoedit.
+
+| `#queryformlink`
+| Any wiki page
+| Renders a link or button to a query form running on `Special:RunQuery`.
+
+| `#default_form`
+| Category / namespace / page
+| Associates a form with a category, namespace, or individual page so that the "Edit with form" tab appears.
+|===
+
+== #forminput
+
+Renders a text input field. When the user types a page name and submits, they are taken to a form for creating that page (or editing it, if it already exists).
+
+[source]
+----
+{{#forminput:form=|size=|default value=|button text=|query string=|autocomplete on category=|autocomplete on namespace=|placeholder=|namespace selector=|super_page=|popup|reload|no autofocus|returnto=}}
+----
+
+All parameters are optional.
+
+[cols="2,4", options="header"]
+|===
+| Parameter | Description
+
+| `form=`
+| Name of the form to use. A comma-separated list shows a dropdown for choosing among those forms. If empty, a dropdown of all forms is shown.
+
+| `size=`
+| Width of the text input in characters. Ignored since v5.0 (OOUI).
+
+| `default value=`
+| Pre-filled value in the input.
+
+| `button text=`
+| Label for the submit button. Default: "Create or edit page".
+
+| `query string=`
+| URL query string passed to the form, e.g. `templateName[fieldName]=value`. Can also be passed as direct parameters: `\|templateName[fieldName]=value`. Use `wpSummary=...` to set an edit summary automatically.
+
+| `autocomplete on category=`
+| Autocomplete the input with page names from the given category.
+
+| `autocomplete on namespace=`
+| Autocomplete the input with page names from the given namespace. Use `Main` for the main namespace. Cannot be combined with `autocomplete on category=`.
+
+| `placeholder=`
+| Placeholder text shown before the user types.
+
+| `namespace selector=`
+| Comma-separated list of namespace names; adds a namespace dropdown before the page-name input. Use a blank entry for the main namespace, e.g. `,User,Project`.
+
+| `popup`
+| Opens the form in a popup window.
+
+| `no autofocus`
+| Disables automatic focus on the input when the page loads.
+
+| `returnto=`
+| Page to send the user to after saving the form, instead of the saved page.
+
+| `reload`
+| Requires `popup` or `returnto`. Reloads the return page with `action=purge` after the form is saved.
+
+| `super_page=`
+| Prepends `current-page-name/` to the page name the user types. Use `super_page={{FULLPAGENAME}}` to make new pages sub-pages of the current page.
+|===
+
+== #formlink
+
+Renders a link or button that takes the user directly to a form for a specific target page.
+
+[source]
+----
+{{#formlink:form=|link text=|link type=|query string=|target=|tooltip=|popup|reload|new window|returnto=}}
+----
+
+[cols="2,4", options="header"]
+|===
+| Parameter | Description
+
+| `form=`
+| Name of the form to use.
+
+| `link text=`
+| Text or markup for the link. Accepts wikitext including image syntax.
+
+| `link type=`
+| Display style: `button` renders a button; `post button` sends query string via POST (useful for large preloads or special characters); any other value or blank renders a plain link.
+
+| `query string=`
+| Query string passed to the form. Same syntax as for `#forminput`. URL-encode values that contain `'`, `&`, or `+` using `{{urlencode:...}}`.
+
+| `target=`
+| Target page to edit. Use when linking to editing a specific existing page.
+
+| `tooltip=`
+| Tooltip text shown on hover.
+
+| `popup`
+| Opens the form in a popup window. May not work when ConfirmEdit is installed.
+
+| `new window`
+| Opens the form in a new browser tab or window.
+
+| `returnto=`
+| Page to send the user to after saving.
+
+| `reload`
+| Requires `popup` or `returnto`. Reloads the return page with `action=purge` after saving.
+|===
+
+== #formredlink
+
+Renders a link that points to a form when the target page does not exist, and a normal wikilink when it does. Intended for use inside templates.
+
+[source]
+----
+{{#formredlink:form=|link text=|existing page link text=|link type=|query string=|target=|tooltip=|popup|reload|new window|create page}}
+----
+
+[cols="2,4", options="header"]
+|===
+| Parameter | Description
+
+| `form=`
+| Form to use when the target page does not exist.
+
+| `target=`
+| The target page. Typically set from a template parameter: `target={{{PageName|}}}`.
+
+| `link text=`
+| Link text when the target page does not exist.
+
+| `existing page link text=`
+| Link text when the target page already exists. If omitted, the target page name is used.
+
+| `link type=`
+| Same values as in `#formlink`.
+
+| `query string=`
+| Query string passed to the form.
+
+| `tooltip=`
+| Tooltip text shown on hover.
+
+| `popup`
+| Opens the form in a popup.
+
+| `new window`
+| Opens in a new tab or window.
+
+| `reload`
+| Requires `popup` or `returnto`. Reloads the page after saving.
+
+| `create page`
+| Automatically creates the target page in the background via the job queue, without requiring the user to open a form. Pages are associated with user ID 1 unless `$wgPageFormsAutoCreateUser` is set.
+|===
+
+Multiple alternate forms can be offered when the correct form is not known in advance, using numbered `alt_form` parameters in the query string:
+
+[source]
+----
+{{#formredlink:target={{{source|}}}|alt_form[0]=Source|alt_form[1]=Magazine|alt_form[2]=Online magazine}}
+----
+
+== #autoedit
+
+Renders a link, button, or plain text that creates or modifies a wiki page silently in the background when clicked.
+
+[source]
+----
+{{#autoedit:form=|target=|link text=|link type=|summary=|minor|tooltip=|query string=|reload|confirm|confirm text=}}
+----
+
+[cols="2,4", options="header"]
+|===
+| Parameter | Description
+
+| `form=`
+| Form to use for the edit.
+
+| `target=`
+| Page to create or edit.
+
+| `link text=`
+| Text or markup for the link/button.
+
+| `link type=`
+| `link` renders a hyperlink; `button` renders a button; omitting renders plain text (not clickable).
+
+| `query string=`
+| Field values to set, in `templateName[fieldName]=value` format.
+  Use `+=` to add a value to a list field: `templateName[fieldName]+=value`.
+  Use `-=` to remove a value: `templateName[fieldName]-=value`.
+  For multiple-instance templates: `templateName[instanceNumber][fieldName]=value`.
+
+| `summary=`
+| Edit summary for the generated edit.
+
+| `minor`
+| Marks the edit as a minor edit.
+
+| `tooltip=`
+| Tooltip text shown on hover.
+
+| `reload`
+| Reloads the current page after the edit completes.
+
+| `confirm`
+| Shows a confirmation dialog before performing the edit.
+
+| `confirm text=`
+| Text shown in the confirmation dialog (requires `confirm`).
+|===
+
+By default, autoedit only operates on content namespaces. To allow it on other namespaces, add to `LocalSettings.php`:
+
+[source,php]
+----
+$wgPageFormsAutoeditNamespaces[] = NS_USER;
+----
+
+Autoedit is also available as a MediaWiki API action. See xref:../developer/api.adoc[API Reference] for details.
+
+== #autoedit_rating
+
+Renders a row of stars. The number of stars the user selects is written to a field on the target page via autoedit.
+
+[source]
+----
+{{#autoedit_rating:form=|target=|rating field=|num stars=|allow half stars|star width=|summary=|minor|confirm}}
+----
+
+[cols="2,4", options="header"]
+|===
+| Parameter | Description
+
+| `form=`
+| Form to use.
+
+| `target=`
+| Page to update.
+
+| `rating field=`
+| Field to update, in `templateName[fieldName]` syntax.
+
+| `num stars=`
+| Number of stars to display. Default: 5.
+
+| `allow half stars`
+| Allows selection of half-star values.
+
+| `star width=`
+| Width of each star in pixels. Default: 24.
+
+| `summary=`
+| Edit summary.
+
+| `minor`
+| Marks the edit as minor.
+
+| `confirm`
+| Shows a confirmation dialog before saving.
+|===
+
+== #queryformlink
+
+Renders a link or button to a query form on `Special:RunQuery`. Parameters are identical to `#formlink`, except `target=` is not available.
+
+[source]
+----
+{{#queryformlink:form=|link text=|link type=|query string=|tooltip=|popup}}
+----
+
+For preloading values and auto-running the query on page load, see xref:query-forms.adoc[Query Forms].
+
+== #default_form
+
+Associates a form with a category, namespace, or individual page, causing the "Edit with form" tab to appear on matching pages.
+
+[source]
+----
+{{#default_form:FormName}}
+----
+
+Place this call on:
+
+* A *category page* — all pages in that category become editable with the named form.
+* A *namespace project page* (e.g. `Project:User`) — all pages in that namespace use the form.
+* An *individual page or its template* — that page uses the form.
+
+To explicitly prevent a page from having an "Edit with form" tab:
+
+[source]
+----
+{{#default_form:}}
+----
+
+Category associations take precedence over namespace associations.
