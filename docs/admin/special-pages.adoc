@@ -1,22 +1,211 @@
 = Special Pages
 :toc: left
+:toclevels: 2
 include::../attributes.adoc[]
 
 {project_name} defines various special pages, used for a variety of purposes.
 
+== Overview
+
+[cols="2,1,3", options="header"]
+|===
+| Special Page | Access | Purpose
+
+| `Special:Forms`
+| Public
+| Lists all form pages on the wiki.
+
+| `Special:Templates`
+| Public
+| Lists all template pages on the wiki.
+
+| `Special:FormEdit`
+| Public
+| Creates or edits a page using a form.
+
+| `Special:RunQuery`
+| Public
+| Runs a query using a form (without saving results). See xref:query-forms.adoc[Query Forms].
+
+| `Special:MultiPageEdit`
+| Public
+| Bulk-edits all pages that contain a given template using a spreadsheet-like interface.
+
+| `Special:FormStart`
+| Internal
+| Routes a user to `Special:FormEdit` or the "Edit with form" tab; not intended for direct use.
+
+| `Special:UploadWindow`
+| Internal
+| Upload form without skin chrome, called from within a form field; not intended for direct use.
+|===
+
 == Directory Pages
 
-Two special pages provide lists of the data-structure pages within the wiki:
+=== Special:Forms
 
-* *Special:Forms* — lists all form pages on the site.
-* *Special:Templates* — lists all templates on the site.
+Lists all form pages on the wiki (pages in the `Form:` namespace).
+No URL parameters.
+
+URL: `Special:Forms`
+
+=== Special:Templates
+
+Lists all template pages on the wiki (pages in the `Template:` namespace).
+No URL parameters.
+
+URL: `Special:Templates`
 
 == Operational Pages
 
-Five special pages are used in the standard running of {project_name}:
+=== Special:FormEdit
 
-* *Special:FormEdit* — lets a user either create or edit a page using a user-created form.
-* *Special:FormStart* — used to route a user to either `FormEdit` or the relevant page's "edit with form" tab. This page should not be accessed directly by users.
-* *Special:RunQuery* — lets a user run a query using a form; see xref:query-forms.adoc[Creating query forms] for more information.
-* *Special:UploadWindow* — lets a user upload a file; very similar to the standard `Special:Upload` page, but without the skin. This page is called from within a form and should not be accessed directly by users.
-* *Special:MultiPageEdit* — lets a user select a template and edit all the pages that contain it using a spreadsheet-like interface. The user can also create new pages and rename existing ones. Other features include pagination and a selector for the number of rows to display at once. It currently supports text, text area, checkbox, date, combobox, and tokens input types.
+Creates or edits a wiki page using a named Page Forms form.
+This is the central special page that all form links and the "Edit with form" tab point to.
+
+==== URL schema
+
+[source]
+----
+Special:FormEdit/<FormName>/<TargetPage>
+Special:FormEdit/<FormName>
+Special:FormEdit
+----
+
+Or equivalently via query string:
+
+[source]
+----
+Special:FormEdit?form=<FormName>&target=<TargetPage>
+----
+
+==== Parameters
+
+[cols="2,4", options="header"]
+|===
+| Parameter | Description
+
+| `form=` / path segment 1
+| Name of the form to use. If absent, the wiki's default form for the target page is used (if one is configured).
+
+| `target=` / path segment 2
+| Name of the page to create or edit. If absent, the page name is determined by the form's `page name=` formula in its `{{{info}}}` tag.
+
+| `preload=`
+| Name of a wiki page whose wikitext is preloaded into the form fields. Only applied for new (non-existing) target pages. Ignored when `complete` is set.
+
+| `complete`
+| When present, suppresses preloading entirely (even if the target page exists). Used internally after a form is saved.
+
+| `alt_form[0]=`, `alt_form[1]=`, ...
+| Alternate form names offered when no single form can be determined. Renders a form-chooser list.
+
+| `wpSummary=`
+| Pre-fills the edit summary field.
+
+| `templateName[fieldName]=value`
+| Preloads the value of a specific template field. Multiple fields are separated by `&`.
+
+| `templateName[N][fieldName]=value`
+| Preloads a value for instance `N` of a multiple-instance template.
+|===
+
+Any additional query string parameters are forwarded to the form and can be read from within the form definition using Extension:UrlGetParameters.
+
+=== Special:RunQuery
+
+Runs a Page Forms query form. The form is displayed and, when submitted, executes its embedded query (e.g. an SMW `#ask` call) and displays results — all on the same page without saving anything.
+
+==== URL schema
+
+[source]
+----
+Special:RunQuery/<FormName>
+Special:RunQuery?form=<FormName>
+----
+
+==== Parameters
+
+[cols="2,4", options="header"]
+|===
+| Parameter | Description
+
+| `form=` / path segment
+| Name of the form to use as the query form.
+
+| `pfRunQueryFormName=<FormName>`
+| When set to the form name, causes the query to run immediately on page load (auto-run). Useful for pre-filled query links.
+
+| `_run`
+| Presence of this parameter signals that the form has been submitted (internal use).
+
+| `raw=1`
+| Returns query results as raw wikitext without the surrounding form HTML.
+
+| `additionalquery=false`
+| Suppresses the "additional query" section when present.
+
+| `templateName[fieldName]=value`
+| Preloads a field value in the query form.
+|===
+
+=== Special:MultiPageEdit
+
+Displays all pages that contain a given template in a spreadsheet-like editor.
+Users can edit field values across many pages at once, create new pages, and rename existing pages.
+
+Supported input types: text, textarea, checkbox, date, combobox, tokens.
+Includes pagination and a rows-per-page selector.
+
+==== URL schema
+
+[source]
+----
+Special:MultiPageEdit?template=<TemplateName>
+Special:MultiPageEdit?template=<TemplateName>&form=<FormName>
+----
+
+==== Parameters
+
+[cols="2,4", options="header"]
+|===
+| Parameter | Description
+
+| `template=`
+| Name of the template whose pages are listed for bulk editing. Required.
+
+| `form=`
+| Name of the form associated with the template. When supplied, the form definition is used to determine the input types for each column; otherwise Page Forms infers them from the template.
+|===
+
+=== Special:FormStart
+
+Internal routing page. Accepts a page name typed by the user and redirects them to `Special:FormEdit` with the correct form and target resolved.
+This page is called by the `#forminput` parser function and should not be linked to directly.
+
+==== Parameters (internal)
+
+[cols="2,4", options="header"]
+|===
+| Parameter | Description
+
+| `form=`
+| Form name to pass through.
+
+| `page_name=`
+| Page name entered by the user.
+
+| `namespace=`
+| Namespace to prepend to the page name.
+
+| `super_page=`
+| Parent page name to prepend as a sub-page prefix.
+
+| `params=`
+| Additional query string parameters to forward to `Special:FormEdit`.
+|===
+
+=== Special:UploadWindow
+
+A stripped-down version of `Special:Upload` (no skin chrome) intended to be opened from within a form's file-upload field in a popup or iframe.
+Do not link to this page directly from wiki content.
