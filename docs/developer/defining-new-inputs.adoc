@@ -6,17 +6,12 @@ This page holds information about the Page Forms code, for developers who want t
 
 == Code
 
-To view the code online, including version history for each file, you can go link:https://gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/extensions/PageForms/+/refs/heads/master[here].
+The source code is hosted at link:https://github.com/gesinn-it/mediawiki-extensions-PageForms[github.com/gesinn-it/mediawiki-extensions-PageForms].
 
 == Modifying or Improving Page Forms
 
-There's certainly no shortage of ways to improve Page Forms, including bugs that can be fixed, interface elements that can be improved, or new features that can be added.
-If you are a developer, or simply a user with some technical skill, any help you can provide in improving the software is welcome.
-Page Forms would not be at its current state without the contributions of many people.
-
-If you encounter some issue or limitation in Page Forms, and have an interest in fixing it, please either write Yaron, write about it on the talk page, or post a task on link:https://phabricator.wikimedia.org/maniphest/task/edit/form/1/[Phabricator].
-
-You can also see the current list of link:https://www.mediawiki.org/wiki/Extension:Page_Forms/Known_bugs_and_planned_features[Known bugs and planned features].
+Contributions are welcome — bug fixes, interface improvements, and new features.
+To report an issue or propose a change, open a ticket on link:https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues[GitHub Issues].
 
 == Defining New Inputs
 

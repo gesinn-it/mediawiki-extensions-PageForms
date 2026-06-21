@@ -199,16 +199,6 @@ For that, you could call something like:
 {{#formlink:form=Quote|link text=[[File:edit.png|link=]]}}
 ----
 
-[#page-name-formula]
-=== Keeping the page name updated with #page_name_formula
-
-If the page name was created automatically with a formula, then it may be useful to later update the page name if any of the fields that were responsible for its name get modified.
-You can do this with the `#page_name_formula` parser function, which can be placed either directly in a page or (much preferably) in a template called by the page.
-It takes in a single formula, with the same syntax as the `page name` formula in the form.
-For example, if you have a template and form both called "Quote", and the form contains `page name=<Quote[Author name]> quote <unique number;start=1>` (like in the example above), then adding the following to the "Quote" template would lead to any page it calls getting renamed any time its "Author name" field changes:
-
- {{#page_name_formula:Quote[Author name]> quote <unique number;start=1>}}
-
 == Linking to query forms
 
 You can link to query forms, i.e. forms run within the page `Special:RunQuery`, by using the `#queryformlink` parser function.
