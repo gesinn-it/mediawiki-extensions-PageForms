@@ -159,20 +159,6 @@ class PFFormPrinter {
 			$this->setSemanticTypeHook( $propertyType, true, $inputTypeClass, $additionalValues );
 		}
 
-		// FIXME: No need to register these functions explicitly. Instead
-		// formFieldHTML should call $someInput -> getJsInitFunctionData() and
-		// store its return value. formHTML should at some (late) point use the
-		// stored data.
-		//
-		// $initJSFunction = call_user_func( array( $inputTypeClass, 'getJsInitFunctionData' ) );
-		// if ( !is_null( $initJSFunction ) ) {
-		// 	$wgPageFormsInitJSFunctions[] = $initJSFunction;
-		// }
-		//
-		// $validationJSFunctions = call_user_func( array( $inputTypeClass, 'getJsValidationFunctionData' ) );
-		// if ( count( $validationJSFunctions ) > 0 ) {
-		// 	$wgPageFormsValidationJSFunctions = array_merge( $wgPageFormsValidationJSFunctions, $initJSFunction );
-		// }
 	}
 
 	public function getInputType( $inputTypeName ) {
