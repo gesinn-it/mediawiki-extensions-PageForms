@@ -1,0 +1,170 @@
+= API Reference
+:toc: left
+:toclevels: 2
+include::../attributes.adoc[]
+
+{project_name} registers two MediaWiki API modules:
+
+[cols="2,1,3", options="header"]
+|===
+| Module | Type | Purpose
+
+| `pfautoedit`
+| Action (write)
+| Remotely creates or edits a wiki page using a Page Forms form.
+
+| `pfautocomplete`
+| Action (read)
+| Returns autocomplete suggestions for form fields (used internally by field inputs).
+|===
+
+== pfautoedit
+
+The `pfautoedit` API action creates or edits a wiki page by populating a Page Forms form with the supplied field values and saving the result — without any browser interaction.
+
+This is the same operation that the `#autoedit` parser function triggers in the browser.
+Use it from bots, external scripts, or server-side code that needs to write structured data to wiki pages.
+
+=== Request
+
+[source]
+----
+POST api.php?action=pfautoedit
+----
+
+The action requires a POST request with a valid CSRF edit token.
+
+=== Parameters
+
+[cols="2,1,4", options="header"]
+|===
+| Parameter | Required | Description
+
+| `form=`
+| Yes
+| Name of the Page Forms form to use (without the `Form:` namespace prefix).
+
+| `target=`
+| Yes*
+| Name of the page to create or edit.
+  *Required unless the form uses a `page name=` formula that generates the title automatically.
+
+| `query=`
+| No
+| URL-encoded query string containing field values:
+  `templateName[fieldName]=value%26templateName[fieldName2]=value2`.
+  This is equivalent to passing field values directly as additional parameters.
+
+| `preload=`
+| No
+| Name of a wiki page whose wikitext is preloaded into the form before applying `query` values. Ignored when the target page already exists.
+
+| `token=`
+| Yes
+| CSRF edit token. Obtain one via `api.php?action=query&meta=tokens`.
+
+| `wpSave=1`
+| —
+| Signals a save operation (default when submitting the form).
+
+| `wpPreview=1`
+| —
+| Returns a preview of the rendered page instead of saving.
+
+| `wpDiff=1`
+| —
+| Returns a diff of the current page against the new content instead of saving.
+|===
+
+Field values can also be passed directly as individual parameters instead of (or in addition to) the `query=` parameter:
+
+[source]
+----
+&templateName[fieldName]=value&templateName[fieldName2]=value2
+----
+
+For multiple-instance templates, include the instance number:
+
+[source]
+----
+&templateName[1][fieldName]=value&templateName[2][fieldName]=value
+----
+
+To add a value to a list field (comma-delimited), use `+=`; to remove a value, use `-=`:
+
+[source]
+----
+&templateName[fieldName]+=newValue
+&templateName[fieldName]-=oldValue
+----
+
+=== Response
+
+On success, the API returns a JSON object:
+
+[source,json]
+----
+{
+  "result": "Success",
+  "form": { "title": "FormName" },
+  "target": "PageName"
+}
+----
+
+On error, the `result` field is `"Failure"` and an `error` key contains a message.
+
+HTTP response headers also include `X-Form` and `X-Target` for programmatic inspection.
+
+=== Required permissions
+
+The calling user must have:
+
+* `edit` permission on the target page.
+* If creating a new page: `createpage` permission.
+* Autoedit only operates on content namespaces by default. To enable other namespaces, add to `LocalSettings.php`:
+
+[source,php]
+----
+$wgPageFormsAutoeditNamespaces[] = NS_USER;
+----
+
+=== Examples
+
+Using the `query=` parameter:
+
+[source]
+----
+POST api.php
+  action=pfautoedit
+  &form=Book
+  &target=The+Great+Gatsby
+  &query=Book[Author]=F.+Scott+Fitzgerald%26Book[Year]=1925
+  &token=<token>
+----
+
+Using direct field parameters:
+
+[source]
+----
+POST api.php
+  action=pfautoedit
+  &form=Book
+  &target=The+Great+Gatsby
+  &Book[Author]=F.+Scott+Fitzgerald
+  &Book[Year]=1925
+  &token=<token>
+----
+
+=== Hooks
+
+Two hooks fire during a `pfautoedit` request:
+
+* `PageForms::EditFormInitialText` — lets an extension modify the wikitext loaded from an existing page before the form processes it.
+* `PageForms::WritePageData` — lets an extension modify the assembled wikitext just before it is saved.
+
+See xref:hooks.adoc[Hooks Reference] for details.
+
+== pfautocomplete
+
+The `pfautocomplete` action returns autocomplete suggestions for form field inputs.
+It is called internally by the Page Forms JavaScript and is not intended for external use.
