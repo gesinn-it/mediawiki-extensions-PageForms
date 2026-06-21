@@ -122,9 +122,12 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 			$formField, '', '', false, $user
 		);
 		// UUID format: 8-4-4-4-12 hex chars
-		$this->assertMatchesRegularExpression(
-			'/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $cv
-		);
+		$pattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/';
+		if ( method_exists( $this, 'assertMatchesRegularExpression' ) ) {
+			$this->assertMatchesRegularExpression( $pattern, $cv );
+		} else {
+			$this->assertRegExp( $pattern, $cv );
+		}
 		$this->assertSame( $cv, $cvt );
 	}
 
