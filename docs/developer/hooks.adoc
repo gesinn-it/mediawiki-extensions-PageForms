@@ -5,6 +5,81 @@ include::../attributes.adoc[]
 
 Page Forms provides the following hooks. Register them in your extension's `extension.json` or `ExtensionFunctions`.
 
+== Overview
+
+[cols="2,1,3", options="header"]
+|===
+| Hook | Fired from | Purpose
+
+| `PageForms::AddRLModules`
+| `PF_Utils::addFormRLModules()`
+| Inject additional ResourceLoader modules into a form page.
+
+| `PageForms::BeforeFreeTextSubst`
+| `PF_FormPrinter::formHTML()`
+| Inspect or modify the free text and assembled page wikitext just before substitution.
+
+| `PageForms::CreateFormField`
+| `PF_FormPrinter::formHTML()`
+| Inspect or modify a form field and its current value just before the field HTML is rendered.
+
+| `PageForms::CreateTemplateText`
+| `PFTemplate::createText()`
+| Alter a `PFTemplate` object before its wikitext output is assembled.
+
+| `PageForms::EditFormInitialText`
+| `PFAutoEditAPI`
+| Replace or modify the wikitext loaded into the form when an *existing* page is edited.
+
+| `PageForms::EditFormPreloadText`
+| `PFFormLinker`, `PFAutoeditAPI`
+| Supply or modify preloaded wikitext when a *new* page is created via a form.
+
+| `PageForms::FormInputEnd`
+| `PFFormInputParserFunction::run()`
+| Append HTML to the body of a `#forminput` form before the outer `<form>` element is rendered.
+
+| `PageForms::FormPrinterSetup`
+| `PFFormPrinter::__construct()`
+| Register custom form input types with the form printer.
+
+| `PageForms::HTMLBeforeForm`
+| `PFFormEdit::execute()`
+| Inject HTML inside the `<form>` element on `Special:FormEdit`, before field rendering.
+
+| `PageForms::PrintRedirectForm`
+| `PF_Utils::printRedirectForm()`
+| Inspect or modify the redirect form HTML after it has been assembled.
+
+| `PageForms::RenderingEnd`
+| `PFFormPrinter::formHTML()`
+| Inspect or modify the complete rendered form HTML string, including the closing `</form>` tag.
+
+| `PageForms::SetTargetName`
+| `PFAutoeditAPI::prepareAction()`
+| Override the target page name used by the `pfautoedit` API.
+
+| `PageForms::TemplateFieldEnd`
+| `PFTemplate::createTextForField()`
+| Modify the suffix appended after each field's wikitext in a generated template.
+
+| `PageForms::TemplateFieldStart`
+| `PFTemplate::createTextForField()`
+| Modify the prefix prepended before each field's wikitext in a generated template.
+
+| `PageForms::TreeNodeDisplay`
+| _(removed)_
+| Was: alter a tree input node's display label. Removed in July 2020 when the tree widget was rewritten.
+
+| `PageForms::UserCanEditPage`
+| `PFFormPrinter::formHTML()`
+| Override the permission check that determines whether the user may submit the form.
+
+| `PageForms::WritePageData`
+| `PFAutoeditAPI`
+| Inspect or modify the wikitext content just before it is saved to the target page.
+|===
+
 == PageForms::AddRLModules
 
 Fired by `PF_Utils::addFormRLModules()` after Page Forms has enqueued its own ResourceLoader modules for a form page. Allows other extensions to inject additional ResourceLoader modules into the form page output.
