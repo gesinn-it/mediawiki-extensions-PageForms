@@ -39,7 +39,7 @@ No deployment required — editing a form definition takes effect immediately.
 === Structured data with Semantic MediaWiki
 
 When used with https://www.semantic-mediawiki.org[Semantic MediaWiki], Page Forms becomes a complete data-entry layer for your wiki knowledge base:
-fields are wired directly to SMW properties, autocompletion draws from live property values, and the helper page `Special:CreateClass` scaffolds the entire template/form/category/property stack in one step.
+fields are wired directly to SMW properties, and autocompletion draws from live property values.
 
 === Power features
 
@@ -66,7 +66,7 @@ fields are wired directly to SMW properties, autocompletion draws from live prop
 wfLoadExtension( 'PageForms' );
 ----
 
-Then open `Special:CreateClass` on your wiki to scaffold your first form-backed data structure in minutes.
+Then follow the link:docs/user/quick-start.adoc[Quick Start guide] to create your first form-backed data structure.
 
 Full installation instructions and the complete documentation are in link:docs/index.adoc[docs/].
 
