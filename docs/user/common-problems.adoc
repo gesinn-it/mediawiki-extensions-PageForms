@@ -36,15 +36,13 @@ $wgPageForms24HourTime = true;
 * If a page (which we'll call Page A) gets transcluded in another page (which we'll call Page B), and Page A belongs to a category that's associated with a form, it can have the unfortunate side effect of making Page B a member of that category as well, thus giving Page B an "edit with form" tab at the top, even if such a tab is not appropriate.
 You can solve this problem by putting the category declaration in Page A within a `<noinclude>` block, which will make Page A a member of that category but not Page B.
 
-* If, when you go to the special pages `Special:CreateProperty` or `Special:CreateTemplate`, you see a database error message that looks like "Access denied for user...", it means your database account lacks permission to create temporary tables.
-
 * If you run into any JavaScript problems using Page Forms (such as the "upload file" window not popping up correctly), the issue could be a JavaScript bug coming from another extension, or from the skin.
 To debug the issue, add `?debug=true` or `&debug=true` to the URL where the problem is.
 Then "inspect" the page using the browser, and click on "Console" to see if there are any JavaScript error messages.
 
-* Various of Page Forms' actions are done using the MediaWiki job queue, such as creating templates and properties using `Special:CreateClass`, and automatically generating pages.
+* Some Page Forms actions use the MediaWiki job queue, such as automatically generating pages via `#formredlink` with the `create page` parameter.
 If these actions do not seem to be getting performed, it could be that the value of `$wgMaxShellMemory` is not large enough.
-By default it is 300 MB (prior to MW 1.22, 100 MB); to increase it, add something like the following to `LocalSettings.php`:
+By default it is 300 MB; to increase it, add something like the following to `LocalSettings.php`:
 +
 [source,php]
 ----

@@ -4,29 +4,6 @@ include::../attributes.adoc[]
 
 {project_name} defines various special pages, used for a variety of purposes.
 
-== Helper Forms
-
-Five special pages serve as "helper forms" to help users create parts of the data structure:
-
-* *Special:CreateForm* — lets a user create a new form.
-* *Special:CreateTemplate* — lets a user create a new template.
-* *Special:CreateProperty* — lets a user create a new Semantic MediaWiki property. Available only when Semantic MediaWiki is installed.
-* *Special:CreateCategory* — lets a user create a new category.
-* *Special:CreateClass* — creates all the elements for a single "class" at the same time: template, form, category and (if Semantic MediaWiki is installed) properties. Access to this page is dictated by the `createclass` MediaWiki permission; by default, it is available to all logged-in users.
-
-See the xref:../user/quick-start.adoc[Quick start guide] for a brief tutorial on using these helper forms.
-
-The first four of these special pages can also be accessed directly from the page for a form, template, property, or category, respectively, if such a page has not been created yet.
-Any such page has, in addition to the standard "Create" tab, a "Create with form" tab that brings users to an interface for creating that page with the appropriate helper form.
-
-This "Create with form" tab can be disabled for templates and categories, if you don't want users to always create those using the helper forms.
-To do that, add the following to `LocalSettings.php`, after the inclusion of {project_name}:
-
-[source,php]
-----
-$wgPageFormsShowTabsForAllHelperForms = false;
-----
-
 == Directory Pages
 
 Two special pages provide lists of the data-structure pages within the wiki:
