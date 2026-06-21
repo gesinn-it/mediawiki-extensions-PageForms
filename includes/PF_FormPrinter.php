@@ -16,6 +16,7 @@ use MediaWiki\Extension\PageForms\CalendarHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormDefParser;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormPlaceholder;
+use MediaWiki\Extension\PageForms\FormSectionHtmlBuilder;
 use MediaWiki\Extension\PageForms\InputTypeRegistry;
 use MediaWiki\Extension\PageForms\MultipleTemplateHtmlBuilder;
 use MediaWiki\Extension\PageForms\SpreadsheetHtmlBuilder;
@@ -64,6 +65,8 @@ class PFFormPrinter {
 
 	private StandardInputHtmlBuilder $standardInputHtmlBuilder;
 
+	private FormSectionHtmlBuilder $formSectionHtmlBuilder;
+
 	public function __construct() {
 		global $wgPageFormsDisableOutsideServices;
 		// Initialize variables.
@@ -74,6 +77,7 @@ class PFFormPrinter {
 		$this->multipleTemplateHtmlBuilder = new MultipleTemplateHtmlBuilder();
 		$this->spreadsheetHtmlBuilder = new SpreadsheetHtmlBuilder();
 		$this->standardInputHtmlBuilder = new StandardInputHtmlBuilder();
+		$this->formSectionHtmlBuilder = new FormSectionHtmlBuilder();
 
 		$this->standardInputsIncluded = false;
 
@@ -1030,132 +1034,17 @@ END;
 					$wgPageFormsFieldNum++;
 					$wgPageFormsTabIndex++;
 
-					$section_name = trim( $tag_components[1] );
-					$page_section_in_form = PFPageSection::newFromFormTag( $tag_components, $user );
-					$section_text = '';
-
-					// Split the existing page contents into the textareas in the form.
-					$default_value = "";
-					$section_start_loc = 0;
-					if ( $source_is_page && $existing_page_content !== null ) {
-						// For the last section of the page, there is no trailing newline in
-						// $existing_page_content, but the code below expects it. This code
-						// ensures that there is always trailing newline. T72202
-						if ( substr( $existing_page_content, -1 ) !== "\n" ) {
-							$existing_page_content .= "\n";
-						}
-
-						$equalsSigns = str_repeat( '=', $page_section_in_form->getSectionLevel() );
-						$searchStr =
-							'/^' .
-							preg_quote( $equalsSigns, '/' ) .
-							'[ ]*?' .
-							preg_quote( $section_name, '/' ) .
-							'[ ]*?' .
-							preg_quote( $equalsSigns, '/' ) .
-							'$/m';
-						if ( preg_match( $searchStr, $existing_page_content, $matches, PREG_OFFSET_CAPTURE ) ) {
-							$section_start_loc = $matches[0][1];
-							$header_text = $matches[0][0];
-							$existing_page_content = str_replace( $header_text, '', $existing_page_content );
-						} else {
-							$section_start_loc = 0;
-						}
-						$section_end_loc = -1;
-
-						// get the position of the next template or section
-						// defined in the form which is not empty and hidden if empty
-						$previous_brackets_end_loc = $brackets_end_loc;
-						$next_section_found = false;
-						// loop until the next section is found
-						while ( !$next_section_found ) {
-							$next_bracket_start_loc = strpos( $section, '{{{', $previous_brackets_end_loc );
-							if ( $next_bracket_start_loc == false ) {
-								$section_end_loc = strpos( $existing_page_content, '{{', $section_start_loc );
-								$next_section_found = true;
-							} else {
-								$next_bracket_end_loc = strpos( $section, '}}}', $next_bracket_start_loc );
-								$bracketed_string_next_section = substr(
-									$section, $next_bracket_start_loc + 3,
-									$next_bracket_end_loc - ( $next_bracket_start_loc + 3 )
-								);
-								$tag_components_next_section =
-									PFUtils::getFormTagComponents( $bracketed_string_next_section );
-								$page_next_section_in_form =
-									PFPageSection::newFromFormTag( $tag_components_next_section, $user );
-								$tag_title_next_section = trim( $tag_components_next_section[0] );
-								if ( $tag_title_next_section == 'section' ) {
-									// There is no pattern match for the next section if the section
-									// is empty and its hideIfEmpty attribute is set
-									if ( preg_match(
-										'/(^={1,6}[ ]*?' . preg_quote( $tag_components_next_section[1], '/' )
-											. '[ ]*?={1,6}\s*?$)/m',
-										$existing_page_content, $matches, PREG_OFFSET_CAPTURE
-									) ) {
-										$section_end_loc = $matches[0][1];
-										$next_section_found = true;
-									// Check for the next section if no pattern match
-									} elseif ( $page_next_section_in_form->isHideIfEmpty() ) {
-										$previous_brackets_end_loc = $next_bracket_end_loc;
-									} else {
-										// If none of the above conditions is satisfied, exit the loop.
-										break;
-									}
-								} else {
-									$next_section_found = true;
-								}
-							}
-						}
-
-						if ( $section_end_loc === -1 || $section_end_loc === null ) {
-							$section_text = substr( $existing_page_content, $section_start_loc );
-							$existing_page_content = substr( $existing_page_content, 0, $section_start_loc );
-						} else {
-							$section_text = substr(
-								$existing_page_content, $section_start_loc, $section_end_loc - $section_start_loc
-							);
-							$existing_page_content = substr( $existing_page_content, 0, $section_start_loc )
-							. substr( $existing_page_content, $section_end_loc );
-						}
-					}
-
-					// If input is from the form.
-					if ( ( !$source_is_page ) && $request ) {
-						$text_per_section = $request->getArray( '_section' );
-
-						if ( is_array( $text_per_section ) && array_key_exists( $section_name, $text_per_section ) ) {
-							$section_text = $text_per_section[$section_name];
-						} else {
-							$section_text = '';
-						}
-						// $section_options will allow to pass additional options in the future
-						// without breaking backword compatibility
-						$section_options = [ 'hideIfEmpty' => $page_section_in_form->isHideIfEmpty() ];
-						$wiki_page->addSection(
-						$section_name, $page_section_in_form->getSectionLevel(), $section_text, $section_options
-						);
-					}
-
-					$section_text = trim( $section_text );
-
-					// Set input name for query string.
-					$input_name = '_section' . '[' . $section_name . ']';
-					$other_args = $page_section_in_form->getSectionArgs();
-					$other_args['isSection'] = true;
-					if ( $page_section_in_form->isMandatory() ) {
-						$other_args['mandatory'] = true;
-					}
-
-					if ( $page_section_in_form->isHidden() ) {
-						$form_section_text = Html::hidden( $input_name, $section_text );
-					} else {
-						$sectionInput = new PFTextAreaInput(
-							$wgPageFormsFieldNum, $section_text, $input_name,
-							( $form_is_disabled || $page_section_in_form->isRestricted() ), $other_args
-						);
-						$sectionInput->addJavaScript();
-						$form_section_text = $sectionInput->getHtmlText();
-					}
+					$form_section_text = $this->formSectionHtmlBuilder->buildHtml(
+						$tag_components,
+						$section,
+						$brackets_end_loc,
+						$source_is_page,
+						$existing_page_content,
+						$request,
+						$wiki_page,
+						$form_is_disabled,
+						$user
+					);
 
 					$section = substr_replace(
 						$section, $form_section_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc

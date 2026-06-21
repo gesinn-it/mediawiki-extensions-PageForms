@@ -232,6 +232,9 @@ return [
             'PhanTypeMismatchDimFetchNullable' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML'],
             'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML']
         ],
+        'src/FormSectionHtmlBuilder.php' => [
+            'PhanTypeMismatchArgument' => ['\\MediaWiki\\Extension\\PageForms\\FormSectionHtmlBuilder::buildHtml']
+        ],
         'src/CalendarHtmlBuilder.php' => [
             'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\CalendarHtmlBuilder::calendarHTML']
         ],
