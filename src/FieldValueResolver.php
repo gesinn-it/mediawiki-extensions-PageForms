@@ -21,7 +21,7 @@ class FieldValueResolver {
 	 *
 	 * The '+' modifier appends $curValue to $pageValue (with $delimiter) unless
 	 * $curValue is already present in $pageValue. The '-' modifier removes the
-	 * comma-separated entries in $curValue from the delimited list in $pageValue.
+	 * $delimiter-separated entries in $curValue from the delimited list in $pageValue.
 	 *
 	 * @param string $curValue The new value from the form or query
 	 * @param string $modifier '+' or '-'
@@ -36,7 +36,8 @@ class FieldValueResolver {
 		string $delimiter
 	): string {
 		if ( $modifier === '+' ) {
-			if ( preg_match( "#(,|\^)\s*$curValue\s*(,|\$)#", $pageValue ) === 0 ) {
+			$quotedCurValue = preg_quote( $curValue, '#' );
+			if ( preg_match( "#(^|,)\s*$quotedCurValue\s*(,|$)#", $pageValue ) === 0 ) {
 				if ( trim( $pageValue ) !== '' ) {
 					// if page_value is empty, simply don't do anything, because then cur_value
 					// is already the value it has to be (no delimiter needed).
@@ -47,7 +48,7 @@ class FieldValueResolver {
 			}
 		} elseif ( $modifier === '-' ) {
 			// get an array of elements to remove:
-			$remove = array_map( 'trim', explode( ',', $curValue ) );
+			$remove = array_map( 'trim', explode( $delimiter, $curValue ) );
 			// process the current value:
 			$valArray = array_map( 'trim', explode( $delimiter, $pageValue ) );
 			// remove element(s) from list
@@ -71,11 +72,18 @@ class FieldValueResolver {
 	 * Resolves special default-value tokens ('now', 'current user', 'uuid') into
 	 * concrete values and returns the updated [$curValue, $curValueInTemplate] pair.
 	 *
-	 * When the default is 'uuid' and the template allows multiple instances, no
-	 * concrete value is computed here — instead a 'new-uuid' CSS class is added to
-	 * $formField so that the JavaScript can generate a UUID per instance.
+	 * All three token branches set both return slots consistently:
+	 * - 'now': sets both $curValue and $curValueInTemplate to the formatted date string
+	 *   (except for 'datepicker'/'datetimepicker' input types, which handle 'now' themselves
+	 *   and are skipped — both slots remain unchanged in that case).
+	 * - 'current user': sets both slots to the user name (or '' for anonymous).
+	 * - 'uuid' (single instance): sets both slots to a generated UUID.
+	 * - 'uuid' (multiple instances): no value computed — 'new-uuid' is appended to $formField's
+	 *   'class' arg so that JavaScript generates a UUID per instance; both slots unchanged.
 	 *
-	 * @param PFFormField $formField The form field being rendered (mutated for uuid/multiple)
+	 * Unrecognised default values are returned unchanged (no-op).
+	 *
+	 * @param PFFormField $formField The form field being rendered (class arg mutated for uuid/multiple)
 	 * @param string $curValue Current field value (empty or equal to the token when unresolved)
 	 * @param string $curValueInTemplate Current template value (may already carry a concrete value)
 	 * @param bool $allowsMultiple Whether the enclosing template allows multiple instances
@@ -98,7 +106,7 @@ class FieldValueResolver {
 				( $inputType == '' &&
 					$formField->getTemplateField()->getPropertyType() == '_dat' )
 			) {
-				$curValueInTemplate = PFFormUtils::getStringForCurrentTime(
+				$curValue = $curValueInTemplate = PFFormUtils::getStringForCurrentTime(
 					$inputType == 'datetime', $formField->hasFieldArg( 'include timezone' )
 				);
 			}
@@ -110,7 +118,13 @@ class FieldValueResolver {
 		} elseif ( $defaultValue == 'uuid' && ( $curValue == '' || $curValue == 'uuid' ) ) {
 			if ( $allowsMultiple ) {
 				// UUID will be generated per-instance by the JavaScript.
-				$formField->setFieldArg( 'class', 'new-uuid' );
+				$existingClass = $formField->hasFieldArg( 'class' ) ? $formField->getFieldArg( 'class' ) : '';
+				// @phan-suppress-next-line SecurityCheck-DoubleEscaped
+				$formField->setFieldArg( 'class',
+					$existingClass !== ''
+						? $existingClass . ' new-uuid'
+						: 'new-uuid'
+				);
 			} else {
 				$curValue = $curValueInTemplate = PFFormUtils::generateUUID();
 			}

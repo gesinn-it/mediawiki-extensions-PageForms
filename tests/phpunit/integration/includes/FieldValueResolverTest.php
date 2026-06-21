@@ -32,10 +32,40 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 'B', $result );
 	}
 
-	public function testPlusModifierReturnPageValueWhenAlreadyPresent(): void {
-		// 'B' already contained in page_value; the regex matches ^,B$ or ^B,
+	public function testPlusModifierReturnPageValueWhenAlreadyPresentInMiddle(): void {
 		$result = $this->resolver->applyValModifier( 'B', '+', 'A,B,C', ',' );
 		$this->assertSame( 'A,B,C', $result );
+	}
+
+	public function testPlusModifierDetectsFirstElementAsAlreadyPresent(): void {
+		// Bug fix: the old regex #(,|\^)...# used literal-caret not start-anchor,
+		// so 'apple' at the start of 'apple,banana' was not detected as already present.
+		$result = $this->resolver->applyValModifier( 'apple', '+', 'apple,banana', ',' );
+		$this->assertSame( 'apple,banana', $result );
+	}
+
+	public function testPlusModifierDetectsLastElementAsAlreadyPresent(): void {
+		$result = $this->resolver->applyValModifier( 'C', '+', 'A,B,C', ',' );
+		$this->assertSame( 'A,B,C', $result );
+	}
+
+	public function testPlusModifierHandlesRegexMetacharsInCurValue(): void {
+		// Bug fix: curValue was interpolated into regex without preg_quote().
+		// 'foo(bar)' contains unbalanced parens that would break the regex.
+		$result = $this->resolver->applyValModifier( 'foo(bar)', '+', 'alpha', ',' );
+		$this->assertSame( 'alpha,foo(bar)', $result );
+	}
+
+	public function testPlusModifierDoesNotDuplicateWhenCurValueContainsDot(): void {
+		// 'foo.bar' — dot is a regex metachar; without preg_quote it matches any char.
+		$result = $this->resolver->applyValModifier( 'foo.bar', '+', 'foo.bar,other', ',' );
+		$this->assertSame( 'foo.bar,other', $result );
+	}
+
+	public function testMinusModifierUsesDelimiterForCurValue(): void {
+		// Bug fix: minus modifier now splits curValue by $delimiter, not hardcoded comma.
+		$result = $this->resolver->applyValModifier( 'B;C', '-', 'A;B;C;D', ';' );
+		$this->assertSame( 'A;D', $result );
 	}
 
 	public function testMinusModifierRemovesSingleValue(): void {
@@ -151,9 +181,10 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
 			$formField, '', '', false, $user
 		);
-		// The date string should be non-empty and not equal to 'now'
+		// Both slots must be set to the same non-empty date string
 		$this->assertNotEmpty( $cvt );
 		$this->assertNotSame( 'now', $cvt );
+		$this->assertSame( $cvt, $cv );
 	}
 
 	public function testResolveNowForDatetimeInputType(): void {
@@ -165,6 +196,7 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 			$formField, '', '', false, $user
 		);
 		$this->assertNotEmpty( $cvt );
+		$this->assertSame( $cvt, $cv );
 	}
 
 	public function testResolveNowForDatPropertyTypeWithEmptyInputType(): void {
@@ -183,10 +215,11 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 			$formField, '', '', false, $user
 		);
 		$this->assertNotEmpty( $cvt );
+		$this->assertSame( $cvt, $cv );
 	}
 
 	public function testResolveNowSkippedForDatepickerType(): void {
-		// 'datepicker' handles 'now' itself — resolveDefaultValue must leave it alone
+		// 'datepicker' handles 'now' itself — resolveDefaultValue must leave both slots unchanged
 		$formField = $this->makeFormFieldWithDefault( 'now' );
 		$formField->setInputType( 'datepicker' );
 		$user = $this->getTestUser()->getUser();
@@ -194,8 +227,18 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
 			$formField, '', '', false, $user
 		);
-		// $cvt must remain unchanged (empty string passed in)
+		$this->assertSame( '', $cv );
 		$this->assertSame( '', $cvt );
+	}
+
+	public function testResolveUuidMultipleInstanceMergesExistingClass(): void {
+		$formField = $this->makeFormFieldWithDefault( 'uuid' );
+		$formField->setFieldArg( 'class', 'important-field' );
+		$user = $this->getTestUser()->getUser();
+
+		$this->resolver->resolveDefaultValue( $formField, '', '', true, $user );
+
+		$this->assertSame( 'important-field new-uuid', $formField->getFieldArg( 'class' ) );
 	}
 
 	// ------------------------------------------------------------------ helpers
