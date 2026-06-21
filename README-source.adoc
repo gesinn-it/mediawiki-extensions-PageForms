@@ -76,21 +76,7 @@ Full installation instructions and the complete documentation are in link:docs/i
 
 == Contributing
 
-See link:docs/CONTRIBUTING.adoc[CONTRIBUTING] for how to set up the development environment, run the test suite, and submit pull requests.
-
-=== Running tests
-
-[source,console]
-----
-# Full pre-commit gate (~2–3 min)
-make dev-test 2>&1 | tee /tmp/dev-test.log; echo "EXIT:$?"
-
-# PHP tests filtered by class or method
-make php-test FILTER=PFFormPrinterTest
-
-# JavaScript tests
-make js-test FILE=libs/PF_formInput.js
-----
+See link:docs/CONTRIBUTING.adoc[CONTRIBUTING].
 
 ---
 This extension is part of https://semantic.wiki/core[*semantic::core*] — the gesinn.it Enterprise MediaWiki distribution.
