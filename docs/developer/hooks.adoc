@@ -306,7 +306,7 @@ The hook receives the `PFTemplate` object by reference, allowing a handler to al
 template's properties — format, category, connecting property, aggregation settings, or
 full-wikitext mode — before the output string is built.
 
-The hook is fired from `Special:CreateTemplate`.
+The hook fires during programmatic template creation via `PFTemplate::createText()`.
 
 === Signature
 
@@ -679,7 +679,11 @@ class MyExtensionHooks {
 
 Called at the end of `PF_Utils::printRedirectForm()`, after the redirect form HTML (a hidden mini-form and auto-submitting JavaScript) has been assembled. The hook receives the fully built output string by reference, allowing handlers to inspect or modify the final HTML before it is returned to the caller.
 
-NOTE: The hook is marked in the source with `@TODO - remove this hook? It seems useless.` It is retained for backward compatibility but may be removed in a future release.
+[WARNING]
+====
+This hook is marked in the source with `@TODO - remove this hook? It seems useless.`
+It is retained for backward compatibility but may be removed in a future release.
+====
 
 === Parameters
 
@@ -823,7 +827,7 @@ This hook allows extensions (or local `LocalSettings.php` code) to inspect the c
 
 === When it fires
 
-`PageForms::TemplateFieldEnd` fires once per template field during template creation (e.g. via `Special:CreateTemplate` or `Special:CreateClass`).
+`PageForms::TemplateFieldEnd` fires once per template field during programmatic template wikitext generation.
 The call sequence inside `createTextForField()` is:
 
 . `PageForms::TemplateFieldStart` — lets handlers alter the per-field prefix.

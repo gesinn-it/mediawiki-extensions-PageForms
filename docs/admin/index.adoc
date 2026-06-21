@@ -5,16 +5,25 @@ include::../attributes.adoc[]
 
 This guide covers installation, form definition, and configuration for wiki administrators.
 
-== Contents
+== Setup
 
 * xref:installation.adoc[Installation] — requirements and setup
-* xref:configuration.adoc[Configuration Reference] — all $wgPageForms* variables
+
+== Authoring forms
+
 * xref:defining-forms.adoc[Defining Forms] — the form markup language
 * xref:input-types.adoc[Input Types] — all available field input types and their parameters
 * xref:values-mappings-autocompletion.adoc[Values, Mappings and Autocompletion] — autocompletion sources and value mappings
-* xref:linking-to-forms.adoc[Linking to Forms] — when to use which approach, preloading, autoedit concepts
-* xref:parser-functions.adoc[Parser Functions Reference] — complete parameter reference for all parser functions
-* xref:query-forms.adoc[Query Forms] — building search/filter forms
-* xref:special-pages.adoc[Special Pages] — reference for all Page Forms special pages
 * xref:templates.adoc[Page Forms and Templates] — how forms work with wiki templates
-* xref:template-functions.adoc[Template Parser Functions Reference] — complete parameter reference for #template_params, #template_display, #arraymap, #arraymaptemplate
+
+== Linking to forms
+
+* xref:linking-to-forms.adoc[Linking to Forms] — when to use which approach, preloading, autoedit concepts
+* xref:query-forms.adoc[Query Forms] — building search/filter forms
+
+== Reference
+
+* xref:parser-functions.adoc[Parser Functions Reference] — complete parameter reference for all parser functions
+* xref:template-functions.adoc[Template Parser Functions Reference] — `#template_params`, `#template_display`, `#arraymap`, `#arraymaptemplate`
+* xref:special-pages.adoc[Special Pages] — URL schema and parameters for all special pages
+* xref:configuration.adoc[Configuration Reference] — all `$wgPageForms*` variables

@@ -2,7 +2,8 @@
 :toc: left
 include::../attributes.adoc[]
 
-This page covers the various input types available within Page Forms, and the parameters and other customizations that can be set for them.
+Each input type listed here can be specified via `input type=` in a form field definition.
+Parameters apply to the field tag unless noted otherwise.
 
 == The input types
 

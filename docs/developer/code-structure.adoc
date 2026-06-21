@@ -2,5 +2,39 @@
 :toc: left
 include::../attributes.adoc[]
 
-This page formerly held a listing of all the files in the {project_name} extension, and a brief description of each one, but this content was removed because the listing was significantly out of date, and it seemed too hard to always keep it up-to-date.
-It might not have been that useful, anyway.
+The authoritative overview of the codebase layout is the source tree on
+link:https://github.com/gesinn-it/mediawiki-extensions-PageForms[GitHub].
+The sections below describe the top-level directories and their purpose.
+
+== Directory layout
+
+`includes/`::
+Core PHP classes: the form printer (`PF_FormPrinter.php`), form field model
+(`PF_FormField.php`), template model (`PF_Template.php`), utilities
+(`PF_Utils.php`, `PF_ValuesUtils.php`), the autoedit API
+(`PF_AutoeditAPI.php`), and the autocomplete API (`PF_AutocompleteAPI.php`).
+
+`includes/forminputs/`::
+One class per input type (e.g. `PF_TextInput.php`, `PF_DateInput.php`,
+`PF_CheckboxInput.php`). Each class extends `PFFormInput`.
+
+`includes/parserfunctions/`::
+Parser function implementations (e.g. `PF_FormInputParserFunction.php`,
+`PF_FormLink.php`, `PF_AutoEdit.php`).
+
+`specials/`::
+Special page implementations: `PF_FormEdit.php`, `PF_RunQuery.php`,
+`PF_MultiPageEdit.php`, `PF_Forms.php`, `PF_Templates.php`,
+`PF_UploadWindow.php`.
+
+`libs/`::
+JavaScript modules loaded by ResourceLoader.
+
+`skins/`::
+CSS stylesheets.
+
+`languages/`::
+i18n JSON files and PHP aliases/magic word definitions.
+
+`tests/`::
+PHPUnit and QUnit test suites.

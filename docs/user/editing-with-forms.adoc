@@ -33,7 +33,6 @@ To enable a page to have a tab in this way, you must first define that page as b
 The best way to match pages with a category is to place a `Category` tag inside the main template that defines this page type; that way, every page that uses this template will become part of this category.
 
 Then, place a call to `#default_form` in the page for that category.
-You can do this automatically if you create the category using the `CreateCategory` page.
 
 === Based on namespace
 

@@ -65,7 +65,7 @@ Ways to preload data:
 * Set `templateName[fieldName]=value` in the query string for specific fields.
   Separate multiple fields with `&`.
 * For multiple-instance templates, include the instance number: `templateName[1][fieldName]=value`.
-* Use the `sfEditFormPreloadText` hook for custom preloading logic.
+* Use the `PageForms::EditFormPreloadText` hook for custom preloading logic. See xref:../developer/hooks.adoc[Hooks Reference].
 
 == Passing context values
 
