@@ -79,6 +79,37 @@ class FormFieldHtmlBuilderTest extends TestCase {
 	}
 
 	// -----------------------------------------------------------------------
+	// formFieldHTML — semantic-type hook (property-type dispatch)
+	// -----------------------------------------------------------------------
+
+	public function testFormFieldHtmlUsesSemanticTypeHookClass(): void {
+		global $wgPageFormsFieldNum;
+		$wgPageFormsFieldNum = 1;
+
+		// No inputType hook, but a property-type hook for '_str'
+		$formField = $this->makeVisibleFormField( '', '_str', 'input_s' );
+		$semanticTypeHooks = [ '_str' => [ false => [ StubFormInput::class, [] ] ] ];
+		$builder = new FormFieldHtmlBuilder( [], $semanticTypeHooks );
+
+		$html = $builder->formFieldHTML( $formField, 'smwval' );
+
+		$this->assertSame( StubFormInput::STUB_HTML, $html );
+	}
+
+	public function testFormFieldHtmlFallsBackToPFTextInputWhenNoHookMatches(): void {
+		global $wgPageFormsFieldNum;
+		$wgPageFormsFieldNum = 1;
+
+		// Neither inputType nor semanticType hook → PFTextInput
+		$formField = $this->makeVisibleFormField( '', '', 'input_f' );
+		$builder = new FormFieldHtmlBuilder( [], [] );
+
+		$html = $builder->formFieldHTML( $formField, '' );
+
+		$this->assertStringContainsString( '<input', $html );
+	}
+
+	// -----------------------------------------------------------------------
 	// createFormFieldTranslateTag — translate disabled / not translatable
 	// -----------------------------------------------------------------------
 

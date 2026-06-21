@@ -140,6 +140,61 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 'new-uuid', $formField->getFieldArg( 'class' ) );
 	}
 
+	public function testResolveNowForDateInputType(): void {
+		$formField = $this->makeFormFieldWithDefault( 'now' );
+		$formField->setInputType( 'date' );
+		$user = $this->getTestUser()->getUser();
+
+		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
+			$formField, '', '', false, $user
+		);
+		// The date string should be non-empty and not equal to 'now'
+		$this->assertNotEmpty( $cvt );
+		$this->assertNotSame( 'now', $cvt );
+	}
+
+	public function testResolveNowForDatetimeInputType(): void {
+		$formField = $this->makeFormFieldWithDefault( 'now' );
+		$formField->setInputType( 'datetime' );
+		$user = $this->getTestUser()->getUser();
+
+		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
+			$formField, '', '', false, $user
+		);
+		$this->assertNotEmpty( $cvt );
+	}
+
+	public function testResolveNowForDatPropertyTypeWithEmptyInputType(): void {
+		$templateField = new \PFTemplateField();
+		$propTypeRef = new \ReflectionProperty( \PFTemplateField::class, 'mPropertyType' );
+		$propTypeRef->setAccessible( true );
+		$propTypeRef->setValue( $templateField, '_dat' );
+
+		$formField = \PFFormField::create( $templateField );
+		$defaultRef = new \ReflectionProperty( \PFFormField::class, 'mDefaultValue' );
+		$defaultRef->setAccessible( true );
+		$defaultRef->setValue( $formField, 'now' );
+
+		$user = $this->getTestUser()->getUser();
+		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
+			$formField, '', '', false, $user
+		);
+		$this->assertNotEmpty( $cvt );
+	}
+
+	public function testResolveNowSkippedForDatepickerType(): void {
+		// 'datepicker' handles 'now' itself — resolveDefaultValue must leave it alone
+		$formField = $this->makeFormFieldWithDefault( 'now' );
+		$formField->setInputType( 'datepicker' );
+		$user = $this->getTestUser()->getUser();
+
+		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
+			$formField, '', '', false, $user
+		);
+		// $cvt must remain unchanged (empty string passed in)
+		$this->assertSame( '', $cvt );
+	}
+
 	// ------------------------------------------------------------------ helpers
 
 	/**

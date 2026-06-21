@@ -11,6 +11,12 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ### Changed
 - Extract val-modifier (`+`/`-`) and default-value token (`now`, `current user`, `uuid`) resolution from `PFFormPrinter::formHTML()` into `FieldValueResolver` in `src/`; both methods are pure value transformations with no form state, enabling isolated unit testing; reduces `formHTML()` by ~50 lines (#86)
+
+### Tests
+- Add `StandardInputHtmlBuilderTest` with 14 tests covering all 9 standard-input branches (`save`, `cancel`, `preview`, `minor edit`, `watch`, `run query`, `summary`, `save and continue`, `changes`) plus disabled state and custom class attribute (#87)
+- Add `FormDefParserTest` with 6 tests porting and extending the `preparePreloadData` cases from `PFFormPrinterTest`; covers field extraction, free-text preservation, multi-template, and empty-content edge cases (#88)
+- Extend `PFFormPrinterTest` with 12 new tests covering delegation methods (`getInputType`, `getAllInputTypes`, `getDefaultInputTypeSMW`, `getPossibleInputTypesSMW`, `strReplaceFirst`, `placeholderFormat`, `makePlaceholderInFormHTML`) and the `{{{for template/field}}}` processing loop (text input, default value, submitted form, hidden field, mandatory field) (#89, #90)
+- Extend `FieldValueResolverTest` with 4 new tests covering the `'now'` default-value branch for `date`, `datetime`, `_dat` property type, and `datepicker` skip; extend `FormFieldHtmlBuilderTest` with 2 new tests for the semantic-type-hook and no-hook-fallback paths (#91)
 - Extract `{{{section|...}}}` processing from `PFFormPrinter::formHTML()` into `FormSectionHtmlBuilder` in `src/`; section-text extraction, look-ahead boundary detection, and textarea rendering are now independently readable; reduces `formHTML()` by ~133 lines (#52)
 - Extract standard-input tag dispatch from `PFFormPrinter::formHTML()` into `StandardInputHtmlBuilder` in `src/`; the call site becomes a single delegation call, reducing `formHTML()` by ~51 lines and making the dispatch independently testable
 - Extract calendar display-mode rendering from `PFFormPrinter::formHTML()` into `CalendarHtmlBuilder` in `src/`; mirrors the existing `SpreadsheetHtmlBuilder` pattern and reduces `formHTML()` by ~67 lines

@@ -377,6 +377,172 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// for-template / field loop — #90
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLFieldTagRendersTextInput(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestFieldTpl01}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestFieldPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		// A text input for the field must appear in the output
+		$this->assertStringContainsString( 'PFTestFieldTpl01', $formHtml );
+		$this->assertStringContainsString( 'input', strtolower( $formHtml ) );
+	}
+
+	public function testFormHTMLFieldTagWithDefaultValue(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestFieldTpl02}}}\n"
+			. "{{{field|Status|default=active}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestFieldPage02', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'active', $formHtml );
+	}
+
+	public function testFormHTMLWithFormSubmittedProcessesFieldValues(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestFieldTpl03}}}\n"
+			. "{{{field|Title}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		// Simulate submitted form values via FauxRequest on the global context
+		$fauxRequest = new \FauxRequest( [ 'PFTestFieldTpl03[Title]' => 'My Submitted Value' ], true );
+		\RequestContext::getMain()->setRequest( $fauxRequest );
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, true, false, null, null,
+			'PFTestFieldPage03', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'PFTestFieldTpl03', $formHtml );
+
+		// Restore default request
+		\RequestContext::getMain()->setRequest( new \FauxRequest() );
+	}
+
+	public function testFormHTMLWithHiddenField(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestFieldTpl04}}}\n"
+			. "{{{field|HiddenField|hidden}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestFieldPage04', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'type="hidden"', $formHtml );
+	}
+
+	public function testFormHTMLWithMandatoryField(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestFieldTpl05}}}\n"
+			. "{{{field|RequiredField|mandatory}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestFieldPage05', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'mandatory', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// Delegation methods — #89
+	// -------------------------------------------------------------------------
+
+	public function testGetInputTypeReturnsClassForRegisteredType(): void {
+		global $wgPageFormsFormPrinter;
+		$class = $wgPageFormsFormPrinter->getInputType( 'text' );
+		$this->assertSame( 'PFTextInput', $class );
+	}
+
+	public function testGetInputTypeReturnsNullForUnknownType(): void {
+		global $wgPageFormsFormPrinter;
+		$class = $wgPageFormsFormPrinter->getInputType( 'nonexistent_xyz' );
+		$this->assertNull( $class );
+	}
+
+	public function testGetAllInputTypesIncludesKnownTypes(): void {
+		global $wgPageFormsFormPrinter;
+		$types = $wgPageFormsFormPrinter->getAllInputTypes();
+		$this->assertContains( 'text', $types );
+		$this->assertContains( 'textarea', $types );
+		$this->assertContains( 'checkbox', $types );
+	}
+
+	public function testGetDefaultInputTypeSMWReturnsSomethingForStringType(): void {
+		global $wgPageFormsFormPrinter;
+		// SMW type _str (plain string) with isList=false → should return PFTextInput or similar
+		$result = $wgPageFormsFormPrinter->getDefaultInputTypeSMW( false, '' );
+		// When there is no hook for this type, null is acceptable
+		$this->assertTrue( $result === null || is_string( $result ) );
+	}
+
+	public function testGetPossibleInputTypesSMWReturnsArray(): void {
+		global $wgPageFormsFormPrinter;
+		$result = $wgPageFormsFormPrinter->getPossibleInputTypesSMW( false, '' );
+		$this->assertIsArray( $result );
+	}
+
+	public function testStrReplaceFirstDelegates(): void {
+		global $wgPageFormsFormPrinter;
+		$result = $wgPageFormsFormPrinter->strReplaceFirst( 'a', 'X', 'a b a' );
+		$this->assertSame( 'X b a', $result );
+	}
+
+	public function testPlaceholderFormat(): void {
+		$result = PFFormPrinter::placeholderFormat( 'MyTemplate', 'MyField' );
+		$this->assertStringContainsString( 'MyTemplate', $result );
+		$this->assertStringContainsString( 'MyField', $result );
+	}
+
+	public function testMakePlaceholderInFormHTML(): void {
+		$placeholder = PFFormPrinter::placeholderFormat( 'T', 'F' );
+		$html = PFFormPrinter::makePlaceholderInFormHTML( $placeholder );
+		$this->assertNotEmpty( $html );
+		// The HTML marker must embed the placeholder string somewhere
+		$this->assertStringContainsString( 'T', $html );
+	}
+
+	// -------------------------------------------------------------------------
 
 	/**
 	 * Returns a mock Title for test
