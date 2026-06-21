@@ -5,8 +5,6 @@ include::../attributes.adoc[]
 
 This guide covers everything an end user needs to work with forms in a wiki powered by Page Forms.
 
-== Contents
-
 * xref:quick-start.adoc[Quick Start] — create your first form-based page
 * xref:editing-with-forms.adoc[Editing with Forms] — the "Edit with form" tab and form links
 * xref:common-problems.adoc[Common Problems] — troubleshooting tips for everyday issues
