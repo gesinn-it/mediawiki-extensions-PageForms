@@ -296,6 +296,39 @@ The starting day of the week (e.g., Saturday, Sunday or Monday) is set based on 
 | The interval (in minutes) between options shown to the user.
 |===
 
+=== timepicker
+
+"timepicker" lets the user pick a time using a JavaScript-based popup, similar to `datepicker` for dates.
+It is also used internally as the time component of the `datetimepicker` input type.
+
+_Special parameters:_
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `mintime=`
+| The earliest time the user is allowed to select (format: `HH:MM`).
+
+| `maxtime=`
+| The latest time the user is allowed to select (format: `HH:MM`).
+
+| `interval=`
+| The interval in minutes between options shown in the picker. Default is 30.
+|===
+
+=== start date, end date
+
+"start date" and "end date" are variants of the `date` input type, intended for use in date-range fields within `display=calendar` multiple-instance templates.
+They behave identically to `date` but apply distinct CSS classes (`startDateInput`, `endDateInput`) so that calendar-rendering code can distinguish which field holds the range start and which holds the range end.
+
+Use these in combination with the `event start date field=` and `event end date field=` parameters on the `for template` tag.
+See xref:defining-forms.adoc#calendar-based-editing[Calendar-based editing] for details.
+
+=== start datetime, end datetime
+
+"start datetime" and "end datetime" are the datetime equivalents of `start date` and `end date` — use them when calendar events require both a date and a time for the range boundaries.
+
 === rating
 
 The "rating" input type displays a set of stars to let the user enter a rating.
@@ -369,6 +402,42 @@ This will disallow the use of any outside services by Page Forms -- which at the
 === regexp
 
 The "regexp" input type is not a true input type, but rather the ability to display another input (most often "text") with additional, regular-expression-based validation. See link:https://www.mediawiki.org/wiki/Extension:Page_Forms/Input_types/Regexp[here] for a more detailed explanation of this input type and its parameters.
+
+=== SF_Select
+
+[NOTE]
+====
+This input type is specific to this distribution of Page Forms.
+It was originally provided by the separate SemanticFormsSelect extension, which has been integrated directly and does not need to be installed separately.
+====
+
+"SF_Select" renders a `<select>` dropdown whose options are populated dynamically at form-display time, either via a Semantic MediaWiki inline query or a parser function call.
+This makes it fundamentally different from the static `dropdown` input type, whose values are fixed in the form definition.
+
+_Special parameters:_
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `query=`
+| An SMW inline query whose results populate the dropdown options.
+  Use `~` instead of `=`, `(` instead of `[`, and `)` instead of `]` in the query string.
+  Example: `query=[[Category:Authors]]~format=list`.
+  The placeholder `@@@@` can be used to make the query dependent on the value of another field in the same form.
+
+| `function=`
+| A parser function call whose output populates the dropdown options.
+  Use the same character substitutions as for `query=`.
+  Cannot be combined with `query=`.
+
+| `delimiter=` / `sep=`
+| The delimiter used to split the query or function output into individual options.
+  Default is `,`.
+
+| `label`
+| If set, interprets values in "Key (Label)" format (as returned by SMW plainlist results) and displays only the label portion.
+|===
 
 == Allowed input types for data types
 
