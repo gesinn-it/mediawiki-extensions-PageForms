@@ -13,6 +13,7 @@
  */
 
 use MediaWiki\Extension\PageForms\CalendarHtmlBuilder;
+use MediaWiki\Extension\PageForms\FieldValueResolver;
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormDefParser;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
@@ -68,6 +69,8 @@ class PFFormPrinter {
 
 	private FormSectionHtmlBuilder $formSectionHtmlBuilder;
 
+	private FieldValueResolver $fieldValueResolver;
+
 	private ?FormCounters $counters = null;
 
 	public function __construct() {
@@ -81,6 +84,7 @@ class PFFormPrinter {
 		$this->spreadsheetHtmlBuilder = new SpreadsheetHtmlBuilder();
 		$this->standardInputHtmlBuilder = new StandardInputHtmlBuilder();
 		$this->formSectionHtmlBuilder = new FormSectionHtmlBuilder();
+		$this->fieldValueResolver = new FieldValueResolver();
 
 		$this->standardInputsIncluded = false;
 
@@ -693,43 +697,10 @@ class PFFormPrinter {
 
 					if ( $val_modifier !== null ) {
 						$page_value = $tif->getValuesFromPage()[$field_name];
-						if ( $val_modifier === '+' ) {
-							if ( preg_match( "#(,|\^)\s*$cur_value\s*(,|\$)#", $page_value ) === 0 ) {
-								if ( trim( $page_value ) !== '' ) {
-									// if page_value is empty, simply don't do anything, because then cur_value
-									// is already the value it has to be (no delimiter needed).
-									$cur_value = $page_value . $delimiter . $cur_value;
-								}
-							} else {
-								$cur_value = $page_value;
-							}
-							$tif->changeFieldValues( $field_name, $cur_value, $delimiter );
-						} elseif ( $val_modifier === '-' ) {
-							// get an array of elements to remove:
-							$remove = array_map( 'trim', explode( ",", $cur_value ) );
-							// process the current value:
-							$val_array = array_map( 'trim', explode( $delimiter, $page_value ) );
-							// remove element(s) from list
-							foreach ( $remove as $rmv ) {
-								// go through each element and remove match(es)
-								$key = array_search( $rmv, $val_array );
-								if ( $key !== false ) {
-									unset( $val_array[$key] );
-								}
-							}
-							// Convert modified array back to a comma-separated string value and modify
-							// ==== GESINN PATCH BEGIN ====
-							// https://github.com/gesinn-it-pub/mediawiki-extensions-PageForms/commit/
-							// 3017e9b503a09da312dc0a03f1235e90a66dc6d9
-							$cur_value = implode( $delimiter, $val_array );
-							// ==== GESINN PATCH BEGIN ====
-							if ( $cur_value === '' ) {
-								// HACK: setting an empty string prevents anything from happening at all.
-								// set a dummy string that evaluates to an empty string
-								$cur_value = '{{subst:lc: }}';
-							}
-							$tif->changeFieldValues( $field_name, $cur_value, $delimiter );
-						}
+						$cur_value = $this->fieldValueResolver->applyValModifier(
+							(string)$cur_value, $val_modifier, (string)$page_value, $delimiter
+						);
+						$tif->changeFieldValues( $field_name, $cur_value, $delimiter );
 					}
 					// If the user is editing a page, and that page contains a call to
 					// the template being processed, get the current field's value
@@ -900,48 +871,11 @@ END;
 							// If the source is a page, don't use the default
 							// values - except for newly-added instances of a
 							// multiple-instance template.
-						// If the field is a date field, and its default value was set
-						// to 'now', and it has no current value, set $cur_value to be
-						// the current date.
-						} elseif ( $form_field->getDefaultValue() == 'now' &&
-								// if the date is hidden, cur_value will already be set
-								// to the default value
-								( $cur_value == '' || $cur_value == 'now' ) ) {
-							$input_type = $form_field->getInputType();
-							// We don't handle the 'datepicker' and 'datetimepicker'
-							// input types here, because they have their own
-							// formatting; instead, they handle 'now' themselves.
-							if ( $input_type == 'date' || $input_type == 'datetime' ||
-									$input_type == 'year' ||
-									( $input_type == ''
-										&& $form_field->getTemplateField()->getPropertyType() == '_dat' ) ) {
-								$cur_value_in_template = PFFormUtils::getStringForCurrentTime(
-								$input_type == 'datetime', $form_field->hasFieldArg( 'include timezone' )
-								);
-							}
-						// If the field is a text field, and its default value was set
-						// to 'current user', and it has no current value, set $cur_value
-						// to be the current user.
-						} elseif ( $form_field->getDefaultValue() == 'current user' &&
-							// if the input is hidden, cur_value will already be set
-							// to the default value
-							( $cur_value === '' || $cur_value == 'current user' )
-						) {
-							$cur_value_in_template = $user->isRegistered() ? $user->getName() : '';
-							$cur_value = $cur_value_in_template;
-						// UUID is the only default value (so far) that can also be set
-						// by the JavaScript, for multiple-instance templates - for the
-						// other default values, there's no real need to have a
-						// different value for each instance.
-						} elseif ( $form_field->getDefaultValue() == 'uuid' &&
-							( $cur_value == '' || $cur_value == 'uuid' )
-						) {
-							if ( $tif->allowsMultiple() ) {
-								// Will be set by the JS.
-								$form_field->setFieldArg( 'class', 'new-uuid' );
-							} else {
-								$cur_value = $cur_value_in_template = PFFormUtils::generateUUID();
-							}
+						} elseif ( $form_field->getDefaultValue() !== null ) {
+							[ $cur_value, $cur_value_in_template ] = $this->fieldValueResolver->resolveDefaultValue(
+								$form_field, (string)$cur_value, (string)$cur_value_in_template,
+								(bool)$tif->allowsMultiple(), $user
+							);
 						}
 
 						// If all instances have been

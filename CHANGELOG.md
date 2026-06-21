@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - Migrate all Extension:Page Forms wiki pages from mediawiki.org to local AsciiDoc manuals under `docs/` structured by audience: `user/`, `admin/`, `developer/`; 1:1 content migration, wikitext converted to AsciiDoc syntax
 
 ### Changed
+- Extract val-modifier (`+`/`-`) and default-value token (`now`, `current user`, `uuid`) resolution from `PFFormPrinter::formHTML()` into `FieldValueResolver` in `src/`; both methods are pure value transformations with no form state, enabling isolated unit testing; reduces `formHTML()` by ~50 lines (#86)
 - Extract `{{{section|...}}}` processing from `PFFormPrinter::formHTML()` into `FormSectionHtmlBuilder` in `src/`; section-text extraction, look-ahead boundary detection, and textarea rendering are now independently readable; reduces `formHTML()` by ~133 lines (#52)
 - Extract standard-input tag dispatch from `PFFormPrinter::formHTML()` into `StandardInputHtmlBuilder` in `src/`; the call site becomes a single delegation call, reducing `formHTML()` by ~51 lines and making the dispatch independently testable
 - Extract calendar display-mode rendering from `PFFormPrinter::formHTML()` into `CalendarHtmlBuilder` in `src/`; mirrors the existing `SpreadsheetHtmlBuilder` pattern and reduces `formHTML()` by ~67 lines
