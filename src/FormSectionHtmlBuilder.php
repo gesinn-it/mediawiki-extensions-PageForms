@@ -40,9 +40,11 @@ class FormSectionHtmlBuilder {
 		WebRequest $request,
 		PFWikiPage $wiki_page,
 		bool $form_is_disabled,
-		User $user
+		User $user,
+		?FormCounters $counters = null
 	): string {
 		global $wgPageFormsFieldNum;
+		$fieldNum = $counters !== null ? $counters->fieldNum : $wgPageFormsFieldNum;
 
 		$section_name = trim( $tag_components[1] );
 		$page_section_in_form = PFPageSection::newFromFormTag( $tag_components, $user );
@@ -82,7 +84,7 @@ class FormSectionHtmlBuilder {
 		}
 
 		$sectionInput = new PFTextAreaInput(
-			$wgPageFormsFieldNum, $section_text, $input_name,
+			$fieldNum, $section_text, $input_name,
 			( $form_is_disabled || $page_section_in_form->isRestricted() ), $other_args
 		);
 		$sectionInput->addJavaScript();

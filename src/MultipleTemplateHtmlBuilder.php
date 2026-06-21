@@ -128,9 +128,11 @@ END;
 	public function multipleTemplateEndHTML(
 		\PFTemplateInForm $templateInForm,
 		bool $formIsDisabled,
-		string $section
+		string $section,
+		?FormCounters $counters = null
 	): string {
 		global $wgPageFormsTabIndex;
+		$tabIndex = $counters !== null ? $counters->tabIndex : $wgPageFormsTabIndex;
 
 		$text = "\t\t" . Html::rawElement( 'div',
 			[
@@ -141,7 +143,7 @@ END;
 		) . "\n";
 
 		$attributes = [
-			'tabIndex' => $wgPageFormsTabIndex,
+			'tabIndex' => $tabIndex,
 			'classes' => [ 'multipleTemplateAdder' ],
 			'label' => Sanitizer::decodeCharReferences( $templateInForm->getAddButtonText() ),
 			'icon' => 'add'

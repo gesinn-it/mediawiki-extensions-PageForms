@@ -22,7 +22,9 @@ class SpreadsheetHtmlBuilder {
 	 * @param callable $fieldHtmlCallback Signature: ( $formField, $curValue ): string
 	 * @return string
 	 */
-	public function tableHTML( \PFTemplateInForm $tif, int $instanceNum, callable $fieldHtmlCallback ): string {
+	public function tableHTML(
+		\PFTemplateInForm $tif, int $instanceNum, callable $fieldHtmlCallback, ?FormCounters $counters = null
+	): string {
 		global $wgPageFormsFieldNum;
 
 		$allGridValues = $tif->getGridValues();
@@ -54,7 +56,12 @@ class SpreadsheetHtmlBuilder {
 				continue;
 			}
 
-			$wgPageFormsFieldNum++;
+			if ( $counters !== null ) {
+				$counters->fieldNum++;
+				$wgPageFormsFieldNum = $counters->fieldNum;
+			} else {
+				$wgPageFormsFieldNum++;
+			}
 			if ( $formField->getLabel() !== null ) {
 				$labelText = $formField->getLabel();
 				// @HACK - for a checkbox within display=table, 'label' is used for two

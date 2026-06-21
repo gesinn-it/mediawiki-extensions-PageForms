@@ -30,10 +30,14 @@ class FormFieldHtmlBuilder {
 	 *
 	 * @param PFFormField $form_field
 	 * @param string|null $cur_value
+	 * @param FormCounters|null $counters
 	 * @return string
 	 */
-	public function formFieldHTML( PFFormField $form_field, ?string $cur_value ): string {
+	public function formFieldHTML(
+		PFFormField $form_field, ?string $cur_value, ?FormCounters $counters = null
+	): string {
 		global $wgPageFormsFieldNum;
+		$fieldNum = $counters !== null ? $counters->fieldNum : $wgPageFormsFieldNum;
 
 		// Also get the actual field, with all the semantic information
 		// (type is PFTemplateField, instead of PFFormField)
@@ -83,7 +87,7 @@ class FormFieldHtmlBuilder {
 
 		if ( $class_name !== null ) {
 			$form_input = new $class_name(
-				$wgPageFormsFieldNum, $cur_value, $form_field->getInputName(),
+				$fieldNum, $cur_value, $form_field->getInputName(),
 				$form_field->isDisabled(), $other_args
 			);
 

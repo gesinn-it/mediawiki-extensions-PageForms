@@ -13,6 +13,7 @@
  */
 
 use MediaWiki\Extension\PageForms\CalendarHtmlBuilder;
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormDefParser;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormPlaceholder;
@@ -66,6 +67,8 @@ class PFFormPrinter {
 	private StandardInputHtmlBuilder $standardInputHtmlBuilder;
 
 	private FormSectionHtmlBuilder $formSectionHtmlBuilder;
+
+	private ?FormCounters $counters = null;
 
 	public function __construct() {
 		global $wgPageFormsDisableOutsideServices;
@@ -158,7 +161,6 @@ class PFFormPrinter {
 		foreach ( $defaultPropertyLists as $propertyType => $additionalValues ) {
 			$this->setSemanticTypeHook( $propertyType, true, $inputTypeClass, $additionalValues );
 		}
-
 	}
 
 	public function getInputType( $inputTypeName ) {
@@ -250,12 +252,14 @@ class PFFormPrinter {
 	 */
 	public function multipleTemplateEndHTML( $template_in_form, $form_is_disabled, $section ) {
 		return $this->multipleTemplateHtmlBuilder->multipleTemplateEndHTML(
-			$template_in_form, $form_is_disabled, $section
+			$template_in_form, $form_is_disabled, $section, $this->counters
 		);
 	}
 
 	public function tableHTML( $tif, $instanceNum ) {
-		return $this->spreadsheetHtmlBuilder->tableHTML( $tif, $instanceNum, [ $this, 'formFieldHTML' ] );
+		return $this->spreadsheetHtmlBuilder->tableHTML(
+			$tif, $instanceNum, [ $this, 'formFieldHTML' ], $this->counters
+		);
 	}
 
 	public function getSpreadsheetAutocompleteAttributes( $formFieldArgs ) {
@@ -381,6 +385,7 @@ class PFFormPrinter {
 		$wiki_page = new PFWikiPage();
 		$wgPageFormsTabIndex = 0;
 		$wgPageFormsFieldNum = 0;
+		$this->counters = new FormCounters();
 		$source_page_matches_this_form = false;
 		$form_page_title = null;
 		$generated_page_name = $page_name_formula;
@@ -765,6 +770,8 @@ class PFFormPrinter {
 						} else {
 							$wgPageFormsTabIndex++;
 							$wgPageFormsFieldNum++;
+							$this->counters->tabIndex = $wgPageFormsTabIndex;
+							$this->counters->fieldNum = $wgPageFormsFieldNum;
 							if ( $cur_value === '' || $cur_value === null ) {
 								$default_value = '!free_text!';
 							} else {
@@ -887,6 +894,8 @@ END;
 						}
 						// increment the global field number regardless
 						$wgPageFormsFieldNum++;
+						$this->counters->tabIndex = $wgPageFormsTabIndex;
+						$this->counters->fieldNum = $wgPageFormsFieldNum;
 						if ( $source_is_page && !$tif->allInstancesPrinted() ) {
 							// If the source is a page, don't use the default
 							// values - except for newly-added instances of a
@@ -1019,6 +1028,8 @@ END;
 				} elseif ( $tag_title == 'section' ) {
 					$wgPageFormsFieldNum++;
 					$wgPageFormsTabIndex++;
+					$this->counters->fieldNum = $wgPageFormsFieldNum;
+					$this->counters->tabIndex = $wgPageFormsTabIndex;
 
 					$form_section_text = $this->formSectionHtmlBuilder->buildHtml(
 						$tag_components,
@@ -1029,7 +1040,8 @@ END;
 						$request,
 						$wiki_page,
 						$form_is_disabled,
-						$user
+						$user,
+						$this->counters
 					);
 
 					$section = substr_replace(
@@ -1331,7 +1343,7 @@ END;
 	 * @return string
 	 */
 	public function formFieldHTML( $form_field, $cur_value ) {
-		return $this->formFieldHtmlBuilder->formFieldHTML( $form_field, $cur_value );
+		return $this->formFieldHtmlBuilder->formFieldHTML( $form_field, $cur_value, $this->counters );
 	}
 
 	private function createFormFieldTranslateTag( &$template, &$tif, &$form_field, &$cur_value ) {
