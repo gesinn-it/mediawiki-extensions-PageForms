@@ -231,8 +231,7 @@ The hook receives the `PFTemplate` object by reference, allowing a handler to al
 template's properties — format, category, connecting property, aggregation settings, or
 full-wikitext mode — before the output string is built.
 
-The hook is fired from `Special:CreateTemplate`, `Special:CreateClass`, and (historically)
-the Page Schemas extension.
+The hook is fired from `Special:CreateTemplate`.
 
 === Signature
 
@@ -562,7 +561,7 @@ An initially empty string. Append raw HTML to this variable; the result is inser
 
 === Details
 
-The hook fires in `PFFormEdit::execute()` after the `<form>` opening tag is written and before any field HTML is output. Because `$preFormHtml` is concatenated directly into the page output without further escaping, callers are responsible for producing safe, well-formed HTML.
+The hook fires in `PFFormEdit::execute()` (`specials/PF_FormEdit.php`) after the `<form>` opening tag is written and before any field HTML is output. Because `$preFormHtml` is concatenated directly into the page output without further escaping, callers are responsible for producing safe, well-formed HTML.
 
 === Registration
 
