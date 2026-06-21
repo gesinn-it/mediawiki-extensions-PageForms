@@ -1,0 +1,382 @@
+= Linking to Forms
+:toc: left
+include::../attributes.adoc[]
+
+// Source: https://www.mediawiki.org/wiki/Extension:Page_Forms/Linking_to_forms
+
+How do you get users to forms?
+The standard way is via the `#forminput` parser function call, which displays a single input for users to enter the name of a page; if they enter such a name and click the button, they are sent to a form to create that page — unless a page with that name already exists, in which case they are sent to a form for editing the existing page.
+This is what is known as the "two-step process".
+The reason for the initial step, of having the user first enter the page name, is to ensure that users don't accidentally overwrite existing pages.
+This process is so standard that it is built into the default forms produced by {project_name}'s `Special:CreateForm` and `Special:CreateClass` helper pages: any form-definition page created by {project_name} includes, at the top, a call to `#forminput`, so that users who go to that form page can automatically start to use the form.
+
+However, it's also possible to have users skip the first step, of entering the page name — that's what you should do if the form contains a formula for setting the page title based on the user input.
+That's the "one-step process", and it uses the parser function `#formlink` instead of `#forminput`.
+
+Query forms, which use `Special:RunQuery`, have their own linking method, using the parser function `#queryformlink`.
+
+== The two-step process
+
+The two-step process, i.e. the standard way to get users to forms, is done using the `#forminput` parser function.
+
+=== Using #forminput
+
+Here is the syntax of the `#forminput` parser function:
+
+ {{#forminput:form=|size=|default value=|button text=|query string=query string parameters|autocomplete on category=|autocomplete on namespace=|placeholder=|namespace selector=|super_page=|popup|reload|no autofocus|returnto=}}
+
+All arguments are optional.
+An explanation of the parameters:
+
+[cols="1,3", options="header"]
+|===
+| Parameter
+| Description
+
+| `form=`
+| The name of the {project_name} form to be used.
+  If a comma-separated list of forms is passed in, a dropdown will appear, letting the user choose among those forms.
+  If this parameter is left empty, a dropdown will appear letting the user choose among all existing forms.
+
+| `size=`
+| The size of the text input. This parameter is unfortunately ignored, since the change to use OOUI in Page Forms v5.0.
+
+| `default value=`
+| The starting value of the input.
+
+| `button text=`
+| Text that will appear on the "submit" button. (By default, "Create or edit page".)
+
+| `query string=`
+| You can use this option to pass information to the form; this information generally takes the form of `templateName[fieldName]=value`.
+  It should look like a typical URL query string; an example would be `namespace=User&User[Is_employee]=yes`.
+
+  Additionally, any query string values can be passed directly in as parameters — so the values above could instead be passed in as `\|namespace=User\|User[Is_employee]=yes`.
+
+  A query string can also be used to add an edit summary automatically: `\|query string=wpSummary=Text for edit summary`.
+
+| `autocomplete on category=`
+| Adds autocompletion to the input, using the names of all pages in a specific category.
+
+| `autocomplete on namespace=`
+| Adds autocompletion to the input, using the names of all pages in a specific namespace (only one of these two can be used). For the main namespace use `Main`.
+
+| `placeholder=`
+| "Placeholder" text that appears in the form input before the user types anything.
+
+| `namespace selector=`
+| Specifies that a dropdown should be placed before the input for the page name, letting the user choose from a set of possible namespaces for this page; the value for this parameter holds that set of namespace names, separated by commas. (For the main namespace, just have a blank value, like `,User,Project`.)
+
+| `popup`
+| Opens the form in a popup window.
+
+| `no autofocus`
+| By default, the form input gets autofocus, i.e., the cursor is placed in the input when the page loads; this parameter specifies not to do this.
+
+| `returnto=`
+| The name of a page that the user will be sent to after submitting the form, instead of simply going to the saved page.
+
+| `reload`
+| If `popup` or `returnto` are specified, causes the page that the user ends up on after submitting the form to get reloaded with `action=purge`.
+
+| `super_page=`
+| This will prepend a "current-page-name/" at the beginning of the page name that the user types in. See <<Adding sub-pages>>.
+|===
+
+=== Adding pages of a specific namespace
+
+You can have a page-input form create pages within a specific namespace (like `User:`) by default, without forcing users to type in that namespace every time.
+To do that, add `namespace=namespace-name` to the `query string=` parameter.
+
+[NOTE]
+====
+If you want to use SMW on a custom namespace, you need to add the namespace to `$smwgNamespacesWithSemanticLinks`.
+====
+
+=== Adding sub-pages
+
+In MediaWiki, you can create subpages by including a slash in the page name.
+To have the page that's added automatically be a subpage, you can add a value for `super_page=` in the query string.
+To make it a subpage of the current page, you can set this value to `super_page={{FULLPAGENAME}}`.
+This will prepend a "current-page-name/" at the beginning of the page name that the user types in.
+
+== The one-step process
+
+You can have the name of the page created by the form be set automatically, by adding a `page name` parameter within the form definition's `{{{info}}}` tag.
+There are two types of "variables" one can include in the value for this parameter:
+
+* `<template-name[field-name]>` — gets replaced with the value for the specified field _field-name_ in the specified template _template-name_.
+  Note: this will not work when the `for template` tag is declared as `multiple`.
+* `<unique number>` — by default, gets replaced by the lowest number for which the page title that's generated is unique.
+  Normally, this value starts out as blank, then goes to 2, then 3, etc.
+  However, one can manually set the starting number for this value, by adding a `start=` parameter; this number must be 0 or higher.
+  For instance, to have the number start at 1 and go upward, you should set the tag to be `<unique number;start=1>`.
+  You can also instead set it to be a random six-digit number, by adding the `random` parameter, so that the tag looks like `<unique number;random>`.
+  You can also set the number of digits to be something other than 6, by adding a number after "random", like `<unique number;random;4>`.
+  Note that the parameters in all these cases are delimited by semicolons.
+** Note that the `page name=` value cannot contain the character `#`, because MediaWiki does not allow that character in page titles.
+
+As an example, imagine a form for storing notable quotes.
+Its `{{{info}}}` tag could have a parameter of `page name=<Quote[Author name]> quote <unique number;start=1>`.
+This would include the author's name in the name of every quote page, as well as a number to guarantee the uniqueness of every quote page added.
+A user could then go to the URL `\http://mywiki.com/Special:FormEdit/Quote` and fill out the form; if they set the author to be "Ernest Hemingway", and no other quotes in the wiki had him as an author, then hitting the "Save page" button would result in a new page called "Ernest Hemingway quote 1".
+
+The `start` value can have leading zeroes; a value of `001`, for instance, would lead to pages that had the value `001`, then `002`, etc.
+
+The `page name=` value gets parsed by the MediaWiki parser, so you can also add parser functions, pre-defined variables, etc. into the value.
+
+Note that users must be sent to the page `Special:FormEdit/form-name` for this automatic page-setting to work; if they somehow end up at a `#forminput` call and are prompted for a page name, that name will override whatever the automatic page name would be.
+
+[#form-link]
+=== Using #formlink
+
+If you want, you can generate this link using the `#formlink` parser function, instead of creating the URL directly.
+This function is called as:
+
+ {{#formlink:form=|link text=|link type=|query string=query string parameters|target=|tooltip=|popup|reload|new window|returnto=}}
+
+The `form=`, query string, and `popup` arguments work in `#formlink` much the same way that their equivalents in `#forminput` work.
+An explanation of the other parameters:
+
+[cols="1,3", options="header"]
+|===
+| Parameter
+| Description
+
+| `link text=`
+| Works like `button text=` (see above).
+
+| `link type=`
+| Sets the display of the link:
+
+* if it's set to `button`, the link will show up as a button;
+* if it's set to `post button`, it will be a button that sends the query-string value(s) using "POST" instead of via the URL — this is helpful when a lot of data has to be preloaded, and it is more robust with special characters like line breaks in the query string;
+* if it's set to blank or anything else, it will show up as a regular link.
+
+| `target=`
+| Should not usually be used, but it sets the "target" page to be edited, if you want to link to the editing of a specific page.
+
+| `tooltip=`
+| Displays a tooltip, shown if a user hovers the link.
+
+| `popup`
+| Opens the form in a popup window. (Note: popup forms may not work if you have the ConfirmEdit extension installed — users might not see the CAPTCHA they need to fill out.)
+
+| `new window`
+| Opens the form in a new window or tab, depending on the browser.
+
+| `returnto=`
+| The name of a page that the user will be sent to after submitting the form, instead of simply going to the saved page.
+
+| `reload`
+| If `popup` or `returnto` are specified, causes the page that the user ends up on after submitting the form to get reloaded with `action=purge`.
+|===
+
+An example call to `#formlink` would be:
+
+[source]
+----
+{{#formlink:form=Quote|link text=Add a quote for this author|link type=button|query string=Quote[Author]={{PAGENAME}} }}
+----
+
+This will link from the page, via a button, to a form for adding a quote, with the "Author" field filled in with the current page name.
+If there are multiple values, they should be separated by `&`:
+
+[source]
+----
+{{#formlink:form=Quote|link text=Add a quote for this author|link type=button|query string=Quote[Author]={{PAGENAME}}&Quote[Editor]=The MIT Press }}
+----
+
+Note that if any part of your query string — such as a page name or anything else — contains characters such as apostrophes (`'`), ampersands (`&`), or plus signs (`+`), you will need to URL-encode that value.
+For that, you can use the `urlencode` function from the Extension:ParserFunctions extension.
+The example above, for instance, would need to change to: `Quote[Author]={{urlencode:{{PAGENAME}}}}`.
+
+You may want to have the link to the form be an image, instead of text or a button.
+For that, you could call something like:
+
+[source]
+----
+{{#formlink:form=Quote|link text=[[File:edit.png|link=]]}}
+----
+
+[#page-name-formula]
+=== Keeping the page name updated with #page_name_formula
+
+If the page name was created automatically with a formula, then it may be useful to later update the page name if any of the fields that were responsible for its name get modified.
+You can do this with the `#page_name_formula` parser function, which can be placed either directly in a page or (much preferably) in a template called by the page.
+It takes in a single formula, with the same syntax as the `page name` formula in the form.
+For example, if you have a template and form both called "Quote", and the form contains `page name=<Quote[Author name]> quote <unique number;start=1>` (like in the example above), then adding the following to the "Quote" template would lead to any page it calls getting renamed any time its "Author name" field changes:
+
+ {{#page_name_formula:Quote[Author name]> quote <unique number;start=1>}}
+
+== Linking to query forms
+
+You can link to query forms, i.e. forms run within the page `Special:RunQuery`, by using the `#queryformlink` parser function.
+This is called in the same way as `#formlink`, except that there's no `target` parameter.
+For a more complete explanation, see xref:query-forms.adoc[Creating query forms].
+
+== Pointing red links to a form
+
+In MediaWiki, links to nonexistent pages are called "red links", because they are usually colored red.
+By default, these links go to a page for adding the article to the wiki using the standard edit interface.
+However, you can instead set red links to link directly to a form to create that page, if the correct form is known in advance; and you can additionally have all other red links point to a helper page that lets the user choose which of the wiki's forms to use (if any).
+
+[#form-redlink]
+=== Using #formredlink
+
+To have a specific link (either on its own, or within a template) point to a form if the page it is pointing to does not exist, use the `#formredlink` parser function.
+A typical call to `#formredlink` will go inside a template, and will look like:
+
+ {{#formredlink:target={{{PageNameParameter|}}}|form=FormName}}
+
+The overall syntax of `#formredlink` is:
+
+ {{#formredlink:form=|link text=|existing page link text=|link type=|query string=query string parameters|target=|tooltip=|popup|reload|new window|create page}}
+
+These parameters are very similar to those of `#formlink` (see above).
+It has two additional parameters:
+
+* `existing page link text=` — sets the text of the link when the target page being pointed to exists already (the `link text=` parameter takes effect only when the target does not exist).
+* `create page` — causes red-linked pages to get _automatically_ created by the system.
+  It should be noted that it may take a while for each page to be created, since page creation is done through MediaWiki "jobs", which can take anywhere from a few seconds to several hours or more to run, depending on the length of the job queue.
+  Pages created with this method will be associated with user ID 1 (the first user created on the wiki), unless you set `$wgPageFormsAutoCreateUser` to another username.
+
+There may be times when you are not sure which form a linked-to page will use; it could be one of a number of choices.
+You can set it so that the user gets other possibilities when they click on the red link, by adding one or more `alt_form` query string parameters to the `#formredlink` call, each with its own number.
+
+For the source link, the call would look like:
+
+ {{#formredlink:target={{{source|}}}|alt_form[0]=Source|alt_form[1]=Magazine|alt_form[2]=Online magazine}}
+
+For the author link (using `#arraymap` for a field that can hold a list of values):
+
+ {{#arraymap:{{{author|}}}|,|xx|{{#set:Was written by=xx}}{{#formredlink:target=xx|form=Author|alt_form[0]=Editorial board}}}}
+
+In the source example, the call creates a link to `Special:FormEdit/The_Denver_Post?alt_form[0]=Source&alt_form[1]=Magazine&alt_form[2]=Online magazine&redlink=1`.
+Note that no main/default form is specified; only alternate forms.
+
+The author call is more complex because that field can hold a list of values.
+`#arraymap` is used to put in a call to `#formredlink` for each individual value.
+Note that the internal "variable" used for this `#arraymap` call is `xx`, not `x` — `x` could have been used here too, but if the `#formredlink` call had used its `link text=` or `existing link text=` parameters, those would have failed, because they contain the letter `x`; `xx` is safer here.
+
+=== Form-associated namespaces
+
+If you've defined a namespace as having a default form, red-links that go to a page within that namespace will also go to the right "add data" form, without any extra work needed.
+
+=== Pointing red links to a "form chooser"
+
+For red links not defined by `#formredlink` and not pointing to a form-associated namespace, you can have every such link point to a helper page, that lets the user choose which of the wiki's forms to use to create this page — or to use no form at all.
+You can enable this functionality simply by adding the following to `LocalSettings.php`, below the inclusion of {project_name}:
+
+[source,php]
+----
+$wgPageFormsLinkAllRedLinksToForms = true;
+----
+
+== Preloading data
+
+You may want a form to already contain some data when the user goes to it.
+(Note that this only applies to adding new data, or to query forms; for editing an existing page, there is no way to set the contents of the form to anything other than the current contents of that page.)
+There are various ways to do this:
+
+* Specify a `default` value for whatever fields you want to have a value for in the form.
+* Specify a `preload` page for the "free text" input, which will preload the free text field with the contents of that page.
+* Add `preload=page-name` to the query string value in the `forminput` call; this will preload the entire form with the contents of that page.
+* Similarly, you can add a `preload=...` value to the query string for a `FormStart` or `FormEdit` URL.
+* Add `templateName[fieldName]=value` to the query string value in the `forminput` call, to set the value for a specific field.
+  To preload values for more than one field use `&`: `template-name[field-name-1]=field-value-1&template-name[field-name-2]=field-value-2`.
+* To preload values for multiple-instance templates, add the instance number after the template name.
+  So you could have something like `templateName[1][fieldName]=value&templateName[2][fieldName]=value` for two instances.
+* Similarly, you can add a value for a specific field to the URL query string for `FormStart` or `FormEdit`.
+* Finally, you can create your own custom handling, using the `sfEditFormPreloadText` hook.
+  If another extension calls this hook, it can preload data however it wants.
+  The function registered with this hook should have a header like `function(&$page_contents, $page_title, $form_title)`.
+
+== Passing in a "context"
+
+A call to `#forminput` or `#formlink` can include arbitrary query string parameters, which the form can then use to modify aspects like the display, autocomplete values, etc.
+This can be done with the Extension:UrlGetParameters extension, which provides a parser function, `#urlget`, that can read the query string parameter(s) in question.
+
+For example, let's say there is a form called "Document" that contains a field, "Owner", which you want to have autocomplete with different names depending on the company department for which the form is being called.
+A call to `#forminput` or `#formlink` for that form could then contain the parameter `|query string=department=Finance`.
+
+If you are using this approach, it is probably best not to have an "Edit with form" tab for pages created with this form; instead, each page should display (via its template) a set of `#formlink` calls to edit the page, one for each possible value (in this case, each department).
+
+[#auto-edit]
+== Modifying pages automatically
+
+=== Using #autoedit
+
+You can create links that, when clicked on, create or edit pages automatically in the background, with a preloaded set of values, using the `#autoedit` parser function.
+This function is called, and is displayed, in a very similar manner to `#formlink` — the difference is that the link only performs an action in the background, instead of bringing the user to a form.
+The syntax for `#autoedit` is:
+
+ {{#autoedit:form=|target=|link text=|link type=|summary=|minor|tooltip=|query string=query string parameters|reload|confirm|confirm text=}}
+
+All these parameters work in the same way as they do in `#formlink`, with the following exceptions:
+
+* `minor` — if added to the call, marks any edit made with this link as a minor edit.
+* `reload` — if added to the call, reloads the current page after the link is clicked.
+* `confirm` — if added to the call, pops up a confirmation window for the user before doing the actual edit.
+* `confirm text=` — if `confirm` was added, specifies the text (presumably, a question) that users will see before they agree to the edit.
+* Like with `#formlink`, `link type` sets the type of display and can be set to `link` or `button` (`post button` is not an option).
+  However, for `#formlink`, a missing value for `link type` is the same as setting the value to `link`; while for `#autoedit`, the two are different.
+  In `#autoedit`, a missing value for `link type` will display the text as text, without a link, while setting `link type=link` will display it as a link.
+
+==== Modifying a list of values
+
+You can add, or remove, a value from a list of values, for fields that hold a list of values (such as fields editable with the `checkboxes` or `tokens` input types).
+To add a value to such a list, instead of having a call like `templateName[fieldName]=value` in the query string, use a call like `templateName[fieldName]+=value`.
+And to remove a value, use a call like `templateName[fieldName]-=value`.
+
+Unfortunately, this functionality currently only works for fields whose delimiter is a comma.
+
+If, when adding a value to a list, that value was already there; or when removing a value, that value was not there, this call will have no effect.
+
+==== Modifying multiple-instance templates
+
+You can use `#autoedit` to modify existing, or create new, instances of a multiple-instance template.
+To do that, instead of putting in the query string something like `templateName[fieldName]=value`, put in something like `templateName[instanceNumber][fieldName]=value`, where _instance number_ is an integer that's 0 or higher.
+If the instance number corresponds to an instance that is already on the page, the existing template instance will be modified; if it's higher than that, a new instance will be created, with that value for that field.
+
+==== For additional namespaces
+
+By default, autoedit functionality is only available for any of the so-called "content namespaces", which by default is just the main namespace.
+However, this can be changed by modifying the global variable `$wgPageFormsAutoeditNamespaces` in `LocalSettings.php`.
+For instance, to let autoedit also apply to pages in the "User:" namespace, you should add the following line:
+
+[source,php]
+----
+$wgPageFormsAutoeditNamespaces[] = NS_USER;
+----
+
+=== Using #autoedit_rating
+
+Another parser function that works similarly to `#autoedit` is `#autoedit_rating` — although, instead of displaying a link or button, it displays a rating-style row of stars; and the number of stars the user selects is what is sent to populate or update the target page.
+A listing of the allowed parameters for `#autoedit_rating`:
+
+* `form` — the form to be used.
+* `target` — the target page to be modified.
+* `rating field` — the field to be modified in the target page; its name should follow the syntax `templateName[fieldName]`.
+* `num stars` — the number of stars to show (default is 5).
+* `allow half stars` — if added to the call, allows the user to select half-star values.
+* `star width` — the width of each star, in pixels (default is 24).
+* `summary` — the edit summary for any such edit.
+* `minor` — if added to the call, marks any edit made with this link as a minor edit.
+* `confirm` — if added to the call, pops up a confirmation window for the user before doing the actual edit.
+
+=== API
+
+Autoedit functionality is also available via the MediaWiki API, as the `pfautoedit` action — this enables outside scripts, and bots, to easily modify template calls within wiki pages.
+
+== Delaying reload
+
+The parser functions `#forminput`, `#formlink`, `#formredlink`, `#autoedit` all allow a `reload` parameter, to reload the page that holds this parser function after the other page is modified, usually so that any relevant queries on that page can be refreshed.
+(For all but `#autoedit`, the `reload` parameter has to be paired with either `returnto=` or `popup`.)
+By default, the reload happens right after the change is made, which in some cases is too soon, before the underlying data has changed.
+If this is the case on your wiki, you can add the following line to `LocalSettings.php`, which introduces a slight delay before the reload, hopefully giving the data enough time to be modified first:
+
+[source,php]
+----
+$wgPageFormsDelayReload = true;
+----

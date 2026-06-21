@@ -1,0 +1,180 @@
+= Page Forms and Templates
+:toc: left
+include::../attributes.adoc[]
+
+{project_name} is, at its heart, a system for editing template calls within wiki pages.
+(Though it can also edit page sections.)
+See link:https://www.mediawiki.org/wiki/Help:Templates[Help:Templates] for a full explanation of templates within MediaWiki.
+
+Why does {project_name} support editing templates and page sections, but not, say, free-form category tags within pages?
+That's because the philosophy of {project_name} is that all true data in MediaWiki — including data, category information and anything else — should be stored within template invocations.
+That's for several reasons:
+
+* templates provide a clear guideline for what information belongs in which pages, avoiding ambiguity about the data structure
+* templates hide the complex syntax involved in displaying and storing information, making editing easier
+* templates allow for easier changes to the structure and display, since a change across a large group of pages can potentially be done just in one place, instead of requiring edits to all of them.
+
+{project_name} provides a number of features that aid specifically in the creation and display of templates, unrelated to form editing.
+These are all described on this page.
+There is no technical reason why these features are all defined in {project_name}; theoretically `#arraymap` and `#arraymaptemplate` could be added to the link:https://www.mediawiki.org/wiki/Extension:ParserFunctions[ParserFunctions] extension, and in fact similar functions are part of the link:https://www.mediawiki.org/wiki/Extension:ArrayFunctions[ArrayFunctions] extension.
+There is certainly an argument of convenience for keeping them in {project_name}.
+In any case, there are no current plans to move these.
+
+== Simplifying the template display
+
+{project_name} defines two parser functions, `#template_params` and `#template_display`, which together can considerably simplify the code needed to display a template call — and can also simplify the definition of any forms that make use of such a template.
+
+[#template_params]
+=== #template_params
+
+The `#template_params` function should be placed within a template's `<noinclude>` tag.
+It holds the expected parameters for this template, along with any extra details about each one.
+An example call for this function, for a template called "Recipe", is:
+
+[listing]
+----
+ {{#template_params:
+ Cuisine
+ |Cooking time (label=Cooking time (in minutes);display=nonempty)
+ |Ingredients (holds template=Recipe ingredient)
+ |Instructions (display=nonempty)
+ }}
+----
+
+The allowed details (you could call them "parameters of parameters") are:
+
+* `label` — specifies text that should be used to label this parameter's value, in both pages and forms. If no label is set, the parameter name is used as the label.
+* `display` — if set to `nonempty`, the parameter is shown only if its value is not empty.
+* `holds template` — specifies that this parameter is meant to hold a series of template calls (i.e. a multiple-instance template).
+* `form` — specifies the form that pages stored in this field are editable by, if any; used for displaying red links.
+
+Adding a `#template_params` call to a template helps in the following ways:
+
+* The function displays the list of parameters in a nicely-formatted way on the template page.
+* This information helps with the display of the template (see the next section).
+* Some of this information is also used by forms, enabling the form definition to be simpler.
+
+[#template_display]
+=== #template_display
+
+The `#template_display` function should be placed within a template's `<includeonly>` tag.
+It handles the display for a template call.
+In many cases, provided `#template_params` has been called, the `#template_display` can be quite simple.
+For a template with the above `#template_params` call, for instance, the `#template_display` call could simply look like:
+
+[listing]
+----
+ {{#template_display:}}
+----
+
+If, on the other hand, there is no `#template_params` call, then the `#template_display` call would have to look like:
+
+[listing]
+----
+ {{#template_display:
+ Cuisine={{{Cuisine|}}}
+ |Cooking time={{{Cooking time|}}}
+ |Ingredients={{{Ingredients|}}}
+ |Instructions={{{Instructions|}}}
+ }}
+----
+
+This is not recommended, though.
+
+There are two pre-defined parameters that `#template_display` can take:
+
+* `_format` — specifies what format the display should be in; options are `infobox` (the default), `table`, `sections` and `text`. `infobox` displays an infobox on the right-hand side of the page, in the manner of Wikipedia; `table` displays a table that covers the whole page; `sections` makes each parameter name a section header, with the value below it; and `text` displays all the template data as text, with the parameter names bolded.
+* `_title` — specifies the title that should go at the top of the box, if the default infobox format is used. If set to empty, no title row is shown. (By default, the title is the name of the page, or the page's display title if one is specified.)
+
+To display all the data as a full-page table, you would simply have to call:
+
+[listing]
+----
+ {{#template_display:_format=table}}
+----
+
+== Multiple values for the same field
+
+{project_name} also defines the parser functions `#arraymap` and `#arraymaptemplate`, which provide support for having multiple values for a single field, delimited by a comma or other character.
+These parser functions "map" some text processing onto each value.
+This can be as simple as turning each value into a link, although there can be more complex processing, like turning each value into a category tag, an image tag, a Semantic MediaWiki property tag, and so on.
+
+`#arraymap` and `#arraymaptemplate` can also be used outside of a template context, although this page does not really cover that usage.
+
+[#arraymap]
+=== #arraymap
+
+The generic call for this function is:
+
+[listing]
+----
+{{#arraymap: value | delimiter | variable | formula | new_delimiter | conjunction }}
+----
+
+The function splits the 'value' by the 'delimiter', and then, for each one, applies the same mapping that 'formula' does to 'variable', and then joins all the values again using the 'new_delimiter' — except for the final value, which is joined by 'conjunction' if it is set.
+
+For example: if you have a form that populates the field `'Authors'`, and you want the values for that field to be separated by commas and each be a link, you could put the following in the template:
+
+`{{#arraymap:{{{Authors|}}}|,|xx|[[xx]]}}`
+
+Essentially this function 'maps' the link syntax onto each comma-delimited value in the field.
+(The 'delimiter' parameter defaults to `,` and 'new_delimiter' defaults to `, ` (note the extra space) if they are not set.)
+The user can thus enter all the values on the same line, with or without spaces around the commas.
+Note, by the way, that `xx` is used here as an internal variable; any other string could be used as well, like `@@@@`.
+`xx` is used instead of `x` as `x` interferes with the use of other functions such as `#ifexist`.
+
+The 'new_delimiter' parameter is especially helpful if none of the resulting values are actually displayed, because by default such a thing would show up as a string of commas.
+A common example of that is if the original value holds a list of category names, and each name gets turned into a category tag, but is not actually displayed.
+
+To avoid displaying commas in that case, you should set the 'new_delimiter' value equal to a space.
+Using just `| ` at the end won't work, because the MediaWiki parser will ignore it — instead, the easiest approach is to use `\s`, which gets translated into a space.
+Here is how such a thing could be called:
+
+`{{#arraymap:{{{Categories|}}}|,|xx|[[Category:xx]]|\s}}`
+
+You can make the output look more like natural language by including a 'conjunction' value for the final delimiter, so that the output will look like, for example, `A, B and C` instead of just `A, B, C`.
+Here is an example of how to do that:
+
+`{{#arraymap:{{{Authors|}}}|,|xx|[[xx]]|, <nowiki />|and}}`
+
+If you use the 'CreateTemplate' or 'CreateClass' pages to create a template, and you specify a field that can take more than one value, then an `#arraymap` call will be automatically added to the generated template.
+
+[#arraymaptemplate]
+=== #arraymaptemplate
+
+There are some kinds of mapping that are complex enough that they cannot be placed in the `#arraymap` function.
+For this purpose, you can instead use the similar `#arraymaptemplate` function.
+
+To use this function, first create a template that takes in a single field (it should be referred to in the template as `{{{1}}}`) and applies the mapping you would like to that field.
+Then apply `#arraymaptemplate` onto the main template field just as you would with `#arraymap`, using the following format:
+
+[listing]
+----
+{{#arraymaptemplate: value | template | delimiter | new_delimiter }}
+----
+
+...where 'template' is the name of the mapping template in question.
+
+For example: to display a (comma-separated) list of authors as a numbered list, you could first create a template called "Numbered author", with the following contents:
+
+`# [[Has author::{{{1}}}]]`
+
+...then call the following:
+
+`{{#arraymaptemplate:{{{authors|}}}|Numbered author|,|\n}}`
+
+=== Using `\s` and `\n` in the delimiter
+
+For both `#arraymap` and `#arraymaptemplate`, the string `\s` in the value of either 'delimiter' or 'new_delimiter' will get converted into a space, while the string `\n` in either parameter will get converted into a new line.
+
+It should be noted that, if you want an actual line break to appear between values, you should have two newlines (i.e, `\n\n`) as the delimiter, since MediaWiki requires two newlines in order to display a line break.
+
+== Template-based special pages
+
+{project_name} defines three xref:special-pages.adoc[special pages] that relate to templates:
+
+* `Special:Templates` — which lists all the templates in the wiki
+* `Special:CreateTemplate`
+* `Special:CreateClass`
+
+Both of the latter two pages (i.e., _Special:CreateTemplate_ and _Special:CreateClass_) can be used to generate templates automatically.

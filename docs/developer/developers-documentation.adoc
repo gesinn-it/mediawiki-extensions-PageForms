@@ -1,0 +1,11 @@
+= Developers' Documentation
+:toc: left
+include::../attributes.adoc[]
+
+// The content of this page has been merged into xref:defining-new-inputs.adoc[] and xref:hooks.adoc[].
+
+See:
+
+* xref:defining-new-inputs.adoc[Defining New Input Types] — how to implement a custom input type
+* xref:hooks.adoc[Hooks Reference] — all available hooks with signatures and examples
+* xref:code-structure.adoc[Code Structure] — overview of the codebase layout

@@ -1,0 +1,78 @@
+= Query Forms
+:toc: left
+include::../attributes.adoc[]
+
+// Source: https://www.mediawiki.org/wiki/Extension:Page_Forms/Creating_query_forms
+
+Forms can also be used for querying, as opposed to adding or editing data.
+To do so, use the `Special:RunQuery` page, which displays a form in a manner similar to `Special:FormEdit`, but with no associated target page.
+Instead, when the user submits the form by hitting the "Run query" button, they see what the template looks like when displayed with the values they entered.
+
+The template that the form uses should most likely contain one or more queries (using Semantic MediaWiki link:https://semantic-mediawiki.org/wiki/Help:Inline_queries[inline queries], External Data queries, etc.) to query data using values that the user entered.
+
+== The "Run query" button
+
+By default, a *Run query* button shows up at the bottom of forms if they are accessed via `Special:RunQuery`.
+You can change the location and text of this button, using the tag `{{{standard input|run query}}}` (or `{{{standard input|run query|label=...}}}`, etc.) within the form definition.
+
+See the xref:defining-forms.adoc["standard input" tag] section of the xref:defining-forms.adoc[Defining Forms] manual for more information.
+
+== Query form at top
+
+If you add the parameter `query form at top` to the `{{{info}}}` tag, the query input field will show up at the top of the results page, instead of the bottom.
+
+== Creating links to query forms
+
+Once a query form has been created, you can link to it using syntax that looks like this:
+
+ [[Special:RunQuery/query form name]]
+
+However, the preferred solution, because it is easier and more powerful, is to use the `#queryformlink` parser function.
+A basic call to that function would look like:
+
+ {{#queryformlink:form=query form name}}
+
+Here is the complete syntax of `#queryformlink`:
+
+ {{#queryformlink:form=|link text=|link type=|query string=query string parameters|tooltip=|popup}}
+
+These parameters are almost identical to the ones used by `#formlink`; for a full explanation of the parameters, see the xref:linking-to-forms.adoc[using #formlink] section of the xref:linking-to-forms.adoc[Linking to Forms] manual.
+
+== Embedding query forms
+
+You can also embed a query form within another page.
+To do that, add the following in a page where you want the query form to appear:
+
+ {{Special:RunQuery/query form name}}
+
+You can similarly embed multiple `Special:RunQuery` forms in the same page.
+
+== Preloading data in the query
+
+In case query data needs to be pre-loaded, the `Special:RunQuery` URL should follow the convention:
+
+ Special:RunQuery/form-name?template-name[item-name]=value
+
+For example, like this:
+
+ https://discoursedb.org/wiki/Special:RunQuery/Item_query?Item_query[author]=John
+
+The `item-name` part might cause a problem in connection with the wiki markup, and therefore the square brackets — `[` and `]` — can be replaced with either `%5B` and `%5D`, or `&#91;` and `&#93;`.
+
+Finally, make sure that the case in the query string matches the declaration in the form (e.g., `{{{for template|Item_query}}}` must match `?Item_query[author]=John` and `{{{for template|item_query}}}` must match `?item_query[author]=John`).
+
+Alternatively, you can preload data by using the `default=` parameter for form fields.
+
+=== Displaying results automatically
+
+The above technique will produce pre-selected values in the form, but the user will still have to press the "Run query" button to see the results of the query.
+If you want the results to be displayed automatically as well, you simply have to add `_run` to the query string, like the following:
+
+ https://discoursedb.org/wiki/Special:RunQuery/Item_query?Item_query[author]=John&_run
+
+As before, the recommended way to link to such a page internally is with `#queryformlink`; such a call would look as follows:
+
+[source]
+----
+{{#queryformlink:form=Item_query|query string=Item_query[author]=John&_run}}
+----

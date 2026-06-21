@@ -1,0 +1,640 @@
+= Defining Forms
+:toc: left
+include::../attributes.adoc[]
+
+{project_name} provides an entire syntax for defining forms, that makes use of tags contained within triple curly brackets.
+Pages that contain such syntax should always go in the `Form:` namespace.
+Such pages are not called forms, but rather _form-definition pages_, to distinguish them from the actual corresponding forms that users see.
+
+The tags used in form-definition pages are:
+
+* `{{{info}}}` — holds special information about the form
+* `{{{for template}}}` — specifies which template the following fields belong to
+* `{{{field}}}` — specifies an individual form input
+* `{{{end template}}}` — closes the current template section
+* `{{{section}}}` — creates a textarea for a page section
+* `{{{standard input}}}` — defines user inputs at the bottom of the form
+
+[NOTE]
+====
+Form-definition pages can also contain regular wikitext, HTML, and other markup between the special tags, which will appear as-is in the rendered form.
+====
+
+== The `info` tag
+
+The `info` tag holds special information about the form and is optional.
+If included, it should be placed at the top of the form-definition page.
+
+The syntax is:
+
+----
+{{{info|parameter1|parameter2|...}}}
+----
+
+[cols="1,3", options="header"]
+|===
+| Parameter
+| Description
+
+| `create title=` _title_
+| Sets the title that appears at the top of the `Special:FormEdit` page when creating a new page.
+  By default, the page name appears after the title, but you can embed it anywhere in the title using `<page name>` within the value.
+
+| `edit title=` _title_
+| Sets the title at the top of the `Special:FormEdit` page when editing an existing page.
+  As with `create title=`, you can embed `<page name>` within this value.
+
+| `query title=` _title_
+| Sets the title that appears at the top of the `Special:RunQuery` page for this form.
+
+| `page name=` _formula_
+| Sets an automatic formula for naming newly added pages, enabling the "one-step process".
+  See xref:linking-to-forms.adoc[] for details on the formula syntax.
+
+| `query form at top`
+| Places the query form at the top of the `Special:RunQuery` page, instead of the default position at the bottom.
+
+| `onlyinclude free text`
+| Wraps the free text portion of the generated page in `<onlyinclude>` tags, so the page can be transcluded in other pages without also copying over the semantic-property-setting calls, which are typically stored inside template calls.
+|===
+
+== The `for template` tag
+
+The `for template` tag specifies a template name, and declares that all the `{{{field}}}` tags that follow (until the matching `{{{end template}}}` tag) belong to that template.
+
+The syntax is:
+
+----
+{{{for template|TemplateName|parameter1|parameter2|...}}}
+----
+
+[cols="1,3", options="header"]
+|===
+| Parameter
+| Description
+
+| `label=` _label text_
+| Places a labeled box around the set of fields for this template.
+  This is particularly useful when you have a multiple-instance template, so the user can easily see the scope of each instance.
+
+| `multiple`
+| Allows users to change the number of instances of this template, enabling zero instances or more than one.
+  See <<multiple-instance-templates>>.
+
+| `intro=` _text_
+| Places text before the template's inputs when displayed in the form.
+  This is especially useful for labeled multiple-instance templates.
+
+| `display=` _value_
+| Sets a preset display for all inputs in this template section; any wikitext around the input tags will be ignored.
+  Allowed values: `table` (for any template), `spreadsheet` (for multiple-instance templates only), `calendar` (for multiple-instance templates with date fields).
+  When using `display=table`, field names are used as labels by default unless overridden with the `label=` parameter on individual field tags.
+
+| `height=` _value_
+| Sets the height of a spreadsheet display.
+  The default is 200px.
+
+| `minimum instances=` _number_
+| For multiple-instance templates, sets the minimum number of instances that must be present.
+
+| `maximum instances=` _number_
+| For multiple-instance templates, sets the maximum number of instances allowed.
+
+| `add button text=` _text_
+| Changes the text of the "Add another" button for multiple-instance templates.
+
+| `strict`
+| If set, only fields that are explicitly listed in the form definition will become form elements.
+  Other template parameters will be ignored.
+
+| `embed in field=` _template name[field name]_
+| Used for embedded templates.
+  See <<embedded-templates>>.
+
+| `displayed fields when minimized=` _field names_
+| A comma-separated list of field names whose values are displayed on the collapsed bar when a multiple-instance template is minimized.
+  See <<multiple-instance-templates>>.
+
+| `event title field=` _field name_
+| For `display=calendar`: specifies which field holds the event title.
+
+| `event date field=` _field name_
+| For `display=calendar`: specifies the date field for single-date events.
+
+| `event start date field=` _field name_
+| For `display=calendar`: specifies the start date field for events spanning a date range.
+
+| `event end date field=` _field name_
+| For `display=calendar`: specifies the end date field for events spanning a date range.
+|===
+
+== The `field` tag
+
+The `field` tag specifies an individual form input corresponding to a parameter in the enclosing template.
+The name following the declaration is the template parameter name.
+
+The syntax is:
+
+----
+{{{field|FieldName|parameter1|parameter2|...}}}
+----
+
+=== Universal field parameters
+
+[cols="1,3", options="header"]
+|===
+| Parameter
+| Description
+
+| `input type=` _input type_
+| Specifies the type of input this field will have in the form.
+  If a Semantic MediaWiki property is set, the input type will be auto-determined unless explicitly overridden.
+  See xref:input-types.adoc[] for the full list of input types.
+
+| `hidden`
+| Hides the field in the form.
+  When editing a page, the existing value is preserved as a hidden input.
+
+| `mandatory`
+| Requires the field to be filled in before the form can be submitted.
+  Note: using both `mandatory` and `hidden` together causes the mandatory check to always fail, so these two parameters should not be combined.
+
+| `restricted`
+| Makes the field editable only by administrators (sysops) in the wiki.
+
+| `restricted=` _group name_
+| Makes the field editable only by users in the specified user group.
+
+| `default=` _default value_
+| Sets a default value for the field; this only applies when creating a new page, not when editing an existing one.
+  Special values:
+  `default=now` — for date/datetime fields, inserts the current date and time;
+  `default=current user` — for text fields, inserts the current username;
+  `default=uuid` — for text fields, inserts a randomly-generated UUID;
+  `default=yes` — for checkbox fields, checks the checkbox by default.
+  For checkboxes input type, specify the values to pre-select as a comma-separated list, e.g. `default=Value A, Value C`.
+  Templates, parser functions, and magic words can all be embedded in default values.
+
+| `class=` _class name_
+| Assigns one or more CSS classes to the input element.
+
+| `property=` _property name_
+| Specifies a Semantic MediaWiki property for this field.
+  The field will get an input type and autocompletion corresponding to that property's type.
+
+| `list`
+| Indicates that the field contains multiple values.
+  The default input type for such fields is `tokens`.
+  See <<multiple-values>>.
+
+| `delimiter=` _delimiter_
+| Sets the delimiter used to separate multiple values in a list field.
+  The default delimiter is a comma.
+
+| `label=` _label text_
+| When the `for template` tag uses `display=`, this sets the label for the field in the generated layout.
+  By default, the field name is used as the label.
+
+| `label msg=` _message name_
+| Uses a MediaWiki system message page for the field label, which enables translation.
+
+| `feeds to map=` _template name[coordinates field name]_
+| Marks this field as contributing to an address used for geocoding into a coordinates field.
+  Multiple address-component fields can all be marked with this parameter.
+
+| `holds template`
+| Marks this field as holding the output of an embedded multiple-instance template.
+  See <<embedded-templates>>.
+
+| `translatable`
+| If the Translate extension is installed, wraps the field value in Translate extension tags (`<!--T:X-->`).
+
+| `unique`
+| Requires the field value to be unique across all values of the corresponding Semantic MediaWiki property.
+
+| `unique for category=` _category name_
+| Requires the field value to differ from all page names in the specified category.
+
+| `unique for namespace=` _namespace name_
+| Requires the field value to differ from all page names in the specified namespace.
+
+| `unique for concept=` _concept name_
+| Requires the field value to differ from all page names in the specified Semantic MediaWiki concept.
+|===
+
+=== Input type-specific parameters
+
+The following parameters apply only to certain input types.
+See xref:input-types.adoc[] for the full list of input types and which parameters each one accepts.
+
+`allow half stars`, `autogrow`, `cols`, `default filename`, `depth`, `description`, `editor`, `existing values only`, `height`, `hide select all`, `hideroot`, `image`, `image preview`, `include timezone`, `mapping property`, `mapping template`, `mapping using translate`, `max height`, `max values`, `maxlength`, `namespace`, `num stars`, `placeholder`, `rows`, `show on select`, `show select all`, `size`, `star width`, `starting bounds`, `structure`, `top category`, `uploadable`, `values`, `values from category`, `values from concept`, `values from external data`, `values from namespace`, `values from property`, `values from url`, `width`
+
+== The `end template` tag
+
+The `end template` tag closes the template range opened by the most recent `for template` tag.
+It has no parameters.
+
+----
+{{{end template}}}
+----
+
+== The `section` tag
+
+The `section` tag creates a textarea that corresponds to a named section within the wiki page being edited.
+The name following `section|` is the section heading name.
+
+The syntax is:
+
+----
+{{{section|SectionName|parameter1|parameter2|...}}}
+----
+
+[cols="1,3", options="header"]
+|===
+| Parameter
+| Description
+
+| `level=` _level_
+| Sets the heading level for the section, from 1 (top level, `=`) to 6 (deepest, `======`).
+
+| `hide if empty`
+| If set, the section heading will not be added to the page when the section content is empty.
+
+| `mandatory`
+| Requires the section to be filled in before the form can be submitted.
+
+| `restricted`
+| Makes the section editable only by administrators (sysops).
+
+| `restricted=` _group name_
+| Makes the section editable only by users in the specified group.
+
+| `hidden`
+| Hides the section textarea in the form; the existing content is preserved as a hidden field.
+
+| `class=` _class name_
+| Assigns CSS classes to the textarea element.
+
+| `placeholder=` _text_
+| Sets placeholder text inside the textarea.
+
+| `rows=` _number_
+| Sets the number of rows for the textarea.
+
+| `cols=` _number_
+| Sets the number of columns for the textarea.
+
+| `autogrow`
+| Makes the textarea grow automatically as the user types.
+|===
+
+== The `standard input` tag
+
+The `standard input` tag defines the user-interface controls that appear at the bottom of the form.
+The text immediately after `standard input|` specifies which control to add.
+
+The syntax is:
+
+----
+{{{standard input|input-name|parameter1|parameter2|...}}}
+----
+
+The allowed input names are:
+
+* `save` — a "Save page" button
+* `preview` — a "Show preview" button
+* `save and continue` — a "Save and continue" button that saves the page without leaving the form
+* `changes` — a "Show changes" button
+* `summary` — a text input for the edit summary
+* `minor edit` — a checkbox for marking the edit as minor
+* `watch` — a checkbox for watching the page
+* `cancel` — a cancel link
+* `run query` — a "Run query" button, for use on query forms only
+
+If no `standard input` tags are included in a form definition, the form will display a default set of seven inputs at the bottom: save, preview, changes, summary, minor edit, watch, and cancel.
+If at least one `standard input` tag is included, only those inputs that are explicitly declared will be shown, in the order and position they are declared.
+
+[cols="1,3", options="header"]
+|===
+| Parameter
+| Description
+
+| `label=` _label text_
+| Sets the text associated with the input on the form.
+
+| `class=` _CSS class(es)_
+| Assigns CSS classes to the input element.
+
+| `style=` _CSS rule(s)_
+| Applies inline CSS styles to the input element.
+
+| `checked`
+| For the `watch` input only: checks the "Watch this page" checkbox by default.
+|===
+
+=== The free text input
+
+The special value `free text` creates a textarea that holds all the non-template, non-section content in the page.
+
+----
+{{{standard input|free text|parameter1|parameter2|...}}}
+----
+
+The `free text` input accepts all the textarea-related parameters (`rows`, `cols`, `hidden`, `restricted`, `class`, `autogrow`, `editor`), plus:
+
+[cols="1,3", options="header"]
+|===
+| Parameter
+| Description
+
+| `preload=` _page title_
+| Preloads the contents of the specified page into the free text field.
+|===
+
+If the `free text` standard input is omitted from the form definition, any existing free text on the page being edited is preserved as a hidden field.
+
+[#multiple-values]
+== Multiple values for the same field
+
+{project_name} supports fields that hold multiple values.
+The input types `checkboxes` and `listbox` are specifically designed for this purpose.
+Text and textarea fields can also support autocompletion for multiple values.
+
+To mark a field as holding multiple values, add the `list` parameter to the `{{{field}}}` tag.
+The `delimiter=` parameter sets the separator between values; the default delimiter is a comma.
+
+The default input type for multiple-value fields is `tokens`.
+
+For templates that use list-value fields, the template itself should contain a call to either `#arraymap` or `#arraymaptemplate` (from the ParserFunctions or Semantic MediaWiki extensions) to process each value individually.
+
+[#multiple-instance-templates]
+== Multiple-instance templates
+
+Adding the `multiple` parameter to a `for template` tag allows the user to add zero or more instances of that template to the page.
+When editing a page, the form shows all existing instances, and users can add more by clicking the "Add another" button, or remove instances by clicking the remove icon.
+Instances can be reordered by clicking and dragging the icon on the right side of each instance.
+
+The "Add another" button text can be customized with `add button text=`:
+
+----
+{{{for template|Occupation|multiple|add button text=Add another occupation}}}
+----
+
+Use `minimum instances=` and `maximum instances=` to constrain how many instances are allowed.
+
+=== Instance minimizing
+
+If the combined pixel height of all the instances exceeds the value of `$wgPageFormsHeightForMinimizingInstances` (default: 800), all instances are collapsed into narrow bars.
+Each bar expands into the full instance when clicked.
+To disable this behavior, set `$wgPageFormsHeightForMinimizingInstances` to a negative value in `LocalSettings.php`.
+
+The `displayed fields when minimized=` parameter on the `for template` tag specifies which field values appear on the collapsed bar to help identify each instance.
+
+=== Semantic storage
+
+For Semantic MediaWiki users, multiple-instance templates should store their data using `#subobject` rather than direct property declarations, so that each instance gets its own subobject.
+No named subobject is needed; a blank name causes auto-assigned names.
+
+Example template call using `#subobject`:
+
+[source]
+----
+{{#subobject:|Has start date={{{Start date|}}}|Has end date={{{End date|}}}}
+----
+
+[#embedded-templates]
+=== Embedded templates
+
+By default, multiple-instance templates are stored as separate template calls on the page, one after another:
+
+[source]
+----
+{{Skill|Name=Cooking|Level=5}}
+{{Skill|Name=Guitar|Level=2}}
+{{Skill|Name=Karate|Level=4}}
+----
+
+Alternatively, they can be stored _embedded_ as the value of a field in a parent template:
+
+[source]
+----
+{{Person
+...
+|Skills={{Skill|Name=Cooking|Level=5}}{{Skill|Name=Guitar|Level=2}}{{Skill|Name=Karate|Level=4}}
+...
+}}
+----
+
+To set this up, three changes are needed:
+
+. In the form definition, add `holds template` to the `{{{field}}}` tag in the parent template's section that will hold the embedded template's output:
++
+----
+{{{field|Skills|holds template}}}
+----
+
+. In the `Template:Person` wikitext, add `{{{Skills|}}}` at the location where the embedded template calls should appear.
+
+. In the form definition's `for template` tag for the embedded template, add `embed in field=Person[Skills]`:
++
+----
+{{{for template|Skill|multiple|embed in field=Person[Skills]}}}
+----
+
+Advantages of embedded templates:
+
+* Greater control over placement: the embedded template block can appear between any two fields of the parent template.
+* Text can be placed immediately before or after the embedded block without needing extra wrapper templates.
+* No spaces between consecutive template calls, which is important when the template output itself is space-sensitive.
+
+Note: it is not possible to embed a multiple-instance template inside another multiple-instance template.
+
+=== Spreadsheet-style editing
+
+Adding `display=spreadsheet` to a `for template` tag renders all instances of that template as rows in a spreadsheet, using the Jspreadsheet library.
+Each template call becomes one row; any wikitext between the field tags is ignored.
+
+Supported input types in spreadsheet mode:
+
+* `text` (the default)
+* `textarea`
+* `checkbox`
+* `date`
+
+If a field has a predefined set of values (via `values=`, `values from category=`, etc.), the column automatically uses a dropdown.
+
+The `height=` parameter on the `for template` tag sets the height of the spreadsheet; the default is 200px.
+
+=== Calendar-based editing
+
+Adding `display=calendar` to a `for template` tag renders the template instances as events on a FullCalendar calendar.
+Each template call represents one event.
+Clicking on a date or an existing event opens a popup form for entering or editing that event's field values.
+
+The following parameters on the `for template` tag are required for calendar display:
+
+* `event title field=` _field name_ — the field that holds the event's title
+* For single-date events: `event date field=` _field name_
+* For ranged events: `event start date field=` _field name_ and `event end date field=` _field name_
+
+All standard input types are supported in calendar popup forms, except `combobox`, `googlemaps`, `leaflet`, and `openlayers`.
+
+== Defining the bottom of the form
+
+The user inputs at the bottom of the form are defined using `standard input` tags.
+If no `standard input` tags are included, {project_name} displays a default set of seven inputs: save, preview, changes, summary, minor edit, watch, and cancel.
+Once any `standard input` tag is added, only the explicitly declared inputs are shown, in the order and at the position they are declared within the form.
+
+Example:
+
+----
+{{{standard input|save|label=Save this page}}}
+{{{standard input|preview}}}
+{{{standard input|cancel}}}
+----
+
+== Sample form
+
+The following is a complete example of a form-definition page for a wiki about opinion items.
+
+[source]
+----
+{{{info|add title=Add an opinion item|edit title=Edit an opinion item}}}
+<div id="wikiPreview" style="display: none; padding-bottom: 25px; margin-bottom: 25px; border-bottom: 1px solid #AAAAAA;"></div>
+{{{for template|Item}}}
+{| class="formtable"
+! Author:
+| {{{field|author|mandatory}}}
+|-
+! Source:
+| {{{field|source|mandatory}}}
+|-
+! Date:
+| {{{field|date}}}
+|-
+! URL:
+| {{{field|url}}}
+|-
+! Quote:
+| {{{field|quote|input type=textarea}}}
+|}
+{{{end template}}}
+
+{{{for template|Opinion|label=Opinions for this item|multiple}}}
+'''Topic:''' {{{field|1}}}
+
+'''Position:''' {{{field|2|size=55}}}
+
+'''Stance:''' {{{field|3|size=10}}}
+{{{end template}}}
+
+{{{for template|Reference|label=Previous opinion items this item refers to|multiple}}}
+'''Item name:''' {{{field|1|values from category=Items}}}
+{{{end template}}}
+
+'''Free text:'''
+
+{{{standard input|free text}}}
+----
+
+This form uses three templates: `Item`, `Opinion`, and `Reference`.
+The `wikiPreview` div allows users to preview edits within the form itself.
+The `Opinion` and `Reference` templates are multiple-instance, so users can add as many as needed.
+The `values from category=Items` parameter on the Reference field restricts the autocomplete to pages in the `Items` category.
+
+== The `#forminput` function
+
+Form-definition pages generated by {project_name} (via `Special:CreateForm` or `Special:CreateClass`) always include a call to the `#forminput` parser function at the top, which provides a text input for users to enter the name of a page and be taken to the corresponding form.
+This function is not part of the form-definition syntax itself.
+For a full description of `#forminput` and the other linking functions, see xref:linking-to-forms.adoc[].
+
+== Other topics
+
+=== Turning forms into tabbed sections
+
+If the Header Tabs extension is installed, you can split a form into multiple tabs by adding top-level section headings (`=Tab name=`) at the points where each new tab should begin.
+Then, place a `<headertabs/>` tag near the bottom of the form, above the `standard input` declarations.
+
+Tab divisions can appear between `for template` / `end template` blocks, or even within them, allowing the fields of a single template to span multiple tabs.
+
+=== Wizard-style display
+
+For large forms, you can break the form into a sequence of screens that the user navigates through one at a time, by wrapping each screen's content in a `<div class="pf-wizard-screen">` element.
+Every part of the form must be enclosed in a `pf-wizard-screen` div.
+
+Example structure with three screens:
+
+[source]
+----
+<div class="pf-wizard-screen">
+Field 1: {{{field|Field 1}}} <br />
+Field 2: {{{field|Field 2}}} <br />
+Field 3: {{{field|Field 3}}}
+</div>
+<div class="pf-wizard-screen">
+Field 4: {{{field|Field 4}}} <br />
+Field 5: {{{field|Field 5}}} <br />
+Field 6: {{{field|Field 6}}}
+</div>
+<div class="pf-wizard-screen">
+{{{standard input|save}}}
+</div>
+----
+
+=== Reusing form elements
+
+You can create templates that contain repeated form elements and call those templates from multiple form-definition pages.
+However, because `{`, `|`, and `}` are special characters in wikitext, any form-element syntax inside a reused template must be HTML-escaped:
+
+* `{` → `&#123;`
+* `|` → `&#124;`
+* `}` → `&#125;`
+
+Alternatively, wrap the form tags in `<nowiki>` ... `</nowiki>` tags.
+
+=== Caching form definitions
+
+Form-definition pages are parsed twice — once as wikitext into HTML, and once for {project_name}-specific tag handling — which can be slow for complex forms.
+You can enable caching of the parsed form definition by adding the following to `LocalSettings.php`:
+
+[source,php]
+----
+$wgPageFormsCacheFormDefinitions = true;
+----
+
+By default, the parser cache is used.
+To use a specific cache store, also set:
+
+[source,php]
+----
+$wgPageFormsFormCacheType = CACHE_ANYTHING;
+----
+
+[WARNING]
+====
+Do not enable form definition caching if the form contains dynamic elements such as `{{PAGENAME}}` or `{{CURRENTUSER}}`, as those values will not update correctly when the cached form is served.
+====
+
+=== Caching autocompletion values
+
+For wikis with large data sets, autocompletion lookups can be slow.
+You can cache the autocompletion values by adding the following to `LocalSettings.php`:
+
+[source,php]
+----
+$wgPageFormsCacheAutocompleteValues = true;
+$wgPageFormsAutocompleteCacheTimeout = 60 * 60 * 24; // 1 day, in seconds
+----
+
+The timeout value is in seconds and can be any positive number.
+
+=== Tooltips
+
+There are three ways to add tooltips to form fields:
+
+. *Semantic MediaWiki's `#info` function* — Use `{{#info:tooltip text}}` (note: this is distinct from {project_name}'s own `{{{info}}}` tag).
+  See SMW's link:https://www.semantic-mediawiki.org/wiki/Help:Adding_tooltips[Help:Adding tooltips] for details.
+
+. *SimpleTooltip extension* — Use the `#tip-info` parser function provided by the link:https://www.mediawiki.org/wiki/Extension:SimpleTooltip[SimpleTooltip] extension.
+
+. *Table display tooltip parameter* — When the `for template` tag uses `display=table`, add `tooltip=` _tooltip text_ to any individual `{{{field}}}` tag.

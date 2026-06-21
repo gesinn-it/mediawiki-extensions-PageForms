@@ -1,0 +1,107 @@
+= Editing with Forms
+:toc: left
+include::../attributes.adoc[]
+
+// Source: https://www.mediawiki.org/wiki/Extension:Page_Forms/The_%22edit_with_form%22_tab
+
+== Getting "edit with form" to appear
+
+To get the "edit with form" tab to appear on the page, you must use the parser function `#default_form`.
+This function is called in the following way:
+
+----
+{{#default_form:form-name}}
+----
+
+...where `form-name` is the name of the form, without the namespace prefix "Form:".
+
+If a user is not allowed to edit a page that is form-editable, the tab will show up for them as "view form" instead; clicking on the tab will show the disabled form.
+
+`#default_form` displays a message like "This category uses the form form-name."
+To hide this message, you can embed the call within a hidden element, like:
+
+----
+<span style="display:none">{{#default_form:Organization}}</span>
+----
+
+The syntax `[[Has default form::form-name]]`, that was used in former versions of this extension, i.e. when it was called Semantic Forms, to bind a form to a page, no longer works; every such call has to be changed to `#default_form`.
+
+=== Based on category
+
+The recommended approach is to use categories.
+To enable a page to have a tab in this way, you must first define that page as belonging to a specific category.
+The best way to match pages with a category is to place a `Category` tag inside the main template that defines this page type; that way, every page that uses this template will become part of this category.
+
+Then, place a call to `#default_form` in the page for that category.
+You can do this automatically if you create the category using the `CreateCategory` page.
+
+=== Based on namespace
+
+You can also match a namespace to a form, meaning that every page in that namespace will be editable with that form.
+First, locate the page defining that namespace.
+For instance, if the namespace you want to associate with a form is "User", the page in which you need to add the `#default_form` call can be found by navigating to "Project:User" (you may need to create this page).
+
+If the namespace you want a default form for is the main one (i.e., the one with no name), you will need to add the `#default_form` call to the page called "Project:Main".
+If the site language (`$wgLanguageCode` in `LocalSettings.php`) is not English, replace "Main" with the blank namespace name that is defined in your wiki's system message `MediaWiki:Pf_blank_namespace`.
+Or, alternatively, change the content of that system message to "Main".
+
+Once you've added this call, every page within that namespace will have that form associated with it, unless it already belongs to a category that has an associated form (categories take precedence over namespaces).
+
+=== Within the page
+
+You can also associate a form directly to a page.
+This is especially useful when the category and namespace options aren't possible, such as when pages belong to multiple categories that have different default forms.
+To do this, simply add a call to `#default_form` directly to the page, or to a template that the page calls.
+
+=== Preventing the tab from appearing
+
+If you want to ensure that a page does not get an "edit with form" tab, add the following call to the relevant page, category or namespace page:
+
+----
+{{#default_form:}}
+----
+
+== Configuring the editing tabs
+
+For pages that have an "edit with form" tab, you may want the regular "edit" tab to be renamed or even removed altogether.
+There are flags you can set in `LocalSettings.php` to change the appearance of the editing tabs:
+
+`$wgPageFormsRenameEditTabs = true;`::
+Renames the "edit with form" tab to "edit", and the "edit" tab to "edit source".
+
+`$wgPageFormsRenameMainEditTab = true;`::
+Renames only the "edit" tab to "edit source".
+
+[WARNING]
+====
+You cannot use these two configuration parameters if you have the VisualEditor extension installed on your wiki.
+====
+
+`$wgGroupPermissions[...]['viewedittab']`::
+Can be set, for different types of viewers, to toggle whether each type will see the regular edit tab.
+One common modification is to set it to `false` normally (for viewer type `'*'`), and to `true` for `'sysop'` viewers:
+
+[source,php]
+----
+$wgGroupPermissions['*']['viewedittab'] = false;
+$wgGroupPermissions['sysop']['viewedittab'] = true;
+----
+
+[WARNING]
+====
+These permissions will cause issues with the VisualEditor extension, which requires the edit tab as an entrypoint.
+====
+
+If these settings are added to `LocalSettings.php`, they should be placed in the file after the include of Page Forms.
+
+Note that some of the early MediaWiki skins, like Cologne Blue, contain hard-coded links to "Edit this page", that can't be removed or renamed by the Page Forms code.
+
+== Further tab customization
+
+Every tab has an HTML ID, so tabs can be further customized on a site-wide basis using CSS or JavaScript in your site's `MediaWiki:Common.css` or `MediaWiki:Common.js`, or on individual pages with the CSS extension.
+For example, you can hide the edit and view tabs by adding the following to your `MediaWiki:Common.css` page:
+
+[source,css]
+----
+#ca-view, #ca-edit { display: none !important; }
+----

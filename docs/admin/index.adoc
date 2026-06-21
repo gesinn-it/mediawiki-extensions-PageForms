@@ -1,0 +1,17 @@
+= Page Forms — Administrator Guide
+:toc: left
+:toclevels: 2
+include::../attributes.adoc[]
+
+This guide covers installation, form definition, and configuration for wiki administrators.
+
+== Contents
+
+* xref:installation.adoc[Installation] — requirements and setup
+* xref:defining-forms.adoc[Defining Forms] — the form markup language
+* xref:input-types.adoc[Input Types] — all available field input types and their parameters
+* xref:values-mappings-autocompletion.adoc[Values, Mappings and Autocompletion] — autocompletion sources and value mappings
+* xref:linking-to-forms.adoc[Linking to Forms] — parser functions and URL patterns
+* xref:query-forms.adoc[Query Forms] — building search/filter forms
+* xref:special-pages.adoc[Special Pages] — reference for all Page Forms special pages
+* xref:templates.adoc[Page Forms and Templates] — how forms work with wiki templates

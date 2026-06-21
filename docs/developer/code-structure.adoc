@@ -1,0 +1,6 @@
+= Code Structure
+:toc: left
+include::../attributes.adoc[]
+
+This page formerly held a listing of all the files in the {project_name} extension, and a brief description of each one, but this content was removed because the listing was significantly out of date, and it seemed too hard to always keep it up-to-date.
+It might not have been that useful, anyway.

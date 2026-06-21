@@ -1,0 +1,89 @@
+= Installation
+:toc: left
+include::../attributes.adoc[]
+
+== Download
+
+You can download the Page Forms code, in .zip format:
+
+link:https://github.com/wikimedia/mediawiki-extensions-PageForms/archive/6.0.8.zip[https://github.com/wikimedia/mediawiki-extensions-PageForms/archive/6.0.8.zip]
+
+You can also download the code directly via Git from the MediaWiki source code repository (see link:https://phabricator.wikimedia.org/diffusion/EPFM/[available tags]).
+From a command line in the extensions directory, run the following:
+
+[source,bash]
+----
+git clone https://gerrit.wikimedia.org/r/mediawiki/extensions/PageForms.git
+----
+
+To view the code online, including version history for each file, see link:https://phabricator.wikimedia.org/diffusion/EPFM/[PageForms].
+
+=== Not recommended
+
+There are some additional ways to download Page Forms, which are not recommended:
+
+* Page Forms can be downloaded via the MediaWiki Extension Distributor, which lets you download any extension for any version of MediaWiki.
+This is not recommended because the code being downloaded represents a random snapshot in time, that could contain bugs that were fixed later — or, if the "development/trunk" version is used, it could conversely contain code that is too new, and hasn't been fully tested yet.
+* Similarly, if you do a Git download, you should use the "master" branch and not the REL_ branches, if possible; there is no guarantee that a REL_ branch will work with its respective MediaWiki version, or for that matter work at all.
+* Page Forms is available via some Linux distributions, like Debian.
+These should probably not be used, since their version of the software tends to be significantly out of date.
+
+== Installation
+
+Once you have downloaded the code as a directory called `PageForms` in your `extensions` folder, you just need to add the following line to your `LocalSettings.php` file:
+
+[source,php]
+----
+wfLoadExtension( 'PageForms' );
+----
+
+There are four user rights defined for Page Forms:
+
+* `createclass` is the permission to create new classes (see xref:special-pages.adoc[]).
+By default it is given to all members of the 'user' group.
+
+* `editrestrictedfields` is the "permission" to edit restricted fields.
+By default it is given to all members of the 'sysop' group.
+
+* `multipageedit` is the "permission" to use the MultiPageEdit special page, which allows to edit multiple pages through a single spreadsheet-like interface.
+By default it is given to all members of the 'user' group.
+
+* `viewedittab` is the "permission" to see the "edit with form" tab.
+By default it is given to everyone (i.e. `'*'`).
+
+You can modify the set of users who have any of these permissions.
+For example, to have the "edit with form" tab show up only for administrators, you could add the following, below the inclusion of Page Forms:
+
+[source,php]
+----
+$wgGroupPermissions['*']['viewedittab'] = false;
+$wgGroupPermissions['sysop']['viewedittab'] = true;
+----
+
+== Composer
+
+Page Forms can also be downloaded and installed using link:https://www.mediawiki.org/wiki/Composer[Composer].
+
+To install with Composer, add the following to your `composer.local.json` file:
+
+[source,json]
+----
+{
+  "require": {
+    "mediawiki/page-forms": "^6.0.8"
+  }
+}
+----
+
+More information about the package can be found on Packagist: link:https://packagist.org/packages/mediawiki/page-forms[mediawiki/page-forms].
+
+== Upgrading
+
+If you used `git clone` to install Page Forms, you can update to the very latest code for it with a simple command.
+The latest code may not be a stable release.
+From a command line in the Page Forms directory, run the following:
+
+[source,bash]
+----
+git pull
+----

@@ -1,0 +1,12 @@
+= Page Forms Documentation
+:toc: left
+:toclevels: 2
+include::attributes.adoc[]
+
+Page Forms is a MediaWiki extension that lets users add, edit, and query data using wiki forms — no programming required.
+
+== Manuals
+
+* xref:user/index.adoc[User Guide] — for editors who fill out forms to create and edit pages
+* xref:admin/index.adoc[Administrator Guide] — for wiki admins who build and configure forms
+* xref:developer/index.adoc[Developer Guide] — for developers who extend or integrate Page Forms

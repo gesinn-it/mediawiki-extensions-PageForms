@@ -1,0 +1,163 @@
+= Quick Start Guide
+:toc: left
+include::../attributes.adoc[]
+
+So, you've set up all the software on your site.
+Now what?
+Now it's time to create the structures to hold, display and enable adding and editing of your data; thankfully all of this can be done simply by creating various wiki pages.
+
+The first step should be to *figure out your data structure.*
+What types of pages will the site have?
+What data will be contained on each one?
+You can change all of this around later, but you should have a starting plan.
+Once you have that (ideally, written down), you can move on to creating the necessary wiki pages.
+You will need to create or modify pages for templates and forms, probably categories as well, and (if you're using Semantic MediaWiki) properties.
+
+You can create all of these from scratch, although helper forms also exist to help with creating them.
+
+== With Semantic MediaWiki
+
+=== The easy way - Special:CreateClass
+
+The page `Special:CreateClass`, defined by Page Forms, provides a single helper form to define everything about a data "class" in one place.
+If you fill out the fields and hit "submit", the page will create all the necessary property, template, form and category pages automatically.
+Then you can go to the form page that was created, and start entering data.
+
+If not all the pages seem to be getting created, it could be that your job queue lacks enough memory.
+See the job-queue-related item in xref:common-problems.adoc[] for how to add more memory.
+
+=== The more comprehensive way
+
+You should take the following steps:
+
+* *Create properties.* The basic building blocks of any semantic site are the connections between data, which in Semantic MediaWiki are known as properties.
+A property is used to specify a single piece of information about the topic of this page.
+Every property should be defined on your wiki, with a page in the "Property:" namespace.
+Create each property by going to the `Special:CreateProperty` page.
+
+* *Create templates.* A template sets the display of the data on a page, holds the markup to turn the data into actual semantic information, and (often) defines the page as being of a certain category, and thus of a certain page type.
+There will generally be one template per page type, although sometimes a single page type will contain more than one template.
+A template can also be used for aggregation, by displaying a list of all other pages that have a certain relationship to this page (see the link:https://www.semantic-mediawiki.org/wiki/Help:Inline_queries[inline queries] documentation for much more information on this).
+Create the template(s) by going to the `Special:CreateTemplate` page.
+
+* *Create forms.* Now you can create forms to allow users to easily add and edit pages of various types.
+There should be one form per page type; the form will populate the template or templates that this page type contains.
+As before, there's a special page to create new forms: `Special:CreateForm`.
+
+* *Create categories.* One template in each form should tag each article that the form creates as being part of a certain category.
+You should create a page for each such category, and specify a default form for it so that every article is automatically editable with the same form that created it.
+The easiest way to do that is by using the `Special:CreateCategory` page.
+
+* *Enable links to forms.* Besides creating categories that have a default form, there are other steps you should take to enable users to access the forms that you have created.
+These include adding links to add data in the sidebar and elsewhere, and using `#formredlink` in order to have red-links to nonexistent pages point to a form for creating them.
+These actions are all explained in xref:../admin/linking-to-forms.adoc[].
+
+* *Add links on sidebar and elsewhere.* The sidebar (which, for English-language wikis, can be edited at the page "MediaWiki:Sidebar") should hold links to add each of the data types, and to the categories for each of these data types as well.
+You can also include such links on the main page and elsewhere.
+
+* *Add data.* Now you can start entering data!
+Just go to the form page(s), and start creating pages.
+
+* *Customize.* Once the structure is in place, you can customize all you want - changing the look-and-feel of the entire wiki, of the various templates, and of the forms, adding and changing fields and adding and changing inline queries.
+
+== Example
+
+Let's go through a specific example of setting up a Page Forms-based wiki from scratch, in the "more comprehensive way".
+Let's say that you want to create a wiki that shows all the books you have at home.
+We'll then go through the previous steps specified.
+
+*1. Figure out the data structure.*
+You want two kinds of pages on your wiki: one for books, and one for authors.
+Each book page should hold a title, an author name (or names), a genre (or genres), a year of publication, and a number of pages.
+Each author page should hold the author name, their country of origin, and a list of all the books they have written that you own.
+
+*2. Create properties.*
+For books, there is no need to create a property for the title, since the title of each page representing a book will be the title of that book.
+That leaves four fields:
+
+* Author(s) - using the "Create a property" page (at `Special:CreateProperty`), you create a property called *"Was written by"*, of type "Page" (since each author will have their own page).
+* Genre - you create a property called *"Has genre"*, of type "Text", and give it allowed values such as: "Art, Cookbook, Fiction, History, Poetry, Science".
+* Year of publication - you create a property called *"Was published in year"*, of type "Number".
+* Number of pages - you create a property called *"Has number of pages"*, of type "Number".
+
+For author pages, you only need to create one more property:
+
+* Country of origin - you create a property called *"Is from country"*, of type "Text".
+
+*3. Create templates.*
+You need to create two templates, one for books and one for authors, both at the "Create a template" page at `Special:CreateTemplate`.
+
+First, books:
+
+At `Special:CreateTemplate`, set the template name to be "Book", and set the category name to be "Books".
+You add to it four fields, and for each field you specify three values: its field name in the template source code, its display label on each page, and the semantic property it populates.
+
+. For the first field, set the field name to be "Authors", the label to be "Author(s)" and the semantic property to be "Was written by", and check the box indicating that this field can hold a list of values (since a book can have more than one author).
+. Click *Add field* and then, for the second field, set the three values to be "Genres", "Genre(s)" and "Has genre", and also check the box for a list of values.
+. Click *Add field* and then, for the third field, set the values to be "Year", "Year of publication" and "Was published in year".
+. Click *Add field* and then, for the fourth field, set the values to be "Number of pages", "Number of pages" and "Has number of pages".
+. Click the *Create* button.
+
+Next, create the template for Authors - using the "Create a template" page, you create a template called *"Author"*, and set it to define the category "Authors".
+
+. Just add to this template one field, for which you set the three values to be "Country", "Country of origin" and "Is from country".
+. For this template, you also fill out the "Aggregation" fields in the form, since you want each author page to list all the books the author has written.
+Under "Semantic property", you select "Was written by", and for "Title for list" you put "Books by this author".
+. Click the *Save page* button.
+
+*4. Create forms.*
+You need to create two forms, one for books and one for authors:
+
+* Books - using the "Create a form" page (at `Special:CreateForm`), you make a form called *"Book"*, select the template "Book" and click the *Add* button.
+You could also optionally add a section for the plot of the book - to do that, add a section (not a template) called "Plot".
+You do not do any further customizations on this form, but just save the form once you have created it.
+* Authors - using the "Create a form" page, you make a form called *"Author"*, and add to it the template "Author".
+As before, you do not do any further customizations - you just save the page.
+
+*5. Create categories.*
+You need to create two categories, one for books and one for authors; you have already specified these categories' names before:
+
+* Books - using the "Create a category" page (at `Special:CreateCategory`), you make a category called *"Books"*, and give it the default form "Book".
+* Authors - using the "Create a category" page, you make a category called *"Authors"*, and give it the default form "Author".
+
+*6. Enable links to forms.*
+
+The text for the Book template (at `Template:Book`) most likely has a portion that looks like:
+
+[listing]
+----
+{{#arraymap:{{{Authors|}}}|,|x|[[Was written by::x]]}}
+----
+
+Replace this with something like:
+
+[listing]
+----
+{{#arraymap:{{{Authors|}}}|,|x|{{#formredlink:target=x|form=Author}}{{#set:Was written by=x}}}}
+----
+
+This will make links to author pages that don't exist yet point to the form for creating those pages.
+
+*7. Add data.*
+Using the new "Book" form (at `Form:Book`), you create pages for some books; you check to make sure that both the form and the resulting pages look alright.
+Each book page will now have a red link to its author, that should point to the "Author" form for adding that author (you may need to refresh the page for the right link to show up).
+You can then add a few authors, either through these links or from the form page directly, to make sure that this setup works correctly too.
+Each created author's page should show a list of the books you've saved that have that person as the author.
+
+*8. Add links on sidebar and elsewhere.*
+Your structures are now all set up, and you can add links to the sidebar for easy adding and viewing, by modifying the page `MediaWiki:Sidebar` (or its equivalent if you're using a language other than English).
+You can add links to the "Book" and "Author" forms to make it easy to add new ones.
+You could also link to `Special:BrowseData` (if you have the link:https://www.mediawiki.org/wiki/Extension:Semantic_Drilldown[Semantic Drilldown] extension installed), to let users view all the data at a glance.
+
+== Using Page Schemas
+
+The link:https://www.mediawiki.org/wiki/Extension:Page_Schemas[Page Schemas] extension is specifically intended for the automated creation of data structures, including forms.
+Its big advantage over the standard PF helper forms is that it can be used to create and modify these data structure pages many times, not just create them one time.
+To create a page schema, you need to go to the category page (whether or not it has been created yet), go to the tab action for creating that page's schema, fill out the form, then go to the tab action for generating pages based on that schema.
+See the Page Schemas documentation for more information.
+
+== Quick reference guides
+
+There are quick reference guides, or "cheat sheets", suitable for printing, that contain helpful information about Page Forms (though they still refer to it as "Semantic Forms"):
+
+* The Semantic MediaWiki quick reference guide - can be found link:http://postable.net/smwqr/[here], in PNG (image), PDF and SVG formats.

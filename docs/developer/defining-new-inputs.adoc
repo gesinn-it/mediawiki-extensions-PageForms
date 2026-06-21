@@ -1,0 +1,61 @@
+= Defining New Input Types
+:toc: left
+include::../attributes.adoc[]
+
+This page holds information about the Page Forms code, for developers who want to better understand it, modify it, or create code that ties into it.
+
+== Code
+
+To view the code online, including version history for each file, you can go link:https://gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/extensions/PageForms/+/refs/heads/master[here].
+
+== Modifying or Improving Page Forms
+
+There's certainly no shortage of ways to improve Page Forms, including bugs that can be fixed, interface elements that can be improved, or new features that can be added.
+If you are a developer, or simply a user with some technical skill, any help you can provide in improving the software is welcome.
+Page Forms would not be at its current state without the contributions of many people.
+
+If you encounter some issue or limitation in Page Forms, and have an interest in fixing it, please either write Yaron, write about it on the talk page, or post a task on link:https://phabricator.wikimedia.org/maniphest/task/edit/form/1/[Phabricator].
+
+You can also see the current list of link:https://www.mediawiki.org/wiki/Extension:Page_Forms/Known_bugs_and_planned_features[Known bugs and planned features].
+
+== Defining New Inputs
+
+To create a new input type, you need to define a class for that input, and have it inherit (using the `extends` keyword) from the class `PFFormInput`, or one of its child classes.
+
+There are a number of methods that this class can or should define; the following are the crucial ones:
+
+* `getName()` — sets the name of the input within the form definition.
+* `getParameters()` — defines which parameters can be passed in to this input, for use within Special:CreateForm.
+* `getHtmlText()` — defines the HTML to display this input.
+* `getResourceModuleNames()` — sets the name(s) of the ResourceLoader modules used by this input; if the input contains any JavaScript or CSS, they should be packaged into one or more modules, which are then specified here.
+
+Other methods that can be overridden include the following:
+
+* `getHandledPropertyTypes()`
+* `getDefaultParameters()`
+* `canHandleLists()`
+
+It's useful to look at the existing form input classes to see how all these functions are called.
+
+One note on getting other parameters: let's say that your input is named "myinput", and is called in the form definition in the following way:
+
+----
+{{{field|Some Field|input type=myinput|color=orange|height=200}}}
+----
+
+Within your class's `getHtmlText()` method, `$this->mOtherArgs` will contain the `color=orange` and `height=200` key-value pairs, which the function can then use however it wants.
+
+Finally, once your new input is defined, it needs to be registered.
+You do that by using the `'PageForms::FormPrinterSetup'` hook.
+You need to register with that hook a function that looks like the following:
+
+[source,php]
+----
+public static function onFormPrinterSetup( &$pfFormPrinter ) {
+    $pfFormPrinter->registerInputType( 'MyInputClass' );
+}
+----
+
+== Testing
+
+You can find information on testing the code at the xref:index.adoc[Developer Guide index].

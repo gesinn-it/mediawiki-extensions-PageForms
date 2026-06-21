@@ -1,0 +1,279 @@
+= Values, Mappings and Autocompletion
+:toc: left
+include::../attributes.adoc[]
+
+Page Forms offers many options related to both the setting and display of possible values for inputs, both for input types that offer a finite set of options (such as `dropdown` and `checkboxes`) and those that offer free-form data entry (`combobox` and `tokens`).
+
+== Setting values and mappings
+
+Some input types provide the user with pre-defined values.
+These can be values that the user is required to choose among (like with the `dropdown` input type), or values that are only meant to serve as a guide to the user (like with `combobox`, although there too these options can be made mandatory, if you add the `existing values only` parameter).
+
+For both cases, the set of parameters for specifying the values shown to the user is nearly the same.
+Here are the parameters for the "field" tag that can be used in all cases:
+
+[cols="1,3"]
+|===
+| `property=`
+| If you have Semantic MediaWiki installed, this parameter will be automatically used if the input type uses autocompletion.
+  The code will find the relevant property and use all of its values, or you can use this parameter to specify a different property.
+
+| `values from property=`
+| Functionally, this parameter works the same as `property=`, above, though it lacks some of the side effects: `property=` can also impact the size and even input type of the field.
+
+| `values from category=`
+| Gets its values from the names of all pages belonging to a specific category.
+
+| `values from namespace=`
+| Gets its values from the names of all pages belonging to _one or more_ specific namespaces.
+  To get values from more than one namespace, separate the names with commas.
+  To get values from the main namespace, use "Main", or just leave it blank.
+
+| `values from content namespaces`
+| Gets its values from the names of all pages belonging to all namespaces in the `$wgContentNamespaces` setting.
+
+| `values from concept=`
+| Gets its values from the names of all pages belonging to a specific SMW link:https://www.semantic-mediawiki.org/wiki/Help:Concepts[concept].
+
+| `values from query=`
+| Gets its values from a Semantic MediaWiki query that includes the current text within the input.
+  The following substitutions must be made to the standard SMW query syntax:
+
+* In place of `[` and `]`, use `(` and `)`
+* In place of `\|`, use `%`
+* Where the current text would go, place `@`
+
+| `values from url=`, +
+`values from external data=`, +
+`values from wikidata=`
+| See <<autocompleting-on-outside-values,Autocompleting on outside values>>, below.
+
+| `values=`
+| Finally, you can simply manually specify the set of values shown to the user; an example would be `values=Red,Yellow,Blue`.
+  This set of values should be separated by commas by default, but the delimiter can be modified using the `delimiter=` parameter.
+|===
+
+There are several more options for the autocompletion-based inputs; see <<autocompletion,Autocompletion>>, below.
+
+=== Mapping
+
+You can have the set of values displayed to the user be different from the set of values that actually show up in the page's wikitext.
+If the values are page names, and those pages have a "display title" set that is different from their real page name, then by default the form will display the display title instead of the page name.
+If you want, you can have the page name itself displayed, by adding the following to `LocalSettings.php`:
+
+[source,php]
+----
+$wgPageFormsUseDisplayTitle = false;
+----
+
+You can enable other such mappings using the following parameters:
+
+[cols="1,3"]
+|===
+| `mapping template=__template name__`
+| Takes in the name of a "mapping template" (a template that takes in a single, unnamed parameter, i.e. `{{{1|}}}`, and displays a "mapped" string as a result), and uses that template to map every potential value, so that the values' "aliases" appear on the screen, and not the values themselves.
+
+| `mapping property=__property name__`
+| Used for fields that select pages with `combobox`, `tokens`, `listbox`, and `dropdown` input types.
+  For each possible value, displays a SMW property from that page rather than the title of the page, but saves the title of the selected page(s) as the field value.
+  Used in conjunction with the `values...` parameters to get the list of possible values.
+
+| `mapping using translate`
+| If the link:https://www.mediawiki.org/wiki/Extension:Translate[Translate] extension is installed, calls Translate's `{{int:}}` magic word on each value to get the mapped value.
+|===
+
+=== Example 1: mapping template
+
+A form could contain a field tag like this:
+
+----
+{{{field|status|values=Prospective,Live,Retired|mapping template=StatusLabel }}}
+----
+
+The template at `Template:StatusLabel` could then contain something like:
+
+----
+{{#switch: {{{1}}} | Retired=Label for Retired |Live=Label for Live | Prospective=Label for Prospective }}
+----
+
+You could then use that same "mapping template" to display the label of the value on regular, non-form pages.
+Within the template that contains the field "status", you could have the following:
+
+----
+{{StatusLabel|{{{status|}}} }}
+----
+
+[#autocompletion]
+== Autocompletion
+
+Four of the input types (`tokens`, `combobox`, plus `text with autocomplete` and `textarea with autocomplete` for versions before 5.0) use link:https://en.wikipedia.org/wiki/Autocomplete[autocompletion] — as the user starts typing, the input shows a dropdown list of possible completions.
+
+If a field represents a Semantic MediaWiki property of type `Page`, autocompletion will be enabled by default — the field will autocomplete on the names of all pages that are already pointed to by that property.
+For any other type, there is no default autocompletion, but you can achieve this same effect simply by setting the input type to one of the four types that have autocompletion.
+
+You can manually set a field to autocomplete on the set of values from an SMW property, a category, a namespace, a "concept", or a manually-set list, by using one of the "values ..." parameters — see <<Setting values and mappings>>, above.
+
+You can also autocomplete based on values outside the wiki, contained in web pages, databases, files, etc.; see <<autocompleting-on-outside-values,Autocompleting on outside values>> below for the various ways to do this.
+
+If a field is specified to hold multiple values, autocompletion will, by default, support multiple values: after a value is entered, and a delimiter placed, a new autocompletion will start for the next value.
+You can manually specify that a field should have multiple-value autocompletion, by adding the *`list`* parameter to the field's definition.
+You can also specify the delimiter for this list of values, using the *`delimiter=...`* parameter (the default is a comma).
+
+By default, the maximum number of autocompletion possibilities that a field will offer is 1,000; this is for performance reasons.
+To change this number, change the value of `$wgPageFormsMaxAutocompleteValues` in `LocalSettings.php`.
+
+=== Disabling
+
+You can disable autocompletion, if it's enabled by default for a field, by setting the input type to be simply "text" or "textarea".
+
+=== Remote autocompletion
+
+The set of a field's possible values for autocompletion is, by default, contained right within the form's HTML page, in a JavaScript declaration.
+For performance reasons, there is a limit to how many values can be placed in the page; by default the limit is set to 100.
+After that number is reached, remote autocompletion is done instead, where autocompletion happens through an Ajax call to the server, based on what the user has typed.
+This type of autocompletion is slower, but allows for many more autocompletion results.
+
+You can change the default by adding something like the following to `LocalSettings.php`:
+
+[source,php]
+----
+$wgPageFormsMaxLocalAutocompleteValues = 200;
+----
+
+=== Matching on every character
+
+By default, Page Forms autocompletion matches on the beginning of every word in the set of possible values.
+However, you can change autocompletion to instead match on every character, by adding the following line to `LocalSettings.php`:
+
+[source,php]
+----
+$wgPageFormsAutocompleteOnAllChars = true;
+----
+
+This feature is especially important for wikis that have values with non-ASCII characters, such as wikis in languages with non-Roman alphabets; since the default, word-based autocompletion doesn't yet work with non-ASCII characters.
+
+=== Autocompletion on characters with accents
+
+Flexible autocompletion for characters with accents is supported by the combobox and tokens input type.
+
+Accent-folding has its limitations but it can help make some important yet overlooked user interactions work better.
+An accent-folding function essentially maps Unicode characters to ASCII equivalents.
+With accent-folding, it doesn't matter whether users search for cafe, café or even çåFé; the results will be the same.
+
+[#autocompleting-on-outside-values]
+=== Autocompleting on outside values
+
+There are some ways to have a field autocomplete using data from outside the wiki:
+
+* from an API-like URL that takes in a substring and returns data in the necessary JSON format
+* from link:https://wikidata.org/[Wikidata]
+* from any external source, using the link:https://www.mediawiki.org/wiki/Extension:External_Data[External Data] extension.
+
+==== From an outside URL
+
+You can have a field autocomplete on values from outside the wiki, using the following parameter:
+
+* `values from url=` _URL identifier_
+
+To do so, take the following steps:
+
+. Create a page/web service that takes in a substring via the query string, and displays a set of completion values.
+  Page Forms expects to get a JSON format response with a toplevel key of `"pfautocomplete"` and an array of objects with the `"title"` key marking the values of possible completions.
+  You can see a brief example of this link:https://www.semantic-mediawiki.org/w/api.php?action=pfautocomplete&substr=an&property=Country&format=json[from this API call on semantic-mediawiki.org].
++
+For example, if you had a list of three countries -- Uruguay, Germany, and Japan -- and were asked for a list of possible completions for "an", you would return:
++
+`{"pfautocomplete":[{"title":"Germany"},{"title":"Japan"}]}`
++
+This also makes it easy to autocomplete on the values from another wiki.
+
+. Decide on a short string to represent this URL.
++
+For example, the service providing lookups in our list of countries could be called `"countryLookup"`.
+
+. Add the short string to the array in `$wgPageFormsAutocompletionURLs` in your `LocalSettings.php` file to configure Page Forms to use your URL when it sees the string.
+  Put `"<substr>"` where you want the user's input will go.
++
+In our example, if we want Page Forms to feed the user's keystrokes to the url `http://example.dom/countryLookup.php` via the url parameter `"c"`, we'd put:
++
+[source,php]
+----
+$wgPageFormsAutocompletionURLs['countryLookup'] = 'http://example.dom/countryLookup.php?c=<substr>';
+----
+
+. Add the parameter "`values from url=`_URL-identifier-string_`"` to the relevant field in the form definition.
++
+For our country example, we might have a field that looks like:
++
+`{{{field|country|input type=tokens|values from url=countryLookup}}}`
+
+==== From Wikidata
+
+You can have a form input hold, and autocomplete on, values from link:https://wikidata.org/[Wikidata], using the parameter `values from wikidata=`.
+The query on Wikidata does not return its unique identifiers, but their labels in the content language of your wiki.
+The value for this parameter is structured as a mini-query, like `P31=Q860861&P17=Q38` ("instance of" = "sculpture", "country" = "Italy").
+The "Q" values can also be replaced by field names, to enable a Wikidata-based version of "show on select", for example `P31=Q860861&P17=Location[Country]`, where "Location" is a template, and "Country" is a field, above the current one.
+
+==== Using the External Data extension
+
+The link:https://www.mediawiki.org/wiki/Extension:External_Data[External Data] extension (ED) supports retrieving data from a number of sources which include external URLs, regular wiki pages, uploaded files, files on the local server, databases and LDAP directories.
+
+To autocomplete using ED, you need to first call any of ED's `#get_..._data` parser functions within the form definition (preferably at the bottom of the form definition, to avoid unnecessary line breaks).
+This will fetch data that can then be used in the field tags.
+(See the External Data documentation for how to call these.)
+The field tag may then use these parameters:
+
+* `values from external data=` _ED variable name_ (mandatory)
+* `image=` _ED variable name_ (optional)
+* `description=` _ED variable name_ (optional)
+
+Here is a sample call to `#get_web_data` to fetch data from some URL:
+
+----
+{{#get_web_data:url=URL |format=csv with header |data=title_variable_name=external_variable_name1,image_variable_name=external_variable_name2, description_variable_name=external_variable_name3}}
+----
+
+Assuming a form definition contains a call like that, a field tag can then use the values retrieved for autocompletion — not just to set the autocomplete values themselves, but also, if the input type is `"combobox"` or `"tokens"`, to set a corresponding thumbnail image and description for each one.
+
+Assuming our External Data call retrieved three "columns" of values, as the one above does, the field tag using this data could look like:
+
+----
+{{{field|...|values from external data=title_variable_name|image=image_variable_name|description=description_variable_name}}}
+----
+
+=== Dependent autocompletion
+
+You can set a field's autocompletion values to be based on the value a user has already set of another field in the form.
+This is done with the parameter `values dependent on=`, which has this syntax:
+
+----
+{{{field
+ ...
+ |values dependent on=template name[field name]
+----
+
+It specifies that the current set of allowed values for this field are all the values taken by this same field from pages where _field name_ is equal to the value selected for _field name_ in the current form.
+
+For example: if a template is called "Restaurant" and it has template fields (not properties) named "Country" and "City", and you want the set of cities that are used for autocompletion to be only those cities _in the country that the user selected_, then the field tag for the City field should look something like:
+
+`{{{field|City|input type=combobox|values dependent on=Restaurant[Country]}}}`
+
+== Parameter _show on select_
+
+For inputs of type `checkbox`, `checkboxes`, `radiobutton`, `dropdown` and `listbox`, the parameter `show on select=` specifies that one or more elements on the page should only be displayed if and when certain value(s) are selected within that input.
+
+The syntax for this parameter is:
+
+* `show on select=__value 1__=>__element ID 1__;__value 2__=>__element ID 2__;__value 3__=>__element ID 3__;`...
+
+A value can be provided with more than one element-id:
+
+* `show on select=__value A__=>__element ID 1__;__value B__=>__element ID 1__;__value B__=>__element ID 2__;__value C__=>__element ID 3__;`...
+
+If using _show on select_ together with a mapping template (see xref:input-types.adoc[Input types], example 1), use the labels defined in the mapping template as values (not the true parameter names).
+
+For inputs of type `checkbox`, simply "`show on select=`_element ID_`"` should be used.
+Note that the element IDs cannot contain spaces and/or multibyte characters and cannot start with a number.
+
+For an example of this feature in use, see link:http://discoursedb.org/w/index.php?title=The_New_York_Times&action=formedit[this form], and observe what happens when you select different values for the "Publication type" dropdown.
+You can see how that was implemented in link:http://discoursedb.org/w/index.php?title=Form:Source&action=edit[this form definition].

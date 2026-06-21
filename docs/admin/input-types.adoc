@@ -1,0 +1,480 @@
+= Input Types
+:toc: left
+include::../attributes.adoc[]
+
+This page covers the various input types available within Page Forms, and the parameters and other customizations that can be set for them.
+
+== The input types
+
+=== text
+
+The default input type; corresponds to the HTML "text" input.
+
+_Special parameters:_
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `size=_size_`
+| Specifies the width of the input, in characters.
+
+| `maxlength=_maximum length_`
+| Specifies the maximum allowed length of the input.
+
+| `placeholder=_placeholder text_`
+| Specifies help text that is displayed in the input until the user clicks on it.
+
+| `autocapitalize=_value_`
+| Sets the link:https://developer.mozilla.org/docs/Web/HTML/Global_attributes/autocapitalize[autocapitalize] parameter in the corresponding HTML tag to whatever value is set for this parameter; examples include `on`, `off`, `sentences`, etc.
+|===
+
+=== textarea
+
+Corresponds to the HTML `<textarea>` tag.
+
+_Special parameters:_
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `rows=_num rows_`
+| Specifies the number of rows.
+
+| `cols=_num cols_`
+| Specifies the number of columns.
+
+| `maxlength=_maximum length_`
+| Specifies the maximum allowed length of the input.
+
+| `autogrow`
+| Sets the textarea to "auto-grow" its height to match that of its contents, so that a scrollbar won't be needed.
+
+| `editor=_editor type_`
+| Adds a JavaScript-based editor to the textarea to make editing its contents more user-friendly. The following values are supported:
+
+* `wikieditor` -- uses the WikiEditor extension, which must be installed. If you want to add any additional custom toolbars to WikiEditor, you will need to add them in the JavaScript to `('#free_text').wikiEditor`, just as they exist for `('#wpTextbox1').wikiEditor`.
+* `visualeditor` -- uses the VisualEditor extension, which must be installed. Another extension, VEForAll, must also be installed. If you would like the toolbar to show up at the top of the edit field rather than at the bottom (default) you will also have to add `\|class=toolbarOnTop`.
+
+| `max height=_maximum height_`
+| If VisualEditor is being used, specifies a maximum height (in pixels) for the textarea, since VE uses autogrow. The default value for this is set by the variable `$wgPageFormsVisualEditorMaxHeight`, which by default is 400.
+
+| `placeholder=_placeholder text_`
+| Specifies help text that is displayed in the input until the user clicks on it.
+|===
+
+[#text-with-autocomplete]
+=== text with autocomplete, textarea with autocomplete
+
+These were formerly real input types, but have been aliases for "combobox" or "tokens" (depending on whether the input holds a list of values, or just one) since version 5.0.
+
+=== combobox
+
+The "combobox" input type provides a link:https://en.wikipedia.org/wiki/Combo_box[combo box] interface: an input that functions like a regular autocomplete field, but has an additional down-arrow icon, like that of a dropdown, to let the user see all the available values at once. It is implemented using the OOUI library.
+
+_Special parameters:_
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `size=_size_`
+| Specifies the width of the input, in characters.
+
+| `height=_height_`
+| Specifies the height of the combo box, in pixels.
+
+| `existing values only`
+| Disallows arbitrary values in the field.
+
+| `placeholder=_placeholder text_`
+| Specifies help text that is displayed in the input until the user clicks on it.
+|===
+
+=== tokens
+
+This input type "tokenizes" the values in the field, i.e puts a block around each value to make it a single unit instead of just a string of characters. These "tokens" can then also be rearranged. This input is implemented using the link:https://select2.github.io/[Select2] JavaScript library.
+
+_Special parameters:_
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `size=_size_`
+| Specifies the width of the input, in characters.
+
+| `max values=_max values_`
+| Specifies the maximum number of allowed values.
+
+| `existing values only`
+| Disallows arbitrary values in the field.
+
+| `placeholder=_placeholder text_`
+| Specifies help text that is displayed in the input until the user clicks on it.
+|===
+
+By default, "tokens" appears as a single-row input, then expands vertically if necessary as more values are added. In some cases, you may want this input to appear taller than one row when it starts out, to make it clearer to users that it will expand. To do that for a single input, add a `class` parameter to the field tag, like `{{{|class=_ClassName_}}}`, then add something like the following to `MediaWiki:Common.css`:
+
+[source,css]
+----
+.ClassName, .ClassName .select2-choices {
+        min-height:60px;
+}
+----
+
+If you want this to apply to all "tokens" inputs in the wiki, add something like this to `MediaWiki:Common.css` instead:
+
+[source,css]
+----
+#pfForm .select2-container-multi .select2-choices {
+        min-height: 60px;
+}
+----
+
+=== radiobutton
+
+The "radiobutton" input corresponds to the HTML "radio" input. It shows a set of values from which the user can only choose one.
+
+By default, the first radiobutton value is "None", which lets the user choose a blank value. To prevent "None" from showing up, you must make the field "mandatory", as well as making one of the allowed values the field's "default=" value.
+
+=== dropdown
+
+The "dropdown" input corresponds to the HTML `<select>` tag. It shows a dropdown list of values, from which the user can only choose one.
+
+=== checkboxes
+
+The "checkboxes" input displays checkboxes to let the user choose any number of values. If there are more than a certain number of checkboxes, "Select all" and "Select none" links will automatically appear above the set of checkboxes, allowing users to automatically check all or none of them. This number is dictated by the variable `$wgPageFormsCheckboxesSelectAllMinimum`, which by default is 10, though it can be changed in `LocalSettings.php`.
+
+_Special parameters:_
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `hide select all`
+| Hide the "Select all" and "Select none" links for this input, regardless of the number of values.
+
+| `show select all`
+| Display the "Select all" and "Select none" links for this input, regardless of the number of values.
+|===
+
+=== listbox
+
+The "listbox" input corresponds to the HTML `<select>` tag, with the "multiple" attribute added. It shows a vertical list of options, where the user can select any number of values.
+
+_Special parameters:_
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `size=_size_`
+| Specifies the height of the listbox, by the number of lines shown.
+|===
+
+=== tree
+
+The "tree" input type allows for a hierarchical, tree-style input, where all the values have either radiobuttons or checkboxes next to them, depending on whether the field can hold one item or many. Values can either come from a category tree within the wiki, or be set manually within the form definition.
+
+How does this input know whether it can hold one or multiple values, and should thus display radiobuttons vs. checkboxes? It checks whether the field in the template is defined as holding a list of values (using `#arraymap`) or not. This check is not perfect, though. If the tree input is showing radiobuttons instead of checkboxes, you just need to add the parameter "`|list`" to the field tag in the form definition, to establish that this is a list.
+
+Depending on the source of the values, you need to specify one of these two additional parameters:
+
+* `top category=` -- sets the name of the category at the top of the "tree".
+* `structure=` -- sets the entire tree structure; should use wikitext-style bullets to set the depth level.
+
+If you use the "structure" parameter, it should look something like this:
+
+[listing]
+----
+{{{field|Location|input type=tree|structure=*Universe
+**Milky Way Galaxy
+***Solar system
+**Andromeda Galaxy
+...etc.
+}}}
+----
+
+You can also optionally set these parameters:
+
+* `height=` -- sets the height, in pixels, of the box in which the tree appears.
+* `width=` -- sets the width, in pixels, of the box in which the tree appears.
+* `delimiter=` -- sets the delimiter when the field can hold a list of values. Default is ','.
+* `hideroot` -- hides the name of the top category.
+* `depth=` -- sets the number of levels of the tree that are shown at the beginning. Default is 10.
+
+You can see a sample form that uses this input type link:http://discoursedb.org/wiki/Form:Category_input_test[here].
+
+==== For category names
+
+If you're using the "tree" input type to display a category tree, note that this input will print out only the names of the categories selected, without the "Category:" namespace before it; so if you want that to show up in the page as well, the template will have to add it.
+
+If the field specifies multiple categories, and the template uses `#arraymap` to do it, the call to `#arraymap` should look something like:
+
+[listing]
+----
+{{#arraymap:{{{Categories|}}}|,|x|[[Category:x]] |<nowiki> </nowiki>}}
+----
+
+...in other words, you need to specify the final "delimiter" parameter for `#arraymap`, and make it a space, blank or something similar, to avoid printing commas between the category tags.
+
+=== checkbox
+
+A single checkbox, used for boolean values.
+
+_Special parameters:_
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `label=`
+| Specifies a "label" for this checkbox, which would go into a `<label>` tag.
+|===
+
+=== date
+
+This input contains three separate entries, for the year, month and day.
+
+=== datetime
+
+The "datetime" input is similar to the "date" input, but includes additional entries for hours, minutes, seconds and AM/PM.
+
+_Special parameters:_
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `include timezone`
+| Specifies that a time zone entry should also be included.
+|===
+
+=== year
+
+"year" is a simple text input that is used to get a year-only value for a date field.
+
+=== datepicker
+
+"datepicker" lets the user pick a date with the help of a JavaScript-based popup calendar.
+
+_Special parameters:_
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `date format=`
+| Sets a custom date format, used only for the input field. An example would be `DD-MM-YYYY`.
+
+| `first date=`
+| Sets the first date the user is allowed to select.
+
+| `last date=`
+| Sets the last date the user is allowed to select.
+|===
+
+The starting day of the week (e.g., Saturday, Sunday or Monday) is set based on the language of the wiki; it unfortunately cannot be set independently of the language. If your wiki is in English and you would like weeks in the calendar input to start on Monday instead of Sunday (which is the default), you can do that by setting your wiki's language to be "en-gb" instead of "en".
+
+=== datetimepicker
+
+"datetimepicker" is a JavaScript-based input type very similar to "datepicker", but it includes popups for selecting both the date and time. It defaults to `yyyy/mm/dd hh:mm`. Its set of parameters includes all of those for "datepicker" as well as the following:
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `mintime=`
+| The minimum allowed time.
+
+| `maxtime=`
+| The maximum allowed time.
+
+| `interval=`
+| The interval (in minutes) between options shown to the user.
+|===
+
+=== rating
+
+The "rating" input type displays a set of stars to let the user enter a rating.
+
+_Special parameters:_
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `star width`
+| Specifies the width (and height) of each star. Default is 24px.
+
+| `num stars`
+| Specifies the number of stars to display. Default is 5.
+
+| `allow half stars`
+| Allow users to select half a star. Default is `false`; set to `yes` (or any other value) to make `true`.
+|===
+
+[#googlemaps]
+[#leaflet]
+[#openlayers]
+=== googlemaps, leaflet, openlayers
+
+The "googlemaps", "leaflet" and "openlayers" input types let you display a map to get a coordinate value, using the Google Maps, Leaflet or OpenLayers services, respectively.
+
+If you are using the "googlemaps" input, you may need to get a link:https://developers.google.com/maps/[Google Maps API key], then set it in `LocalSettings.php` via the `$wgPageFormsGoogleMapsKey` setting, for the input to display.
+
+You can also optionally set these parameters for these input types:
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `height=`
+| Sets the height, in pixels, of the map.
+
+| `width=`
+| Sets the width, in pixels, of the map. Note: Both height and width are needed together to set the dimension.
+
+| `starting bounds=`
+| Takes in a pair of coordinates to set the bounds of the map displayed; this parameter only applies if the input does not have a value. (Example value for this parameter: "-20,-15;50,55".)
+|===
+
+The "leaflet" input type also allows one additional parameter:
+
+[cols="1,2", options="header"]
+|===
+| Parameter | Description
+
+| `image=`
+| Sets the specified image (which must be an image that was uploaded to the wiki) as the background for the map, instead of a geographical map.
+|===
+
+All of the map inputs let you enter an address to locate the coordinates more easily. But if the form already contains one or more fields to enter the address, then the user may have to enter it twice -- once to actually store the data, and the second to locate the coordinates. To avoid users having to do this double work, you can have the address field(s) feed their values directly to the map when locating the point. You can do that using the "feeds to map=" parameter -- look for "feeds to map" in xref:defining-forms.adoc[Defining Forms].
+
+All of these formats, by default, rely on external JavaScript code. However, you can have the "openlayers" format use local JavaScript code instead, by just installing the OpenLayers extension.
+
+==== Disabling
+
+Note that these input types all send your wiki's data (that is, the data contained in the query results) to external services. They are the only part of the Page Forms code that sends data externally, other than xref:values-mappings-autocompletion.adoc[autocompleting on outside values], though that one requires additional configuration to run. If you have a private wiki and are very concerned about no data getting out, you may want to add the following to `LocalSettings.php`:
+
+[source,php]
+----
+$wgPageFormsDisableOutsideServices = true;
+----
+
+This will disallow the use of any outside services by Page Forms -- which at the moment means disabling these three input types.
+
+=== regexp
+
+The "regexp" input type is not a true input type, but rather the ability to display another input (most often "text") with additional, regular-expression-based validation. See link:https://www.mediawiki.org/wiki/Extension:Page_Forms/Input_types/Regexp[here] for a more detailed explanation of this input type and its parameters.
+
+== Allowed input types for data types
+
+Each defined data type, when using Semantic MediaWiki, has a default input type, and, when applicable, a default input size as well. Additionally, some data types have special handling if the field holds a delimited list of values, instead of just a single value.
+
+Here are the defaults and the other allowed input types for each data type, for single values:
+
+[cols="2,2,1,3", options="header"]
+|===
+| SMW data type | Default input type | Default size | Other allowed input types
+
+| Page
+| combobox
+| 35
+| text, dropdown, textarea, tree
+
+| Text, Code
+| textarea
+| 5 x 30
+| text
+
+| URL
+| text
+| 100
+| textarea
+
+| Number
+| text
+| 10
+| textarea
+
+| Keyword
+| text
+|
+| textarea
+
+| Date
+| date
+|
+| datetime, year, datepicker
+
+| Boolean
+| checkbox
+|
+| dropdown, radiobutton
+
+| Geographic coordinate
+| openlayers
+|
+| googlemaps, leaflet
+
+| Enumeration (any SMW property with defined "allowed values")
+| dropdown
+|
+| radiobutton
+|===
+
+And here are the default and other allowed input types for _delimited lists_ of a certain data type:
+
+[cols="2,2,2,3", options="header"]
+|===
+| SMW data type
+| Default input type
+| Default size
+| Other allowed input types
+
+| Page
+| tokens
+| 100
+| text, textarea, tree, checkboxes
+
+| Text
+| text
+| 100
+| textarea, tokens
+
+| Enumeration
+| checkboxes
+|
+| listbox
+|===
+
+== Uploading files
+
+If a field in the form is meant to hold the name of an uploaded file (say, an image), you can allow users to upload this file directly through the form. This is done simply by adding the parameter "uploadable" to that field's declaration in the form definition. This will add a link reading "Upload file" next to this field in the form; if the user clicks on this link, it will pop up a window that lets the user upload a file. Once the user has done so, the window will close, and the field will contain the name of the uploaded file. If the field is configured to contain a list of values, the new filename will be appended to whatever was there before; otherwise, the filename will overwrite whatever the field contained before.
+
+[NOTE]
+====
+The "uploadable" parameter can only be used in fields of type "text", "text with autocomplete", "combobox" or "tokens".
+====
+
+For uploadable fields, you can also set the default filename of the uploaded files, by setting the "default filename=" parameter in the field definition. The value of this parameter can include parser functions, magic words and the like. It can also include the variable `<page name>`, which gets substituted with the name of the page being added or edited. So adding to the field definition the parameter `default filename=Image for <page name>`, for instance, for a page called "Abc", would set the default name of any uploaded file to "Image for Abc". Note that if you simply want to specify a default file to use such as "Imageneeded.png" the regular `default=Imageneeded.png` parameter will do.
+
+You can see a demonstration of file uploading link:http://discoursedb.org/wiki/Form:Images_test[here].
+
+Note that the upload window will not work if `$wgBreakFrames` is set to `true` in your `LocalSettings.php` file or you by other means enforce `X-Frame-Options=SAMEORIGIN`. To still allow this feature to work, you will additionally need to set `$wgApiFrameOptions` to `'SAMEORIGIN'`.
+
+You can also set uploadable fields to use the operating system's own uploading directly, instead of using MediaWiki's uploading system -- this gives the user fewer options, but it is a simpler process, and on mobile devices it can present some interesting options, like uploading photos right after they are taken. To do this, add the following line to `LocalSettings.php`:
+
+[source,php]
+----
+$wgPageFormsSimpleUpload = true;
+----
+
+The special parameters for uploadable fields are:
+
+* `uploadable` -- Specifies that this is an uploadable field.
+* `image preview` -- Specifies that a thumbnail of the uploaded image should be placed under the field in the form.
+* `default filename=_filename_` -- Specifies the default filename for files uploaded with this field.

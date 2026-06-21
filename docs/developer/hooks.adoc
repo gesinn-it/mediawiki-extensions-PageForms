@@ -1,0 +1,1012 @@
+= Hooks Reference
+:toc: left
+:toclevels: 2
+include::../attributes.adoc[]
+
+Page Forms provides the following hooks. Register them in your extension's `extension.json` or `ExtensionFunctions`.
+
+== PageForms::AddRLModules
+
+Fired by `PF_Utils::addFormRLModules()` after Page Forms has enqueued its own ResourceLoader modules for a form page. Allows other extensions to inject additional ResourceLoader modules into the form page output.
+
+=== Parameters
+
+`&$otherModules` (array, passed by reference)::
+An initially empty array. Each element added by the hook handler must be a ResourceLoader module name (string). After the hook runs, Page Forms iterates over the array and calls `OutputPage::addModules()` for each entry.
+
+=== Usage
+
+Register the hook in your extension's `extension.json`:
+
+[source,json]
+----
+"Hooks": {
+    "PageForms::AddRLModules": "MyExtension\\Hooks::onPageFormsAddRLModules"
+}
+----
+
+Implement the handler:
+
+[source,php]
+----
+namespace MyExtension;
+
+class Hooks {
+    /**
+     * @param array &$otherModules List of RL module names to add to the form page.
+     */
+    public static function onPageFormsAddRLModules( array &$otherModules ): void {
+        $otherModules[] = 'ext.myextension.formenhancement';
+    }
+}
+----
+
+=== Source
+
+Defined in `includes/PF_Utils.php`, method `PF_Utils::addFormRLModules()`.
+
+
+== PageForms::BeforeFreeTextSubst
+
+Called in `PF_FormPrinter` just before the free text value is substituted into the form HTML and assembled into the final page wikitext. Handlers can inspect or modify both the free text and the assembled page text at this point.
+
+The hook fires after the free text has been sourced (from the existing page, a form submission, or a preload page) and after `<onlyinclude>` tags have been stripped when the form uses `free text only include` mode, but _before_ `setFreeText()` and `createPageText()` are called.
+
+=== Signature
+
+[source,php]
+----
+public function onPageFormsBeforeFreeTextSubst(
+    ?string &$freeText,
+    string $existingPageContent,
+    string &$pageText
+): void;
+----
+
+=== Parameters
+
+`$freeText` (string|null, passed by reference)::
+The free-text portion of the page that will be inserted into the form field and stored in the page. May be `null` if no free text was supplied. Handlers may modify this value.
+
+`$existingPageContent` (string, read-only)::
+The full current wikitext of the page being edited, as it existed before the form was submitted. Empty string for new pages.
+
+`$pageText` (string, passed by reference)::
+The assembled page wikitext that will be saved. Initially an empty string at the time the hook fires; the extension populates it via `createPageText()` immediately after the hook returns. Handlers may pre-populate or modify this value to override the default assembly.
+
+=== Registration
+
+Register the hook in your extension's `extension.json`:
+
+[source,json]
+----
+{
+    "Hooks": {
+        "PageForms::BeforeFreeTextSubst": "MediaWiki\\Extension\\MyExtension\\Hooks"
+    }
+}
+----
+
+=== Example
+
+[source,php]
+----
+class Hooks {
+    /**
+     * Append a maintenance category to the free text whenever
+     * the existing page content contains a specific marker.
+     *
+     * @param string|null &$freeText       Free text to be stored in the page
+     * @param string       $existingContent Current wikitext of the page
+     * @param string      &$pageText        Assembled page wikitext (pre-populated after hook)
+     */
+    public function onPageFormsBeforeFreeTextSubst(
+        ?string &$freeText,
+        string $existingContent,
+        string &$pageText
+    ): void {
+        if ( str_contains( $existingContent, '{{NeedsReview}}' ) ) {
+            $freeText = ( $freeText ?? '' ) . "\n[[Category:Pages needing review]]";
+        }
+    }
+}
+----
+
+=== Notes
+
+* The hook is invoked from `PF_FormPrinter::formHTML()` in `includes/PF_FormPrinter.php`.
+* Modifying `$freeText` here also affects the value rendered inside the form's free-text input field (substituted via the `!free_text!` placeholder), so changes are visible to the editor on the same request when the form is re-displayed.
+* If you need to build the page text yourself and bypass the default `createPageText()` assembly, set `$pageText` to a non-empty string; the extension still calls `createPageText()` immediately after the hook but the result is only used when `$pageText` remains empty.
+
+== PageForms::CreateFormField
+
+Called once per form field just before the field's HTML is rendered, giving
+extensions the opportunity to inspect or modify both the field definition and
+its current value.
+
+The hook is fired from `PF_FormPrinter.php` inside the main form-rendering
+loop.  Because the value variable differs depending on whether the form was
+submitted or is being displayed for the first time, the hook is called in two
+slightly different ways (see the note on `$cur_value` below).
+
+=== Signature
+
+[source,php]
+----
+public function onPageForms__CreateFormField(
+    PFFormField &$form_field,
+    mixed       &$cur_value,
+    bool         $form_submitted
+): void
+----
+
+=== Parameters
+
+`$form_field` (`PFFormField`, passed by reference)::
+The field object representing the form field being rendered.  It carries the
+field's input type, label, argument map, possible values, list/mandatory/hidden
+flags, and a reference to the underlying `PFTemplateField`.  Modifications made
+to this object affect how the field is subsequently rendered.
+
+`$cur_value` (`string|array|null`, passed by reference)::
+The field's current value at the time of rendering.
++
+* When `$form_submitted` is `false` (initial display), this is the display
+  value — already converted to labels if a mapping template or mapping property
+  is configured.
+* When `$form_submitted` is `true` (form save), this is the value that will be
+  written into the template call (`$cur_value_in_template` in the source).
++
+Extensions may replace or transform this value before rendering.
+
+`$form_submitted` (`bool`, read-only)::
+`true` when the form has been submitted (page-save path); `false` when the
+form is being displayed for editing (initial-load path).  Use this flag to
+apply different logic for the two cases.
+
+=== Return value
+
+The hook does not use a return value.  Return `void`; the hook runner ignores
+any return.
+
+=== Registration
+
+Register the handler in your extension's `extension.json`:
+
+[source,json]
+----
+{
+    "Hooks": {
+        "PageForms::CreateFormField": "MyExtension\\Hooks::onPageFormsCreateFormField"
+    }
+}
+----
+
+=== Example
+
+The following example prefixes every field value that starts with `"Draft:"`
+with a notice string when the form is displayed (not on submit):
+
+[source,php]
+----
+namespace MyExtension;
+
+use PFFormField;
+
+class Hooks {
+
+    public static function onPageFormsCreateFormField(
+        PFFormField &$form_field,
+        &$cur_value,
+        bool $form_submitted
+    ): void {
+        // Only modify the displayed value, not the saved value.
+        if ( $form_submitted ) {
+            return;
+        }
+
+        if ( is_string( $cur_value ) && str_starts_with( $cur_value, 'Draft:' ) ) {
+            // Prepend a notice so editors know the value is a draft.
+            $form_field->setFieldArg( 'class', 'pf-draft-field' );
+        }
+    }
+}
+----
+
+=== Source reference
+
+The hook is called in
+`includes/PF_FormPrinter.php` within the `formHTML()` method,
+after mapping-template label substitution and before tab/field-number
+counters are incremented.  The relevant section contains an inline
+`@TODO` noting that it may be desirable to unify the two value
+variables (`$cur_value` and `$cur_value_in_template`) into a single
+hook call in a future refactor.
+
+
+== PageForms::CreateTemplateText
+
+Called inside `PFTemplate::createText()` just before the template wikitext is assembled.
+The hook receives the `PFTemplate` object by reference, allowing a handler to alter the
+template's properties — format, category, connecting property, aggregation settings, or
+full-wikitext mode — before the output string is built.
+
+The hook is fired from `Special:CreateTemplate`, `Special:CreateClass`, and (historically)
+the Page Schemas extension.
+
+=== Signature
+
+[source,php]
+----
+public static function onPageFormsCreateTemplateText( PFTemplate &$template ): void
+----
+
+=== Parameters
+
+`$template` (`PFTemplate`, passed by reference)::
+The template object that is about to produce its wikitext.
+Modify it through its public setter methods before returning.
+The following setters are available:
++
+[cols="2,3", options="header"]
+|===
+| Method | Effect on generated wikitext
+
+| `setFormat( string $format )`
+| Sets the display format. Accepted values: `standard` (wikitable), `infobox`, `plain`, `sections`.
+  Defaults to `standard` when not set.
+
+| `setCategoryName( string $category )`
+| Adds a `[[Category:…]]` tag to the generated template.
+
+| `setConnectingProperty( string $property )`
+| Wraps field values in a `#subobject` or `#set_internal` call using the given property
+  as the connecting property.
+
+| `setAggregatingInfo( string $property, string $label )`
+| Appends an inline SMW query that aggregates all pages linked via `$property`.
+
+| `setFullWikiTextStatus( bool $status )`
+| When `true`, generates a plain `{{TemplateName|field=…}}` usage block inside
+  `<noinclude>` instead of `#template_params`. Use for templates that must remain
+  compatible with installations that do not have `#template_params`.
+|===
+
+=== Registration
+
+Register the hook in `extension.json`:
+
+[source,json]
+----
+"Hooks": {
+    "PageForms::CreateTemplateText": "MyExtensionHooks::onPageFormsCreateTemplateText"
+}
+----
+
+=== Example
+
+The following example forces every auto-generated template to use the `infobox` format
+and assigns it to a default category:
+
+[source,php]
+----
+class MyExtensionHooks {
+    public static function onPageFormsCreateTemplateText( PFTemplate &$template ): void {
+        $template->setFormat( 'infobox' );
+        $template->setCategoryName( 'Auto-generated templates' );
+    }
+}
+----
+
+=== Source
+
+Defined in `includes/PF_Template.php`, method `PFTemplate::createText()`.
+
+
+== PageForms::EditFormInitialText
+
+Called when an *existing* page is opened for editing via a Page Forms form.
+Allows an extension to inspect or replace the wikitext that will be used to
+pre-populate the form fields.
+
+This hook is the counterpart to `PageForms::EditFormPreloadText`, which fires
+only for *new* (not-yet-existing) pages.
+Both hooks share the same signature.
+
+=== Signature
+
+[source,php]
+----
+public static function onPageFormsEditFormInitialText(
+    string &$initialContent,
+    ?Title  $targetTitle,
+    Title   $formTitle
+): void
+----
+
+=== Parameters
+
+`$initialContent` (string, passed by reference)::
+The wikitext of the existing page that will be loaded into the form.
+Modify this value to change what the form fields are populated with.
+
+`$targetTitle` (?Title)::
+The `Title` object for the page being edited, or `null` if the target page
+title has not been resolved yet (e.g. when the page name is determined by a
+formula inside the form definition).
+
+`$formTitle` (Title)::
+The `Title` object for the Page Forms form being used (in the `Form:` namespace).
+
+=== When it fires
+
+The hook fires inside `PFAutoEditAPI` after the existing page's raw wikitext
+has been loaded into `$initialContent` but before that content is handed to
+the form printer.
+It fires only when the target page already exists (`$pageExists === true`).
+
+Source: `includes/PF_AutoeditAPI.php`
+
+=== Registration
+
+Register the hook in your extension's `extension.json`:
+
+[source,json]
+----
+{
+    "Hooks": {
+        "PageForms::EditFormInitialText": "MyExtension\\Hooks::onPageFormsEditFormInitialText"
+    }
+}
+----
+
+=== Example
+
+Append a maintenance note to the wikitext whenever a page in the `Project:`
+namespace is opened for editing through a form:
+
+[source,php]
+----
+class Hooks {
+    public static function onPageFormsEditFormInitialText(
+        string &$initialContent,
+        ?Title  $targetTitle,
+        Title   $formTitle
+    ): void {
+        if ( $targetTitle === null ) {
+            return;
+        }
+        if ( $targetTitle->getNamespace() === NS_PROJECT ) {
+            $initialContent .= "\n<!-- last opened via Page Forms -->";
+        }
+    }
+}
+----
+
+== PageForms::EditFormPreloadText
+
+Called before a new page is created via a Page Forms form, allowing extensions to supply or modify the wikitext that is preloaded into the form. This hook fires only for *new* pages (pages that do not yet exist). For existing pages, use `PageForms::EditFormInitialText` instead.
+
+=== Signature
+
+[source,php]
+----
+function onPageFormsEditFormPreloadText(
+    ?string &$preloadContent,
+    Title $targetTitle,
+    Title $formTitle
+): void
+----
+
+=== Parameters
+
+`$preloadContent` (string|null, passed by reference)::
+The wikitext to preload into the form. Initially `null`. Set or modify this value in your hook handler to inject preloaded content.
+
+`$targetTitle` (Title)::
+The `Title` object for the page that is about to be created.
+
+`$formTitle` (Title)::
+The `Title` object for the Page Forms form being used.
+
+=== When it fires
+
+The hook is run in two situations:
+
+* When a red link on a page triggers automatic page creation via `PFFormLinker::createPageWithForm()`.
+* When the autoedit API (`PFAutoeditAPI`) processes a form submission for a page that does not yet exist.
+
+=== Registration
+
+Register the hook in your extension's `extension.json`:
+
+[source,json]
+----
+{
+    "Hooks": {
+        "PageForms::EditFormPreloadText": "MyExtension\\Hooks::onEditFormPreloadText"
+    }
+}
+----
+
+=== Example usage
+
+[source,php]
+----
+public static function onEditFormPreloadText(
+    ?string &$preloadContent,
+    Title $targetTitle,
+    Title $formTitle
+): void {
+    // Preload a standard header for all pages in the "Project" namespace.
+    if ( $targetTitle->getNamespace() === NS_PROJECT ) {
+        $preloadContent = "{{Project header}}\n";
+    }
+}
+----
+
+== PageForms::FormInputEnd
+
+Called at the end of the `#forminput` parser function, after the form contents HTML has been assembled but before the outer `<form>` element is rendered. Allows extensions to append additional HTML content to the form (for example, hidden inputs, extra controls, or JavaScript snippets).
+
+Defined and fired in `includes/parserfunctions/PF_FormInputParserFunction.php`.
+
+=== Parameters
+
+`$params` : `array`;;
+The raw array of parameters passed to the `#forminput` parser function call (strings in `"key=value"` form, as returned by `func_get_args()` after the leading `Parser` argument is removed).
+
+`&$formContents` : `string` (passed by reference);;
+The HTML string that will be wrapped in the `<form>` element. Modify this variable to append or prepend HTML to the form body.
+
+=== Example usage
+
+[source,php]
+----
+use MediaWiki\MediaWikiServices;
+
+// In your extension's setup or HookHandler class:
+MediaWikiServices::getInstance()->getHookContainer()->register(
+    'PageForms::FormInputEnd',
+    function ( array $params, string &$formContents ): void {
+        // Append a hidden input to every #forminput form
+        $formContents .= Html::hidden( 'my_extension_token', 'some_value' );
+    }
+);
+----
+
+=== Source reference
+
+The hook is dispatched in
+`includes/parserfunctions/PF_FormInputParserFunction.php`,
+`PFFormInputParserFunction::run()`, immediately after the visible form
+elements are built and before the enclosing `<form>` tag is emitted:
+
+[source,php]
+----
+MediaWikiServices::getInstance()->getHookContainer()->run(
+    'PageForms::FormInputEnd', [ $params, &$formContents ]
+);
+----
+
+== PageForms::FormPrinterSetup
+
+Called at the end of `PFFormPrinter::__construct()`, after all built-in input types have been registered. Use this hook to register custom form input types with the form printer, making them available for use in Page Forms form definitions via the `input type=` parameter.
+
+=== Parameters
+
+`&$formPrinter` (`PFFormPrinter`)::
+A reference to the `PFFormPrinter` instance being initialised. Use the methods on this object to register additional input types.
+
+=== Key Methods on `PFFormPrinter`
+
+`registerInputType( string $inputTypeClass )`::
+The preferred registration method. Registers a custom input class (which must extend `PFFormInput`) and automatically populates the input-type hook table and the SMW semantic-type hook tables from the class's `getName()`, `getDefaultPropTypes()`, and `getDefaultPropTypeLists()` static methods.
+
+`setInputTypeHook( string $input_type, string $class_name, array $default_args )`::
+Low-level method. Registers a class to handle a named input type string directly, without inspecting the class's static methods.
+
+`setSemanticTypeHook( string $type, bool $is_list, string $class_name, array $default_args )`::
+Low-level method. Maps a SMW property type (e.g. `_str`, `_dat`) to an input class, for both single-value (`$is_list = false`) and list (`$is_list = true`) contexts.
+
+=== Example Usage
+
+[source,php]
+----
+// In your extension's hook registration (e.g. extension.json):
+// "PageForms::FormPrinterSetup": "MyExtension\\Hooks::onFormPrinterSetup"
+
+namespace MyExtension;
+
+class Hooks {
+    /**
+     * @param \PFFormPrinter $formPrinter
+     */
+    public static function onFormPrinterSetup( \PFFormPrinter &$formPrinter ): void {
+        // Register a custom input type class.
+        // MyCustomInput must extend PFFormInput and implement getName(),
+        // getDefaultPropTypes(), and getDefaultPropTypeLists().
+        $formPrinter->registerInputType( MyCustomInput::class );
+    }
+}
+----
+
+=== Notes
+
+* The hook fires once per MediaWiki request, during the construction of the global `PFFormPrinter` singleton.
+* `registerInputType()` is preferred over the two low-level setters because it keeps all three lookup tables (`mInputTypeHooks`, `mSemanticTypeHooks` for single values, `mSemanticTypeHooks` for lists) in sync automatically.
+* Custom input classes must extend `PFFormInput` and implement the required abstract static methods (`getName()`, `getDefaultPropTypes()`, `getDefaultPropTypeLists()`, `getHTML()`).
+
+
+== PageForms::HTMLBeforeForm
+
+Called inside the `<form>` element on `Special:FormEdit`, just before the form fields are rendered. Use this hook to inject arbitrary HTML at the top of the Page Forms editing form.
+
+=== Hook signature
+
+[source,php]
+----
+public function onPageFormsHTMLBeforeForm(
+    ?Title &$targetTitle,
+    string &$preFormHtml
+): void
+----
+
+=== Parameters
+
+`&$targetTitle` (`?Title`)::
+The `Title` object of the page being created or edited. May be `null` if no target page has been resolved yet. Passed by reference.
+
+`&$preFormHtml` (`string`)::
+An initially empty string. Append raw HTML to this variable; the result is inserted directly inside the `<form>` tag before the generated form fields. Passed by reference.
+
+=== Details
+
+The hook fires in `PFFormEdit::execute()` after the `<form>` opening tag is written and before any field HTML is output. Because `$preFormHtml` is concatenated directly into the page output without further escaping, callers are responsible for producing safe, well-formed HTML.
+
+=== Registration
+
+Register the hook in your extension's `extension.json`:
+
+[source,json]
+----
+"Hooks": {
+    "PageForms::HTMLBeforeForm": "MyExtensionHooks::onPageFormsHTMLBeforeForm"
+}
+----
+
+=== Example usage
+
+Add a notice banner above the form whenever a specific page is being edited:
+
+[source,php]
+----
+class MyExtensionHooks {
+    public static function onPageFormsHTMLBeforeForm(
+        ?Title &$targetTitle,
+        string &$preFormHtml
+    ): void {
+        if ( $targetTitle === null ) {
+            return;
+        }
+        if ( $targetTitle->getText() === 'My Special Page' ) {
+            $preFormHtml .= Html::element(
+                'div',
+                [ 'class' => 'warningbox' ],
+                'Please review the guidelines before editing this page.'
+            );
+        }
+    }
+}
+----
+
+
+== PageForms::PrintRedirectForm
+
+Called at the end of `PF_Utils::printRedirectForm()`, after the redirect form HTML (a hidden mini-form and auto-submitting JavaScript) has been assembled. The hook receives the fully built output string by reference, allowing handlers to inspect or modify the final HTML before it is returned to the caller.
+
+NOTE: The hook is marked in the source with `@TODO - remove this hook? It seems useless.` It is retained for backward compatibility but may be removed in a future release.
+
+=== Parameters
+
+[cols="1,1,3"]
+|===
+| Parameter | Type | Description
+
+| `$is_save`
+| `bool`
+| `true` when the form submission is a save operation; `false` when it is a preview.
+
+| `$is_preview`
+| `bool`
+| The logical inverse of `$is_save` (`!$is_save`). Always `true` when the operation is a preview, `false` when it is a save.
+
+| `$is_minor_edit`
+| `bool`
+| Always `false` in the current implementation. Reserved for future use.
+
+| `&$text`
+| `string` (by reference)
+| The complete HTML output of the redirect form, including the `<form>` element and the auto-submit `<script>` block. Modify this value to alter what is returned.
+|===
+
+=== Source location
+
+`includes/PF_Utils.php`, method `PF_Utils::printRedirectForm()`.
+
+=== Example
+
+[source,php]
+----
+use MediaWiki\MediaWikiServices;
+
+// Register the hook in your extension.json:
+// "Hooks": { "PageForms::PrintRedirectForm": "MyHookHandler::onPrintRedirectForm" }
+
+class MyHookHandler {
+    /**
+     * @param bool   $is_save
+     * @param bool   $is_preview
+     * @param bool   $is_minor_edit
+     * @param string &$text
+     */
+    public static function onPrintRedirectForm(
+        bool $is_save,
+        bool $is_preview,
+        bool $is_minor_edit,
+        string &$text
+    ): void {
+        // Append a custom hidden field to the redirect form HTML.
+        $text .= \Html::hidden( 'myCustomParam', 'myValue' );
+    }
+}
+----
+
+
+== PageForms::RenderingEnd
+
+Called after the complete form HTML has been assembled, just before it is returned to the caller. The hook fires once per form render, after the closing `</form>` tag has been appended and after `Parser::replaceLinkHolders()` has been run on the output. It allows extensions to inspect or modify the final form HTML string.
+
+=== Parameters
+
+`&$form_text` (string, passed by reference)::
+The fully rendered HTML of the form, including the `<form>…</form>` wrapper and all hidden fields. Modify this string in place to alter the output that will be displayed to the user.
+
+=== Location
+
+Fired in `includes/PF_FormPrinter.php`, inside `PFFormPrinter::formHTML()`, immediately after the form closing tag is appended:
+
+[source,php]
+----
+$form_text .= "\t</form>\n";
+$parser->replaceLinkHolders( $form_text );
+MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::RenderingEnd', [ &$form_text ] );
+----
+
+=== Example Usage
+
+Register the hook in your extension's `extension.json`:
+
+[source,json]
+----
+{
+    "Hooks": {
+        "PageForms::RenderingEnd": "MyExtension\\Hooks::onPageFormsRenderingEnd"
+    }
+}
+----
+
+Implement the handler to append content after the rendered form:
+
+[source,php]
+----
+namespace MyExtension;
+
+class Hooks {
+    /**
+     * @param string &$formText The fully rendered form HTML
+     */
+    public static function onPageFormsRenderingEnd( string &$formText ): void {
+        $formText .= '<div class="my-extension-footer">Additional content after form.</div>';
+    }
+}
+----
+
+== PageForms::SetTargetName
+
+Called by `PFAutoeditAPI::prepareAction()` after the target page name has been normalized through `Title::newFromText()`. Allows an extension or LocalSettings.php hook handler to override the target page name that the autoedit API will use when saving or previewing a form submission.
+
+The hook fires during the `pfautoedit` API action, after both the `form` and `target` option values have been resolved and normalized to their prefixed text form, and before the actual form edit or save is executed.
+
+=== Parameters
+
+`&$targetName` (string, passed by reference)::
+The normalized target page name (prefixed text, e.g. `MyNamespace:PageTitle`). Modify this value to change which page the autoedit API writes to. An empty string means no target was specified.
+
+`$hookQuery` (string|null)::
+A read-only query string assembled from the form name and target, in the form `FormName/TargetPage`. This is `null` if no form was specified, and contains only the form name (no slash) if no target was specified. Useful for inspecting the original request context.
+
+=== Example
+
+[source,php]
+----
+$wgHooks['PageForms::SetTargetName'][] = function ( &$targetName, $hookQuery ) {
+    // Redirect all autoedit saves targeting "Sandbox" to "Sandbox/Draft"
+    if ( $targetName === 'Sandbox' ) {
+        $targetName = 'Sandbox/Draft';
+    }
+};
+----
+
+=== Source location
+
+`includes/PF_AutoeditAPI.php` — `PFAutoeditAPI::prepareAction()`
+
+== PageForms::TemplateFieldEnd
+
+Called by `PFTemplate::createTextForField()` in `/includes/PF_Template.php` after the field wikitext has been generated, immediately before the per-field suffix string is appended to the template output.
+This hook allows extensions (or local `LocalSettings.php` code) to inspect the current `PFTemplateField` object and override or replace the trailing delimiter/suffix text that follows each field value in the generated template.
+
+=== When it fires
+
+`PageForms::TemplateFieldEnd` fires once per template field during template creation (e.g. via `Special:CreateTemplate` or `Special:CreateClass`).
+The call sequence inside `createTextForField()` is:
+
+. `PageForms::TemplateFieldStart` — lets handlers alter the per-field prefix.
+. `$field->createText()` — generates the core field wikitext (e.g. `{{{FieldName|}}}` or `[[Property::value]]`).
+. `PageForms::TemplateFieldEnd` — lets handlers alter the per-field suffix.
+
+=== Parameters
+
+`$field` (PFTemplateField, read-only)::
+The field object being rendered.
+Use its getters (e.g. `getFieldName()`, `getSemanticProperty()`, `isList()`) to inspect the field and decide whether to modify the suffix.
+
+`&$fieldEnd` (string, passed by reference)::
+The trailing text to append after the field wikitext.
+Initially set to `$this->mFieldEnd` (the template-level field-end string, which may be empty).
+Modify this variable in-place to change or replace the suffix; set it to `''` to suppress the suffix entirely.
+The value is only appended when it is non-empty.
+
+=== Example usage
+
+The following example appends a pipe character and a newline after every field that stores a list value.
+
+[source,php]
+----
+$wgHooks['PageForms::TemplateFieldEnd'][] = function (
+    PFTemplateField $field,
+    string &$fieldEnd
+): void {
+    if ( $field->isList() ) {
+        $fieldEnd .= " |";
+    }
+};
+----
+
+=== Source reference
+
+Defined in `includes/PF_Template.php`, method `PFTemplate::createTextForField()`:
+
+[source,php]
+----
+$fieldEnd = $this->mFieldEnd;
+MediaWikiServices::getInstance()->getHookContainer()->run(
+    'PageForms::TemplateFieldEnd', [ $field, &$fieldEnd ]
+);
+if ( $fieldEnd != '' ) {
+    $text .= " $fieldEnd";
+}
+----
+
+== PageForms::TemplateFieldStart
+
+Called once per template field when `PFTemplate::createText()` generates the wikitext for a template (e.g. via the _Create Template_ special page). The hook fires inside `PFTemplate::createTextForField()` and lets handlers modify the prefix string that is prepended to each field's wikitext output.
+
+If the resulting `$fieldStart` string is non-empty it is emitted immediately before the field's own wikitext, separated by a space:
+
+----
+<fieldStart> <field wikitext>[ <fieldEnd>]
+----
+
+The companion hook `PageForms::TemplateFieldEnd` provides the same control over the suffix appended after the field wikitext.
+
+=== Parameters
+
+`$field` (PFTemplateField)::
+The field object being rendered. Provides read access to the field name, label, SMW property, list status, delimiter, display mode, and other field metadata. Passed by value — modifications are ignored.
+
+`&$fieldStart` (string)::
+The prefix string to prepend before the field's wikitext. Passed by reference. Initialized to the template's configured field-start string (which may be empty). Set or replace this value to inject custom wikitext before every field, or before specific fields based on `$field` properties.
+
+=== Source location
+
+`includes/PF_Template.php`, method `PFTemplate::createTextForField()`.
+
+=== Example usage
+
+The following example prepends a custom wiki-table cell marker before every field that has an SMW property assigned:
+
+[source,php]
+----
+$wgHooks['PageForms::TemplateFieldStart'][] = function (
+    PFTemplateField $field,
+    string &$fieldStart
+): void {
+    if ( $field->getSemanticProperty() !== '' ) {
+        $fieldStart = '| class="pf-field" |';
+    }
+};
+----
+
+=== See also
+
+* `PageForms::TemplateFieldEnd` — companion hook for the suffix appended after each field's wikitext
+* `PageForms::CreateTemplateText` — hook called once per template before field iteration begins, allowing modification of the entire `PFTemplate` object
+
+== PageForms::TreeNodeDisplay
+
+[NOTE]
+====
+This hook was removed in July 2020 when the tree input was rewritten to use jsTree (a client-side JavaScript library).
+It is no longer called in any current version of Page Forms.
+====
+
+Called during server-side rendering of a `tree` input field, once for each visible node, immediately before its label text is appended to the HTML output.
+The hook allowed subscribers to alter the display label of individual tree nodes without changing the underlying stored value.
+
+=== Parameters
+
+`&$nodeDisplayTitle` (string, passed by reference)::
+The label text of the tree node about to be rendered.
+Modify this value in-place to change what is shown to the user in the tree widget.
+The corresponding hidden input value (used for form submission) is not affected.
+
+=== History
+
+[cols="1,3", options="header"]
+|===
+| Date | Event
+| 2019-09-27 | Introduced in `includes/forminputs/PF_TreeInput.php` (commit `2561599c`).
+| 2020-07-04 | Removed when the tree widget was rewritten from server-side PHP HTML to a jsTree-based approach (commit `24f009ec`).
+|===
+
+=== Example
+
+[source,php]
+----
+// In extension.json:
+// "Hooks": { "PageForms::TreeNodeDisplay": "MyExtensionHooks::onTreeNodeDisplay" }
+
+class MyExtensionHooks {
+    /**
+     * Append extra information to each tree node label.
+     *
+     * @param string &$nodeDisplayTitle The node label, modifiable in-place.
+     */
+    public static function onTreeNodeDisplay( &$nodeDisplayTitle ) {
+        // Example: suffix every node label with a Unicode tree bullet.
+        $nodeDisplayTitle = '▸ ' . $nodeDisplayTitle;
+    }
+}
+----
+
+== PageForms::UserCanEditPage
+
+Called during form rendering to determine whether the current user has permission to edit the target page. This hook fires after Page Forms has evaluated the standard MediaWiki permission errors (including `$wgEmailConfirmToEdit`). It allows extensions to override or supplement the built-in permission check.
+
+=== Parameters
+
+`$pageTitle` (`Title`)::
+The title of the page that the form would create or edit.
+
+`&$userCanEditPage` (`bool`, passed by reference)::
+Whether the user is permitted to edit the page. Set to `true` to grant edit access, `false` to deny it. The value is pre-populated by Page Forms based on `PermissionManager::getPermissionErrors()` and the site read-only state.
+
+=== Behaviour
+
+If `$userCanEditPage` is `false` when the hook finishes, Page Forms renders the form in disabled state (read-only). If it is `true`, the form is rendered normally and the user may submit it.
+
+=== Source
+
+Fired in `PFFormPrinter::formHTML()` (`includes/PF_FormPrinter.php`):
+
+[source,php]
+----
+MediaWikiServices::getInstance()->getHookContainer()->run(
+    'PageForms::UserCanEditPage', [ $this->mPageTitle, &$userCanEditPage ]
+);
+----
+
+=== Example
+
+[source,php]
+----
+// In an extension's HookHandlers class or extension.php:
+$wgHooks['PageForms::UserCanEditPage'][] = function (
+    Title $pageTitle,
+    bool &$userCanEditPage
+): bool {
+    // Allow members of a custom group to edit any page through Page Forms,
+    // regardless of standard MediaWiki permission checks.
+    $user = RequestContext::getMain()->getUser();
+    $groups = MediaWiki\MediaWikiServices::getInstance()
+        ->getUserGroupManager()
+        ->getUserGroups( $user );
+    if ( in_array( 'trusted-editors', $groups ) ) {
+        $userCanEditPage = true;
+    }
+    return true;
+};
+----
+
+
+== PageForms::WritePageData
+
+Called just before the target wiki page is saved when a form is submitted via the `pfautoedit` API (Special:FormEdit / the `pfautoedit` action). It allows other code to inspect or modify the wikitext content that will be written to the page.
+
+The hook fires only when the form is actually submitted (not on preview-only or diff-only requests).
+
+=== Parameters
+
+`$formName` (string)::
+The name of the Page Forms form that was submitted.
+
+`$targetTitle` (Title)::
+The `Title` object for the page that will be written.
+
+`&$targetContent` (string, passed by reference)::
+The wikitext string that will be saved to the target page.
+Modify this value to change what gets written.
+
+=== Source
+
+Defined and called in `includes/PF_AutoeditAPI.php`.
+
+[source,php]
+----
+MediaWikiServices::getInstance()->getHookContainer()->run(
+    'PageForms::WritePageData',
+    [ $this->mOptions['form'], Title::newFromText( $this->mOptions['target'] ), &$targetContent ]
+);
+----
+
+=== Example Usage
+
+Register the hook in your extension's `extension.json`:
+
+[source,json]
+----
+{
+    "Hooks": {
+        "PageForms::WritePageData": "MyExtension\\Hooks::onWritePageData"
+    }
+}
+----
+
+Implement the handler in PHP:
+
+[source,php]
+----
+namespace MyExtension;
+
+use Title;
+
+class Hooks {
+    /**
+     * @param string $formName  Name of the submitted Page Forms form.
+     * @param Title  $title     Title of the page being saved.
+     * @param string &$content  Wikitext content about to be written; modify to override.
+     */
+    public static function onWritePageData(
+        string $formName,
+        Title $title,
+        string &$content
+    ): void {
+        if ( $formName === 'MyForm' ) {
+            // Append a tracking category to every page saved with MyForm.
+            $content .= "\n[[Category:Saved via MyForm]]";
+        }
+    }
+}
+----

@@ -1,0 +1,12 @@
+= Page Forms — Developer Guide
+:toc: left
+:toclevels: 2
+include::../attributes.adoc[]
+
+This guide covers extension points, hooks, custom input types, and code structure for developers.
+
+== Contents
+
+* xref:code-structure.adoc[Code Structure] — overview of the codebase layout
+* xref:defining-new-inputs.adoc[Defining New Input Types] — how to implement a custom input
+* xref:hooks.adoc[Hooks Reference] — all available hooks with signatures and examples
