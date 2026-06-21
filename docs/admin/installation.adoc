@@ -49,7 +49,7 @@ $wgGroupPermissions['sysop']['viewedittab'] = true;
 
 == Composer
 
-{project_name} can also be installed via link:https://www.mediawiki.org/wiki/Composer[Composer].
+Page Forms can also be installed via link:https://www.mediawiki.org/wiki/Composer[Composer].
 Add the following to `composer.local.json`:
 
 [source,json]

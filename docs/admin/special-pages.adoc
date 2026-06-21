@@ -3,7 +3,7 @@
 :toclevels: 2
 include::../attributes.adoc[]
 
-{project_name} defines various special pages, used for a variety of purposes.
+Page Forms defines various special pages, used for a variety of purposes.
 
 == Overview
 

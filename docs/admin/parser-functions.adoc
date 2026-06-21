@@ -3,7 +3,7 @@
 :toclevels: 2
 include::../attributes.adoc[]
 
-{project_name} registers the following parser functions.
+Page Forms registers the following parser functions.
 For conceptual background on when to use which function, see xref:linking-to-forms.adoc[Linking to Forms].
 
 == Overview

@@ -3,7 +3,7 @@
 :toclevels: 2
 include::../attributes.adoc[]
 
-{project_name} registers four parser functions that assist with template authoring.
+Page Forms registers four parser functions that assist with template authoring.
 For context on when and why to use them, see xref:templates.adoc[Page Forms and Templates].
 
 == Overview

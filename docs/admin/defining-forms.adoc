@@ -2,7 +2,7 @@
 :toc: left
 include::../attributes.adoc[]
 
-{project_name} provides an entire syntax for defining forms, that makes use of tags contained within triple curly brackets.
+Page Forms provides an entire syntax for defining forms, that makes use of tags contained within triple curly brackets.
 Pages that contain such syntax should always go in the `Form:` namespace.
 Such pages are not called forms, but rather _form-definition pages_, to distinguish them from the actual corresponding forms that users see.
 
@@ -356,7 +356,7 @@ If the `free text` standard input is omitted from the form definition, any exist
 [#multiple-values]
 == Multiple values for the same field
 
-{project_name} supports fields that hold multiple values.
+Page Forms supports fields that hold multiple values.
 The input types `checkboxes` and `listbox` are specifically designed for this purpose.
 Text and textarea fields can also support autocompletion for multiple values.
 
@@ -485,7 +485,7 @@ All standard input types are supported in calendar popup forms, except `combobox
 == Defining the bottom of the form
 
 The user inputs at the bottom of the form are defined using `standard input` tags.
-If no `standard input` tags are included, {project_name} displays a default set of seven inputs: save, preview, changes, summary, minor edit, watch, and cancel.
+If no `standard input` tags are included, Page Forms displays a default set of seven inputs: save, preview, changes, summary, minor edit, watch, and cancel.
 Once any `standard input` tag is added, only the explicitly declared inputs are shown, in the order and at the position they are declared within the form.
 
 Example:
@@ -597,7 +597,7 @@ Alternatively, wrap the form tags in `<nowiki>` ... `</nowiki>` tags.
 
 === Caching form definitions
 
-Form-definition pages are parsed twice — once as wikitext into HTML, and once for {project_name}-specific tag handling — which can be slow for complex forms.
+Form-definition pages are parsed twice — once as wikitext into HTML, and once for Page Forms-specific tag handling — which can be slow for complex forms.
 You can enable caching of the parsed form definition by adding the following to `LocalSettings.php`:
 
 [source,php]
@@ -635,7 +635,7 @@ The timeout value is in seconds and can be any positive number.
 
 There are three ways to add tooltips to form fields:
 
-. *Semantic MediaWiki's `#info` function* — Use `{{#info:tooltip text}}` (note: this is distinct from {project_name}'s own `{{{info}}}` tag).
+. *Semantic MediaWiki's `#info` function* — Use `{{#info:tooltip text}}` (note: this is distinct from Page Forms's own `{{{info}}}` tag).
   See SMW's link:https://www.semantic-mediawiki.org/wiki/Help:Adding_tooltips[Help:Adding tooltips] for details.
 
 . *SimpleTooltip extension* — Use the `#tip-info` parser function provided by the link:https://www.mediawiki.org/wiki/Extension:SimpleTooltip[SimpleTooltip] extension.

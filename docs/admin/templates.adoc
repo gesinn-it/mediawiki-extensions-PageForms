@@ -2,27 +2,27 @@
 :toc: left
 include::../attributes.adoc[]
 
-{project_name} is, at its heart, a system for editing template calls within wiki pages.
+Page Forms is, at its heart, a system for editing template calls within wiki pages.
 (Though it can also edit page sections.)
 See link:https://www.mediawiki.org/wiki/Help:Templates[Help:Templates] for a full explanation of templates within MediaWiki.
 
-Why does {project_name} support editing templates and page sections, but not, say, free-form category tags within pages?
-That's because the philosophy of {project_name} is that all true data in MediaWiki — including data, category information and anything else — should be stored within template invocations.
+Why does Page Forms support editing templates and page sections, but not, say, free-form category tags within pages?
+That's because the philosophy of Page Forms is that all true data in MediaWiki — including data, category information and anything else — should be stored within template invocations.
 That's for several reasons:
 
 * templates provide a clear guideline for what information belongs in which pages, avoiding ambiguity about the data structure
 * templates hide the complex syntax involved in displaying and storing information, making editing easier
 * templates allow for easier changes to the structure and display, since a change across a large group of pages can potentially be done just in one place, instead of requiring edits to all of them.
 
-{project_name} provides a number of features that aid specifically in the creation and display of templates, unrelated to form editing.
+Page Forms provides a number of features that aid specifically in the creation and display of templates, unrelated to form editing.
 These are all described on this page.
-There is no technical reason why these features are all defined in {project_name}; theoretically `#arraymap` and `#arraymaptemplate` could be added to the link:https://www.mediawiki.org/wiki/Extension:ParserFunctions[ParserFunctions] extension, and in fact similar functions are part of the link:https://www.mediawiki.org/wiki/Extension:ArrayFunctions[ArrayFunctions] extension.
-There is certainly an argument of convenience for keeping them in {project_name}.
+There is no technical reason why these features are all defined in Page Forms; theoretically `#arraymap` and `#arraymaptemplate` could be added to the link:https://www.mediawiki.org/wiki/Extension:ParserFunctions[ParserFunctions] extension, and in fact similar functions are part of the link:https://www.mediawiki.org/wiki/Extension:ArrayFunctions[ArrayFunctions] extension.
+There is certainly an argument of convenience for keeping them in Page Forms.
 In any case, there are no current plans to move these.
 
 == Simplifying the template display
 
-{project_name} defines two parser functions, `#template_params` and `#template_display`, which together can considerably simplify the code needed to display a template call — and can also simplify the definition of any forms that make use of such a template.
+Page Forms defines two parser functions, `#template_params` and `#template_display`, which together can considerably simplify the code needed to display a template call — and can also simplify the definition of any forms that make use of such a template.
 For a complete parameter reference, see xref:template-functions.adoc[Template Parser Functions Reference].
 
 [#template_params]
@@ -96,7 +96,7 @@ To display all the data as a full-page table, you would simply have to call:
 
 == Multiple values for the same field
 
-{project_name} also defines the parser functions `#arraymap` and `#arraymaptemplate`, which provide support for having multiple values for a single field, delimited by a comma or other character.
+Page Forms also defines the parser functions `#arraymap` and `#arraymaptemplate`, which provide support for having multiple values for a single field, delimited by a comma or other character.
 These parser functions "map" some text processing onto each value.
 This can be as simple as turning each value into a link, although there can be more complex processing, like turning each value into a category tag, an image tag, a Semantic MediaWiki property tag, and so on.
 

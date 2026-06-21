@@ -3,7 +3,7 @@
 :toclevels: 2
 include::../attributes.adoc[]
 
-{project_name} registers two MediaWiki API modules:
+Page Forms registers two MediaWiki API modules:
 
 [cols="2,1,3", options="header"]
 |===

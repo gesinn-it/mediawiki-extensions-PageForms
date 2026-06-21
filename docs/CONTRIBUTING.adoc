@@ -6,7 +6,7 @@
 :phan:
 = Contributing
 
-We welcome contributions from the community to help make {project_name} better!
+We welcome contributions from the community to help make Page Forms better!
 Whether you're fixing bugs, adding new features, improving documentation, or anything else, your efforts are valuable.
 
 == Step 1: Clone the Repository
