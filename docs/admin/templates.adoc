@@ -23,6 +23,7 @@ In any case, there are no current plans to move these.
 == Simplifying the template display
 
 {project_name} defines two parser functions, `#template_params` and `#template_display`, which together can considerably simplify the code needed to display a template call — and can also simplify the definition of any forms that make use of such a template.
+For a complete parameter reference, see xref:template-functions.adoc[Template Parser Functions Reference].
 
 [#template_params]
 === #template_params
@@ -137,8 +138,6 @@ Here is an example of how to do that:
 
 `{{#arraymap:{{{Authors|}}}|,|xx|[[xx]]|, <nowiki />|and}}`
 
-If you use the 'CreateTemplate' or 'CreateClass' pages to create a template, and you specify a field that can take more than one value, then an `#arraymap` call will be automatically added to the generated template.
-
 [#arraymaptemplate]
 === #arraymaptemplate
 
@@ -169,12 +168,7 @@ For both `#arraymap` and `#arraymaptemplate`, the string `\s` in the value of ei
 
 It should be noted that, if you want an actual line break to appear between values, you should have two newlines (i.e, `\n\n`) as the delimiter, since MediaWiki requires two newlines in order to display a line break.
 
-== Template-based special pages
+== See also
 
-{project_name} defines three xref:special-pages.adoc[special pages] that relate to templates:
-
-* `Special:Templates` — which lists all the templates in the wiki
-* `Special:CreateTemplate`
-* `Special:CreateClass`
-
-Both of the latter two pages (i.e., _Special:CreateTemplate_ and _Special:CreateClass_) can be used to generate templates automatically.
+* xref:template-functions.adoc[Template Parser Functions Reference] — complete parameter reference for `#template_params`, `#template_display`, `#arraymap`, and `#arraymaptemplate`.
+* `Special:Templates` — lists all templates defined in the wiki.

@@ -16,3 +16,4 @@ This guide covers installation, form definition, and configuration for wiki admi
 * xref:query-forms.adoc[Query Forms] — building search/filter forms
 * xref:special-pages.adoc[Special Pages] — reference for all Page Forms special pages
 * xref:templates.adoc[Page Forms and Templates] — how forms work with wiki templates
+* xref:template-functions.adoc[Template Parser Functions Reference] — complete parameter reference for #template_params, #template_display, #arraymap, #arraymaptemplate

@@ -1,0 +1,238 @@
+= Template Parser Functions Reference
+:toc: left
+:toclevels: 2
+include::../attributes.adoc[]
+
+{project_name} registers four parser functions that assist with template authoring.
+For context on when and why to use them, see xref:templates.adoc[Page Forms and Templates].
+
+== Overview
+
+[cols="2,1,3", options="header"]
+|===
+| Function | Used in | Purpose
+
+| `#template_params`
+| Template `<noinclude>`
+| Declares a template's parameters with metadata (labels, display rules, sub-template relationships). Drives `#template_display` and simplifies form definitions.
+
+| `#template_display`
+| Template `<includeonly>`
+| Renders a template's parameter values in a formatted layout (infobox, table, sections, or text) without hand-coding the HTML.
+
+| `#arraymap`
+| Templates
+| Splits a delimited list of values, applies a formula to each item, and rejoins them with an optional new delimiter and conjunction.
+
+| `#arraymaptemplate`
+| Templates
+| Like `#arraymap`, but delegates the per-item transformation to a separate wiki template — for complex mappings that don't fit in a single expression.
+|===
+
+== #template_params
+
+Place this call inside the template's `<noinclude>` block.
+It declares the template's parameters along with metadata about each one.
+
+[source]
+----
+{{#template_params:
+ParameterName
+|ParameterName (key=value;key=value)
+}}
+----
+
+Each argument is a parameter name, optionally followed by parentheses containing semicolon-separated metadata:
+
+[cols="2,4", options="header"]
+|===
+| Metadata key | Description
+
+| `label=`
+| Human-readable label for the parameter, used in display and forms. Defaults to the parameter name.
+
+| `display=`
+| Set to `nonempty` to hide the parameter when its value is blank.
+
+| `holds template=`
+| Name of a sub-template whose instances are stored in this field (multiple-instance template relationship).
+
+| `form=`
+| Form used to edit pages stored in this field; enables red-link display.
+|===
+
+Example for a "Recipe" template:
+
+[source]
+----
+{{#template_params:
+Cuisine
+|Cooking time (label=Cooking time (in minutes);display=nonempty)
+|Ingredients (holds template=Recipe ingredient)
+|Instructions (display=nonempty)
+}}
+----
+
+Effects of adding `#template_params`:
+
+* Displays a formatted parameter list on the template's own page.
+* Supplies metadata to `#template_display`, enabling a minimal one-liner call.
+* Lets form definitions omit redundant labels and display rules that are already declared here.
+
+== #template_display
+
+Place this call inside the template's `<includeonly>` block.
+It renders the template's field values in one of four layouts.
+
+When `#template_params` is present, the simplest call is sufficient:
+
+[source]
+----
+{{#template_display:}}
+----
+
+Without `#template_params`, pass each parameter explicitly:
+
+[source]
+----
+{{#template_display:
+Cuisine={{{Cuisine|}}}
+|Cooking time={{{Cooking time|}}}
+|Ingredients={{{Ingredients|}}}
+|Instructions={{{Instructions|}}}
+}}
+----
+
+[cols="2,4", options="header"]
+|===
+| Parameter | Description
+
+| `_format=`
+| Layout style. Options:
+  `infobox` (default) — right-aligned infobox, Wikipedia-style.
+  `table` — full-width table.
+  `sections` — each parameter name becomes a section heading with the value below.
+  `text` — inline text with bolded parameter names.
+
+| `_title=`
+| Title displayed at the top of the infobox. Defaults to the page name (or display title). Set to empty to suppress the title row.
+|===
+
+Example showing a full-page table:
+
+[source]
+----
+{{#template_display:_format=table}}
+----
+
+== #arraymap
+
+Splits a delimited value, transforms each item with a formula, and rejoins the results.
+
+[source]
+----
+{{#arraymap: value | delimiter | variable | formula | new_delimiter | conjunction }}
+----
+
+[cols="2,1,4", options="header"]
+|===
+| Argument | Required | Description
+
+| `value`
+| Yes
+| The delimited string to process, typically a template parameter like `{{{Authors|}}}`.
+
+| `delimiter`
+| No
+| Character used to split `value`. Defaults to `,`.
+
+| `variable`
+| Yes
+| Placeholder string used in `formula` to represent each individual item. Conventionally `xx` (not `x`, which conflicts with `#ifexist` and similar functions).
+
+| `formula`
+| Yes
+| Expression applied to each item, using `variable` as the stand-in. Can be any wikitext.
+
+| `new_delimiter`
+| No
+| String placed between transformed items in the output. Defaults to `, `. Use `\s` for a space, `\n` for a newline.
+
+| `conjunction`
+| No
+| String placed before the *last* item instead of `new_delimiter`. Produces natural-language lists like "A, B and C".
+|===
+
+=== Examples
+
+Link each author:
+
+[source]
+----
+{{#arraymap:{{{Authors|}}}|,|xx|[[xx]]}}
+----
+
+Add category tags without printing commas between them (`\s` = space):
+
+[source]
+----
+{{#arraymap:{{{Categories|}}}|,|xx|[[Category:xx]]|\s}}
+----
+
+Natural-language author list with "and" before the last entry:
+
+[source]
+----
+{{#arraymap:{{{Authors|}}}|,|xx|[[xx]]|, <nowiki />|and}}
+----
+
+=== `\s` and `\n` in delimiters
+
+In both `delimiter` and `new_delimiter`, `\s` is converted to a space and `\n` to a newline.
+To produce a visible line break between items, use `\n\n` (MediaWiki requires two newlines for a paragraph break).
+
+== #arraymaptemplate
+
+For per-item transformations too complex for a single `#arraymap` formula, delegate the mapping to a separate template.
+
+[source]
+----
+{{#arraymaptemplate: value | template | delimiter | new_delimiter }}
+----
+
+[cols="2,1,4", options="header"]
+|===
+| Argument | Required | Description
+
+| `value`
+| Yes
+| The delimited string to process.
+
+| `template`
+| Yes
+| Name of a template that accepts the item as `{{{1}}}` and applies the transformation.
+
+| `delimiter`
+| No
+| Delimiter for splitting. Defaults to `,`.
+
+| `new_delimiter`
+| No
+| Delimiter for joining. Defaults to `, `. Supports `\s` and `\n`.
+|===
+
+Example — display a comma-separated list of authors as a numbered list.
+
+First, create a template called "Numbered author":
+
+[source]
+----
+# [[{{{1}}}]]
+----
+
+Then call:
+
+[source]
+----
+{{#arraymaptemplate:{{{Authors|}}}|Numbered author|,|\n}}
+----
