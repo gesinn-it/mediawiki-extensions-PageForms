@@ -369,14 +369,3 @@ A listing of the allowed parameters for `#autoedit_rating`:
 
 Autoedit functionality is also available via the MediaWiki API, as the `pfautoedit` action — this enables outside scripts, and bots, to easily modify template calls within wiki pages.
 
-== Delaying reload
-
-The parser functions `#forminput`, `#formlink`, `#formredlink`, `#autoedit` all allow a `reload` parameter, to reload the page that holds this parser function after the other page is modified, usually so that any relevant queries on that page can be refreshed.
-(For all but `#autoedit`, the `reload` parameter has to be paired with either `returnto=` or `popup`.)
-By default, the reload happens right after the change is made, which in some cases is too soon, before the underlying data has changed.
-If this is the case on your wiki, you can add the following line to `LocalSettings.php`, which introduces a slight delay before the reload, hopefully giving the data enough time to be modified first:
-
-[source,php]
-----
-$wgPageFormsDelayReload = true;
-----
