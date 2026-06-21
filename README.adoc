@@ -9,69 +9,93 @@
 image:https://github.com/gesinn-it/mediawiki-extensions-PageForms/actions/workflows/ci.yml/badge.svg[CI,link=https://github.com/gesinn-it/mediawiki-extensions-PageForms/actions/workflows/ci.yml]
 image:https://codecov.io/gh/gesinn-it/mediawiki-extensions-PageForms/branch/master/graph/badge.svg[Codecov,link=https://app.codecov.io/gh/gesinn-it/mediawiki-extensions-PageForms]
 
+Turn your MediaWiki into a structured data platform — without writing a single line of code.
+
+Page Forms lets wiki editors create and edit pages through clean, intuitive forms instead of raw wikitext.
+Admins define forms once; editors fill them in from then on.
+The result: consistent data, fewer errors, and a wiki that non-technical users actually enjoy working with.
+
 [NOTE]
 ====
-Fork of the MediaWiki extension https://www.mediawiki.org/wiki/Extension:Page_Forms[PageForms], aimed at simplifying contributions by hosting on GitHub instead of Gerrit, improving quality through better test coverage and continuous integration. From time to time, changes in the upstream repository may be cherry-picked and integrated.
+This is a maintained distribution of the upstream https://www.mediawiki.org/wiki/Extension:Page_Forms[Page Forms] extension, hosted on GitHub for easier contribution.
+It ships with CI on every pull request, expanded test coverage, and is actively developed with a focus on https://www.semantic-mediawiki.org[Semantic MediaWiki] integration.
+Compatible with the upstream extension, with two intentional exceptions: support for Cargo and PageSchemas has been dropped.
 ====
 
-Page Forms, previously known as Semantic Forms, is a MediaWiki extension aimed at simplifying data management through forms. In essence, Page Forms allows users to create, edit, and query data on a wiki without the need for coding. The central feature of Page Forms is the form definition pages, located in the 'Form:' namespace. These pages utilize markup code to define forms, empowering users to create and modify forms without requiring programming knowledge. Forms populate predefined templates and page sections, facilitating data storage and querying, especially when used with Semantic MediaWiki.
+== What Page Forms does
+
+=== Forms for editors
+
+Editors get a dedicated *Edit with form* tab on every page that has a form assigned.
+Instead of editing raw wikitext, they fill in clearly labelled fields — text inputs, dropdowns, date pickers, tag tokens, file uploads, interactive maps, and more.
+The extension writes the correctly structured wikitext back to the page automatically.
+
+=== Full control for admins
+
+Form definitions live in the `Form:` namespace as ordinary wiki pages.
+A form definition specifies which templates and fields appear, what input type each field uses, which values are allowed, and how the resulting page is named.
+No deployment required — editing a form definition takes effect immediately.
+
+=== Structured data with Semantic MediaWiki
+
+When used with https://www.semantic-mediawiki.org[Semantic MediaWiki], Page Forms becomes a complete data-entry layer for your wiki knowledge base:
+fields are wired directly to SMW properties, autocompletion draws from live property values, and the helper page `Special:CreateClass` scaffolds the entire template/form/category/property stack in one step.
+
+=== Power features
+
+* *Multiple-instance templates* — let editors add, remove, and reorder repeating data blocks (skills, publications, addresses, …) within a single form
+* *Spreadsheet and calendar views* — edit multiple template instances as a grid or as calendar events
+* *`#autoedit`* — create or update pages silently in the background from any wiki page, without opening a form
+* *Query forms* — build search interfaces with `Special:RunQuery` that let users filter and explore data through form fields
+* *`#formredlink`* — red links that go directly to the right form for creating that page
+
+== Requirements
+
+[cols="1,1"]
+|===
+| MediaWiki | >= 1.39
+| PHP | >= 8.1
+| Semantic MediaWiki | >= 7.0 _(optional, but recommended)_
+|===
+
+== Quick start
+
+[source,php]
+----
+// LocalSettings.php
+wfLoadExtension( 'PageForms' );
+----
+
+Then open `Special:CreateClass` on your wiki to scaffold your first form-backed data structure in minutes.
+
+Full installation instructions and the complete documentation are in link:docs/index.adoc[docs/].
 
 == Documentation
-For documentation see: https://++www.mediawiki.org/wiki/Extension:Page Forms++
 
-Unresolved directive in README-source.adoc - include::docs/gesinn-it-docs-master-pub/sections/universal/semver.adoc[]
+[cols="1,2"]
+|===
+| link:docs/user/index.adoc[User Guide] | Editing pages with forms — for everyday wiki editors
+| link:docs/admin/index.adoc[Administrator Guide] | Defining forms, input types, linking, configuration
+| link:docs/developer/index.adoc[Developer Guide] | Hooks, custom input types, code structure
+|===
 
 == Contributing
 
-See link:docs/CONTRIBUTING.adoc[CONTRIBUTING].
+See link:docs/CONTRIBUTING.adoc[CONTRIBUTING] for how to set up the development environment, run the test suite, and submit pull requests.
 
-== Local testing notes
-
-=== PHP integration tests (PHPUnit/JSONScript)
-
-For focused test runs (for example autocomplete-related API tests), use:
+=== Running tests
 
 [source,console]
 ----
-make install composer-phpunit COMPOSER_PARAMS="-- --filter=autocomplete"
+# Full pre-commit gate (~2–3 min)
+make dev-test 2>&1 | tee /tmp/dev-test.log; echo "EXIT:$?"
+
+# PHP tests filtered by class or method
+make php-test FILTER=PFFormPrinterTest
+
+# JavaScript tests
+make js-test FILE=libs/PF_formInput.js
 ----
-
-After the first run, you can use this faster variant for repeated runs:
-
-[source,console]
-----
-make composer-phpunit COMPOSER_PARAMS="-- --filter=autocomplete"
-----
-
-=== JavaScript tests (Node QUnit)
-
-Run the default JS test pipeline (ESLint + i18n + Node QUnit):
-
-[source,console]
-----
-make npm-test
-----
-
-Run only Node QUnit tests (faster feedback loop):
-
-[source,console]
-----
-docker compose -f build/docker-compose.yml --project-name pageforms-mysql --profile mysql exec -T wiki bash -lc "cd /var/www/html/extensions/PageForms && ./node_modules/.bin/qunit --require ./tests/node-qunit/setup.js 'tests/node-qunit/**/*.test.js'"
-----
-
-Run one specific JS test file:
-
-[source,console]
-----
-docker compose -f build/docker-compose.yml --project-name pageforms-mysql --profile mysql exec -T wiki bash -lc "cd /var/www/html/extensions/PageForms && ./node_modules/.bin/qunit --require ./tests/node-qunit/setup.js tests/node-qunit/simpleupload.test.js"
-----
-
-New or renamed test files are copied into the Docker image at build time.
-After changing test files, run commands via `make install ...` at least once,
-then you can use `make composer-phpunit ...`, `make npm-test`, or direct
-`qunit` runs in the container for repeated runs.
 
 ---
-This extension is part of https://semantic.wiki/core[*semantic::core*] - Enterprise Class MediaWiki distribution.
-
-.
+This extension is part of https://semantic.wiki/core[*semantic::core*] — the gesinn.it Enterprise MediaWiki distribution.
