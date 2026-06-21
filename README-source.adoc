@@ -50,7 +50,7 @@ fields are wired directly to SMW properties, autocompletion draws from live prop
 |===
 | MediaWiki | >= 1.39
 | PHP | >= 8.1
-| Semantic MediaWiki | >= 7.0 _(optional, but recommended)_
+| Semantic MediaWiki | >= 5.1 _(optional, but recommended)_
 |===
 
 == Quick start
