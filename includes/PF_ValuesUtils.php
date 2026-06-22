@@ -624,6 +624,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		$db = PFUtils::getReplicaDB();
 		$conditions = [];
 		$conditions[] = implode( ' OR ', $namespaceConditions );
+		$conditions['page_is_redirect'] = 0;
 		$tables = [ 'page' ];
 		$columns = [ 'page_title' ];
 		if ( count( $namespaceNames ) > 1 ) {

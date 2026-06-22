@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
+- `PFValuesUtils::getAllPagesForNamespace()`: exclude redirect pages from `values from namespace` autocomplete; previously renaming a file/page left both the old redirect and the new page in the suggestion list (#27)
 - `PFFormLinker`: `{{#default_form:Foo}}` on a category page now causes an "Edit with form" tab to appear on that category page itself; previously the self-check was skipped for `NS_CATEGORY` so the tab never appeared (#24)
 - `PFHooks::setPostEditCookie()`: guard against `$wgPageFormsFormPrinter` being `null` before calling `property_exists()`; PHP 8 throws a `TypeError` when the first argument is `null`, causing all JSONScript tests to fail when run after a test that calls `insertPage()`
 - `PFFormPrinter`: `{{{for template}}}`, `{{{field}}}`, and `{{{standard input}}}` tags without a name parameter now throw an `MWException` with an actionable error message instead of a silent PHP warning; fixes issue #23
