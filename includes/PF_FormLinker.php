@@ -66,7 +66,8 @@ class PFFormLinker {
 		);
 
 		[ $formText, $pageText, $formPageTitle, $generatedPageName ] =
-			$wgPageFormsFormPrinter->formHTML( // @phan-suppress-current-line PhanNonClassMethodCall
+			// @phan-suppress-next-line PhanNonClassMethodCall
+			$wgPageFormsFormPrinter->formHTML(
 				$formDefinition, false, false, null, $preloadContent,
 				'Some very long page name that will hopefully never get created ABCDEF123',
 				null, false, false, true, $inQueryArr
