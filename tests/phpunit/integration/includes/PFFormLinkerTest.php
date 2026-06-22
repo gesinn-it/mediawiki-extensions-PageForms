@@ -4,6 +4,7 @@ use MediaWiki\MediaWikiServices;
 
 /**
  * @covers \PFFormLinker::setBrokenLink
+ * @covers \PFFormLinker::getDefaultFormsForPage
  * @group Database
  */
 class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
@@ -101,5 +102,23 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertStringContainsString( 'action=formedit', $html );
 		$this->assertStringContainsString( 'redlink=1', $html );
+	}
+
+	public function testGetDefaultFormsForPageReturnsCategoryOwnDefaultForm(): void {
+		$categoryTitle = Title::makeTitleSafe( NS_CATEGORY, 'PFFormLinkerTestCategoryWithDefaultForm01' );
+		$this->insertPage( $categoryTitle, '{{#default_form:PFFormLinkerTestForm01}}' );
+
+		$forms = PFFormLinker::getDefaultFormsForPage( $categoryTitle );
+
+		$this->assertSame( [ 'PFFormLinkerTestForm01' ], $forms );
+	}
+
+	public function testGetDefaultFormsForPageEmptyDefaultFormOnCategoryPageCancelsInheritance(): void {
+		$categoryTitle = Title::makeTitleSafe( NS_CATEGORY, 'PFFormLinkerTestCategoryWithEmptyDefaultForm01' );
+		$this->insertPage( $categoryTitle, '{{#default_form:}}' );
+
+		$forms = PFFormLinker::getDefaultFormsForPage( $categoryTitle );
+
+		$this->assertSame( [], $forms );
 	}
 }

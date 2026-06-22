@@ -66,7 +66,7 @@ class PFFormLinker {
 		);
 
 		[ $formText, $pageText, $formPageTitle, $generatedPageName ] =
-			$wgPageFormsFormPrinter->formHTML(
+			$wgPageFormsFormPrinter->formHTML( // @phan-suppress-current-line PhanNonClassMethodCall
 				$formDefinition, false, false, null, $preloadContent,
 				'Some very long page name that will hopefully never get created ABCDEF123',
 				null, false, false, true, $inQueryArr
@@ -157,16 +157,13 @@ class PFFormLinker {
 	public static function getDefaultFormsForPage( $title ) {
 		// See if the page itself has a default form (or forms), and
 		// return it/them if so.
-		// (Disregard category pages for this check.)
-		if ( $title->getNamespace() != NS_CATEGORY ) {
-			$default_form = self::getDefaultForm( $title );
-			if ( $default_form === '' ) {
-				// A call to "{{#default_form:}}" (i.e., no form
-				// specified) should cancel any inherited forms.
-				return [];
-			} elseif ( $default_form !== null ) {
-				return [ $default_form ];
-			}
+		$default_form = self::getDefaultForm( $title );
+		if ( $default_form === '' ) {
+			// A call to "{{#default_form:}}" (i.e., no form
+			// specified) should cancel any inherited forms.
+			return [];
+		} elseif ( $default_form !== null ) {
+			return [ $default_form ];
 		}
 
 		// If this is not a category page, look for a default form
