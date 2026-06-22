@@ -484,6 +484,218 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'mandatory', $formHtml );
 	}
 
+	public function testFormHTMLWithMultipleFieldsProducesTemplateCallInPageText(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestFieldTpl06}}}\n"
+			. "{{{field|FirstName}}}\n"
+			. "{{{field|LastName}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		// FauxRequest is pre-parsed: PFTemplateInForm::setFieldValuesFromSubmit reads
+		// $request->getArray($templateName), so fields go under the template name key.
+		$fauxRequest = new \FauxRequest(
+			[
+				'PFTestFieldTpl06' => [
+					'FirstName' => 'Ada',
+					'LastName' => 'Lovelace',
+				],
+			],
+			true
+		);
+		\RequestContext::getMain()->setRequest( $fauxRequest );
+
+		[ $formHtml, $pageText ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, true, false, null, null,
+			'PFTestFieldPage06', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		\RequestContext::getMain()->setRequest( new \FauxRequest() );
+
+		$this->assertStringContainsString( 'PFTestFieldTpl06', $formHtml );
+		$this->assertStringContainsString( '{{PFTestFieldTpl06', $pageText );
+		$this->assertStringContainsString( 'FirstName=Ada', $pageText );
+		$this->assertStringContainsString( 'LastName=Lovelace', $pageText );
+	}
+
+	public function testFormHTMLInfoTagSetsCreateTitle(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{info|create title=My New Page Title}}}\n"
+			. "{{{for template|PFTestFieldTpl07}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ , , $formPageTitle ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestFieldPage07', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertSame( 'My New Page Title', $formPageTitle );
+	}
+
+	public function testFormHTMLInfoTagReplacedWithHiddenSpan(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{info|create title=Ignored}}}\n"
+			. "{{{for template|PFTestFieldTpl08}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestFieldPage08', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( '<span style="visibility: hidden;"></span>', $formHtml );
+		$this->assertStringNotContainsString( '{{{info', $formHtml );
+	}
+
+	public function testFormHTMLFreeTextStandardInputRendersTextarea(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestFieldTpl09}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|free text}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestFieldPage09', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'pf_free_text', $formHtml );
+		$this->assertStringContainsString( 'textarea', strtolower( $formHtml ) );
+	}
+
+	public function testFormHTMLPageNameFormulaSubstitutedFromFieldValue(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestFieldTpl10}}}\n"
+			. "{{{field|Title}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		// The formula must use the full input name <TemplateName[FieldName]>,
+		// which is what formHTML() matches against during field loop substitution.
+		$fauxRequest = new \FauxRequest(
+			[ 'PFTestFieldTpl10' => [ 'Title' => 'MyGeneratedPage' ] ],
+			true
+		);
+		\RequestContext::getMain()->setRequest( $fauxRequest );
+
+		[ , , , $generatedPageName ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, true, false, null, null,
+			null, '<PFTestFieldTpl10[Title]>', false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		\RequestContext::getMain()->setRequest( new \FauxRequest() );
+
+		$this->assertSame( 'MyGeneratedPage', $generatedPageName );
+	}
+
+	public function testFormHTMLUnknownTagTypeDoesNotCrash(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		// Curly braces are not HTML special characters, so the escaped output
+		// still contains the tag text literally. The contract is: no crash.
+		$formDef = "{{{unknown tag type|some value}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestFieldPage11', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertNotEmpty( $formHtml );
+		$this->assertStringContainsString( 'unknown tag type', $formHtml );
+	}
+
+	public function testFormHTMLEndTemplateWithExtraParamThrowsMWException(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestFieldTpl12}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template|extra}}}\n"
+			. "{{{standard input|save}}}";
+
+		$this->expectException( \MWException::class );
+		$wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestFieldPage12', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+	}
+
+	public function testFormHTMLForbiddenCharactersInFieldTagThrowsMWException(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestFieldTpl13}}}\n"
+			. "{{{field|Name|bad=<script>alert(1)</script>}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$this->expectException( \MWException::class );
+		$wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestFieldPage13', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+	}
+
+	public function testFormHTMLFreeTextFromRequestPopulatesPageText(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestFieldTpl14}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$fauxRequest = new \FauxRequest(
+			[ 'pf_free_text' => 'Some free body text' ],
+			true
+		);
+		\RequestContext::getMain()->setRequest( $fauxRequest );
+
+		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, true, false, null, null,
+			'PFTestFieldPage14', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		\RequestContext::getMain()->setRequest( new \FauxRequest() );
+
+		$this->assertStringContainsString( 'Some free body text', $pageText );
+	}
+
 	// -------------------------------------------------------------------------
 	// Delegation methods — #89
 	// -------------------------------------------------------------------------
