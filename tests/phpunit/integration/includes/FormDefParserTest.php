@@ -105,4 +105,50 @@ class FormDefParserTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 'first', $data['PFTestFDPTplA']['Alpha'] );
 		$this->assertSame( 'second', $data['PFTestFDPTplB']['Beta'] );
 	}
+
+	public function testFieldNotInPageTemplateCallIsSkipped(): void {
+		// Page calls the template but omits the 'Summary' field — hasValueFromPageForField() returns false.
+		$formDef = "{{{for template|PFTestFDPTpl05}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{field|Summary}}}\n"
+			. "{{{end template}}}";
+
+		$pageContent = '{{PFTestFDPTpl05|Name=Alice}}';
+
+		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
+
+		$this->assertSame( 'Alice', $data['PFTestFDPTpl05']['Name'] );
+		$this->assertArrayNotHasKey( 'Summary', $data['PFTestFDPTpl05'] );
+	}
+
+	public function testFreeTextInputInsideTemplateBlockIsSkipped(): void {
+		// 'standard input|free text' inside a for-template block becomes 'field|#freetext#'
+		// after substitution; the field-handler must skip it (field_name === '#freetext#').
+		$formDef = "{{{for template|PFTestFDPTpl06}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{standard input|free text}}}\n"
+			. "{{{end template}}}";
+
+		$pageContent = '{{PFTestFDPTpl06|Name=Bob}}';
+
+		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
+
+		$this->assertSame( 'Bob', $data['PFTestFDPTpl06']['Name'] );
+		$this->assertArrayNotHasKey( '#freetext#', $data['PFTestFDPTpl06'] ?? [] );
+	}
+
+	public function testTemplateNameWithUnderscoresNormalisedToSpaces(): void {
+		// Template names using underscores in the form tag must be normalised to spaces
+		// so that the array key matches the underscore form used by HtmlFormDataExtractor.
+		$formDef = "{{{for template|PFTest_FDP_Tpl07}}}\n"
+			. "{{{field|Value}}}\n"
+			. "{{{end template}}}";
+
+		$pageContent = '{{PFTest FDP Tpl07|Value=hello}}';
+
+		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
+
+		$this->assertArrayHasKey( 'PFTest_FDP_Tpl07', $data );
+		$this->assertSame( 'hello', $data['PFTest_FDP_Tpl07']['Value'] );
+	}
 }
