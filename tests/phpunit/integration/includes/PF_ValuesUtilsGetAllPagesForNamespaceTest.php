@@ -19,7 +19,7 @@ class PFValuesUtilsGetAllPagesForNamespaceTest extends MediaWikiIntegrationTestC
 
 		// Force the redirect flag in the DB — insertPage() creates the page but may not
 		// set page_is_redirect=1 automatically depending on MW version.
-		$db = $this->getDb();
+		$db = $this->db;
 		$db->newUpdateQueryBuilder()
 			->update( 'page' )
 			->set( [ 'page_is_redirect' => 1 ] )
