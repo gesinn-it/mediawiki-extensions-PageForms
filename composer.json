@@ -63,10 +63,12 @@
 		"phan": "phan --allow-polyfill-parser",
 		"audit": "composer audit",
 		"phpunit": [
+			"@putenv Composer\\Config::disableProcessTimeout",
 			"php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testsuite extension-page-forms-unit --testdox",
 			"php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testsuite extension-page-forms-integration --testdox"
 		],
 		"phpunit-coverage": [
+			"@putenv Composer\\Config::disableProcessTimeout",
 			"php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testsuite extension-page-forms-unit --testdox",
 			"php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testsuite extension-page-forms-integration --testdox --coverage-text --coverage-html coverage/php --coverage-clover coverage/php/coverage.xml"
 		],
