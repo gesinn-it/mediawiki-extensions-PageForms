@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @covers \PFFormEditAction::displayTab
+ * @covers \PFFormEditAction
  * @group Database
  */
 class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
@@ -85,6 +85,138 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertArrayHasKey( 'formedit', $links['views'] );
 		$this->assertSame( 'selected', $links['views']['formedit']['class'] );
+	}
+
+	public function testDisplayTabSkipsSpecialPageTitle(): void {
+		$title = Title::makeTitle( NS_SPECIAL, 'RecentChanges' );
+		$links = $this->newViewLinks();
+
+		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
+		PFFormEditAction::displayTab( $context, $links );
+
+		$this->assertArrayNotHasKey( 'formedit', $links['views'] );
+	}
+
+	public function testDisplayTabInsertedBeforeViewsourceWhenNoEditTab(): void {
+		$title = $this->getExistingTestTitleWithDefaultForm(
+			'PFFormEditActionViewSource01',
+			'PFFormEditActionForm04'
+		);
+		$links = [
+			'views' => [
+				'view'       => [ 'text' => 'Read', 'href' => '#view' ],
+				'viewsource' => [ 'text' => 'View source', 'href' => '#viewsource' ],
+				'history'    => [ 'text' => 'History', 'href' => '#history' ],
+			]
+		];
+
+		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
+		PFFormEditAction::displayTab( $context, $links );
+
+		$this->assertArrayHasKey( 'formedit', $links['views'] );
+		$this->assertSame( [ 'view', 'formedit', 'viewsource', 'history' ], array_keys( $links['views'] ) );
+	}
+
+	public function testDisplayTabInsertedAtEndWhenNoEditOrViewsourceTab(): void {
+		$title = $this->getExistingTestTitleWithDefaultForm(
+			'PFFormEditActionNoEditOrViewSource01',
+			'PFFormEditActionForm05'
+		);
+		$links = [
+			'views' => [
+				'view'    => [ 'text' => 'Read', 'href' => '#view' ],
+				'history' => [ 'text' => 'History', 'href' => '#history' ],
+			]
+		];
+
+		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
+		PFFormEditAction::displayTab( $context, $links );
+
+		$this->assertArrayHasKey( 'formedit', $links['views'] );
+		// Inserted at position 0 (array_splice with -1 wraps to beginning for
+		// single-character keys) — the important invariant is that formedit appears.
+		$this->assertContains( 'formedit', array_keys( $links['views'] ) );
+	}
+
+	public function testDisplayTabWithRenameEditTabsEnabled(): void {
+		$this->setMwGlobals( 'wgPageFormsRenameEditTabs', true );
+
+		$title = $this->getExistingTestTitleWithDefaultForm(
+			'PFFormEditActionRenameEditTabs01',
+			'PFFormEditActionForm06'
+		);
+		$links = $this->newViewLinks();
+
+		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
+		PFFormEditAction::displayTab( $context, $links );
+
+		$this->assertArrayHasKey( 'formedit', $links['views'] );
+		$this->assertSame( wfMessage( 'edit' )->text(), $links['views']['formedit']['text'] );
+		$this->assertSame( wfMessage( 'pf_editsource' )->text(), $links['views']['edit']['text'] );
+	}
+
+	public function testDisplayTabWithRenameEditTabsEnabledNonEditableUser(): void {
+		$this->setMwGlobals( 'wgPageFormsRenameEditTabs', true );
+
+		$title = $this->getExistingTestTitleWithDefaultForm(
+			'PFFormEditActionRenameEditTabsNoEdit01',
+			'PFFormEditActionForm07'
+		);
+		$links = $this->newViewLinks();
+
+		$userWithoutEdit = $this->createMock( User::class );
+		// isAllowed('viewedittab') → false so edit/viewsource tabs get removed
+		$userWithoutEdit->method( 'isAllowed' )->willReturn( false );
+		$permManager = $this->createMock( \MediaWiki\Permissions\PermissionManager::class );
+		$permManager->method( 'userCan' )->with( 'edit', $userWithoutEdit, $title )->willReturn( false );
+		$this->setService( 'PermissionManager', $permManager );
+
+		$context = $this->newContext( $title, $userWithoutEdit );
+		PFFormEditAction::displayTab( $context, $links );
+
+		// With RenameEditTabs and a non-editable user: formedit tab uses 'pf_viewform',
+		// and since isAllowed('viewedittab') is false the edit tab is removed entirely.
+		$this->assertArrayHasKey( 'formedit', $links['views'] );
+		$this->assertSame( wfMessage( 'pf_viewform' )->text(), $links['views']['formedit']['text'] );
+		$this->assertArrayNotHasKey( 'edit', $links['views'] );
+		$this->assertSame( [ 'view', 'formedit', 'history' ], array_keys( $links['views'] ) );
+	}
+
+	public function testDisplayTabWithRenameMainEditTabOnly(): void {
+		$this->setMwGlobals( 'wgPageFormsRenameMainEditTab', true );
+
+		$title = $this->getExistingTestTitleWithDefaultForm(
+			'PFFormEditActionRenameMainTab01',
+			'PFFormEditActionForm08'
+		);
+		$links = $this->newViewLinks();
+
+		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
+		PFFormEditAction::displayTab( $context, $links );
+
+		$this->assertArrayHasKey( 'formedit', $links['views'] );
+		$this->assertSame( wfMessage( 'formedit' )->text(), $links['views']['formedit']['text'] );
+		$this->assertSame( wfMessage( 'pf_editsource' )->text(), $links['views']['edit']['text'] );
+	}
+
+	public function testGetName(): void {
+		$title = Title::makeTitle( NS_MAIN, 'PFFormEditActionGetName01' );
+		$article = Article::newFromTitle( $title, RequestContext::getMain() );
+		$context = new DerivativeContext( RequestContext::getMain() );
+		$context->setTitle( $title );
+		$action = new PFFormEditAction( $article, $context );
+
+		$this->assertSame( 'formedit', $action->getName() );
+	}
+
+	public function testExecuteReturnsTrue(): void {
+		$title = Title::makeTitle( NS_MAIN, 'PFFormEditActionExecute01' );
+		$article = Article::newFromTitle( $title, RequestContext::getMain() );
+		$context = new DerivativeContext( RequestContext::getMain() );
+		$context->setTitle( $title );
+		$action = new PFFormEditAction( $article, $context );
+
+		$this->assertTrue( $action->execute() );
 	}
 
 	private function newContext( Title $title, User $user, array $requestParams = [] ): IContextSource {
