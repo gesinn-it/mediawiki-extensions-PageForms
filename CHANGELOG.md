@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
+- `PF_submit.js`: Save-and-Continue no longer forces `wpMinoredit=1`; the minor-edit flag is now only sent when the "Minor edit" checkbox is actually checked (#26)
 - PHPUnit `@phpunit` and `@phpunit-coverage` split into two separate PHP processes (unit suite, then integration suite); running both suites in a single process caused MW-internal caches (held in static variables across SMW store resets) to accumulate ~11 GB RSS, triggering the Linux OOM-killer (exit 137) before any test output appeared
 - `PFValuesUtils::getAllPagesForNamespace()`: exclude redirect pages from `values from namespace` autocomplete; previously renaming a file/page left both the old redirect and the new page in the suggestion list (#27)
 - `PFFormLinker`: `{{#default_form:Foo}}` on a category page now causes an "Edit with form" tab to appear on that category page itself; previously the self-check was skipped for `NS_CATEGORY` so the tab never appeared (#24)

@@ -161,7 +161,9 @@
 			}
 		}
 
-		params += '&wpMinoredit=1';
+		if ( $( '#wpMinoredit' ).is( ':checked' ) ) {
+			params += '&wpMinoredit=1';
+		}
 
 		return params;
 	}

@@ -177,3 +177,39 @@ QUnit.test( 'non-empty summary is appended then restored after serialization', (
 		}, 0 );
 	}, 0 );
 } );
+
+QUnit.test( 'does not set wpMinoredit when minor edit checkbox is unchecked', ( assert ) => {
+	const done = assert.async();
+
+	mw.Api.prototype.post.returns( $.Deferred().resolve( { target: 'T', form: { title: 'F' } } ) );
+
+	loadSubmitScript();
+
+	setTimeout( () => {
+		$( '.pf-save_and_continue' ).trigger( 'click' );
+		setTimeout( () => {
+			const query = mw.Api.prototype.post.args[ 0 ][ 0 ].query;
+			assert.false( query.includes( 'wpMinoredit=1' ), 'wpMinoredit=1 not sent when checkbox is unchecked' );
+			done();
+		}, 0 );
+	}, 0 );
+} );
+
+QUnit.test( 'sets wpMinoredit when minor edit checkbox is checked', ( assert ) => {
+	const done = assert.async();
+
+	mw.Api.prototype.post.returns( $.Deferred().resolve( { target: 'T', form: { title: 'F' } } ) );
+
+	$( '#pfForm' ).append( '<input type="checkbox" id="wpMinoredit" checked />' );
+
+	loadSubmitScript();
+
+	setTimeout( () => {
+		$( '.pf-save_and_continue' ).trigger( 'click' );
+		setTimeout( () => {
+			const query = mw.Api.prototype.post.args[ 0 ][ 0 ].query;
+			assert.true( query.includes( 'wpMinoredit=1' ), 'wpMinoredit=1 sent when checkbox is checked' );
+			done();
+		}, 0 );
+	}, 0 );
+} );
