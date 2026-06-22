@@ -482,8 +482,7 @@ class PFFormField {
 		// it's a restricted field and user doesn't have sysop privileges.
 		$f->mIsDisabled = ( $form_is_disabled || $f->mIsRestricted );
 
-		// Do some data storage specific to the Semantic MediaWiki and
-		// Cargo extensions.
+		// Do some data storage specific to the Semantic MediaWiki extension.
 		if ( defined( 'SMW_VERSION' ) ) {
 			// If a property was set in the form definition,
 			// overwrite whatever is set in the template field -
@@ -954,9 +953,8 @@ class PFFormField {
 			}
 		}
 
-		// Special handling if neither SMW nor Cargo are installed - the
-		// form has to handle stuff that otherwise would go in the
-		// template.
+		// Special handling if SMW is not installed - the form has to
+		// handle stuff that otherwise would go in the template.
 		if (
 			!defined( 'SMW_VERSION' ) &&
 			!array_key_exists( 'values', $this->mFieldArgs ) &&
