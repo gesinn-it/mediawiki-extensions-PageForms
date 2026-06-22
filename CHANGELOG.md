@@ -7,7 +7,6 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
-- PHPUnit `memory_limit` raised from 512M to 1G; MW 1.43+SMW 7.0.0 requires more RAM during bootstrap, causing the OS OOM-killer to terminate PHPUnit before any test ran (exit code 137)
 - `PFValuesUtils::getAllPagesForNamespace()`: exclude redirect pages from `values from namespace` autocomplete; previously renaming a file/page left both the old redirect and the new page in the suggestion list (#27)
 - `PFFormLinker`: `{{#default_form:Foo}}` on a category page now causes an "Edit with form" tab to appear on that category page itself; previously the self-check was skipped for `NS_CATEGORY` so the tab never appeared (#24)
 - `PFHooks::setPostEditCookie()`: guard against `$wgPageFormsFormPrinter` being `null` before calling `property_exists()`; PHP 8 throws a `TypeError` when the first argument is `null`, causing all JSONScript tests to fail when run after a test that calls `insertPage()`
