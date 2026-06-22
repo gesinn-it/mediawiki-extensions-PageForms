@@ -254,6 +254,81 @@ class PFValuesUtilsTest extends TestCase {
 		$this->assertSame( [ 'values', 'values-7' ], PFValuesUtils::getAutocompletionTypeAndSource( $fieldArgs ) );
 	}
 
+	// -------------------------------------------------------------------------
+	// getAllValuesForProperty (mock-store injection)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @covers \PFValuesUtils::getAllValuesForProperty
+	 */
+	public function testGetAllValuesForPropertyReturnsSortedValues(): void {
+		if ( !class_exists( '\SMW\Store' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+
+		$store = $this->mockStoreReturning( [ 'Zebra', 'Apple', 'Mango' ] );
+
+		$result = PFValuesUtils::getAllValuesForProperty( 'SomeProp', $store, 100, false );
+
+		$this->assertSame( [ 'Apple', 'Mango', 'Zebra' ], $result );
+	}
+
+	/**
+	 * @covers \PFValuesUtils::getAllValuesForProperty
+	 */
+	public function testGetAllValuesForPropertyRespectsMaxValues(): void {
+		if ( !class_exists( '\SMW\Store' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+
+		$store = $this->createMock( \SMW\Store::class );
+		$store->expects( $this->once() )
+			->method( 'getPropertyValues' )
+			->with(
+				$this->anything(),
+				$this->anything(),
+				$this->callback( static fn ( $opts ) => $opts instanceof \SMW\RequestOptions && $opts->limit === 2 )
+			)
+			->willReturn( [] );
+
+		PFValuesUtils::getAllValuesForProperty( 'SomeProp', $store, 2, false );
+	}
+
+	/**
+	 * @covers \PFValuesUtils::getAllValuesForProperty
+	 */
+	public function testGetAllValuesForPropertySkipsDisplayTitleWhenDisabled(): void {
+		if ( !class_exists( '\SMW\Store' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+
+		$store = $this->mockStoreReturning( [ 'Charlie', 'Alpha' ] );
+
+		$result = PFValuesUtils::getAllValuesForProperty( 'SomeProp', $store, 100, false );
+
+		// Plain sorted array — no display-title keys
+		$this->assertSame( [ 'Alpha', 'Charlie' ], $result );
+		$this->assertArrayHasKey( 0, $result );
+	}
+
+	/**
+	 * Build a mock SMW store that returns the given string values from getPropertyValues().
+	 *
+	 * @param string[] $values
+	 * @return \SMW\Store
+	 */
+	private function mockStoreReturning( array $values ): \SMW\Store {
+		$items = array_map( function ( $v ) {
+			$item = $this->createMock( \SMWDataItem::class );
+			$item->method( 'getSortKey' )->willReturn( $v );
+			return $item;
+		}, $values );
+
+		$store = $this->createMock( \SMW\Store::class );
+		$store->method( 'getPropertyValues' )->willReturn( $items );
+		return $store;
+	}
+
 	private function restoreGlobal( $globalName, $value ): void {
 		if ( $value === self::GLOBAL_UNSET ) {
 			unset( $GLOBALS[$globalName] );

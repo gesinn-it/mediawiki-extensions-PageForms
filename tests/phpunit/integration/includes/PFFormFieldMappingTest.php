@@ -164,6 +164,41 @@ class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// setValuesWithMappingProperty (mock-store injection)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @covers PFFormField::setValuesWithMappingProperty
+	 */
+	public function testSetValuesWithMappingPropertyMapsLabel(): void {
+		if ( !class_exists( '\SMW\Store' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+
+		$item = $this->createMock( \SMWDataItem::class );
+		$item->method( 'getSortKey' )->willReturn( 'MyLabel' );
+
+		$store = $this->createMock( \SMW\Store::class );
+		$store->method( 'getPropertyValues' )->willReturn( [ $item ] );
+
+		$field = $this->makeFieldForMappingProperty( 'MappingProp', [ 'PageA' => 'PageA' ] );
+		$field->setValuesWithMappingProperty( $store );
+
+		$this->assertSame( [ 'PageA' => 'MyLabel' ], $field->getPossibleValues() );
+	}
+
+	/**
+	 * @covers PFFormField::setValuesWithMappingProperty
+	 */
+	public function testSetValuesWithMappingPropertyNullStoreReturnsEarly(): void {
+		$field = $this->makeFieldForMappingProperty( 'MappingProp', [ 'PageA' => 'PageA' ] );
+		$field->setValuesWithMappingProperty( null );
+
+		// null store triggers the early-return guard; mPossibleValues is unchanged
+		$this->assertSame( [ 'PageA' => 'PageA' ], $field->getPossibleValues() );
+	}
+
+	// -------------------------------------------------------------------------
 	// Helper
 	// -------------------------------------------------------------------------
 
@@ -181,6 +216,29 @@ class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
 
 		$field = PFFormField::create( $templateField );
 		$field->setFieldArg( 'mapping template', $templateName );
+
+		$ref = new ReflectionClass( PFFormField::class );
+		$prop = $ref->getProperty( 'mPossibleValues' );
+		$prop->setAccessible( true );
+		$prop->setValue( $field, $values );
+
+		return $field;
+	}
+
+	/**
+	 * Build a PFFormField configured for setValuesWithMappingProperty.
+	 *
+	 * @param string $propertyName Name of the mapping property
+	 * @param array $values Key→value map to set as mPossibleValues
+	 * @return PFFormField
+	 */
+	private function makeFieldForMappingProperty( string $propertyName, array $values ): PFFormField {
+		$templateField = $this->createMock( PFTemplateField::class );
+		$templateField->method( 'getPossibleValues' )->willReturn( null );
+		$templateField->method( 'getDelimiter' )->willReturn( '' );
+
+		$field = PFFormField::create( $templateField );
+		$field->setFieldArg( 'mapping property', $propertyName );
 
 		$ref = new ReflectionClass( PFFormField::class );
 		$prop = $ref->getProperty( 'mPossibleValues' );

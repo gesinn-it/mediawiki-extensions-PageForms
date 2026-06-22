@@ -107,21 +107,30 @@ class PFValuesUtils {
 	 * function PFAutocompleteAPI::getAllValuesForProperty() exists.
 	 *
 	 * @param string $property_name
+	 * @param \SMW\Store|null $store
+	 * @param int|null $maxValues
+	 * @param bool|null $useDisplayTitle
 	 * @return array
+	 * @suppress PhanUndeclaredTypeParameter For Store
 	 */
-	public static function getAllValuesForProperty( $property_name ) {
+	public static function getAllValuesForProperty(
+		$property_name, $store = null, $maxValues = null, $useDisplayTitle = null
+	) {
 		global $wgPageFormsMaxAutocompleteValues, $wgPageFormsUseDisplayTitle;
 
-		$store = PFUtils::getSMWStore();
+		$store ??= PFUtils::getSMWStore();
 		if ( $store == null ) {
 			return [];
 		}
+		$maxValues ??= $wgPageFormsMaxAutocompleteValues;
+		$useDisplayTitle ??= $wgPageFormsUseDisplayTitle;
+
 		$requestoptions = new \SMW\RequestOptions();
-		$requestoptions->limit = $wgPageFormsMaxAutocompleteValues;
+		$requestoptions->limit = $maxValues;
 		$values = self::getSMWPropertyValues( $store, null, $property_name, $requestoptions );
 		sort( $values );
 
-		if ( !$wgPageFormsUseDisplayTitle || $values === [] ) {
+		if ( !$useDisplayTitle || $values === [] ) {
 			return $values;
 		}
 

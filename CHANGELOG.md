@@ -11,6 +11,8 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ### Refactored
 - `PFTemplateField::setSemanticProperty()` and `setTypeAndPossibleValues()` accept an optional `$store` parameter; callers without the parameter are unaffected, but tests can now inject a mock store without a live SMW container
+- `PFFormField::setValuesWithMappingProperty()` accepts an optional `$store` parameter (same pattern); enables unit-testing the mapping-property label resolution without a live SMW container
+- `PFValuesUtils::getAllValuesForProperty()` accepts optional `$store`, `$maxValues`, and `$useDisplayTitle` parameters; production callers are unchanged, but tests can now exercise the sort, limit, and display-title branches in isolation
 
 ### Documentation
 - Migrate all Extension:Page Forms wiki pages from mediawiki.org to local AsciiDoc manuals under `docs/` structured by audience: `user/`, `admin/`, `developer/`; 1:1 content migration, wikitext converted to AsciiDoc syntax
