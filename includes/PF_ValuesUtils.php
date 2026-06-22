@@ -151,8 +151,12 @@ class PFValuesUtils {
 	 * @return string
 	 */
 	public static function resolveDisplayTitle( ?string $raw, string $fallback ): string {
-		if ( $raw !== null && trim( str_replace( '&#160;', '', strip_tags( $raw ) ) ) !== '' ) {
-			return htmlspecialchars_decode( $raw );
+		if ( $raw !== null ) {
+			$decoded = htmlspecialchars_decode( $raw );
+			$plain = trim( str_replace( '&#160;', '', strip_tags( $decoded ) ) );
+			if ( $plain !== '' ) {
+				return $plain;
+			}
 		}
 		return $fallback;
 	}

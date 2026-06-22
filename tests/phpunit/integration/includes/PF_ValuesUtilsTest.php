@@ -170,6 +170,34 @@ class PFValuesUtilsTest extends TestCase {
 	}
 
 	/**
+	 * MW stores displaytitle as parsed HTML (e.g. <i>MyPage</i> for ''MyPage'').
+	 * resolveDisplayTitle must return plain text, not raw HTML, so that Select2
+	 * renders the label correctly in the tokens dropdown.
+	 *
+	 * @covers \PFValuesUtils::resolveDisplayTitle
+	 */
+	public function testResolveDisplayTitleStripsHtmlTagsFromParsedTitle(): void {
+		$this->assertSame( 'MyPage', PFValuesUtils::resolveDisplayTitle( '<i>MyPage</i>', 'Page' ) );
+	}
+
+	/**
+	 * @covers \PFValuesUtils::resolveDisplayTitle
+	 */
+	public function testResolveDisplayTitleStripsNestedHtmlTags(): void {
+		$this->assertSame( 'My Page', PFValuesUtils::resolveDisplayTitle( '<b><i>My Page</i></b>', 'Page' ) );
+	}
+
+	/**
+	 * HTML entities inside tagged content must be decoded to plain text.
+	 *
+	 * @covers \PFValuesUtils::resolveDisplayTitle
+	 */
+	public function testResolveDisplayTitleDecodesEntitiesInsideHtmlTags(): void {
+		$raw = '<i>Hello &quot;World&quot;</i>';
+		$this->assertSame( 'Hello "World"', PFValuesUtils::resolveDisplayTitle( $raw, 'Page' ) );
+	}
+
+	/**
 	 * @covers \PFValuesUtils::disambiguateLabels
 	 */
 	public function testDisambiguateLabelsReturnsUnchangedWhenNoDuplicates(): void {
