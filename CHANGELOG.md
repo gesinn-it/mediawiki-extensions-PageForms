@@ -9,6 +9,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ### Fixed
 - Sort dropdown options from SMW `Allows value` / `Allows value list` annotations alphabetically; previously they appeared in SMW store insertion order (#40)
 
+### Refactored
+- `PFTemplateField::setSemanticProperty()` and `setTypeAndPossibleValues()` accept an optional `$store` parameter; callers without the parameter are unaffected, but tests can now inject a mock store without a live SMW container
+
 ### Documentation
 - Migrate all Extension:Page Forms wiki pages from mediawiki.org to local AsciiDoc manuals under `docs/` structured by audience: `user/`, `admin/`, `developer/`; 1:1 content migration, wikitext converted to AsciiDoc syntax
 

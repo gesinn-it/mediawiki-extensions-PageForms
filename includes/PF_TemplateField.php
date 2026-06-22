@@ -126,7 +126,7 @@ class PFTemplateField {
 		return $f;
 	}
 
-	public function setTypeAndPossibleValues() {
+	public function setTypeAndPossibleValues( $store = null ) {
 		if ( !defined( 'SMW_NS_PROPERTY' ) ) {
 			return;
 		}
@@ -143,7 +143,7 @@ class PFTemplateField {
 			return;
 		}
 
-		$store = PFUtils::getSMWStore();
+		$store ??= PFUtils::getSMWStore();
 		// this returns an array of objects
 		$allowed_values = PFValuesUtils::getSMWPropertyValues( $store, $proptitle, "Allows value" );
 		if ( $allowed_values === [] ) {
@@ -179,12 +179,14 @@ class PFTemplateField {
 	 * Called if a matching property is found for a template field when
 	 * a template is parsed during the creation of a form.
 	 * @param string $semantic_property
+	 * @param \SMW\Store|null $store
+	 * @suppress PhanUndeclaredTypeParameter For Store
 	 */
-	public function setSemanticProperty( $semantic_property ) {
+	public function setSemanticProperty( $semantic_property, $store = null ) {
 		$this->mSemanticProperty = str_replace( '\\', '', $semantic_property ?? '' );
 		$this->mPossibleValues = [];
 		// set field type and possible values, if any
-		$this->setTypeAndPossibleValues();
+		$this->setTypeAndPossibleValues( $store );
 	}
 
 	public function getFieldName() {

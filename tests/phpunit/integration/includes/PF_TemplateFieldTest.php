@@ -263,4 +263,68 @@ class PFTemplateFieldTest extends TestCase {
 		$field = PFTemplateField::create( '  trimmed  ', null );
 		$this->assertSame( 'trimmed', $field->getFieldName() );
 	}
+
+	// --- setTypeAndPossibleValues via injected mock store ---
+
+	private function makeDataItem( string $sortKey ): object {
+		$item = $this->createMock( \SMW\DataItemFactory::class );
+		// Use a simple anonymous stub: getSortKey() returns the value,
+		// and it is not SMWDIUri or SMW\DIWikiPage, so PFValuesUtils takes the else branch.
+		return new class( $sortKey ) {
+			public function __construct( private string $key ) {
+			}
+
+			public function getSortKey(): string {
+				return $this->key;
+			}
+		};
+	}
+
+	private function makeStore( array $allowsValue, array $allowsValueList = [] ): \SMW\Store {
+		$store = $this->createMock( \SMW\Store::class );
+		$store->method( 'getPropertyValues' )
+			->willReturnCallback( function ( $page, \SMW\DIProperty $prop ) use ( $allowsValue, $allowsValueList ) {
+				$label = $prop->getLabel();
+				if ( $label === 'Allows value' ) {
+					return array_map( fn ( $v ) => $this->makeDataItem( $v ), $allowsValue );
+				}
+				if ( $label === 'Allows value list' ) {
+					return array_map( fn ( $v ) => $this->makeDataItem( $v ), $allowsValueList );
+				}
+				return [];
+			} );
+		return $store;
+	}
+
+	public function testSetTypeAndPossibleValuesWithAllowsValue() {
+		$store = $this->makeStore( [ 'Zebra', 'Mango', 'Apple' ] );
+		$field = PFTemplateField::create( 'Field', null );
+		$field->setSemanticProperty( 'SomeProp', $store );
+		$this->assertSame( [ 'Apple', 'Mango', 'Zebra' ], $field->getPossibleValues() );
+		$this->assertSame( 'enumeration', $field->getPropertyType() );
+	}
+
+	public function testSetTypeAndPossibleValuesWithAllowsValueListFallback() {
+		$store = $this->makeStore( [], [ 'Charlie', 'Alpha', 'Bravo' ] );
+		$field = PFTemplateField::create( 'Field', null );
+		$field->setSemanticProperty( 'SomeProp', $store );
+		$this->assertSame( [ 'Alpha', 'Bravo', 'Charlie' ], $field->getPossibleValues() );
+		$this->assertSame( 'enumeration', $field->getPropertyType() );
+	}
+
+	public function testSetTypeAndPossibleValuesEmptyAllowedValues() {
+		$store = $this->makeStore( [], [] );
+		$field = PFTemplateField::create( 'Field', null );
+		$field->setSemanticProperty( 'SomeProp', $store );
+		$this->assertSame( [], $field->getPossibleValues() );
+		$this->assertNotSame( 'enumeration', $field->getPropertyType() );
+	}
+
+	public function testSetTypeAndPossibleValuesInversePropertyGuard() {
+		$store = $this->createMock( \SMW\Store::class );
+		$store->expects( $this->never() )->method( 'getPropertyValues' );
+		$field = PFTemplateField::create( 'Field', null );
+		$field->setSemanticProperty( '-InverseProp', $store );
+		$this->assertSame( [], $field->getPossibleValues() );
+	}
 }
