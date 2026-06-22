@@ -166,6 +166,7 @@ class PFTemplateField {
 				$this->mValueLabels[$wiki_value] = html_entity_decode( $label_value->getWikiValue() );
 			}
 		}
+		sort( $this->mPossibleValues );
 
 		// HACK - if there were any possible values, set the property
 		// type to be 'enumeration', regardless of what the actual type is

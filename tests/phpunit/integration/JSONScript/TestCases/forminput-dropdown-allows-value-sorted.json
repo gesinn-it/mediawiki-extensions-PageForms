@@ -1,0 +1,54 @@
+{
+	"description": "Dropdown values from SMW property Allows value are sorted alphabetically",
+	"setup": [
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestDDSortProp01",
+			"contents": "[[Has type::Text]]\n[[Allows value::PFTestDDSortZebra]]\n[[Allows value::PFTestDDSortMango]]\n[[Allows value::PFTestDDSortApple]]"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestDDSortTpl01",
+			"contents": "{{{PFTestDDSortField01|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestDDSortForm01",
+			"contents": "{{{for template|PFTestDDSortTpl01}}}\n{{{field|PFTestDDSortField01|input type=dropdown|property=PFTestDDSortProp01}}}\n{{{end template}}}"
+		}
+	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
+	"tests": [
+		{
+			"type": "special",
+			"about": "Dropdown options from Allows value are sorted alphabetically (Apple < Mango < Zebra)",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestDDSortForm01/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<option value=\"PFTestDDSortApple\">PFTestDDSortApple</option><option value=\"PFTestDDSortMango\">PFTestDDSortMango</option><option value=\"PFTestDDSortZebra\">PFTestDDSortZebra</option>"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en",
+		"wgArticlePath": "/index.php/$1",
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}
