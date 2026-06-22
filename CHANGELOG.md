@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
+- `PFFormPrinter`: `{{{for template}}}`, `{{{field}}}`, and `{{{standard input}}}` tags without a name parameter now throw an `MWException` with an actionable error message instead of a silent PHP warning; fixes issue #23
 - Sort dropdown options from SMW `Allows value` / `Allows value list` annotations alphabetically; previously they appeared in SMW store insertion order (#40)
 
 ### Refactored

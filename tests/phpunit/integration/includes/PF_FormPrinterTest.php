@@ -755,6 +755,85 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Malformed tag guards — issue #23
+	// -------------------------------------------------------------------------
+
+	/**
+	 * A bare {{{for template}}} tag (no template name) must throw an MWException
+	 * with an actionable error message so form authors can diagnose the mistake.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLForTemplateTagWithoutNameThrowsMWException(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$this->expectException( \MWException::class );
+		$this->expectExceptionMessageMatches( "/'for template' tag is missing the template name/" );
+		$wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestMalformedPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+	}
+
+	/**
+	 * A bare {{{field}}} tag (no field name) must throw an MWException with an
+	 * actionable error message so form authors can diagnose the mistake.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLFieldTagWithoutNameThrowsMWException(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestMalformedTpl02}}}\n"
+			. "{{{field}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$this->expectException( \MWException::class );
+		$this->expectExceptionMessageMatches( "/'field' tag is missing the field name/" );
+		$wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestMalformedPage02', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+	}
+
+	/**
+	 * A bare {{{standard input}}} tag (no input name) must throw an MWException
+	 * with an actionable error message so form authors can diagnose the mistake.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLStandardInputTagWithoutNameThrowsMWException(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestMalformedTpl03}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input}}}\n"
+			. "{{{standard input|save}}}";
+
+		$this->expectException( \MWException::class );
+		$this->expectExceptionMessageMatches( "/'standard input' tag is missing the input name/" );
+		$wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestMalformedPage03', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+	}
+
+	// -------------------------------------------------------------------------
 
 	/**
 	 * Returns a mock Title for test

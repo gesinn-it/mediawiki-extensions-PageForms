@@ -565,6 +565,12 @@ class PFFormPrinter {
 				// for template processing
 				// =====================================================
 				if ( $tag_title == 'for template' ) {
+					if ( count( $tag_components ) < 2 ) {
+						throw new MWException(
+							'<div class="error">Error in form definition:' .
+							' \'for template\' tag is missing the template name.</div>'
+						);
+					}
 					if ( $tif ) {
 						$previous_template_name = $tif->getTemplateName();
 					} else {
@@ -662,6 +668,12 @@ class PFFormPrinter {
 					// because PFFormField isn't equipped
 					// to deal with the #freetext# hack,
 					// among others.
+					if ( count( $tag_components ) < 2 ) {
+						throw new MWException(
+							'<div class="error">Error in form definition:' .
+							' \'field\' tag is missing the field name.</div>'
+						);
+					}
 					$field_name = trim( $tag_components[1] );
 					$form_field = PFFormField::newFromFormFieldTag(
 						$tag_components, $template, $tif, $form_is_disabled, $user
@@ -930,6 +942,12 @@ END;
 				// standard input processing
 				// =====================================================
 				} elseif ( $tag_title == 'standard input' ) {
+					if ( count( $tag_components ) < 2 ) {
+						throw new MWException(
+							'<div class="error">Error in form definition:' .
+							' \'standard input\' tag is missing the input name.</div>'
+						);
+					}
 					$input_name = $tag_components[1];
 
 					// if it's a query, ignore all standard inputs except run query
