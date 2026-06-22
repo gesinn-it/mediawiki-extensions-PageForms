@@ -104,7 +104,7 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		$user = $this->createMock( \User::class );
 
 		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
-			$formField, 'existing', 'existing-template', false, $user
+			$formField, 'existing', 'existing-template', false, false, $user
 		);
 		// 'static-value' is not a magic token, so nothing changes
 		$this->assertSame( 'existing', $cv );
@@ -116,7 +116,7 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		$formField = $this->makeFormFieldWithDefault( 'current user' );
 
 		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
-			$formField, '', '', false, $user
+			$formField, '', '', false, false, $user
 		);
 		$this->assertSame( $user->getName(), $cv );
 		$this->assertSame( $user->getName(), $cvt );
@@ -127,7 +127,7 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		$formField = $this->makeFormFieldWithDefault( 'current user' );
 
 		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
-			$formField, '', '', false, $user
+			$formField, '', '', false, false, $user
 		);
 		$this->assertSame( '', $cv );
 		$this->assertSame( '', $cvt );
@@ -138,10 +138,34 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		$formField = $this->makeFormFieldWithDefault( 'current user' );
 
 		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
-			$formField, 'alice', 'alice', false, $user
+			$formField, 'alice', 'alice', false, false, $user
 		);
 		// cur_value is not '' or 'current user', so no substitution happens
 		$this->assertSame( 'alice', $cv );
+	}
+
+	public function testResolveCurrentUserNotAppliedWhenFormSubmittedWithEmptyValue(): void {
+		// Regression: default=current user must not re-fill when the user explicitly cleared the field
+		$user = $this->getTestUser()->getUser();
+		$formField = $this->makeFormFieldWithDefault( 'current user' );
+
+		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
+			$formField, '', '', false, true, $user
+		);
+		$this->assertSame( '', $cv );
+		$this->assertSame( '', $cvt );
+	}
+
+	public function testResolveCurrentUserAppliedWhenFormSubmittedWithLiteralToken(): void {
+		// If the token was never resolved (still 'current user' in the submitted value), resolve it
+		$user = $this->getTestUser()->getUser();
+		$formField = $this->makeFormFieldWithDefault( 'current user' );
+
+		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
+			$formField, 'current user', 'current user', false, true, $user
+		);
+		$this->assertSame( $user->getName(), $cv );
+		$this->assertSame( $user->getName(), $cvt );
 	}
 
 	public function testResolveUuidSingleInstance(): void {
@@ -149,7 +173,7 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		$user = $this->getTestUser()->getUser();
 
 		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
-			$formField, '', '', false, $user
+			$formField, '', '', false, false, $user
 		);
 		// UUID format: 8-4-4-4-12 hex chars
 		$pattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/';
@@ -166,7 +190,7 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		$user = $this->getTestUser()->getUser();
 
 		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
-			$formField, '', '', true, $user
+			$formField, '', '', true, false, $user
 		);
 		// No UUID generated — JS handles it; class arg set instead
 		$this->assertSame( '', $cv );
@@ -179,7 +203,7 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		$user = $this->getTestUser()->getUser();
 
 		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
-			$formField, '', '', false, $user
+			$formField, '', '', false, false, $user
 		);
 		// Both slots must be set to the same non-empty date string
 		$this->assertNotEmpty( $cvt );
@@ -193,7 +217,7 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		$user = $this->getTestUser()->getUser();
 
 		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
-			$formField, '', '', false, $user
+			$formField, '', '', false, false, $user
 		);
 		$this->assertNotEmpty( $cvt );
 		$this->assertSame( $cvt, $cv );
@@ -212,7 +236,7 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 
 		$user = $this->getTestUser()->getUser();
 		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
-			$formField, '', '', false, $user
+			$formField, '', '', false, false, $user
 		);
 		$this->assertNotEmpty( $cvt );
 		$this->assertSame( $cvt, $cv );
@@ -225,7 +249,7 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		$user = $this->getTestUser()->getUser();
 
 		[ $cv, $cvt ] = $this->resolver->resolveDefaultValue(
-			$formField, '', '', false, $user
+			$formField, '', '', false, false, $user
 		);
 		$this->assertSame( '', $cv );
 		$this->assertSame( '', $cvt );
@@ -236,7 +260,7 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 		$formField->setFieldArg( 'class', 'important-field' );
 		$user = $this->getTestUser()->getUser();
 
-		$this->resolver->resolveDefaultValue( $formField, '', '', true, $user );
+		$this->resolver->resolveDefaultValue( $formField, '', '', true, false, $user );
 
 		$this->assertSame( 'important-field new-uuid', $formField->getFieldArg( 'class' ) );
 	}

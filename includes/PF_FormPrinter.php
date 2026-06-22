@@ -886,7 +886,7 @@ END;
 						} elseif ( $form_field->getDefaultValue() !== null ) {
 							[ $cur_value, $cur_value_in_template ] = $this->fieldValueResolver->resolveDefaultValue(
 								$form_field, (string)$cur_value, (string)$cur_value_in_template,
-								(bool)$tif->allowsMultiple(), $user
+								(bool)$tif->allowsMultiple(), (bool)$form_submitted, $user
 							);
 						}
 

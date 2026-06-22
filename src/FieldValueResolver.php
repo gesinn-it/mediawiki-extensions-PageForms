@@ -81,12 +81,18 @@ class FieldValueResolver {
 	 * - 'uuid' (multiple instances): no value computed — 'new-uuid' is appended to $formField's
 	 *   'class' arg so that JavaScript generates a UUID per instance; both slots unchanged.
 	 *
+	 * When $formSubmitted is true and $curValue is '' the user intentionally cleared the field;
+	 * the 'now' and 'current user' defaults are not re-applied in that case.  The default IS
+	 * applied when the literal token is still present (e.g. $curValue == 'current user'), which
+	 * means it was never resolved rather than explicitly cleared.
+	 *
 	 * Unrecognised default values are returned unchanged (no-op).
 	 *
 	 * @param PFFormField $formField The form field being rendered (class arg mutated for uuid/multiple)
 	 * @param string $curValue Current field value (empty or equal to the token when unresolved)
 	 * @param string $curValueInTemplate Current template value (may already carry a concrete value)
 	 * @param bool $allowsMultiple Whether the enclosing template allows multiple instances
+	 * @param bool $formSubmitted Whether the form has been submitted (true = save, false = initial render)
 	 * @param User $user Current user (used to resolve 'current user')
 	 * @return array{0: string, 1: string} [$curValue, $curValueInTemplate] after resolution
 	 */
@@ -95,11 +101,12 @@ class FieldValueResolver {
 		string $curValue,
 		string $curValueInTemplate,
 		bool $allowsMultiple,
+		bool $formSubmitted,
 		User $user
 	): array {
 		$defaultValue = $formField->getDefaultValue();
 
-		if ( $defaultValue == 'now' && ( $curValue == '' || $curValue == 'now' ) ) {
+		if ( $defaultValue == 'now' && ( $curValue == 'now' || ( $curValue == '' && !$formSubmitted ) ) ) {
 			$inputType = $formField->getInputType();
 			// 'datepicker' and 'datetimepicker' handle 'now' themselves; skip them here.
 			if ( $inputType == 'date' || $inputType == 'datetime' || $inputType == 'year' ||
@@ -111,7 +118,7 @@ class FieldValueResolver {
 				);
 			}
 		} elseif ( $defaultValue == 'current user' &&
-			( $curValue === '' || $curValue == 'current user' )
+			( $curValue == 'current user' || ( $curValue === '' && !$formSubmitted ) )
 		) {
 			$curValueInTemplate = $user->isRegistered() ? $user->getName() : '';
 			$curValue = $curValueInTemplate;

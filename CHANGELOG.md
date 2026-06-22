@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
+- `FieldValueResolver`: `default=current user` (and `default=now`) fields can now be saved empty; previously, submitting the form with a cleared field would re-apply the default, making it impossible to remove the pre-filled value (#29)
 - `PF_submit.js`: Save-and-Continue no longer forces `wpMinoredit=1`; the minor-edit flag is now only sent when the "Minor edit" checkbox is actually checked (#26)
 - PHPUnit `@phpunit` and `@phpunit-coverage` split into two separate PHP processes (unit suite, then integration suite); running both suites in a single process caused MW-internal caches (held in static variables across SMW store resets) to accumulate ~11 GB RSS, triggering the Linux OOM-killer (exit 137) before any test output appeared
 - `PFValuesUtils::getAllPagesForNamespace()`: exclude redirect pages from `values from namespace` autocomplete; previously renaming a file/page left both the old redirect and the new page in the suggestion list (#27)
