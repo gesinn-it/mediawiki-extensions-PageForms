@@ -21,7 +21,6 @@ jobs:
     continue-on-error: ${{ matrix.experimental }}
 
     strategy:
-      max-parallel: 2
       matrix:
         include:
           - mediawiki_version: '1.39'
