@@ -110,7 +110,7 @@ class PFHelperFormAction extends Action {
 		if ( $edit_tab_location == null ) {
 			$edit_tab_location = -1;
 		}
-		array_splice( $tab_keys, $edit_tab_location, 0, 'formedit' );
+		array_splice( $tab_keys, $edit_tab_location, 0, 'formcreate' );
 		array_splice( $tab_values, $edit_tab_location, 0, [ $form_create_tab ] );
 		$content_actions = [];
 		foreach ( $tab_keys as $i => $key ) {
