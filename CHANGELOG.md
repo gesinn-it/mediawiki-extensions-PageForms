@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
+- `PF_preview.js`: replace removed jQuery 3 `.load()` event shorthand with `.on('load', ...)` on the preview iframe; the old call was silently reinterpreted as the AJAX `.load(url)` shorthand, so the `loadFrameHandler` was never registered and the preview pane stayed hidden after clicking "Show preview" (#38)
 - `FieldValueResolver`: `default=current user` (and `default=now`) fields can now be saved empty; previously, submitting the form with a cleared field would re-apply the default, making it impossible to remove the pre-filled value (#29)
 - `PF_submit.js`: Save-and-Continue no longer forces `wpMinoredit=1`; the minor-edit flag is now only sent when the "Minor edit" checkbox is actually checked (#26)
 - PHPUnit `@phpunit` and `@phpunit-coverage` split into two separate PHP processes (unit suite, then integration suite); running both suites in a single process caused MW-internal caches (held in static variables across SMW store resets) to accumulate ~11 GB RSS, triggering the Linux OOM-killer (exit 137) before any test output appeared
