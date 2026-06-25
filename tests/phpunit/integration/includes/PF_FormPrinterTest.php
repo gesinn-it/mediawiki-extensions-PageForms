@@ -878,6 +878,54 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'PFTestMultiTpl01', $formHtml );
 	}
 
+	/**
+	 * When a list field uses `values from category` with $wgPageFormsUseDisplayTitle = true
+	 * and the existing page contains multiple delimited values, formHTML() must not throw
+	 * a TypeError.
+	 *
+	 * This covers the getUseDisplayTitle() branch of the same valueStringToLabels() call
+	 * that the mapping template test covers.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLListFieldWithUseDisplayTitleAndMultipleValuesDoesNotThrow(): void {
+		global $wgPageFormsFormPrinter, $wgOut, $wgPageFormsUseDisplayTitle;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		// Create two pages in the test category so values from category has something to return.
+		$cat = 'PFTestDisplayTitleCat01';
+		$this->editPage( 'PFTestDisplayTitlePageA', "[[Category:$cat]]" );
+		$this->editPage( 'PFTestDisplayTitlePageB', "[[Category:$cat]]" );
+
+		$savedDisplayTitle = $wgPageFormsUseDisplayTitle;
+		$wgPageFormsUseDisplayTitle = true;
+
+		$formDef = "{{{for template|PFTestDisplayTitleTpl01}}}\n"
+			. "{{{field|Items|list|delimiter=,|values from category=$cat}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$pageContent = '{{PFTestDisplayTitleTpl01|Items=PFTestDisplayTitlePageA, PFTestDisplayTitlePageB}}';
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef,
+			$form_submitted = false,
+			$source_is_page = true,
+			$form_id = null,
+			$pageContent,
+			$page_name = 'PFTestDisplayTitlePage01',
+			$page_name_formula = null,
+			$is_query = false, $is_embedded = false, $is_autocreate = false,
+			$autocreate_query = [],
+			self::getTestUser()->getUser()
+		);
+
+		$wgPageFormsUseDisplayTitle = $savedDisplayTitle;
+
+		$this->assertStringContainsString( 'PFTestDisplayTitleTpl01', $formHtml );
+	}
+
 	// -------------------------------------------------------------------------
 
 	/**
