@@ -834,6 +834,51 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Regression: TypeError when list field with mapping template has >1 values
+	// -------------------------------------------------------------------------
+
+	/**
+	 * When a list field uses `mapping template` and the existing page contains
+	 * multiple delimited values, formHTML() must not throw a TypeError.
+	 *
+	 * Previously, valueStringToLabels() returned an array for multi-value lists,
+	 * and that array was passed directly to FormFieldHtmlBuilder::formFieldHTML()
+	 * which declares $cur_value as ?string — triggering a TypeError.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLListFieldWithMappingTemplateAndMultipleValuesDoesNotThrow(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$mappingTemplate = 'PFTestMappingTplMulti01';
+		$this->editPage( "Template:$mappingTemplate", 'PFTestLabel' );
+
+		$formDef = "{{{for template|PFTestMultiTpl01}}}\n"
+			. "{{{field|Tags|list|delimiter=,|mapping template=$mappingTemplate}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$pageContent = '{{PFTestMultiTpl01|Tags=alpha, beta}}';
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef,
+			$form_submitted = false,
+			$source_is_page = true,
+			$form_id = null,
+			$pageContent,
+			$page_name = 'PFTestMultiPage01',
+			$page_name_formula = null,
+			$is_query = false, $is_embedded = false, $is_autocreate = false,
+			$autocreate_query = [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'PFTestMultiTpl01', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
 
 	/**
 	 * Returns a mock Title for test

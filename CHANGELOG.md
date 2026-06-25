@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- `PFFormPrinter`: list fields with `mapping template`, `mapping property`, or `use display title` no longer throw a `TypeError` when the existing page contains more than one delimited value; `valueStringToLabels()` returned an array for multi-value lists which was passed to `FormFieldHtmlBuilder::formFieldHTML(?string)` unchanged
+
 ## [2.0.0] - 2026-06-23
 
 First stable release of the gesinn-it distribution. Drops Cargo integration,
