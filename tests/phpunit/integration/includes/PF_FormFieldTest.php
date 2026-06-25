@@ -382,7 +382,7 @@ class PFFormFieldTest extends TestCase {
 
 		// Test case 5: Multiple values, some exist in mPossibleValues, others do not
 		$result = $formField->valueStringToLabels( 'val1,val3', ',' );
-		$this->assertEquals( [ 'Label 1', 'val3' ], $result );
+		$this->assertEquals( 'Label 1,val3', $result );
 
 		// Test case 6: Delimiter is null
 		$result = $formField->valueStringToLabels( 'val1,val2', null );
@@ -390,7 +390,7 @@ class PFFormFieldTest extends TestCase {
 
 		// Test case 7: Multiple labels and values exist
 		$result = $formField->valueStringToLabels( 'val1,val2', ',' );
-		$this->assertEquals( [ 'Label 1', 'Label 2' ], $result );
+		$this->assertEquals( 'Label 1,Label 2', $result );
 	}
 
 	public function testAdditionalHTMLForInput() {
@@ -672,16 +672,15 @@ class PFFormFieldTest extends TestCase {
 	}
 
 	/**
-	 * A delimited list of keys must be translated key-by-key and returned as
-	 * an array of labels.
+	 * A delimited list of keys must be translated key-by-key and returned as a
+	 * delimiter-joined string.
 	 *
 	 * @covers PFFormField::valueStringToLabels
 	 */
 	public function testValueStringToLabelsDelimitedListTranslatesEachKey(): void {
 		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany', 'FR' => 'France' ] );
 		$result = $field->valueStringToLabels( 'DE,FR', ',' );
-		// Multiple results are returned as an array.
-		$this->assertSame( [ 'Germany', 'France' ], $result );
+		$this->assertSame( 'Germany,France', $result );
 	}
 
 	/**
@@ -692,7 +691,7 @@ class PFFormFieldTest extends TestCase {
 	public function testValueStringToLabelsDelimitedListUnknownKeyPassesThrough(): void {
 		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
 		$result = $field->valueStringToLabels( 'DE,XX', ',' );
-		$this->assertSame( [ 'Germany', 'XX' ], $result );
+		$this->assertSame( 'Germany,XX', $result );
 	}
 
 	/**

@@ -828,9 +828,6 @@ END;
 								}
 							}
 							$cur_value = $form_field->valueStringToLabels( $cur_value, $delimiter );
-							if ( is_array( $cur_value ) ) {
-								$cur_value = implode( $delimiter ?? ', ', $cur_value );
-							}
 						}
 
 						// Call hooks - unfortunately this has to be split into two

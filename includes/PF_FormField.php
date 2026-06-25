@@ -770,12 +770,12 @@ class PFFormField {
 	}
 
 	/**
-	 * Map a template field value into labels.
-	 * @param string $valueString
-	 * @param string $delimiter
-	 * @return string|string[]
+	 * Map a template field value into display labels using mPossibleValues.
+	 * @param string|null $valueString
+	 * @param string|null $delimiter
+	 * @return string|null
 	 */
-	public function valueStringToLabels( $valueString, $delimiter ) {
+	public function valueStringToLabels( $valueString, $delimiter ): ?string {
 		if ( strlen( trim( $valueString ?? '' ) ) === 0 ||
 			$this->mPossibleValues === null ) {
 			return $valueString;
@@ -795,11 +795,7 @@ class PFFormField {
 				}
 			}
 		}
-		if ( count( $labels ) > 1 ) {
-			return $labels;
-		} else {
-			return $labels[0];
-		}
+		return implode( $delimiter ?? ', ', $labels );
 	}
 
 	public function additionalHTMLForInput( $cur_value, $field_name, $template_name ) {
