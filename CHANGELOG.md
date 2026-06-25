@@ -6,8 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-06-25
+
 ### Fixed
-- `PFFormPrinter`: list fields with `mapping template`, `mapping property`, or `use display title` no longer throw a `TypeError` when the existing page contains more than one delimited value; `valueStringToLabels()` returned an array for multi-value lists which was passed to `FormFieldHtmlBuilder::formFieldHTML(?string)` unchanged
+- `PFFormPrinter`: list fields with `mapping template`, `mapping property`, or `use display title` no longer throw a `TypeError` when the existing page contains more than one delimited value; `valueStringToLabels()` returned an array for multi-value lists which was passed to `FormFieldHtmlBuilder::formFieldHTML(?string)` unchanged [`7248bdd5`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/7248bdd5)
 
 ## [2.0.0] - 2026-06-23
 
@@ -39,7 +41,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.0.0...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.0.1...HEAD
+[2.0.1]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.4.0...2.0.0
 
 Older releases: [1.x](CHANGELOG-1.x.md)
