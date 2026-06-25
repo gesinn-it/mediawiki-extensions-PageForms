@@ -790,37 +790,12 @@ END;
 							$section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
 						);
 					} else {
-						if ( is_array( $cur_value ) ) {
-							// @TODO - is this code ever called?
-							$delimiter = $form_field->getFieldArg( 'is_list' );
-							// first, check if it's a list
-							if ( array_key_exists( 'is_list', $cur_value ) &&
-									$cur_value['is_list'] == true ) {
-								$cur_value_in_template = "";
-								foreach ( $cur_value as $key => $val ) {
-									if ( $key !== "is_list" ) {
-										if ( $cur_value_in_template != "" ) {
-											$cur_value_in_template .= $delimiter . " ";
-										}
-										$cur_value_in_template .= $val;
-									}
-								}
-							} else {
-								// If it's not a list, it's probably from a checkbox or date input -
-								// convert the values into a string.
-								$cur_value_in_template = PFFormUtils::getStringFromPassedInArray(
-									$cur_value, $delimiter
-								);
-							}
-						} elseif ( $form_field->holdsTemplate() ) {
-							// If this field holds an embedded template,
-							// and the value is not an array, it means
-							// there are no instances of the template -
-							// set the value to null to avoid getting
-							// whatever is currently on the page.
+						if ( $form_field->holdsTemplate() ) {
+							// If this field holds an embedded template and the value is not
+							// an array, there are no instances of the template — set the value
+							// to null to avoid carrying over whatever is currently on the page.
 							$cur_value_in_template = null;
 						} else {
-							// value is not an array.
 							$cur_value_in_template = $cur_value;
 						}
 
