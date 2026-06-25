@@ -1293,15 +1293,14 @@ END;
 
 	/**
 	 * Create the HTML to display this field within a form.
-	 * @param PFFormField $form_field
-	 * @param string $cur_value
-	 * @return string
 	 */
-	public function formFieldHTML( $form_field, $cur_value ) {
+	public function formFieldHTML( PFFormField $form_field, ?string $cur_value ): string {
 		return $this->formFieldHtmlBuilder->formFieldHTML( $form_field, $cur_value, $this->counters );
 	}
 
-	private function createFormFieldTranslateTag( &$template, &$tif, &$form_field, &$cur_value ) {
+	private function createFormFieldTranslateTag(
+		&$template, &$tif, PFFormField &$form_field, ?string &$cur_value
+	): void {
 		$this->formFieldHtmlBuilder->createFormFieldTranslateTag( $template, $tif, $form_field, $cur_value );
 	}
 
