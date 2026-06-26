@@ -157,28 +157,11 @@ class PFFormEditAction extends Action {
 
 		$output->addHTML( Html::element( 'p', null, wfMessage( 'pf-formedit-selectform' )->text() ) );
 		$pagesPerForm = self::getNumPagesPerForm();
-		$totalPages = 0;
-		foreach ( $pagesPerForm as $formName => $numPages ) {
-			$totalPages += $numPages;
-		}
-		// We define "popular forms" as those that are used to
-		// edit more than 1% of the wiki's form-editable pages.
-		$popularForms = [];
-		foreach ( $pagesPerForm as $formName => $numPages ) {
-			if ( $numPages > $totalPages / 100 ) {
-				$popularForms[] = $formName;
-			}
-		}
-		$otherForms = [];
-		foreach ( $formNames as $i => $formName ) {
-			if ( !in_array( $formName, $popularForms ) ) {
-				$otherForms[] = $formName;
-			}
-		}
+		[ 'main' => $mainForms, 'other' => $otherForms ] = self::classifyForms( $formNames, $pagesPerForm );
 
 		$fe = PFUtils::getSpecialPage( 'FormEdit' );
 
-		if ( count( $popularForms ) > 0 ) {
+		if ( count( $mainForms ) > 0 ) {
 			if ( count( $otherForms ) > 0 ) {
 				$output->addHTML( Html::element(
 					'p',
@@ -186,12 +169,12 @@ class PFFormEditAction extends Action {
 					wfMessage( 'pf-formedit-mainforms' )->text()
 				) );
 			}
-			$text = self::printLinksToFormArray( $popularForms, $targetName, $fe );
+			$text = self::printLinksToFormArray( $mainForms, $targetName, $fe );
 			$output->addHTML( Html::rawElement( 'div', [ 'class' => 'infoMessage mainForms' ], $text ) );
 		}
 
 		if ( count( $otherForms ) > 0 ) {
-			if ( count( $popularForms ) > 0 ) {
+			if ( count( $mainForms ) > 0 ) {
 				$output->addHTML( Html::element(
 					'p',
 					[],
@@ -211,6 +194,33 @@ class PFFormEditAction extends Action {
 	}
 
 	/**
+	 * Classify forms into "main" and "other" groups.
+	 *
+	 * Main forms are those used to edit more than 1% of the wiki's
+	 * form-editable pages. All remaining forms are "other".
+	 *
+	 * @param string[] $allFormNames
+	 * @param int[] $pagesPerForm
+	 * @return array{main: string[], other: string[]}
+	 */
+	private static function classifyForms( array $allFormNames, array $pagesPerForm ): array {
+		$totalPages = array_sum( $pagesPerForm );
+		$mainForms = [];
+		foreach ( $pagesPerForm as $formName => $numPages ) {
+			if ( $numPages > $totalPages / 100 ) {
+				$mainForms[] = $formName;
+			}
+		}
+		$otherForms = [];
+		foreach ( $allFormNames as $formName ) {
+			if ( !in_array( $formName, $mainForms ) ) {
+				$otherForms[] = $formName;
+			}
+		}
+		return [ 'main' => $mainForms, 'other' => $otherForms ];
+	}
+
+	/**
 	 * Find the number of pages on the wiki that use each form, by getting
 	 * all the categories that have a #default_form call pointing to a
 	 * particular form, and adding up the number of pages in each such
@@ -222,7 +232,7 @@ class PFFormEditAction extends Action {
 	 * individual pages are (hopefully) pretty rare.
 	 * @return int[]
 	 */
-	public static function getNumPagesPerForm() {
+	private static function getNumPagesPerForm(): array {
 		$dbr = PFUtils::getReplicaDB();
 		$res = $dbr->select(
 			[ 'category', 'page', 'page_props' ],
@@ -247,13 +257,12 @@ class PFFormEditAction extends Action {
 
 		$pagesPerForm = [];
 		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
-			$formName = $row['pp_value'];
-			$pagesPerForm[$formName] = $row['total_pages'];
+			$pagesPerForm[$row['pp_value']] = $row['total_pages'];
 		}
 		return $pagesPerForm;
 	}
 
-	public static function printLinksToFormArray( $formNames, $targetName, $fe ) {
+	private static function printLinksToFormArray( $formNames, $targetName, $fe ) {
 		$text = '';
 		foreach ( $formNames as $i => $formName ) {
 			if ( $i > 0 ) {
