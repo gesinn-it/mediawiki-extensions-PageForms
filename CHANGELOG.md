@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Changed
+- `PFFormEditAction`: extract `classifyForms()` from `displayFormChooser()`; rename `$popularForms` → `$mainForms`; narrow `getNumPagesPerForm()` and `printLinksToFormArray()` to `private` — preparatory refactor for [#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41)
+
 ## [2.0.1] - 2026-06-25
 
 ### Fixed
