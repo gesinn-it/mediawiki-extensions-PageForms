@@ -44,6 +44,21 @@ Variables marked as _read-only_ are set internally by Page Forms and should not 
 | `$wgPageFormsVisualEditorMaxHeight`
 | `400`
 | Maximum height in pixels for Visual Editor widgets embedded in a form's free-text field.
+
+| `$wgPageFormsMainForms`
+| `[]`
+| Explicitly set which forms appear as "main forms" in the form chooser
+  (the dialog shown when editing a page with no default form assigned).
+  When this list is non-empty, the automatic heuristic is skipped entirely.
+  Form names not found on the wiki are silently ignored. +
+  Example: `$wgPageFormsMainForms = [ 'Person', 'Organization' ];`
+
+| `$wgPageFormsMainFormsLimit`
+| `5`
+| Maximum number of "main forms" shown in the form chooser when
+  `$wgPageFormsMainForms` is not set. The forms with the highest number
+  of associated pages are promoted to "main forms", up to this limit.
+  Set to `0` to disable the main/other distinction entirely.
 |===
 
 == Autocomplete

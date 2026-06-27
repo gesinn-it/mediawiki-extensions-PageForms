@@ -184,27 +184,26 @@ class PFFormEditAction extends Action {
 	/**
 	 * Classify forms into "main" and "other" groups.
 	 *
-	 * Main forms are those used to edit more than 1% of the wiki's
-	 * form-editable pages. All remaining forms are "other".
+	 * When $wgPageFormsMainForms is set, those forms are used as main forms
+	 * directly (unknown form names are silently ignored). Otherwise, the top
+	 * N forms by page count are used, where N is $wgPageFormsMainFormsLimit.
 	 *
 	 * @param string[] $allFormNames
-	 * @param int[] $pagesPerForm
+	 * @param int[] $pagesPerForm form name => page count, ordered by count DESC
 	 * @return array{main: string[], other: string[]}
 	 */
 	private static function classifyForms( array $allFormNames, array $pagesPerForm ): array {
-		$totalPages = array_sum( $pagesPerForm );
-		$mainForms = [];
-		foreach ( $pagesPerForm as $formName => $numPages ) {
-			if ( $numPages > $totalPages / 100 ) {
-				$mainForms[] = $formName;
-			}
+		$config = MediaWikiServices::getInstance()->getMainConfig();
+		$mainForms = $config->get( 'PageFormsMainForms' );
+
+		if ( $mainForms ) {
+			$mainForms = array_values( array_intersect( $allFormNames, $mainForms ) );
+		} else {
+			$limit = $config->get( 'PageFormsMainFormsLimit' );
+			$mainForms = array_slice( array_keys( $pagesPerForm ), 0, $limit );
 		}
-		$otherForms = [];
-		foreach ( $allFormNames as $formName ) {
-			if ( !in_array( $formName, $mainForms ) ) {
-				$otherForms[] = $formName;
-			}
-		}
+
+		$otherForms = array_values( array_diff( $allFormNames, $mainForms ) );
 		return [ 'main' => $mainForms, 'other' => $otherForms ];
 	}
 

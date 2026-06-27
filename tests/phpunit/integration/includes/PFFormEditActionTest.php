@@ -199,6 +199,90 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( wfMessage( 'pf_editsource' )->text(), $links['views']['edit']['text'] );
 	}
 
+	// -----------------------------------------------------------------------
+	// classifyForms
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Helper: invoke the private static classifyForms() method via reflection.
+	 */
+	private function classifyForms( array $allFormNames, array $pagesPerForm ): array {
+		$method = new ReflectionMethod( PFFormEditAction::class, 'classifyForms' );
+		$method->setAccessible( true );
+		return $method->invoke( null, $allFormNames, $pagesPerForm );
+	}
+
+	public function testClassifyFormsExplicitConfigOverridesHeuristic(): void {
+		$this->overrideConfigValues( [
+			'PageFormsMainForms' => [ 'Person' ],
+			'PageFormsMainFormsLimit' => 5,
+		] );
+		$allForms = [ 'Organization', 'Person', 'Project' ];
+		$pagesPerForm = [ 'Organization' => 500, 'Project' => 200, 'Person' => 10 ];
+
+		$result = $this->classifyForms( $allForms, $pagesPerForm );
+
+		$this->assertSame( [ 'Person' ], $result['main'] );
+		$this->assertSame( [ 'Organization', 'Project' ], $result['other'] );
+	}
+
+	public function testClassifyFormsExplicitConfigIgnoresUnknownFormNames(): void {
+		$this->overrideConfigValues( [
+			'PageFormsMainForms' => [ 'Person', 'NonExistentForm' ],
+			'PageFormsMainFormsLimit' => 5,
+		] );
+		$allForms = [ 'Person', 'Organization' ];
+		$pagesPerForm = [ 'Organization' => 100, 'Person' => 10 ];
+
+		$result = $this->classifyForms( $allForms, $pagesPerForm );
+
+		$this->assertSame( [ 'Person' ], $result['main'] );
+		$this->assertSame( [ 'Organization' ], $result['other'] );
+	}
+
+	public function testClassifyFormsFallbackTopNByPageCount(): void {
+		$this->overrideConfigValues( [
+			'PageFormsMainForms' => [],
+			'PageFormsMainFormsLimit' => 2,
+		] );
+		$allForms = [ 'Alpha', 'Beta', 'Gamma', 'Delta' ];
+		// Already ordered DESC as the DB query returns them
+		$pagesPerForm = [ 'Beta' => 300, 'Gamma' => 200, 'Alpha' => 50, 'Delta' => 10 ];
+
+		$result = $this->classifyForms( $allForms, $pagesPerForm );
+
+		$this->assertSame( [ 'Beta', 'Gamma' ], $result['main'] );
+		$this->assertSame( [ 'Alpha', 'Delta' ], $result['other'] );
+	}
+
+	public function testClassifyFormsFallbackShowsAllAsMainWhenFewerThanLimit(): void {
+		$this->overrideConfigValues( [
+			'PageFormsMainForms' => [],
+			'PageFormsMainFormsLimit' => 5,
+		] );
+		$allForms = [ 'FormA', 'FormB' ];
+		$pagesPerForm = [ 'FormA' => 100, 'FormB' => 50 ];
+
+		$result = $this->classifyForms( $allForms, $pagesPerForm );
+
+		$this->assertSame( [ 'FormA', 'FormB' ], $result['main'] );
+		$this->assertSame( [], $result['other'] );
+	}
+
+	public function testClassifyFormsFallbackAllOtherWhenNoPagesPerForm(): void {
+		$this->overrideConfigValues( [
+			'PageFormsMainForms' => [],
+			'PageFormsMainFormsLimit' => 5,
+		] );
+		$allForms = [ 'FormA', 'FormB' ];
+		$pagesPerForm = [];
+
+		$result = $this->classifyForms( $allForms, $pagesPerForm );
+
+		$this->assertSame( [], $result['main'] );
+		$this->assertSame( [ 'FormA', 'FormB' ], $result['other'] );
+	}
+
 	public function testGetName(): void {
 		$title = Title::makeTitle( NS_MAIN, 'PFFormEditActionGetName01' );
 		$article = Article::newFromTitle( $title, RequestContext::getMain() );

@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Added
+- `$wgPageFormsMainForms` — explicitly designate which forms appear as "main forms" in the form chooser, bypassing the automatic heuristic ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
+- `$wgPageFormsMainFormsLimit` — configures the Top-N fallback: the N forms with the most associated pages are promoted to "main forms" (default: 5); replaces the old 1%-threshold that left small wikis with no main forms at all ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
+
 ### Changed
 - `PFFormEditAction`: extract `classifyForms()` from `displayFormChooser()`; rename `$popularForms` → `$mainForms`; narrow `getNumPagesPerForm()` and `printLinksToFormArray()` to `private` — preparatory refactor for [#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41)
 - Form Chooser HTML output now uses a Mustache template (`templates/FormChooser.mustache`); section labels changed from `<p>` to `<p><strong>` for correct semantics; form links rendered as inline `<span>` items with CSS-generated `·` separators (`pf-form-chooser__item + pf-form-chooser__item::before`) instead of separator `<span>` elements in HTML

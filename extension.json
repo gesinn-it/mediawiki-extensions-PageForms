@@ -720,7 +720,9 @@
 		"PageFormsAutoeditNamespaces": [ 0 ],
 		"PageFormsIgnoreTitlePattern": [],
 		"PageFormsEmbeddedTemplates": [],
-		"PageFormsEmbedQueryCacheTTL": 0
+		"PageFormsEmbedQueryCacheTTL": 0,
+		"PageFormsMainForms": [],
+		"PageFormsMainFormsLimit": 5
 	},
 	"manifest_version": 1
 }
