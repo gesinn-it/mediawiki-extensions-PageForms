@@ -277,17 +277,19 @@ class PFFormEditAction extends Action {
 		$dbr = PFUtils::getReplicaDB();
 
 		// Fetch all Project-namespace pages that carry a default-form property.
+		// Both tables are aliased so that MW's SQLPlatform resolves qualified
+		// column names consistently across all supported MW versions (1.39+).
 		$res = $dbr->select(
-			[ 'ns_page' => 'page', 'page_props' ],
-			[ 'ns_page.page_title AS ns_title', 'pp_value AS form_name' ],
+			[ 'ns_page' => 'page', 'pp' => 'page_props' ],
+			[ 'ns_page.page_title AS ns_title', 'pp.pp_value AS form_name' ],
 			[
 				'ns_page.page_namespace' => NS_PROJECT,
-				'page_props.pp_propname' => [ 'PFDefaultForm', 'SFDefaultForm' ],
+				'pp.pp_propname' => [ 'PFDefaultForm', 'SFDefaultForm' ],
 			],
 			__METHOD__,
 			[],
 			[
-				'page_props' => [ 'JOIN', 'page_props.pp_page = ns_page.page_id' ],
+				'pp' => [ 'JOIN', 'pp.pp_page = ns_page.page_id' ],
 			]
 		);
 
