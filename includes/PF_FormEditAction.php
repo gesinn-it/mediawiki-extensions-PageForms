@@ -144,6 +144,7 @@ class PFFormEditAction extends Action {
 
 	public static function displayFormChooser( $output, $title ) {
 		$output->addModules( 'ext.pageforms.main' );
+		$output->addModuleStyles( 'ext.pageforms.main.styles' );
 
 		$targetName = $title->getPrefixedText();
 		$output->setPageTitle( wfMessage( "creating", $targetName )->text() );
@@ -155,42 +156,29 @@ class PFFormEditAction extends Action {
 			return;
 		}
 
-		$output->addHTML( Html::element( 'p', null, wfMessage( 'pf-formedit-selectform' )->text() ) );
 		$pagesPerForm = self::getNumPagesPerForm();
 		[ 'main' => $mainForms, 'other' => $otherForms ] = self::classifyForms( $formNames, $pagesPerForm );
 
 		$fe = PFUtils::getSpecialPage( 'FormEdit' );
-
-		if ( count( $mainForms ) > 0 ) {
-			if ( count( $otherForms ) > 0 ) {
-				$output->addHTML( Html::element(
-					'p',
-					[],
-					wfMessage( 'pf-formedit-mainforms' )->text()
-				) );
-			}
-			$text = self::printLinksToFormArray( $mainForms, $targetName, $fe );
-			$output->addHTML( Html::rawElement( 'div', [ 'class' => 'infoMessage mainForms' ], $text ) );
-		}
-
-		if ( count( $otherForms ) > 0 ) {
-			if ( count( $mainForms ) > 0 ) {
-				$output->addHTML( Html::element(
-					'p',
-					[],
-					wfMessage( 'pf-formedit-otherforms' )->text()
-				) );
-			}
-			$text = self::printLinksToFormArray( $otherForms, $targetName, $fe );
-			$output->addHTML( Html::rawElement( 'div', [ 'class' => 'infoMessage otherForms' ], $text ) );
-		}
+		$hasMain = count( $mainForms ) > 0;
+		$hasOther = count( $otherForms ) > 0;
 
 		$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
-		$linkParams = [ 'action' => 'edit', 'redlink' => true ];
 		$noFormLink = $linkRenderer->makeKnownLink(
-			$title, wfMessage( 'pf-formedit-donotuseform' )->escaped(), [], $linkParams
+			$title, wfMessage( 'pf-formedit-donotuseform' )->escaped(), [], [ 'action' => 'edit', 'redlink' => true ]
 		);
-		$output->addHTML( Html::rawElement( 'p', null, $noFormLink ) );
+
+		$templateParser = new TemplateParser( __DIR__ . '/../templates' );
+		$output->addHTML( $templateParser->processTemplate( 'FormChooser', [
+			'intro'          => wfMessage( 'pf-formedit-selectform' )->text(),
+			'hasMainForms'   => $hasMain,
+			'mainFormsLabel' => ( $hasMain && $hasOther ) ? wfMessage( 'pf-formedit-mainforms' )->text() : '',
+			'mainForms'      => self::buildFormLinkData( $mainForms, $targetName, $fe ),
+			'hasOtherForms'  => $hasOther,
+			'otherFormsLabel' => ( $hasMain && $hasOther ) ? wfMessage( 'pf-formedit-otherforms' )->text() : '',
+			'otherForms'     => self::buildFormLinkData( $otherForms, $targetName, $fe ),
+			'noFormLink'     => $noFormLink,
+		] ) );
 	}
 
 	/**
@@ -262,22 +250,24 @@ class PFFormEditAction extends Action {
 		return $pagesPerForm;
 	}
 
-	private static function printLinksToFormArray( $formNames, $targetName, $fe ) {
-		$text = '';
+	/**
+	 * @param string[] $formNames
+	 * @param string $targetName
+	 * @param SpecialPage $fe
+	 * @return array{href: string, name: string}[]
+	 */
+	private static function buildFormLinkData( array $formNames, string $targetName, $fe ): array {
+		$items = [];
 		foreach ( $formNames as $i => $formName ) {
-			if ( $i > 0 ) {
-				$text .= ' <span class="pageforms-separator">&middot;</span> ';
-			}
-
 			// Special handling for forms whose name contains a slash.
 			if ( str_contains( $formName, '/' ) ) {
-				$url = $fe->getPageTitle()->getLocalURL( [ 'form' => $formName, 'target' => $targetName ] );
+				$href = $fe->getPageTitle()->getLocalURL( [ 'form' => $formName, 'target' => $targetName ] );
 			} else {
-				$url = $fe->getPageTitle( "$formName/$targetName" )->getLocalURL();
+				$href = $fe->getPageTitle( "$formName/$targetName" )->getLocalURL();
 			}
-			$text .= Html::element( 'a', [ 'href' => $url ], $formName );
+			$items[] = [ 'href' => $href, 'name' => $formName, 'separator' => $i > 0 ];
 		}
-		return $text;
+		return $items;
 	}
 
 	/**

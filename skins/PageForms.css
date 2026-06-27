@@ -438,3 +438,17 @@ span#wpWatchthis {
 		background-size: 14px;
 	}
 }
+
+/* Form Chooser */
+.pf-form-chooser__section {
+	margin-bottom: 1em;
+}
+
+.pf-form-chooser__item {
+	display: inline-block;
+}
+
+.pf-form-chooser__separator {
+	display: inline-block;
+	margin: 0 0.3em;
+}

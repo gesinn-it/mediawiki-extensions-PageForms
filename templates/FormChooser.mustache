@@ -1,0 +1,16 @@
+<div class="pf-form-chooser">
+	<p class="pf-form-chooser__intro">{{intro}}</p>
+	{{#hasMainForms}}
+	<div class="pf-form-chooser__section pf-form-chooser__section--main">
+		{{#mainFormsLabel}}<div class="pf-form-chooser__section-label"><strong>{{mainFormsLabel}}</strong></div>{{/mainFormsLabel}}
+		<div class="pf-form-chooser__list">{{#mainForms}}{{#separator}}<span class="pf-form-chooser__separator" aria-hidden="true"> · </span>{{/separator}}<span class="pf-form-chooser__item"><a href="{{{href}}}">{{name}}</a></span>{{/mainForms}}</div>
+	</div>
+	{{/hasMainForms}}
+	{{#hasOtherForms}}
+	<div class="pf-form-chooser__section pf-form-chooser__section--other">
+		{{#otherFormsLabel}}<div class="pf-form-chooser__section-label"><strong>{{otherFormsLabel}}</strong></div>{{/otherFormsLabel}}
+		<div class="pf-form-chooser__list">{{#otherForms}}{{#separator}}<span class="pf-form-chooser__separator" aria-hidden="true"> · </span>{{/separator}}<span class="pf-form-chooser__item"><a href="{{{href}}}">{{name}}</a></span>{{/otherForms}}</div>
+	</div>
+	{{/hasOtherForms}}
+	<p class="pf-form-chooser__no-form">{{{noFormLink}}}</p>
+</div>

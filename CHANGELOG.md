@@ -8,6 +8,11 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ### Changed
 - `PFFormEditAction`: extract `classifyForms()` from `displayFormChooser()`; rename `$popularForms` → `$mainForms`; narrow `getNumPagesPerForm()` and `printLinksToFormArray()` to `private` — preparatory refactor for [#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41)
+- Form Chooser HTML output now uses a Mustache template (`templates/FormChooser.mustache`); section labels changed from `<p>` to `<p><strong>` for correct semantics; form links rendered as inline `<span>` items with CSS-generated `·` separators (`pf-form-chooser__item + pf-form-chooser__item::before`) instead of separator `<span>` elements in HTML
+
+### Deprecated
+- CSS classes `infoMessage`, `mainForms`, `otherForms` on form chooser section divs are no longer emitted; use `pf-form-chooser__section`, `pf-form-chooser__section--main`, `pf-form-chooser__section--other` instead
+- CSS class `pageforms-separator` on form link separators is no longer emitted; separators are now rendered via `pf-form-chooser__separator`
 
 ## [2.0.1] - 2026-06-25
 
