@@ -336,7 +336,12 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 			$title->getNamespace()
 		);
 		$pageId = $title->getArticleID( IDBAccessObject::READ_LATEST );
-		$dbw = $this->getServiceContainer()->getConnectionProvider()->getPrimaryDatabase();
+		if ( version_compare( MW_VERSION, '1.41', '>=' ) ) {
+			$dbw = $this->getServiceContainer()->getConnectionProvider()->getPrimaryDatabase();
+		} else {
+			// MW < 1.41: getConnectionProvider() did not exist; use getDBLoadBalancer()
+			$dbw = $this->getServiceContainer()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
+		}
 		foreach ( $props as $propName => $propValue ) {
 			$dbw->upsert(
 				'page_props',
