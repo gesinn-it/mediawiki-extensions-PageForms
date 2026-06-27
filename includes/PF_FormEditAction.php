@@ -208,18 +208,33 @@ class PFFormEditAction extends Action {
 	}
 
 	/**
-	 * Find the number of pages on the wiki that use each form, by getting
-	 * all the categories that have a #default_form call pointing to a
-	 * particular form, and adding up the number of pages in each such
-	 * category.
-	 * This approach doesn't count #default_form calls for namespaces or
-	 * individual pages, but that doesn't seem like a big deal, because,
-	 * when creating a page in a namespace that has a form, this interface
-	 * probably won't get called anyway; and #default_form calls for
-	 * individual pages are (hopefully) pretty rare.
-	 * @return int[]
+	 * Find the number of pages on the wiki that use each form.
+	 *
+	 * Counts both category-based and namespace-based #default_form assignments
+	 * and merges the results. Individual-page assignments are not counted.
+	 *
+	 * @return int[] form name => page count, sorted by count DESC
 	 */
 	private static function getNumPagesPerForm(): array {
+		$pagesPerForm = self::getNumPagesPerFormFromCategories();
+
+		foreach ( self::getNumPagesPerFormFromNamespaces() as $formName => $count ) {
+			$pagesPerForm[$formName] = ( $pagesPerForm[$formName] ?? 0 ) + $count;
+		}
+
+		arsort( $pagesPerForm );
+		return $pagesPerForm;
+	}
+
+	/**
+	 * Count pages per form via category-based #default_form assignments.
+	 *
+	 * Sums cat_pages for all categories whose category page carries a
+	 * PFDefaultForm / SFDefaultForm page property.
+	 *
+	 * @return int[]
+	 */
+	private static function getNumPagesPerFormFromCategories(): array {
 		$dbr = PFUtils::getReplicaDB();
 		$res = $dbr->select(
 			[ 'category', 'page', 'page_props' ],
@@ -244,8 +259,65 @@ class PFFormEditAction extends Action {
 
 		$pagesPerForm = [];
 		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
-			$pagesPerForm[$row['pp_value']] = $row['total_pages'];
+			$pagesPerForm[$row['pp_value']] = (int)$row['total_pages'];
 		}
+		return $pagesPerForm;
+	}
+
+	/**
+	 * Count pages per form via namespace-based #default_form assignments.
+	 *
+	 * Namespace default forms are stored as PFDefaultForm page properties on
+	 * Project-namespace pages named after each namespace (e.g. "Project:User").
+	 * NS_MAIN uses the localised "pf_blank_namespace" message as its page title.
+	 *
+	 * @return int[]
+	 */
+	private static function getNumPagesPerFormFromNamespaces(): array {
+		$dbr = PFUtils::getReplicaDB();
+
+		// Fetch all Project-namespace pages that carry a default-form property.
+		$res = $dbr->select(
+			[ 'ns_page' => 'page', 'page_props' ],
+			[ 'ns_page.page_title AS ns_title', 'pp_value AS form_name' ],
+			[
+				'ns_page.page_namespace' => NS_PROJECT,
+				'page_props.pp_propname' => [ 'PFDefaultForm', 'SFDefaultForm' ],
+			],
+			__METHOD__,
+			[],
+			[
+				'page_props' => [ 'JOIN', 'page_props.pp_page = ns_page.page_id' ],
+			]
+		);
+
+		// Build label→namespace index reverse map once.
+		$namespacesByLabel = array_flip( PFUtils::getContLang()->getNamespaces() );
+		$blankLabel = wfMessage( 'pf_blank_namespace' )->inContentLanguage()->text();
+
+		$pagesPerForm = [];
+		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
+			$nsTitle = str_replace( '_', ' ', $row['ns_title'] );
+			$formName = $row['form_name'];
+
+			if ( $nsTitle === $blankLabel ) {
+				$namespaceIndex = NS_MAIN;
+			} elseif ( isset( $namespacesByLabel[$nsTitle] ) ) {
+				$namespaceIndex = $namespacesByLabel[$nsTitle];
+			} else {
+				continue;
+			}
+
+			$pageCount = (int)$dbr->selectField(
+				'page',
+				'COUNT(*)',
+				[ 'page_namespace' => $namespaceIndex, 'page_is_redirect' => 0 ],
+				__METHOD__
+			);
+
+			$pagesPerForm[$formName] = ( $pagesPerForm[$formName] ?? 0 ) + $pageCount;
+		}
+
 		return $pagesPerForm;
 	}
 

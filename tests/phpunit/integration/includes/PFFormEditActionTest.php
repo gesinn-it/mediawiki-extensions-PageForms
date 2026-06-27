@@ -283,6 +283,72 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [ 'FormA', 'FormB' ], $result['other'] );
 	}
 
+	// -----------------------------------------------------------------------
+	// getNumPagesPerForm — namespace-based #default_form
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Helper: invoke private static getNumPagesPerForm() via reflection.
+	 *
+	 * @return int[]
+	 */
+	private function getNumPagesPerForm(): array {
+		$method = new ReflectionMethod( PFFormEditAction::class, 'getNumPagesPerForm' );
+		$method->setAccessible( true );
+		return $method->invoke( null );
+	}
+
+	public function testGetNumPagesPerFormCountsNamespaceDefaultForms(): void {
+		// Simulate a namespace-based #default_form assignment:
+		// Create a Project-namespace page whose title is the content-language
+		// name of NS_USER ("User"), with a PFDefaultForm page property.
+		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_USER];
+		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
+
+		// Create the namespace-definition page with a #default_form property.
+		$nsPage = $this->getExistingTestPageWithProps(
+			$nsPageTitle,
+			[ 'PFDefaultForm' => 'NSUserForm01' ]
+		);
+
+		// Create pages in NS_USER so they are counted.
+		$this->editPage( 'PFFormEditActionNSUser01', 'content', '', NS_USER );
+		$this->editPage( 'PFFormEditActionNSUser02', 'content', '', NS_USER );
+
+		$pagesPerForm = $this->getNumPagesPerForm();
+
+		$this->assertArrayHasKey( 'NSUserForm01', $pagesPerForm );
+		$this->assertGreaterThanOrEqual( 2, $pagesPerForm['NSUserForm01'] );
+	}
+
+	/**
+	 * Insert a page at an exact Title and set page_props on it.
+	 *
+	 * @param Title $title
+	 * @param array<string,string> $props
+	 * @return Title
+	 */
+	private function getExistingTestPageWithProps( Title $title, array $props ): Title {
+		$status = $this->editPage(
+			$title->getText(),
+			'Namespace default form page.',
+			'',
+			$title->getNamespace()
+		);
+		$pageId = $title->getArticleID( IDBAccessObject::READ_LATEST );
+		$dbw = $this->getServiceContainer()->getConnectionProvider()->getPrimaryDatabase();
+		foreach ( $props as $propName => $propValue ) {
+			$dbw->upsert(
+				'page_props',
+				[ 'pp_page' => $pageId, 'pp_propname' => $propName, 'pp_value' => $propValue ],
+				[ [ 'pp_page', 'pp_propname' ] ],
+				[ 'pp_value' => $propValue ],
+				__METHOD__
+			);
+		}
+		return $title;
+	}
+
 	public function testGetName(): void {
 		$title = Title::makeTitle( NS_MAIN, 'PFFormEditActionGetName01' );
 		$article = Article::newFromTitle( $title, RequestContext::getMain() );
