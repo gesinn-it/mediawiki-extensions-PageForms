@@ -3,8 +3,12 @@ require('../../libs/PageForms.js');
 QUnit.module('window.validateAll', {
 	beforeEach: (assert) => {
 		mw.msg = (msg, val) => {
-			if ( msg === 'pf_blank_error' ) { return 'the error message'; }
-			if ( msg === 'pf_not_unique_error' ) { return 'muss eindeutig sein'; }
+			if ( msg === 'pf_blank_error' ) {
+				return 'the error message';
+			}
+			if ( msg === 'pf_not_unique_error' ) {
+				return 'muss eindeutig sein';
+			}
 			return null;
 		};
 		mw.config = { get: (key) => key === 'wgPageFormsScriptPath' ? 'path' : null }
