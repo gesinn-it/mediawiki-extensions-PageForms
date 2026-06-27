@@ -15,6 +15,20 @@ behaviour, removed behaviour), update the relevant pages in `docs/` in
 the same commit. Do not leave documentation describing behaviour that no
 longer exists.
 
+## Updating submodules
+
+Always use the Makefile target to update submodules — never run
+`git submodule update` directly:
+
+``` console
+make update-submodules
+```
+
+This updates all submodules, refreshes `docs/.submodule-ref` (a sentinel
+file that triggers the `build-docs` CI workflow — GitHub’s `paths`
+filter does not fire on bare submodule pointer changes), stages
+everything, and commits in one step.
+
 # Local Development Workflow (volume mount)
 
 This repository uses a `build/docker-compose.override.yml`

@@ -11,7 +11,8 @@ Load the following reference files before starting work:
 - `references/03-php-phan.md`
 - `references/04-mediawiki-general.md`
 - `references/05-mediawiki-php.md`
-- `references/06-mediawiki-css.md`
-- `references/07-mediawiki-install-deps.md`
-- `references/08-mediawiki-run-tests-phpunit.md`
-- `references/09-mediawiki-run-pre-commit.md`
+- `references/06-mediawiki-html-output.md`
+- `references/07-mediawiki-css.md`
+- `references/08-mediawiki-install-deps.md`
+- `references/09-mediawiki-run-tests-phpunit.md`
+- `references/10-mediawiki-run-pre-commit.md`
