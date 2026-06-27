@@ -198,6 +198,84 @@ public function testMyFunc( string $wikitext, string $expected ): void {
 Annotate the class with `@group Database` — the parser service requires
 the database to be initialised even when no pages are written.
 
+**Testing Action classes**
+
+Action tests (subclasses of `Action`) always extend
+`MediaWikiIntegrationTestCase` and carry `@group Database` — even when
+no pages are written — because `Action::__construct()` requires a real
+`Article` which resolves through the service container.
+
+Construct the action under test through a private factory method, not
+inline in `setUp()`:
+
+``` php
+private function newAction( Title $title, array $requestParams = [] ): MyAction {
+    $context = new DerivativeContext( RequestContext::getMain() );
+    $context->setTitle( $title );
+    $context->setRequest( new FauxRequest( $requestParams ) );
+    $article = Article::newFromTitle( $title, $context );
+    return new MyAction( $article, $context );
+}
+```
+
+Use `FauxRequest` for GET and POST simulation; pass params as the first
+argument and set `true` as the second argument for POST:
+
+``` php
+new FauxRequest( [ 'action' => 'myaction' ] )         // GET
+new FauxRequest( [ 'token' => '...', 'from' => '...' ], true )  // POST
+```
+
+When the action under test calls
+`MediaWikiServices::getInstance()→getPermissionManager()` (a service
+lookup, not constructor-injected), override it with
+`$this→setService()`:
+
+``` php
+$permManager = $this->createMock( PermissionManager::class );
+$permManager->method( 'userCan' )->with( 'edit', $user, $title )->willReturn( false );
+$this->setService( 'PermissionManager', $permManager );
+```
+
+For static methods that accept an `IContextSource`, mock the context
+directly rather than building a full `DerivativeContext`:
+
+``` php
+$context = $this->createMock( IContextSource::class );
+$context->method( 'getTitle' )->willReturn( $title );
+$context->method( 'getUser' )->willReturn( $user );
+$context->method( 'getRequest' )->willReturn( new FauxRequest( $params ) );
+```
+
+Override config globals set via `global $wgFoo` with
+`$this→setMwGlobals()` in `setUp()`. Reset to the default before each
+test so branches under test are explicit:
+
+``` php
+protected function setUp(): void {
+    parent::setUp();
+    $this->setMwGlobals( 'wgMyExtensionFlag', false );
+}
+
+public function testBranchEnabled(): void {
+    $this->setMwGlobals( 'wgMyExtensionFlag', true );
+    // ...
+}
+```
+
+Use `overrideConfigValues()` instead when the extension reads config
+through the MW config system (registered in `extension.json` under
+`config` and accessed via
+`$this→getServiceContainer()→getMainConfig()→get()`). `setMwGlobals()`
+and `overrideConfigValues()` are not interchangeable — use whichever
+matches how the production code reads the value.
+
+Assert on tab order by comparing `array_keys()`:
+
+``` php
+$this->assertSame( [ 'view', 'formedit', 'edit', 'history' ], array_keys( $links['views'] ) );
+```
+
 **Test fixtures**
 
 - Use `setUp()` and `tearDown()` for test-scoped fixtures

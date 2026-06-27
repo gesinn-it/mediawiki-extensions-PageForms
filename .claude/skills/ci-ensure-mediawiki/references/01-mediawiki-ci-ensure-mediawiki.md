@@ -145,10 +145,31 @@ Required scripts in `composer.json`:
         "minus-x check ."
     ],
     "phpcs": "phpcs -sp",
-    "phpunit": "php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testdox",
-    "phpunit-coverage": "php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testdox --coverage-text --coverage-html coverage/php --coverage-clover coverage/php/coverage.xml"
+    "phpunit": [
+        "@putenv Composer\\Config::disableProcessTimeout",
+        "php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testsuite extension-<extension-id>-unit --testdox",
+        "php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testsuite extension-<extension-id>-integration --testdox"
+    ],
+    "phpunit-coverage": [
+        "@putenv Composer\\Config::disableProcessTimeout",
+        "php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testsuite extension-<extension-id>-unit --testdox",
+        "php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testsuite extension-<extension-id>-integration --testdox --coverage-text --coverage-html coverage/php --coverage-clover coverage/php/coverage.xml"
+    ]
 }
 ```
+
+<div class="note">
+
+Unit and integration suites must run as **separate PHP processes**.
+Running both suites in one process causes MW-internal caches (held in
+static variables that survive SMW store resets) to accumulate several
+gigabytes of RSS, which triggers the Linux OOM-killer (exit 137) before
+any test output appears. `disableProcessTimeout` prevents Composer’s
+default 300 s watchdog from killing long integration runs on slow CI
+runners. Replace `<extension-id>` with the lowercase extension
+identifier used in `phpunit.xml.dist` (e.g. `page-forms`).
+
+</div>
 
 <div class="note">
 
