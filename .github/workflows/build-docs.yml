@@ -7,6 +7,7 @@ on:
       - docs/CONTRIBUTING-source.adoc
       - AGENTS-source.adoc
       - docs/attributes.adoc
+      - docs/.submodule-ref
       - docs/gesinn-it-docs-master-pub
       - docs/gesinn-it-docs-master-pub/**
     branches:

@@ -19,6 +19,21 @@ When making functional changes to the code (new behaviour, changed behaviour, re
 update the relevant pages in `docs/` in the same commit.
 Do not leave documentation describing behaviour that no longer exists.
 
+=== Updating the `gesinn-it-docs` submodule
+
+After updating the `docs/gesinn-it-docs-master-pub` submodule, you MUST also update
+`docs/.submodule-ref` to the new commit hash.
+This is a plain text file containing the submodule commit SHA — it exists solely to trigger
+the `build-docs` GitHub Actions workflow, because GitHub's `paths` filter does not fire
+on submodule pointer changes.
+
+[source,console]
+----
+git submodule update --remote docs/gesinn-it-docs-master-pub
+git submodule status | grep gesinn-it-docs | awk '{print $1}' > docs/.submodule-ref
+git add docs/gesinn-it-docs-master-pub docs/.submodule-ref
+----
+
 == Local Development Workflow (volume mount)
 
 This repository uses a `build/docker-compose.override.yml` (developer-local, git-ignored)
