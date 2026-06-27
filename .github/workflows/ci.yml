@@ -6,11 +6,13 @@ on:
     paths-ignore:
       - '**/*.adoc'
       - '.github/copilot-instructions.md'
+      - 'docs/.submodule-ref'
   pull_request:
     branches: [ master ]
     paths-ignore:
       - '**/*.adoc'
       - '.github/copilot-instructions.md'
+      - 'docs/.submodule-ref'
   workflow_dispatch:
 
 jobs:
