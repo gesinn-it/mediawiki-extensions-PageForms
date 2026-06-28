@@ -940,7 +940,7 @@ END;
 						$input_name,
 						$tag_components,
 						$form_is_disabled,
-						$form_submitted,
+						(bool)$form_submitted,
 						$request,
 						$parser,
 						$this->mPageTitle,

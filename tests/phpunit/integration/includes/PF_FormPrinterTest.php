@@ -948,4 +948,26 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		return $mockTitle;
 	}
 
+	public function testFormHtmlWithNullFormSubmittedDoesNotThrow(): void {
+		// PF_Hooks::showFormPreview() calls formHTML() with null as $form_submitted.
+		// The call must not throw a TypeError when standard inputs are present.
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$form_def = "{{{standard input|minor edit}}}";
+
+		[ $form_text ] = $wgPageFormsFormPrinter->formHTML(
+			$form_def,
+			null,
+			false,
+			null,
+			null,
+			"TestPage",
+			null
+		);
+
+		$this->assertStringContainsString( 'wpMinoredit', $form_text );
+	}
+
 }
