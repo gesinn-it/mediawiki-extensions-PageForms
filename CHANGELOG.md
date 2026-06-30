@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - `$wgPageFormsMainFormsLimit` — configures the Top-N fallback: the N forms with the most associated pages are promoted to "main forms" (default: 5); replaces the old 1%-threshold that left small wikis with no main forms at all ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
 
 ### Fixed
+- `PFValuesUtils`: wiki-sourced autocomplete fields (category, namespace, property, concept) now use local mode when the source count is at or below `$wgPageFormsMaxLocalAutocompleteValues`; previously all such fields were unconditionally forced to remote mode, preventing dropdown buttons from showing values without user input on small datasets; fields with `mapping template` / `mapping property` args or that exceed the threshold remain remote
 - `PFFormPrinter`: cast `$form_submitted` to `bool` before passing it to `StandardInputHtmlBuilder::buildHtml()`; `PF_Hooks::showFormPreview()` passes `null`, which caused a `TypeError` under `strict_types=1` when saving a form page via the API (e.g. mwbot)
 - Form chooser Top-N fallback now counts namespace-based `#default_form` assignments in addition to category-based ones; previously only category pages were counted, so wikis that assign forms via namespace-level `#default_form` saw the fallback pick forms alphabetically rather than by actual usage ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
 
