@@ -1,0 +1,54 @@
+{
+	"description": "form input combobox with values from category uses local autocomplete when count is below threshold",
+	"setup": [
+		{
+			"page": "PFTestVFCatPage01",
+			"contents": "[[Category:PFTestVFCat01]]"
+		},
+		{
+			"page": "PFTestVFCatPage02",
+			"contents": "[[Category:PFTestVFCat01]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFCatForm01",
+			"contents": "{{{field|Field|input type=combobox|values from category=PFTestVFCat01}}}"
+		}
+	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
+	"tests": [
+		{
+			"type": "special",
+			"about": "Combobox with values from category below threshold renders without autocompletedatatype (local mode)",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFCatForm01/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"autocompletesettings=\"PFTestVFCat01\""
+				],
+				"to-not-contain": [
+					"autocompletedatatype=\"category\""
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en",
+		"wgPageFormsMaxLocalAutocompleteValues": 50,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

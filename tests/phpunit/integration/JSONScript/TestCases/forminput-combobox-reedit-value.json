@@ -53,11 +53,11 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"<option selected=\"\">Project Planning</option>",
-					"autocompletedatatype=\"property\""
+					"<option selected=\"\">Project Planning</option>"
 				],
 				"not-to-contain": [
-					"<option selected=\"\" value=\"2\">Project Planning</option>"
+					"<option selected=\"\" value=\"2\">Project Planning</option>",
+					"autocompletedatatype=\"property\""
 				]
 			}
 		}

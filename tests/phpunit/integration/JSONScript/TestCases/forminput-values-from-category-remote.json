@@ -1,0 +1,48 @@
+{
+	"description": "form input combobox with values from category uses remote autocomplete when threshold is zero",
+	"setup": [
+		{
+			"page": "PFTestVFCatPage03",
+			"contents": "[[Category:PFTestVFCat02]]"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFCatForm02",
+			"contents": "{{{field|Field|input type=combobox|values from category=PFTestVFCat02}}}"
+		}
+	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
+	"tests": [
+		{
+			"type": "special",
+			"about": "Combobox with values from category above threshold renders with autocompletedatatype=category (remote mode)",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFCatForm02/01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"autocompletesettings=\"PFTestVFCat02\"",
+					"autocompletedatatype=\"category\""
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en",
+		"wgPageFormsMaxLocalAutocompleteValues": 0,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

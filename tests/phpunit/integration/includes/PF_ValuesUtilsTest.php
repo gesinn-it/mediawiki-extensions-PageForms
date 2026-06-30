@@ -74,9 +74,12 @@ class PFValuesUtilsTest extends TestCase {
 	/**
 	 * @covers \PFValuesUtils::getRemoteDataTypeAndPossiblySetAutocompleteValues
 	 */
-	public function testGetRemoteDataTypeAndPossiblySetAutocompleteValuesReturnsRemoteForCategory() {
-		// category is always fetched remotely via the pfautocomplete API regardless
-		// of possible_values or $wgPageFormsMaxLocalAutocompleteValues.
+	public function testGetRemoteDataTypeAndPossiblySetAutocompleteValuesReturnsRemoteForCategoryWhenSmwAbsent() {
+		// When SMW is not installed, getSourceCount() returns null → always remote.
+		if ( class_exists( '\SMW\StoreFactory' ) ) {
+			$this->markTestSkipped( 'SMW is installed; this test requires SMW to be absent.' );
+		}
+
 		$fieldArgs = [
 			'possible_values' => [
 				'FooAlpha' => 'Paris',

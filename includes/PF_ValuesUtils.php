@@ -774,8 +774,122 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		return [ $autocompleteFieldType, $autocompletionSource ];
 	}
 
+	/**
+	 * Build an SMW query Description for a cheap MODE_COUNT query.
+	 *
+	 * Returns null when the type is unknown or required data (e.g. title) is
+	 * missing; callers treat null as "count unavailable → always remote".
+	 *
+	 * @param string $autocompleteFieldType 'category'|'namespace'|'property'|'concept'
+	 * @param string $autocompletionSource The source name/value from the form field
+	 * @return \SMW\Query\Language\Description|null
+	 */
+	private static function buildCountDescription( string $autocompleteFieldType, string $autocompletionSource ) {
+		switch ( $autocompleteFieldType ) {
+			case 'category':
+				$categoryTitle = Title::newFromText( $autocompletionSource, NS_CATEGORY );
+				if ( $categoryTitle === null ) {
+					return null;
+				}
+				return new \SMW\Query\Language\ClassDescription(
+					\SMW\DIWikiPage::newFromTitle( $categoryTitle )
+				);
+
+			case 'namespace':
+				global $wgLanguageCode;
+				$namespaceNames = explode( ',', $autocompletionSource );
+				$allNamespaces = PFUtils::getContLang()->getNamespaces();
+				$allEnglishNamespaces = [];
+				if ( $wgLanguageCode !== 'en' ) {
+					$allEnglishNamespaces = MediaWikiServices::getInstance()
+						->getLanguageFactory()->getLanguage( 'en' )->getNamespaces();
+				}
+				$nsDescriptions = [];
+				foreach ( $namespaceNames as $namespaceName ) {
+					$namespaceName = self::standardizeNamespace( $namespaceName );
+					if ( $namespaceName === 'Main' || $namespaceName === 'main' ) {
+						$namespaceName = '';
+					}
+					$nsId = null;
+					foreach ( $allNamespaces as $code => $name ) {
+						if ( $name === $namespaceName ) {
+							$nsId = $code;
+							break;
+						}
+					}
+					if ( $nsId === null ) {
+						foreach ( $allEnglishNamespaces as $code => $name ) {
+							if ( $name === $namespaceName ) {
+								$nsId = $code;
+								break;
+							}
+						}
+					}
+					if ( $nsId === null ) {
+						return null;
+					}
+					$nsDescriptions[] = new \SMW\Query\Language\NamespaceDescription( $nsId );
+				}
+				if ( count( $nsDescriptions ) === 1 ) {
+					return $nsDescriptions[0];
+				}
+				return new \SMW\Query\Language\Disjunction( $nsDescriptions );
+
+			case 'property':
+				return new \SMW\Query\Language\SomeProperty(
+					new \SMW\DIProperty( $autocompletionSource ),
+					new \SMW\Query\Language\ThingDescription()
+				);
+
+			case 'concept':
+				$conceptTitle = Title::makeTitleSafe( SMW_NS_CONCEPT, $autocompletionSource );
+				if ( $conceptTitle === null ) {
+					return null;
+				}
+				return new \SMW\Query\Language\ConceptDescription(
+					\SMW\DIWikiPage::newFromTitle( $conceptTitle )
+				);
+
+			default:
+				return null;
+		}
+	}
+
+	/**
+	 * Return a cheap count of autocomplete values for wiki-sourced types via
+	 * SMWQuery::MODE_COUNT (single DB row fetch, no titles loaded).
+	 *
+	 * Returns null when SMW is unavailable or the count cannot be determined;
+	 * callers must treat null as "always remote".
+	 *
+	 * @param string $autocompleteFieldType
+	 * @param string $autocompletionSource
+	 * @return int|null
+	 */
+	private static function getSourceCount( string $autocompleteFieldType, string $autocompletionSource ): ?int {
+		$store = PFUtils::getSMWStore();
+		if ( $store === null ) {
+			return null;
+		}
+		try {
+			$desc = self::buildCountDescription( $autocompleteFieldType, $autocompletionSource );
+			if ( $desc === null ) {
+				return null;
+			}
+			$query = new SMWQuery( $desc );
+			$query->querymode = SMWQuery::MODE_COUNT;
+			$result = $store->getQueryResult( $query );
+			return $result instanceof \SMW\Query\QueryResult
+				? (int)$result->getCountValue()
+				: null;
+		} catch ( \Exception ) {
+			return null;
+		}
+	}
+
 	public static function getRemoteDataTypeAndPossiblySetAutocompleteValues(
-		$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings
+		$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings,
+		bool $forceRemote = false
 	) {
 		global $wgPageFormsAutocompleteValues;
 
@@ -788,17 +902,38 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			return null;
 		}
 
-		// Wiki-sourced types (concept, category, namespace, property) are always
-		// fetched remotely via the pfautocomplete API. Pre-loading them on page
-		// render is unreliable because their size is unbounded: applying the
-		// autocomplete-values cap before PHP substring filtering silently drops
-		// matching pages beyond the limit. Remote autocompletion avoids this
-		// entirely — the API receives the substring and applies the limit to
-		// already-filtered results. $wgPageFormsMaxLocalAutocompleteValues is
-		// intentionally not consulted for these types.
-		$alwaysRemoteTypes = [ 'concept', 'category', 'namespace', 'property' ];
-		if ( in_array( $autocompleteFieldType, $alwaysRemoteTypes, true ) ) {
-			return $autocompleteFieldType;
+		// For wiki-sourced types, do a cheap MODE_COUNT query to decide between
+		// local and remote autocompletion. If the count is at or below the local
+		// threshold, pre-load values into wgPageFormsAutocompleteValues so the
+		// dropdown button shows all values without the user having to type.
+		// When SMW is unavailable or the count cannot be determined, fall back to
+		// always-remote (safe, same as the previous unconditional behaviour).
+		//
+		// Exceptions that skip the count and stay remote:
+		// - $forceRemote: caller requires remote (e.g. FormLink target-input where
+		//   no values are pre-loaded into the form).
+		// - possible_values is a string-keyed (canonical→display) map: the remote
+		//   type must be preserved so PF_ComboBoxInput writes the canonical title
+		//   into the option's value attribute for DisplayTitle support.
+		$countableTypes = [ 'concept', 'category', 'namespace', 'property' ];
+		if ( in_array( $autocompleteFieldType, $countableTypes, true ) ) {
+			// Stay remote when a mapping template/property is active: PF_ComboBoxInput
+			// encodes the canonical title in the <option value> attribute so the JS can
+			// bootstrap its DisplayTitle↔canonical maps from the DOM without an AJAX
+			// round-trip.  wgPageFormsUseDisplayTitle also produces a string-keyed
+			// possible_values map, but _fetchStaticValues() handles that correctly, so
+			// we do NOT force remote for that case.
+			$hasMappingArg = array_key_exists( 'mapping template', $field_args )
+				|| array_key_exists( 'mapping property', $field_args );
+			if ( $forceRemote || $hasMappingArg ) {
+				return $autocompleteFieldType;
+			}
+			global $wgPageFormsMaxLocalAutocompleteValues;
+			$count = self::getSourceCount( $autocompleteFieldType, $autocompletionSource );
+			if ( $count === null || $count > $wgPageFormsMaxLocalAutocompleteValues ) {
+				return $autocompleteFieldType;
+			}
+			// count <= threshold: fall through to load values locally below
 		}
 
 		if ( array_key_exists( 'possible_values', $field_args ) &&
@@ -857,9 +992,10 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 	 *
 	 * @param array $field_args
 	 * @param bool $is_list
+	 * @param bool $forceRemote Skip the count check and always return the remote data type
 	 * @return string[]
 	 */
-	public static function setAutocompleteValues( $field_args, $is_list ) {
+	public static function setAutocompleteValues( $field_args, $is_list, bool $forceRemote = false ) {
 		[ $autocompleteFieldType, $autocompletionSource ] =
 			self::getAutocompletionTypeAndSource( $field_args );
 		$autocompleteSettings = $autocompletionSource;
@@ -876,7 +1012,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		}
 
 		$remoteDataType = self::getRemoteDataTypeAndPossiblySetAutocompleteValues(
-			$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings
+			$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings, $forceRemote
 		);
 		return [ $autocompleteSettings, $remoteDataType, $delimiter ];
 	}

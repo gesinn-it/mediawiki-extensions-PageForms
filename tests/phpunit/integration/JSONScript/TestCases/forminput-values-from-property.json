@@ -38,7 +38,7 @@
 	"tests": [
 		{
 			"type": "special",
-			"about": "Combobox with values from property sets autocompletesettings to the property name",
+			"about": "Combobox with values from property uses local autocomplete when count is below threshold",
 			"special-page": {
 				"page": "FormEdit",
 				"query-parameters": "PFTestVFForm01/01",
@@ -46,14 +46,16 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"autocompletesettings=\"PFTestVFProp01\"",
+					"autocompletesettings=\"PFTestVFProp01\""
+				],
+				"to-not-contain": [
 					"autocompletedatatype=\"property\""
 				]
 			}
 		},
 		{
 			"type": "special",
-			"about": "Tokens with values from property sets autocompletesettings to the property name",
+			"about": "Tokens with values from property uses local autocomplete when count is below threshold",
 			"special-page": {
 				"page": "FormEdit",
 				"query-parameters": "PFTestVFForm02/01",
@@ -61,7 +63,9 @@
 			},
 			"assert-output": {
 				"to-contain": [
-					"autocompletesettings=\"PFTestVFProp02,list",
+					"autocompletesettings=\"PFTestVFProp02,list"
+				],
+				"to-not-contain": [
 					"autocompletedatatype=\"property\""
 				]
 			}

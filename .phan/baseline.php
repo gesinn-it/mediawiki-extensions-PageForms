@@ -111,11 +111,13 @@ return [
         'includes/PF_ValuesUtils.php' => [
             'MediaWikiNoEmptyIfDefined' => ['\\PFValuesUtils::getValuesFromExternalURL'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFValuesUtils::getAllCategories', '\\PFValuesUtils::getAllValuesForProperty'],
-            'PhanUndeclaredClassConstant' => ['\\PFValuesUtils::getAllPagesForConcept', '\\PFValuesUtils::getAllPagesForQuery'],
-            'PhanUndeclaredClassInstanceof' => ['\\PFValuesUtils::getSMWPropertyValues'],
-            'PhanUndeclaredClassMethod' => ['\\PFValuesUtils::getAllPagesForConcept', '\\PFValuesUtils::getAllPagesForQuery', '\\PFValuesUtils::getAllValuesForProperty', '\\PFValuesUtils::getSMWPropertyValues', '\\PFValuesUtils::getValuesFromExternalURL'],
-            'PhanUndeclaredClassProperty' => ['\\PFValuesUtils::getAllValuesForProperty'],
-            'PhanUndeclaredConstant' => ['\\PFValuesUtils::getAllPagesForConcept']
+            'PhanUndeclaredClassConstant' => ['\\PFValuesUtils::getAllPagesForConcept', '\\PFValuesUtils::getAllPagesForQuery', '\\PFValuesUtils::getSourceCount'],
+            'PhanUndeclaredClassInstanceof' => ['\\PFValuesUtils::getSourceCount', '\\PFValuesUtils::getSMWPropertyValues'],
+            'PhanUndeclaredClassMethod' => ['\\PFValuesUtils::buildCountDescription', '\\PFValuesUtils::getAllPagesForConcept', '\\PFValuesUtils::getAllPagesForQuery', '\\PFValuesUtils::getAllValuesForProperty', '\\PFValuesUtils::getSourceCount', '\\PFValuesUtils::getSMWPropertyValues', '\\PFValuesUtils::getValuesFromExternalURL'],
+            'PhanUndeclaredClassProperty' => ['\\PFValuesUtils::getAllValuesForProperty', '\\PFValuesUtils::getSourceCount'],
+            'PhanTypeMismatchReturn' => ['\\PFValuesUtils::buildCountDescription'],
+            'PhanUndeclaredTypeReturnType' => ['\\PFValuesUtils::buildCountDescription'],
+            'PhanUndeclaredConstant' => ['\\PFValuesUtils::buildCountDescription', '\\PFValuesUtils::getAllPagesForConcept']
         ],
         'includes/forminputs/PF_DateInput.php' => [
             'PhanPossiblyUndeclaredVariable' => ['\\PFDateInput::parseDate'],

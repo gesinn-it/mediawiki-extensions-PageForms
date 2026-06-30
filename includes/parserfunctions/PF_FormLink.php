@@ -117,7 +117,7 @@ class PFFormLink {
 				$sourceKey = str_replace( 'target from ', 'values from ', $param_name );
 				$fieldArgs = [ $sourceKey => $value ];
 				[ $inTargetAutocompleteSettings, $inTargetRemoteDataType ] =
-					array_slice( PFValuesUtils::setAutocompleteValues( $fieldArgs, false ), 0, 2 );
+					array_slice( PFValuesUtils::setAutocompleteValues( $fieldArgs, false, true ), 0, 2 );
 			} elseif ( $param_name == null && $value == 'popup' ) {
 				self::loadScriptsForPopupForm( $parser );
 				$classStr = 'popupformlink';
