@@ -74,7 +74,7 @@ const loadFrameHandler = function () {
 		previewHeight = newPreviewHeight;
 
 		$( () => {
-			window.dispatchEvent( new Event( 'resize' ) ); // It fixes form preview
+			window.dispatchEvent( new window.Event( 'resize' ) ); // It fixes form preview
 		} );
 
 		return false;

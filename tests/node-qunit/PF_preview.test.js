@@ -59,12 +59,10 @@ QUnit.test( 'pfAjaxPreview creates an iframe and wires the load event via .on()'
 			assert.strictEqual( $iframe.length, 1, 'iframe is created and appended to the preview pane' );
 
 			// Fire load on the iframe.  loadFrameHandler calls $previewpane.show()
-			// synchronously on line 62, before the window.dispatchEvent call.
-			try {
-				$iframe.trigger( 'load' );
-			} catch ( e ) {
-				// jsdom does not support window.dispatchEvent(new Event('resize'))
-			}
+			// synchronously, then dispatches a resize event via window.dispatchEvent.
+			// This must not throw — the Event must be created from the jsdom-bound
+			// window.Event constructor, not the Node.js global Event.
+			$iframe.trigger( 'load' );
 
 			assert.notEqual(
 				$( '#wikiPreview' ).css( 'display' ), 'none',
