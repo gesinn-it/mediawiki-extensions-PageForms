@@ -6,20 +6,27 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-06-30
+
+Introduces smart local/remote autocompletion for wiki-sourced fields and a
+configurable main-form classification system for the form chooser.
+
 ### Added
-- `$wgPageFormsMainForms` — explicitly designate which forms appear as "main forms" in the form chooser, bypassing the automatic heuristic ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
-- `$wgPageFormsMainFormsLimit` — configures the Top-N fallback: the N forms with the most associated pages are promoted to "main forms" (default: 5); replaces the old 1%-threshold that left small wikis with no main forms at all ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
+- `PFValuesUtils`: wiki-sourced autocomplete fields (category, namespace, property, concept) now switch between local and remote mode based on source count vs. `$wgPageFormsMaxLocalAutocompleteValues`; fields with `mapping template`/`mapping property` args or that exceed the threshold remain remote [`103f9a02`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/103f9a02e5efd06266b0a3c932448091c114b1b8)
+- `$wgPageFormsMainForms` — explicitly designate which forms appear as "main forms" in the form chooser, bypassing the automatic heuristic [`3d80f0d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/3d80f0d9d06de51b7996f726160b9f90ba0c42db) ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
+- `$wgPageFormsMainFormsLimit` — configures the Top-N fallback: the N forms with the most associated pages are promoted to "main forms" (default: 5); replaces the old 1%-threshold that left small wikis with no main forms [`3d80f0d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/3d80f0d9d06de51b7996f726160b9f90ba0c42db) ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
 
 ### Fixed
-- `PF_preview.js`: use `new window.Event('resize')` instead of `new Event('resize')` so the event object is created from the jsdom-bound constructor; bare `Event` in a Node.js module context is a different class than the one jsdom's `dispatchEvent` validates against, causing a `TypeError` logged during QUnit test runs
-- `PFComboBoxInput`: canonical page title is now written into the selected `<option value>` attribute whenever `possible_values` is a string-keyed (canonical→display) map, regardless of whether autocomplete is local or remote; previously the override was gated on `$remoteDataType !== null`, so it was silently skipped when SMW resolved the source count below the local threshold, causing the display title to be saved instead of the canonical title on re-edit
-- `PFValuesUtils`: wiki-sourced autocomplete fields (category, namespace, property, concept) now use local mode when the source count is at or below `$wgPageFormsMaxLocalAutocompleteValues`; previously all such fields were unconditionally forced to remote mode, preventing dropdown buttons from showing values without user input on small datasets; fields with `mapping template` / `mapping property` args or that exceed the threshold remain remote
-- `PFFormPrinter`: cast `$form_submitted` to `bool` before passing it to `StandardInputHtmlBuilder::buildHtml()`; `PF_Hooks::showFormPreview()` passes `null`, which caused a `TypeError` under `strict_types=1` when saving a form page via the API (e.g. mwbot)
-- Form chooser Top-N fallback now counts namespace-based `#default_form` assignments in addition to category-based ones; previously only category pages were counted, so wikis that assign forms via namespace-level `#default_form` saw the fallback pick forms alphabetically rather than by actual usage ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
+- `PFComboBoxInput`: canonical page title is now written into the selected `<option value>` when `possible_values` is a display-title map, regardless of autocomplete mode; previously the override was skipped in local mode, causing the display title to be saved instead of the canonical title on re-edit [`f05e0d24`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/f05e0d24ee1805bbc490549a79fdcd5b3df90eb4)
+- `PF_preview.js`: use `new window.Event('resize')` instead of bare `new Event('resize')` to avoid a `TypeError` during QUnit test runs under jsdom [`0f948e42`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/0f948e42e7b7904e19d4f277fd1dee4c7870d9b0)
+- `PFFormPrinter`: cast `$form_submitted` to `bool` before passing to `StandardInputHtmlBuilder::buildHtml()`; `null` caused a `TypeError` under `strict_types=1` when saving a form page via the API [`dedab736`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/dedab736bf7b9ec1a822b0207bfc3e7b0a80079d)
+- Form chooser Top-N fallback now counts namespace-based `#default_form` assignments in addition to category-based ones; wikis using namespace-level `#default_form` no longer saw alphabetical instead of usage-based form ordering [`d065dc3b`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/d065dc3b25c5a5217455f00c7e8a469600cff106) ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
+- Form chooser: alias `page_props` table in namespace query for MW 1.39 compatibility [`bf17aa64`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/bf17aa6482646f4395b01542f76cc2957fc67d20)
 
 ### Changed
-- `PFFormEditAction`: extract `classifyForms()` from `displayFormChooser()`; rename `$popularForms` → `$mainForms`; narrow `getNumPagesPerForm()` and `printLinksToFormArray()` to `private` — preparatory refactor for [#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41)
-- Form Chooser HTML output now uses a Mustache template (`templates/FormChooser.mustache`); section labels changed from `<p>` to `<p><strong>` for correct semantics; form links rendered as inline `<span>` items with CSS-generated `·` separators (`pf-form-chooser__item + pf-form-chooser__item::before`) instead of separator `<span>` elements in HTML
+- Form chooser HTML output now uses a Mustache template (`templates/FormChooser.mustache`) with BEM classes (`pf-form-chooser__*`); old classes `infoMessage`, `mainForms`, `otherForms`, `pageforms-separator` are no longer emitted [`775223bc`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/775223bc50f7bb91eac0a23fdcfd11b1118b4ed0)
+- `PFFormEditAction`: extract `classifyForms()` from `displayFormChooser()`; rename `$popularForms` → `$mainForms`; narrow `getNumPagesPerForm()` and `printLinksToFormArray()` to `private` [`de008ef4`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/de008ef4e861548f51b836eb2fac58775217ec42)
+- Bump `js-yaml` from 3.14.2 to 3.15.0 [`83925758`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/839257584e333059632ab296b634d2d106b7be44)
 
 ### Deprecated
 - CSS classes `infoMessage`, `mainForms`, `otherForms` on form chooser section divs are no longer emitted; use `pf-form-chooser__section`, `pf-form-chooser__section--main`, `pf-form-chooser__section--other` instead
@@ -60,7 +67,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.0.1...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.0...HEAD
+[2.1.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.0.1...2.1.0
 [2.0.1]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.4.0...2.0.0
 
