@@ -441,6 +441,33 @@ class PFFormField {
 			$f->mPossibleValues = array_map( 'htmlspecialchars_decode', $valuesArray );
 		}
 
+		// Do some data storage specific to the Semantic MediaWiki extension.
+		// This must happen before the "mapping template"/"mapping property"
+		// handling below, since a 'property' set in the form definition can
+		// populate $f->template_field's possible values (from the SMW
+		// property's "Allows value"/"Allows value list" annotations), and
+		// those values need to be in place before we decide what to map.
+		if ( defined( 'SMW_VERSION' ) ) {
+			// If a property was set in the form definition,
+			// overwrite whatever is set in the template field -
+			// this is somewhat of a hack, since parameters set in
+			// the form definition are meant to go into the
+			// PFFormField object, not the PFTemplateField object
+			// it contains;
+			// it seemed like too much work, though, to create an
+			// PFFormField::setSemanticProperty() function just for
+			// this call.
+			if ( $semantic_property !== null ) {
+				$f->template_field->setSemanticProperty( $semantic_property );
+			} else {
+				$semantic_property = $f->template_field->getSemanticProperty();
+			}
+			if ( $semantic_property !== null ) {
+				global $wgPageFormsFieldProperties;
+				$wgPageFormsFieldProperties[$fullFieldName] = $semantic_property;
+			}
+		}
+
 		if ( $f->mPossibleValues == null ) {
 			$f->mPossibleValues = $f->template_field->getPossibleValues();
 		}
@@ -482,27 +509,6 @@ class PFFormField {
 		// it's a restricted field and user doesn't have sysop privileges.
 		$f->mIsDisabled = ( $form_is_disabled || $f->mIsRestricted );
 
-		// Do some data storage specific to the Semantic MediaWiki extension.
-		if ( defined( 'SMW_VERSION' ) ) {
-			// If a property was set in the form definition,
-			// overwrite whatever is set in the template field -
-			// this is somewhat of a hack, since parameters set in
-			// the form definition are meant to go into the
-			// PFFormField object, not the PFTemplateField object
-			// it contains;
-			// it seemed like too much work, though, to create an
-			// PFFormField::setSemanticProperty() function just for
-			// this call.
-			if ( $semantic_property !== null ) {
-				$f->template_field->setSemanticProperty( $semantic_property );
-			} else {
-				$semantic_property = $f->template_field->getSemanticProperty();
-			}
-			if ( $semantic_property !== null ) {
-				global $wgPageFormsFieldProperties;
-				$wgPageFormsFieldProperties[$fullFieldName] = $semantic_property;
-			}
-		}
 		if ( $template_name === null || $template_name === '' ) {
 			$f->mInputName = $field_name;
 		} elseif ( $template_in_form->allowsMultiple() ) {

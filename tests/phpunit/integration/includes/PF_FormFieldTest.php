@@ -247,6 +247,65 @@ class PFFormFieldTest extends TestCase {
 		);
 	}
 
+	/**
+	 * Regression test for https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/39
+	 *
+	 * When a field sets both 'property=' (form-level override, not inherited
+	 * from the template) and 'mapping template=', the property's SMW-derived
+	 * possible values must be resolved (via setSemanticProperty()) before the
+	 * mapping-template block decides whether there is anything to map -
+	 * otherwise mPossibleValues is still [] at that point and mapping is
+	 * skipped entirely. Simulate this with a mock whose getPossibleValues()
+	 * only returns values once setSemanticProperty() has been called, exactly
+	 * like the real PFTemplateField.
+	 */
+	public function testPropertyOverrideValuesAreAvailableForMappingTemplate() {
+		if ( !defined( 'SMW_VERSION' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+
+		$propertySet = false;
+		$this->mockTemplateField->method( 'setSemanticProperty' )
+			->willReturnCallback( static function () use ( &$propertySet ) {
+				$propertySet = true;
+			} );
+		$this->mockTemplateField->method( 'getPossibleValues' )
+			->willReturnCallback( static function () use ( &$propertySet ) {
+				return $propertySet ? [ 'DE', 'FR' ] : [];
+			} );
+		$this->mockTemplateField->method( 'getDelimiter' )->willReturn( '' );
+		$this->mockTemplateField->method( 'getCategory' )->willReturn( null );
+		$this->mockTemplateField->method( 'getNSText' )->willReturn( null );
+
+		$tagComponents = [
+			'', 'test_field', 'property=TestMappingProp', 'mapping template=PFTestMappingTplPropOverride01'
+		];
+
+		$this->mockTemplate->method( 'getFieldNamed' )->willReturn( $this->mockTemplateField );
+		$this->mockTemplateInForm->method( 'getTemplateName' )->willReturn( 'TestTemplate' );
+		$this->mockTemplateInForm->method( 'strictParsing' )->willReturn( false );
+		$this->mockTemplateInForm->method( 'allowsMultiple' )->willReturn( false );
+
+		$formField = PFFormField::newFromFormFieldTag(
+			$tagComponents,
+			$this->mockTemplate,
+			$this->mockTemplateInForm,
+			false,
+			$this->mockUser
+		);
+
+		// Before the fix, mPossibleValues was still [] when the mapping-type
+		// check ran, so setMappedValues() was never invoked and the raw
+		// property-derived values ('DE', 'FR') were left untouched. After the
+		// fix, the property's values are in place beforehand, so mapping is
+		// attempted (the non-existent mapping template falls back to
+		// identity labels, proving the mapping pipeline actually ran).
+		$this->assertSame(
+			[ 'DE' => 'DE', 'FR' => 'FR' ],
+			$formField->getPossibleValues()
+		);
+	}
+
 	public function testUniqueComponent() {
 		$tag_components = [ '', '', 'unique' ];
 

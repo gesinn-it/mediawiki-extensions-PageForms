@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
+- `PFFormField::newFromFormFieldTag()`: resolve a form-level `property=` override (and the SMW-derived possible values it populates) before the `mapping template`/`mapping property` block decides whether there is anything to map; previously this ran afterwards, so `mapping template` had no effect when a field's allowed values came from an SMW property instead of an explicit `values=` list ([#39](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/39))
 - `PFFormEditAction::classifyForms()`: main forms configured via `$wgPageFormsMainForms` are now shown in the order given, instead of alphabetically; `array_intersect()` was called with the alphabetically sorted list of all forms as the first argument, whose order it preserves, instead of the configured list ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
 - `PFRunQuery::printPage()`: forward the `ParserOutput` returned by `PFFormPrinter::formHTML()` to `OutputPage` instead of the global parser's, which `PFFormField::clearState()` resets during field rendering, discarding any ResourceLoader modules registered by parser tag hooks (e.g. `ext.headertabs` from `<headertabs />`); tabs rendered but were not clickable on Special:RunQuery (query forms) ([#15](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/15))
 
