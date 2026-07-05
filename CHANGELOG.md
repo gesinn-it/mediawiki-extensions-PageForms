@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ### Fixed
 - `PFFormEditAction::classifyForms()`: main forms configured via `$wgPageFormsMainForms` are now shown in the order given, instead of alphabetically; `array_intersect()` was called with the alphabetically sorted list of all forms as the first argument, whose order it preserves, instead of the configured list ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
+- `PFRunQuery::printPage()`: forward the `ParserOutput` returned by `PFFormPrinter::formHTML()` to `OutputPage` instead of the global parser's, which `PFFormField::clearState()` resets during field rendering, discarding any ResourceLoader modules registered by parser tag hooks (e.g. `ext.headertabs` from `<headertabs />`); tabs rendered but were not clickable on Special:RunQuery (query forms) ([#15](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/15))
 
 ## [2.1.0] - 2026-06-30
 

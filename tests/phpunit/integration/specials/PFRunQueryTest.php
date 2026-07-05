@@ -1,6 +1,9 @@
 <?php
 
+use MediaWiki\Context\DerivativeContext;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Output\OutputPage;
 
 /**
  * Integration test class for the PFRunQuery special page.
@@ -60,5 +63,46 @@ class PFRunQueryTest extends SpecialPageTestBase {
 		[ $html ] = $this->executeSpecialPage( 'ValidForm', $request );
 
 		$this->assertStringContainsString( 'Some content for query', $html );
+	}
+
+	/**
+	 * ResourceLoader modules registered by parser tag hooks (e.g. ext.headertabs
+	 * from <headertabs />) while rendering the form definition must reach the
+	 * real OutputPage, not just the internal parser used by formHTML().
+	 *
+	 * @see https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/15
+	 */
+	public function testFormDefinitionParserTagModulesAreForwardedToOutputPage() {
+		MediaWikiServices::getInstance()->getHookContainer()->register(
+			'ParserFirstCallInit',
+			static function ( Parser $parser ) {
+				$parser->setHook( 'pf-test-runquery-module-tag', static function (
+					$input, array $args, Parser $p
+				) {
+					$p->getOutput()->addModules( [ 'ext.pageforms.test.sentinel' ] );
+					return '';
+				} );
+			}
+		);
+
+		// A field tag is required to trigger PFFormField::clearState(), which
+		// resets the global parser's ParserOutput and drops the module
+		// registered above — reproducing the conditions of issue #15.
+		$formTitle = Title::newFromText( 'ModuleForm', PF_NS_FORM );
+		$this->insertPage( $formTitle, "<pf-test-runquery-module-tag />\n"
+			. "{{{for template|PFTestRunQueryModTpl01}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}" );
+
+		$page = $this->newSpecialPage();
+		$context = new DerivativeContext( RequestContext::getMain() );
+		$context->setRequest( new FauxRequest( [ 'form' => 'ModuleForm' ] ) );
+		$context->setOutput( new OutputPage( $context ) );
+		$page->setContext( $context );
+
+		$page->printPage( 'ModuleForm' );
+
+		$this->assertContains( 'ext.pageforms.test.sentinel', $context->getOutput()->getModules() );
 	}
 }

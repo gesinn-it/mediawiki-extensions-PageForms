@@ -83,7 +83,7 @@ class PFRunQuery extends IncludableSpecialPage {
 			$out->setArticleBodyOnly( true );
 		}
 
-		[ $form_text, $data_text, $form_page_title ] =
+		[ $form_text, $data_text, $form_page_title, , $formParserOutput ] =
 			$formPrinter->formHTML(
 				$form_definition, $form_submitted, false, $form_title->getArticleID(),
 				$content, null, null, true, $embedded, false, [], $user
@@ -193,9 +193,12 @@ END;
 		$out->addHTML( $text );
 		PFUtils::addFormRLModules( $embedded ? PFUtils::getParser() : null );
 		if ( !$embedded ) {
-			$po = PFUtils::getParser()->getOutput();
-			if ( $po ) {
-				$out->addParserOutputMetadata( $po );
+			// Use the ParserOutput returned by formHTML() rather than the global
+			// parser's, since PFFormField::clearState() resets the latter during
+			// field rendering and drops ResourceLoader modules registered by
+			// parser tag hooks (e.g. ext.headertabs from <headertabs />).
+			if ( $formParserOutput ) {
+				$out->addParserOutputMetadata( $formParserOutput );
 			}
 		}
 
