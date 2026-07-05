@@ -226,6 +226,21 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [ 'Organization', 'Project' ], $result['other'] );
 	}
 
+	public function testClassifyFormsExplicitConfigPreservesConfiguredOrder(): void {
+		$this->overrideConfigValues( [
+			'PageFormsMainForms' => [ 'Person', 'Organization' ],
+			'PageFormsMainFormsLimit' => 5,
+		] );
+		// $allFormNames comes back alphabetically sorted, unlike the configured order.
+		$allForms = [ 'Organization', 'Person', 'Project' ];
+		$pagesPerForm = [ 'Organization' => 500, 'Project' => 200, 'Person' => 10 ];
+
+		$result = $this->classifyForms( $allForms, $pagesPerForm );
+
+		$this->assertSame( [ 'Person', 'Organization' ], $result['main'] );
+		$this->assertSame( [ 'Project' ], $result['other'] );
+	}
+
 	public function testClassifyFormsExplicitConfigIgnoresUnknownFormNames(): void {
 		$this->overrideConfigValues( [
 			'PageFormsMainForms' => [ 'Person', 'NonExistentForm' ],

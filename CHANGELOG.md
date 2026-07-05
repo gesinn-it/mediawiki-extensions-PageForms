@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- `PFFormEditAction::classifyForms()`: main forms configured via `$wgPageFormsMainForms` are now shown in the order given, instead of alphabetically; `array_intersect()` was called with the alphabetically sorted list of all forms as the first argument, whose order it preserves, instead of the configured list ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
+
 ## [2.1.0] - 2026-06-30
 
 Introduces smart local/remote autocompletion for wiki-sourced fields and a

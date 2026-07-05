@@ -197,7 +197,7 @@ class PFFormEditAction extends Action {
 		$mainForms = $config->get( 'PageFormsMainForms' );
 
 		if ( $mainForms ) {
-			$mainForms = array_values( array_intersect( $allFormNames, $mainForms ) );
+			$mainForms = array_values( array_intersect( $mainForms, $allFormNames ) );
 		} else {
 			$limit = $config->get( 'PageFormsMainFormsLimit' );
 			$mainForms = array_slice( array_keys( $pagesPerForm ), 0, $limit );
