@@ -1,9 +1,6 @@
 <?php
 
-use MediaWiki\Context\DerivativeContext;
-use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Output\OutputPage;
 
 /**
  * Integration test class for the PFRunQuery special page.
