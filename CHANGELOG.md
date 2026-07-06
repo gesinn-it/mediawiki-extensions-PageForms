@@ -6,6 +6,8 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-07-06
+
 ### Fixed
 - `PFFormField::newFromFormFieldTag()`: resolve a form-level `property=` override (and the SMW-derived possible values it populates) before the `mapping template`/`mapping property` block decides whether there is anything to map; previously this ran afterwards, so `mapping template` had no effect when a field's allowed values came from an SMW property instead of an explicit `values=` list ([#39](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/39))
 - `PFFormEditAction::classifyForms()`: main forms configured via `$wgPageFormsMainForms` are now shown in the order given, instead of alphabetically; `array_intersect()` was called with the alphabetically sorted list of all forms as the first argument, whose order it preserves, instead of the configured list ([#41](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/41))
@@ -72,7 +74,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.0...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.1...HEAD
+[2.1.1]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.0.1...2.1.0
 [2.0.1]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/1.4.0...2.0.0
