@@ -68,6 +68,13 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( 'PFTestFormLinkerNSForm02', $first );
 		$this->assertSame( $first, $second );
+
+		// insertPage() commits its write outside of this test's DB
+		// transaction, so the NS_CATEGORY namespace default form would
+		// otherwise leak into later tests. Delete it explicitly.
+		$this->getServiceContainer()->getWikiPageFactory()
+			->newFromTitle( $nsPageTitle )
+			->doDeleteArticleReal( 'test cleanup', $this->getTestUser()->getUser() );
 	}
 
 	// -------------------------------------------------------------------------
