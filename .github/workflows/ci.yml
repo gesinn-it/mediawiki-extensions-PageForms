@@ -50,7 +50,7 @@ jobs:
             coverage: false
             experimental: true
           - mediawiki_version: '1.43'
-            smw_version: '7.0.0'
+            smw_version: '7.1.0'
             php_version: 8.3
             dt_version: 4.0.3
             database_type: mysql
