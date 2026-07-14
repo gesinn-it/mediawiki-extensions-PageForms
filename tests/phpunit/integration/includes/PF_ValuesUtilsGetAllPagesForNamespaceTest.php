@@ -11,19 +11,13 @@ class PFValuesUtilsGetAllPagesForNamespaceTest extends MediaWikiIntegrationTestC
 		// Regular (non-redirect) template page
 		$this->insertPage( 'Template:PFValuesUtilsNSTestRegular', 'Regular template content' );
 
-		// Create a redirect to simulate a renamed file/template
+		// Create a redirect to simulate a renamed file/template. insertPage()
+		// saves this through the normal edit path, which already sets
+		// page_is_redirect=1 from the #REDIRECT wikitext — no manual DB
+		// update needed.
 		$this->insertPage(
 			'Template:PFValuesUtilsNSTestRedirect',
 			'#REDIRECT [[Template:PFValuesUtilsNSTestRegular]]'
-		);
-
-		// Force the redirect flag in the DB — insertPage() creates the page but may not
-		// set page_is_redirect=1 automatically depending on MW version.
-		$this->db->update(
-			'page',
-			[ 'page_is_redirect' => 1 ],
-			[ 'page_namespace' => NS_TEMPLATE, 'page_title' => 'PFValuesUtilsNSTestRedirect' ],
-			__METHOD__
 		);
 	}
 
