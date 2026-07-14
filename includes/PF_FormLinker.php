@@ -158,13 +158,18 @@ class PFFormLinker {
 	public static function getDefaultFormsForPage( $title ) {
 		// See if the page itself has a default form (or forms), and
 		// return it/them if so.
-		$default_form = self::getDefaultForm( $title );
-		if ( $default_form === '' ) {
-			// A call to "{{#default_form:}}" (i.e., no form
-			// specified) should cancel any inherited forms.
-			return [];
-		} elseif ( $default_form !== null ) {
-			return [ $default_form ];
+		// (Disregard category pages for this check: "#default_form"
+		// on a category page sets the default form for that
+		// category's member pages, not for the category page itself.)
+		if ( $title->getNamespace() !== NS_CATEGORY ) {
+			$default_form = self::getDefaultForm( $title );
+			if ( $default_form === '' ) {
+				// A call to "{{#default_form:}}" (i.e., no form
+				// specified) should cancel any inherited forms.
+				return [];
+			} elseif ( $default_form !== null ) {
+				return [ $default_form ];
+			}
 		}
 
 		// If this is not a category page, look for a default form

@@ -117,7 +117,7 @@ return [
             'PhanUndeclaredClassProperty' => ['\\PFValuesUtils::getAllValuesForProperty', '\\PFValuesUtils::getSourceCount'],
             'PhanTypeMismatchReturn' => ['\\PFValuesUtils::buildCountDescription'],
             'PhanUndeclaredTypeReturnType' => ['\\PFValuesUtils::buildCountDescription'],
-            'PhanUndeclaredConstant' => ['\\PFValuesUtils::buildCountDescription', '\\PFValuesUtils::getAllPagesForConcept']
+            'PhanUndeclaredConstant' => ['\\PFValuesUtils::buildCountDescription', '\\PFValuesUtils::getAllPagesForConcept', '\\PFValuesUtils::getAllPagesForQuery']
         ],
         'includes/forminputs/PF_DateInput.php' => [
             'PhanPossiblyUndeclaredVariable' => ['\\PFDateInput::parseDate'],

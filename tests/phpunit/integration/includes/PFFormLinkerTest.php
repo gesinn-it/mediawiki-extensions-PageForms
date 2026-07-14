@@ -215,16 +215,18 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'redlink=1', $html );
 	}
 
-	public function testGetDefaultFormsForPageReturnsCategoryOwnDefaultForm(): void {
+	public function testGetDefaultFormsForPageIgnoresCategoryOwnDefaultForm(): void {
+		// "#default_form" on a category page sets the default form for
+		// that category's member pages, not for the category page itself.
 		$categoryTitle = Title::makeTitleSafe( NS_CATEGORY, 'PFFormLinkerTestCategoryWithDefaultForm01' );
 		$this->insertPage( $categoryTitle, '{{#default_form:PFFormLinkerTestForm01}}' );
 
 		$forms = PFFormLinker::getDefaultFormsForPage( $categoryTitle );
 
-		$this->assertSame( [ 'PFFormLinkerTestForm01' ], $forms );
+		$this->assertSame( [], $forms );
 	}
 
-	public function testGetDefaultFormsForPageEmptyDefaultFormOnCategoryPageCancelsInheritance(): void {
+	public function testGetDefaultFormsForPageIgnoresEmptyDefaultFormOnCategoryPage(): void {
 		$categoryTitle = Title::makeTitleSafe( NS_CATEGORY, 'PFFormLinkerTestCategoryWithEmptyDefaultForm01' );
 		$this->insertPage( $categoryTitle, '{{#default_form:}}' );
 

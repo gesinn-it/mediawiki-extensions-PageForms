@@ -1111,12 +1111,9 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 	 */
 	public static function getAllPagesForQuery( $rawQuery ) {
 		$rawQueryArray = [ $rawQuery ];
-		SMWQueryProcessor::processFunctionParams( $rawQueryArray, $queryString, $processedParams, $printouts );
-		SMWQueryProcessor::addThisPrintout( $printouts, $processedParams );
-		$processedParams = SMWQueryProcessor::getProcessedParams( $processedParams, $printouts );
-		$queryObj = SMWQueryProcessor::createQuery( $queryString,
-			$processedParams,
-			SMWQueryProcessor::SPECIAL_PAGE, '', $printouts );
+		[ $queryObj ] = SMWQueryProcessor::getQueryAndParamsFromFunctionParams(
+			$rawQueryArray, SMW_OUTPUT_WIKI, SMWQueryProcessor::SPECIAL_PAGE, false
+		);
 		$res = PFUtils::getSMWStore()->getQueryResult( $queryObj );
 		$rows = $res->getResults();
 		$pages = [];
