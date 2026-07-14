@@ -91,6 +91,7 @@ class PFRunQuery extends IncludableSpecialPage {
 
 		// Get the text of the results.
 		$resultsText = '';
+		$resultsParserOutput = null;
 
 		if ( $form_submitted ) {
 			// @TODO - fix RunQuery's parsing so that this check
@@ -107,9 +108,10 @@ class PFRunQuery extends IncludableSpecialPage {
 			// Parser::$mOptions was deprecated in MW 1.35; pass options
 			// directly as a local variable instead of accessing the property.
 			$parserOptions = ParserOptions::newFromUser( $user );
-			$resultsText = PFUtils::getParser()->parse(
+			$resultsParserOutput = PFUtils::getParser()->parse(
 				$data_text, $this->getPageTitle(), $parserOptions, true, false
-			)->getText();
+			);
+			$resultsText = $resultsParserOutput->getText();
 		}
 
 		// Get the full text of the form.
@@ -198,6 +200,15 @@ END;
 			// parser tag hooks (e.g. ext.headertabs from <headertabs />).
 			if ( $formParserOutput ) {
 				$out->addParserOutputMetadata( $formParserOutput );
+			}
+			// Likewise, forward the ParserOutput from parsing the query
+			// results ($data_text) - on some SMW versions, modules/styles
+			// required by the query result (e.g. the tooltip stylesheet for
+			// preferred property labels) are only registered on this
+			// ParserOutput, not on the global parser's, and are otherwise
+			// silently dropped.
+			if ( $resultsParserOutput ) {
+				$out->addParserOutputMetadata( $resultsParserOutput );
 			}
 		}
 
