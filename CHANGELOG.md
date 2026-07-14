@@ -9,6 +9,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ### Fixed
 - `PFRunQuery::printPage()`: read the `{{{info|query form at top}}}` result from `PFFormPrinter::formHTML()`'s return value instead of reading `$wgPageFormsRunQueryFormAtTop` before `formHTML()` had parsed the form definition and set it; the query form was always rendered below the results, regardless of the tag ([#97](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/97))
 
+### Changed
+- `PFFormPrinter::formHTML()`, `PFTemplateInForm::setFieldValuesFromSubmit()`, `PFWikiPage::createPageText()`/`createTemplateCallsForTemplateName()`/`createTemplateCall()`, `PFWikiPageTemplate::addUnhandledParams()`: take the current `WebRequest` as an explicit parameter instead of reading `RequestContext::getMain()->getRequest()`; removes the dual request-context access that made `PFRunQuery::printPage()`'s non-embedded path and other callers rely on manually syncing the global request context before calling `formHTML()` ([#99](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/99))
+
 ## [2.1.1] - 2026-07-06
 
 ### Fixed

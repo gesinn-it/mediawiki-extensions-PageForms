@@ -360,6 +360,7 @@ class PFFormPrinter {
 	 * @param bool $is_autocreate true when called by #formredlink with "create page"
 	 * @param array $autocreate_query query parameters from #formredlink
 	 * @param User|null $user
+	 * @param WebRequest|null $request
 	 * @return array [ $form_text, $page_text, $form_page_title, $generated_page_name,
 	 *   $parserOutput, $runQueryFormAtTop ]
 	 * @throws FatalError
@@ -377,12 +378,12 @@ class PFFormPrinter {
 		$is_embedded = false,
 		$is_autocreate = false,
 		$autocreate_query = [],
-		$user = null
+		$user = null,
+		$request = null
 	) {
-		// PF_AutoeditAPI spoofs the request context via RequestContext::getMain()->setRequest(new FauxRequest(...))
-		// before calling formHTML(). Read from RequestContext to respect that spoof rather than
-		// using 'global $request', which is not updated by setRequest().
-		$request = RequestContext::getMain()->getRequest();
+		if ( $request === null ) {
+			$request = RequestContext::getMain()->getRequest();
+		}
 		// used to represent the current tab index in the form
 		global $wgPageFormsTabIndex;
 		// used for setting various HTML IDs
@@ -622,7 +623,7 @@ class PFFormPrinter {
 					// come from a query string.
 					// (Unless it's called from #formredlink.)
 					if ( !$is_autocreate ) {
-						$tif->setFieldValuesFromSubmit();
+						$tif->setFieldValuesFromSubmit( $request );
 					}
 
 					$tif->checkIfAllInstancesPrinted( $form_submitted, $source_is_page );
@@ -666,7 +667,7 @@ class PFFormPrinter {
 							$request->setVal( 'standard_input', $standard_input );
 						}
 						$tif = PFTemplateInForm::create( 'standard_input', null, null, null, [] );
-						$tif->setFieldValuesFromSubmit();
+						$tif->setFieldValuesFromSubmit( $request );
 					}
 					// We get the field name both here
 					// and in the PFFormField constructor,
@@ -1037,7 +1038,7 @@ END;
 			// end while
 
 			if ( $tif && ( !$tif->allowsMultiple() || $tif->allInstancesPrinted() ) ) {
-				$template_text = $wiki_page->createTemplateCallsForTemplateName( $tif->getTemplateName() );
+				$template_text = $wiki_page->createTemplateCallsForTemplateName( $tif->getTemplateName(), $request );
 				// Escape the '$' characters for the preg_replace() call.
 				$template_text = str_replace( '$', '\$', $template_text );
 
@@ -1192,7 +1193,7 @@ END;
 		// The page text needs to be created whether or not the form
 		// was submitted, in case this is called from #formredlink.
 		$wiki_page->setFreeText( $free_text );
-		$page_text = $wiki_page->createPageText();
+		$page_text = $wiki_page->createPageText( $request );
 
 		// Also substitute the free text into the form.
 		$escaped_free_text = Sanitizer::safeEncodeAttribute( $free_text ?? '' );

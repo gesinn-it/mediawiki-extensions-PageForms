@@ -430,20 +430,16 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 			. "{{{end template}}}\n"
 			. "{{{standard input|save}}}";
 
-		// Simulate submitted form values via FauxRequest on the global context
+		// Simulate submitted form values via an explicit FauxRequest.
 		$fauxRequest = new \FauxRequest( [ 'PFTestFieldTpl03[Title]' => 'My Submitted Value' ], true );
-		\RequestContext::getMain()->setRequest( $fauxRequest );
 
 		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
 			$formDef, true, false, null, null,
 			'PFTestFieldPage03', null, false, false, false, [],
-			self::getTestUser()->getUser()
+			self::getTestUser()->getUser(), $fauxRequest
 		);
 
 		$this->assertStringContainsString( 'PFTestFieldTpl03', $formHtml );
-
-		// Restore default request
-		\RequestContext::getMain()->setRequest( new \FauxRequest() );
 	}
 
 	public function testFormHTMLWithHiddenField(): void {
@@ -506,15 +502,12 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 			],
 			true
 		);
-		\RequestContext::getMain()->setRequest( $fauxRequest );
 
 		[ $formHtml, $pageText ] = $wgPageFormsFormPrinter->formHTML(
 			$formDef, true, false, null, null,
 			'PFTestFieldPage06', null, false, false, false, [],
-			self::getTestUser()->getUser()
+			self::getTestUser()->getUser(), $fauxRequest
 		);
-
-		\RequestContext::getMain()->setRequest( new \FauxRequest() );
 
 		$this->assertStringContainsString( 'PFTestFieldTpl06', $formHtml );
 		$this->assertStringContainsString( '{{PFTestFieldTpl06', $pageText );
@@ -600,15 +593,12 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 			[ 'PFTestFieldTpl10' => [ 'Title' => 'MyGeneratedPage' ] ],
 			true
 		);
-		\RequestContext::getMain()->setRequest( $fauxRequest );
 
 		[ , , , $generatedPageName ] = $wgPageFormsFormPrinter->formHTML(
 			$formDef, true, false, null, null,
 			null, '<PFTestFieldTpl10[Title]>', false, false, false, [],
-			self::getTestUser()->getUser()
+			self::getTestUser()->getUser(), $fauxRequest
 		);
-
-		\RequestContext::getMain()->setRequest( new \FauxRequest() );
 
 		$this->assertSame( 'MyGeneratedPage', $generatedPageName );
 	}
@@ -683,15 +673,12 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 			[ 'pf_free_text' => 'Some free body text' ],
 			true
 		);
-		\RequestContext::getMain()->setRequest( $fauxRequest );
 
 		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
 			$formDef, true, false, null, null,
 			'PFTestFieldPage14', null, false, false, false, [],
-			self::getTestUser()->getUser()
+			self::getTestUser()->getUser(), $fauxRequest
 		);
-
-		\RequestContext::getMain()->setRequest( new \FauxRequest() );
 
 		$this->assertStringContainsString( 'Some free body text', $pageText );
 	}

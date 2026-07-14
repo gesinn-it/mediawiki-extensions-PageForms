@@ -131,12 +131,6 @@ class PFRunQueryTest extends SpecialPageTestBase {
 			'pf_free_text' => "'''PFTestRunQueryFormAtTopResultMarker01'''",
 		] );
 
-		// formHTML() reads the submitted free text from
-		// RequestContext::getMain(), not from the special page's own
-		// context, so it must be set explicitly here for the query
-		// results to be non-empty.
-		RequestContext::getMain()->setRequest( $request );
-
 		[ $html ] = $this->executeSpecialPage( 'QueryFormAtTopForm', $request );
 
 		$formPos = strpos( $html, 'PFTestRunQueryFormAtTopMarker01' );

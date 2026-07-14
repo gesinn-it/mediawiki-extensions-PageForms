@@ -59,10 +59,6 @@ class PFRunQuery extends IncludableSpecialPage {
 		$form_definition = PFUtils::getPageText( $form_title );
 		if ( $embedded ) {
 			$req = $this->getUser()->getRequest();
-			// @HACK - set request context so that FormPrinter::formHTML()
-			// can have the right data. Much better would be to
-			// pass this in as a parameter to formHTML().
-			RequestContext::getMain()->setRequest( $req );
 		} else {
 			$req = $this->getRequest();
 		}
@@ -85,7 +81,7 @@ class PFRunQuery extends IncludableSpecialPage {
 		[ $form_text, $data_text, $form_page_title, , $formParserOutput, $formRunQueryFormAtTop ] =
 			$formPrinter->formHTML(
 				$form_definition, $form_submitted, false, $form_title->getArticleID(),
-				$content, null, null, true, $embedded, false, [], $user
+				$content, null, null, true, $embedded, false, [], $user, $req
 			);
 		// The form definition's {{{info|query form at top}}} tag can only
 		// turn this on for its own form; the site-wide default comes from

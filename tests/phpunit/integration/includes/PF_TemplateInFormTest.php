@@ -69,8 +69,6 @@ class PFTemplateInFormTest extends TestCase {
 	}
 
 	public function testSetFieldValuesFromSubmitSingleInstance(): void {
-		$oldRequest = RequestContext::getMain()->getRequest();
-
 		// Mock request for a single-instance template.
 		$mockRequest = $this->createMock( WebRequest::class );
 		$mockRequest->method( 'getArray' )->willReturnCallback( static function ( $key ) {
@@ -79,15 +77,12 @@ class PFTemplateInFormTest extends TestCase {
 			}
 			return null;
 		} );
-		RequestContext::getMain()->setRequest( $mockRequest );
 
 		$template = new PFTemplateInForm();
 		$template->setTemplateName( 'My Template' );
 		$template->setAllowsMultiple( false );
 
-		$template->setFieldValuesFromSubmit();
-
-		RequestContext::getMain()->setRequest( $oldRequest );
+		$template->setFieldValuesFromSubmit( $mockRequest );
 
 		$this->assertEquals(
 			[ 'field1' => 'value1', 'field2' => 'value2' ],
@@ -96,8 +91,6 @@ class PFTemplateInFormTest extends TestCase {
 	}
 
 	public function testSetFieldValuesFromSubmitMultipleInstances(): void {
-		$oldRequest = RequestContext::getMain()->getRequest();
-
 		// Mock request for multiple-instance template.
 		$mockRequest = $this->createMock( WebRequest::class );
 		$mockRequest->method( 'getArray' )->willReturnCallback( static function ( $key ) {
@@ -109,16 +102,13 @@ class PFTemplateInFormTest extends TestCase {
 			}
 			return null;
 		} );
-		RequestContext::getMain()->setRequest( $mockRequest );
 
 		$template = new PFTemplateInForm();
 		$template->setTemplateName( 'My Template' );
 		$template->setAllowsMultiple( true );
 		$template->setInstanceNum( 1 );
 
-		$template->setFieldValuesFromSubmit();
-
-		RequestContext::getMain()->setRequest( $oldRequest );
+		$template->setFieldValuesFromSubmit( $mockRequest );
 
 		$this->assertEquals(
 			[ 'field1' => 'value3', 'field2' => 'value4' ],
@@ -127,19 +117,14 @@ class PFTemplateInFormTest extends TestCase {
 	}
 
 	public function testSetFieldValuesFromSubmitNoData(): void {
-		$oldRequest = RequestContext::getMain()->getRequest();
-
 		// Mock request with no data for the template.
 		$mockRequest = $this->createMock( WebRequest::class );
 		$mockRequest->method( 'getArray' )->willReturn( null );
-		RequestContext::getMain()->setRequest( $mockRequest );
 
 		$template = new PFTemplateInForm();
 		$template->setTemplateName( 'Nonexistent Template' );
 
-		$template->setFieldValuesFromSubmit();
-
-		RequestContext::getMain()->setRequest( $oldRequest );
+		$template->setFieldValuesFromSubmit( $mockRequest );
 
 		$this->assertSame( [], $template->getValuesFromSubmit() );
 	}

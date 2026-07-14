@@ -352,9 +352,7 @@ class PFTemplateInForm {
 		}
 	}
 
-	public function setFieldValuesFromSubmit() {
-		$request = RequestContext::getMain()->getRequest();
-
+	public function setFieldValuesFromSubmit( WebRequest $request ) {
 		// Reset values for every new instance, if this is a
 		// multiple-instance template.
 		if ( $this->mInstanceNum > 0 ) {

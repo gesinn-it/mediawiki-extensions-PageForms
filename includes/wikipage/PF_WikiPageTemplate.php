@@ -39,12 +39,7 @@ class PFWikiPageTemplate {
 		$this->addParam( $paramName, $value );
 	}
 
-	public function addUnhandledParams() {
-		// PF_AutoeditAPI spoofs the request context via RequestContext::getMain()->setRequest(new FauxRequest(...))
-		// before calling formHTML(). Read from RequestContext to respect that spoof rather than
-		// using 'global $wgRequest', which is not updated by setRequest().
-		$request = RequestContext::getMain()->getRequest();
-
+	public function addUnhandledParams( WebRequest $request ) {
 		if ( !$this->mAddUnhandledParams ) {
 			return;
 		}

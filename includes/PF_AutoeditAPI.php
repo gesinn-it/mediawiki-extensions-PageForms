@@ -898,8 +898,6 @@ class PFAutoeditAPI extends ApiBase {
 
 		$preloadContent = '';
 
-		// Save request for later restoration after formHTML() spoofing.
-		$oldRequest = RequestContext::getMain()->getRequest();
 		$pageExists = false;
 		$formHTML = '';
 		$targetContent = '';
@@ -962,7 +960,7 @@ class PFAutoeditAPI extends ApiBase {
 				// "existing,new" for the + modifier) before HtmlFormDataExtractor
 				// extracts it back into $this->mOptions.
 				$session = RequestContext::getMain()->getRequest()->getSession();
-				RequestContext::getMain()->setRequest( new FauxRequest( $this->mOptions, true, $session ) );
+				$fauxRequest = new FauxRequest( $this->mOptions, true, $session );
 				[ $formHTML, $targetContent, $form_page_title, $generatedTargetNameFormula, $formParserOutput ] =
 					$formPrinter->formHTML(
 						// Special handling for autoedit edits — otherwise, multi-instance
@@ -970,9 +968,8 @@ class PFAutoeditAPI extends ApiBase {
 						$formContent, ( $isFormSubmitted && !$this->mIsAutoEdit ), $pageExists,
 						$formArticleId, $preloadContent, $targetName, $targetNameFormula,
 						$is_query = false, $is_embedded = false, $is_autocreate = false,
-						$autocreate_query = [], $this->getUser()
+						$autocreate_query = [], $this->getUser(), $fauxRequest
 					);
-				RequestContext::getMain()->setRequest( $oldRequest );
 				$data = HtmlFormDataExtractor::extract( $formHTML, $this->mOptions );
 				$this->mOptions = PFUtils::arrayMergeRecursiveDistinct( $data, $this->mOptions );
 			}
@@ -990,18 +987,15 @@ class PFAutoeditAPI extends ApiBase {
 
 		// Get wikitext for submitted data and form.
 		if ( $preloadContent == '' ) {
-			// Spoof request context for PFFormPrinter::formHTML().
 			$session = RequestContext::getMain()->getRequest()->getSession();
-			RequestContext::getMain()->setRequest( new FauxRequest( $this->mOptions, true, $session ) );
+			$fauxRequest = new FauxRequest( $this->mOptions, true, $session );
 			[ $formHTML, $targetContent, $generatedFormName, $generatedTargetNameFormula, $formParserOutput ] =
 				$formPrinter->formHTML(
 					$formContent, $isFormSubmitted, $pageExists,
 					$formArticleId, $preloadContent, $targetName, $targetNameFormula,
 					$is_query = false, $is_embedded = false, $is_autocreate = false,
-					$autocreate_query = [], $this->getUser()
+					$autocreate_query = [], $this->getUser(), $fauxRequest
 				);
-			// Restore original request.
-			RequestContext::getMain()->setRequest( $oldRequest );
 		} else {
 			$generatedFormName = $form_page_title;
 		}

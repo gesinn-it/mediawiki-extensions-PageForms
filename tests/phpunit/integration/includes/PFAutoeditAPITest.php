@@ -749,21 +749,19 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// FauxRequest / formHTML integration
 	//
 	// These tests guard against the "dual request-access" bug: PF_AutoeditAPI
-	// spoofs the request context via RequestContext::getMain()->setRequest()
-	// before calling formHTML(). Any call site that reads 'global $wgRequest'
-	// instead of RequestContext::getMain()->getRequest() silently bypasses the
-	// spoof and loses all submitted field values, producing a bare template call
-	// like {{Tpl}} instead of {{Tpl|field=value}}.
+	// passes a FauxRequest with the submitted options directly into formHTML().
+	// Any call site that reads 'global $wgRequest' instead of the passed-in
+	// $request silently loses all submitted field values, producing a bare
+	// template call like {{Tpl}} instead of {{Tpl|field=value}}.
 	// -------------------------------------------------------------------------
 
 	/**
-	 * formHTML() called with a FauxRequest on the RequestContext must produce
-	 * wikitext that contains the submitted field value.
+	 * formHTML() called with an explicit FauxRequest must produce wikitext
+	 * that contains the submitted field value.
 	 *
 	 * This is the regression test for the setFieldValuesFromSubmit() bug:
-	 * the function used `global $wgRequest` which is not updated by
-	 * RequestContext::setRequest(), so template params were always lost in
-	 * the autoedit save path.
+	 * the function used `global $wgRequest` which never saw the submitted
+	 * options, so template params were always lost in the autoedit save path.
 	 *
 	 * @covers \PFTemplateInForm::setFieldValuesFromSubmit
 	 * @covers \PFFormPrinter::formHTML
@@ -779,12 +777,11 @@ class PFAutoeditAPITest extends ApiTestCase {
 			. "{{{field|$fieldName}}}\n"
 			. "{{{end template}}}";
 
-		// Build the same FauxRequest that PF_AutoeditAPI would set on the context.
+		// Build the same FauxRequest that PF_AutoeditAPI would pass into formHTML().
 		$options = [
 			$templateName => [ $fieldName => $fieldValue ],
 		];
-		$oldRequest = RequestContext::getMain()->getRequest();
-		RequestContext::getMain()->setRequest( new FauxRequest( $options, true ) );
+		$fauxRequest = new FauxRequest( $options, true );
 
 		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
 			$formDef,
@@ -798,15 +795,14 @@ class PFAutoeditAPITest extends ApiTestCase {
 			$is_embedded = false,
 			$is_autocreate = false,
 			$autocreate_query = [],
-			$user = $this->getTestUser()->getUser()
+			$user = $this->getTestUser()->getUser(),
+			$fauxRequest
 		);
-
-		RequestContext::getMain()->setRequest( $oldRequest );
 
 		$this->assertStringContainsString(
 			"|$fieldName=$fieldValue",
 			$pageText,
-			'formHTML() with a FauxRequest on RequestContext must include submitted field values in the page text'
+			'formHTML() with an explicit FauxRequest must include submitted field values in the page text'
 		);
 	}
 
@@ -929,8 +925,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 		$options = [
 			$templateName => [ "{$fieldName}+" => 'val3' ],
 		];
-		$oldRequest = RequestContext::getMain()->getRequest();
-		RequestContext::getMain()->setRequest( new FauxRequest( $options, true ) );
+		$fauxRequest = new FauxRequest( $options, true );
 
 		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
 			$formDef,
@@ -944,10 +939,9 @@ class PFAutoeditAPITest extends ApiTestCase {
 			$is_embedded = false,
 			$is_autocreate = false,
 			$autocreate_query = [],
-			$user = $this->getTestUser()->getUser()
+			$user = $this->getTestUser()->getUser(),
+			$fauxRequest
 		);
-
-		RequestContext::getMain()->setRequest( $oldRequest );
 
 		$this->assertStringContainsString(
 			"|{$fieldName}=val1{$delimiter}val2{$delimiter}val3",
@@ -978,8 +972,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 		$options = [
 			$templateName => [ "{$fieldName}-" => 'val2' ],
 		];
-		$oldRequest = RequestContext::getMain()->getRequest();
-		RequestContext::getMain()->setRequest( new FauxRequest( $options, true ) );
+		$fauxRequest = new FauxRequest( $options, true );
 
 		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
 			$formDef,
@@ -993,10 +986,9 @@ class PFAutoeditAPITest extends ApiTestCase {
 			$is_embedded = false,
 			$is_autocreate = false,
 			$autocreate_query = [],
-			$user = $this->getTestUser()->getUser()
+			$user = $this->getTestUser()->getUser(),
+			$fauxRequest
 		);
-
-		RequestContext::getMain()->setRequest( $oldRequest );
 
 		$this->assertStringContainsString(
 			"|{$fieldName}=val1{$delimiter}val3",

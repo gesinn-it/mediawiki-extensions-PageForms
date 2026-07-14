@@ -92,9 +92,9 @@ class PFWikiPage {
 		}
 	}
 
-	public function createTemplateCall( $template ) {
+	public function createTemplateCall( $template, WebRequest $request ) {
 		$lastNumericParam = 0;
-		$template->addUnhandledParams();
+		$template->addUnhandledParams( $request );
 
 		$templateCall = '{{' . $template->getName();
 		foreach ( $template->getParams() as $templateParam ) {
@@ -124,7 +124,7 @@ class PFWikiPage {
 			}
 			if ( $embeddedTemplateName != '' ) {
 				foreach ( $this->mEmbeddedTemplateCalls[$embeddedTemplateName] as $embeddedTemplate ) {
-					$templateCall .= $this->createTemplateCall( $embeddedTemplate );
+					$templateCall .= $this->createTemplateCall( $embeddedTemplate, $request );
 				}
 			} else {
 				$templateCall .= $paramValue;
@@ -145,19 +145,19 @@ class PFWikiPage {
 		return $templateCall;
 	}
 
-	public function createTemplateCallsForTemplateName( $templateName ) {
+	public function createTemplateCallsForTemplateName( $templateName, WebRequest $request ) {
 		$text = '';
 		foreach ( $this->mComponents as $component ) {
 			if ( $component instanceof PFWikiPageTemplate ) {
 				if ( $component->getName() == $templateName ) {
-					$text .= $this->createTemplateCall( $component ) . "\n";
+					$text .= $this->createTemplateCall( $component, $request ) . "\n";
 				}
 			}
 		}
 		return $text;
 	}
 
-	public function createPageText() {
+	public function createPageText( WebRequest $request ) {
 		// First, go through and store the templates that are embedded,
 		// so that they can have special printing.
 		$this->findEmbeddedTemplates();
@@ -167,7 +167,7 @@ class PFWikiPage {
 		foreach ( $this->mComponents as $component ) {
 			if ( $component instanceof PFWikiPageTemplate ) {
 				if ( !array_key_exists( $component->getName(), $this->mEmbeddedTemplateCalls ) ) {
-					$pageText .= $this->createTemplateCall( $component ) . "\n";
+					$pageText .= $this->createTemplateCall( $component, $request ) . "\n";
 				}
 			} elseif ( $component instanceof PFWikiPageSection ) {
 				if ( $component->getText() !== "" || $component->isHideIfEmpty() === false ) {
