@@ -29,7 +29,6 @@ class PFRunQuery extends IncludableSpecialPage {
 
 	public function printPage( $form_name, $embedded = false ) {
 		$formPrinter = $this->getConfig()->get( 'PageFormsFormPrinter' );
-		$runQueryFormAtTop = $this->getConfig()->get( 'PageFormsRunQueryFormAtTop' );
 
 		$out = $this->getOutput();
 		$req = $this->getRequest();
@@ -83,11 +82,15 @@ class PFRunQuery extends IncludableSpecialPage {
 			$out->setArticleBodyOnly( true );
 		}
 
-		[ $form_text, $data_text, $form_page_title, , $formParserOutput ] =
+		[ $form_text, $data_text, $form_page_title, , $formParserOutput, $formRunQueryFormAtTop ] =
 			$formPrinter->formHTML(
 				$form_definition, $form_submitted, false, $form_title->getArticleID(),
 				$content, null, null, true, $embedded, false, [], $user
 			);
+		// The form definition's {{{info|query form at top}}} tag can only
+		// turn this on for its own form; the site-wide default comes from
+		// $wgPageFormsRunQueryFormAtTop.
+		$runQueryFormAtTop = $this->getConfig()->get( 'PageFormsRunQueryFormAtTop' ) || $formRunQueryFormAtTop;
 		$text = "";
 
 		// Get the text of the results.

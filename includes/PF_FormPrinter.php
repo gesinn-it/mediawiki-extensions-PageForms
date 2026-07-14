@@ -73,6 +73,9 @@ class PFFormPrinter {
 
 	private ?FormCounters $counters = null;
 
+	/** Set by the {{{info|query form at top}}} tag; returned from formHTML(). */
+	private bool $runQueryFormAtTop = false;
+
 	public function __construct() {
 		global $wgPageFormsDisableOutsideServices;
 		// Initialize variables.
@@ -357,7 +360,8 @@ class PFFormPrinter {
 	 * @param bool $is_autocreate true when called by #formredlink with "create page"
 	 * @param array $autocreate_query query parameters from #formredlink
 	 * @param User|null $user
-	 * @return array
+	 * @return array [ $form_text, $page_text, $form_page_title, $generated_page_name,
+	 *   $parserOutput, $runQueryFormAtTop ]
 	 * @throws FatalError
 	 * @throws MWException
 	 */
@@ -390,6 +394,7 @@ class PFFormPrinter {
 		$wgPageFormsTabIndex = 0;
 		$wgPageFormsFieldNum = 0;
 		$this->counters = new FormCounters();
+		$this->runQueryFormAtTop = false;
 		$source_page_matches_this_form = false;
 		$form_page_title = null;
 		$generated_page_name = $page_name_formula;
@@ -1004,12 +1009,7 @@ END;
 						} elseif ( $tag == 'includeonly free text' || $tag == 'onlyinclude free text' ) {
 							$wiki_page->makeFreeTextOnlyInclude();
 						} elseif ( $tag == 'query form at top' ) {
-							// TODO - this should be made a field of
-							// some non-static class that actually
-							// prints the form, instead of requiring
-							// a global variable.
-							global $wgPageFormsRunQueryFormAtTop;
-							$wgPageFormsRunQueryFormAtTop = true;
+							$this->runQueryFormAtTop = true;
 						}
 					}
 					// Replace the {{{info}}} tag with a hidden span, instead of a blank, to avoid a
@@ -1260,7 +1260,9 @@ END;
 			$form_page_title = null;
 		}
 
-		return [ $form_text, $page_text, $form_page_title, $generated_page_name, $parserOutput ];
+		return [
+			$form_text, $page_text, $form_page_title, $generated_page_name, $parserOutput, $this->runQueryFormAtTop
+		];
 	}
 
 	/**

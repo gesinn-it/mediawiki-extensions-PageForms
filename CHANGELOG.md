@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- `PFRunQuery::printPage()`: read the `{{{info|query form at top}}}` result from `PFFormPrinter::formHTML()`'s return value instead of reading `$wgPageFormsRunQueryFormAtTop` before `formHTML()` had parsed the form definition and set it; the query form was always rendered below the results, regardless of the tag ([#97](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/97))
+
 ## [2.1.1] - 2026-07-06
 
 ### Fixed

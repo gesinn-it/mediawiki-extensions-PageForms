@@ -102,4 +102,48 @@ class PFRunQueryTest extends SpecialPageTestBase {
 
 		$this->assertContains( 'ext.pageforms.test.sentinel', $context->getOutput()->getModules() );
 	}
+
+	/**
+	 * The {{{info|query form at top}}} tag only takes effect once formHTML()
+	 * has parsed the form definition, since that parsing is what determines
+	 * whether the tag is present. PFRunQuery::printPage() must therefore
+	 * read formHTML()'s "run query form at top" return value, not query it
+	 * beforehand - otherwise the form is always rendered below the query
+	 * results, regardless of the tag.
+	 *
+	 * @see https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/97
+	 */
+	public function testQueryFormAtTopTagMovesFormBeforeResults() {
+		$formTitle = Title::newFromText( 'QueryFormAtTopForm', PF_NS_FORM );
+		$this->insertPage( $formTitle, "{{{info|query form at top}}}\n"
+			. "PFTestRunQueryFormAtTopMarker01" );
+
+		$request = new FauxRequest( [
+			'form' => 'QueryFormAtTopForm',
+			'_run' => 'true',
+			// The query results text is taken from "pf_free_text", not
+			// "wpTextbox1" - the latter only seeds $existing_page_content,
+			// which formHTML() ignores for RunQuery ($source_is_page = false).
+			// Wikitext bold markup is parsed into a <b> tag in the results,
+			// while the hidden "pf_free_text" input that preserves the query
+			// string on the form reflects the value verbatim - this lets the
+			// two occurrences be told apart unambiguously.
+			'pf_free_text' => "'''PFTestRunQueryFormAtTopResultMarker01'''",
+		] );
+
+		// formHTML() reads the submitted free text from
+		// RequestContext::getMain(), not from the special page's own
+		// context, so it must be set explicitly here for the query
+		// results to be non-empty.
+		RequestContext::getMain()->setRequest( $request );
+
+		[ $html ] = $this->executeSpecialPage( 'QueryFormAtTopForm', $request );
+
+		$formPos = strpos( $html, 'PFTestRunQueryFormAtTopMarker01' );
+		$resultPos = strpos( $html, '<b>PFTestRunQueryFormAtTopResultMarker01</b>' );
+
+		$this->assertNotFalse( $formPos, 'Form marker not found in output' );
+		$this->assertNotFalse( $resultPos, 'Result marker not found in output' );
+		$this->assertLessThan( $resultPos, $formPos, 'Form should be rendered before the query results' );
+	}
 }
