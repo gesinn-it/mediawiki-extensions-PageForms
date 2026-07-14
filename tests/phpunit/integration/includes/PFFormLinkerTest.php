@@ -5,6 +5,8 @@ use MediaWiki\MediaWikiServices;
 /**
  * @covers \PFFormLinker::setBrokenLink
  * @covers \PFFormLinker::getDefaultFormsForPage
+ * @covers \PFFormLinker::getDefaultForm
+ * @covers \PFFormLinker::getDefaultFormForNamespace
  * @group Database
  */
 class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
@@ -16,6 +18,115 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$reflProp->setAccessible( true );
 		$reflProp->setValue( null, [] );
 	}
+
+	// -------------------------------------------------------------------------
+	// getDefaultForm()
+	// -------------------------------------------------------------------------
+
+	public function testGetDefaultFormReturnsNullForNullTitle(): void {
+		$this->assertNull( PFFormLinker::getDefaultForm( null ) );
+	}
+
+	public function testGetDefaultFormReturnsNullWhenNoPagePropSet(): void {
+		$title = Title::newFromText( 'PFTestFormLinkerNoDefaultFormPage01' );
+		$this->insertPage( $title, 'Plain content without a default form.' );
+
+		$this->assertNull( PFFormLinker::getDefaultForm( $title ) );
+	}
+
+	public function testGetDefaultFormReturnsPagePropValueWhenSetViaDefaultFormTag(): void {
+		$title = Title::newFromText( 'PFTestFormLinkerDefaultFormPage01' );
+		$this->insertPage( $title, '{{#default_form:PFTestFormLinkerForm01}}' );
+
+		$this->assertSame( 'PFTestFormLinkerForm01', PFFormLinker::getDefaultForm( $title ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// getDefaultFormForNamespace()
+	// -------------------------------------------------------------------------
+
+	public function testGetDefaultFormForNamespaceReturnsNullWhenNoProjectPageDefaultFormSet(): void {
+		// NS_TALK has no project-namespace default-form page created in this test.
+		$this->assertNull( PFFormLinker::getDefaultFormForNamespace( NS_TALK ) );
+	}
+
+	public function testGetDefaultFormForNamespaceReturnsConfiguredForm(): void {
+		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_HELP];
+		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
+		$this->insertPage( $nsPageTitle, '{{#default_form:PFTestFormLinkerNSForm01}}' );
+
+		$this->assertSame( 'PFTestFormLinkerNSForm01', PFFormLinker::getDefaultFormForNamespace( NS_HELP ) );
+	}
+
+	public function testGetDefaultFormForNamespaceReturnsSameValueOnRepeatedCalls(): void {
+		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_CATEGORY];
+		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
+		$this->insertPage( $nsPageTitle, '{{#default_form:PFTestFormLinkerNSForm02}}' );
+
+		$first = PFFormLinker::getDefaultFormForNamespace( NS_CATEGORY );
+		$second = PFFormLinker::getDefaultFormForNamespace( NS_CATEGORY );
+
+		$this->assertSame( 'PFTestFormLinkerNSForm02', $first );
+		$this->assertSame( $first, $second );
+	}
+
+	// -------------------------------------------------------------------------
+	// getDefaultFormsForPage() — additional branches not covered above
+	// -------------------------------------------------------------------------
+
+	public function testGetDefaultFormsForPageReturnsOwnDefaultFormBeforeCheckingCategory(): void {
+		$catName = 'PFTestFormLinkerOwnFormPageCat01';
+		$catTitle = Title::makeTitleSafe( NS_CATEGORY, $catName );
+		$this->insertPage( $catTitle, '{{#default_form:PFTestFormLinkerCatForm01}}' );
+
+		$title = Title::newFromText( 'PFTestFormLinkerOwnDefaultFormPage01' );
+		$this->insertPage(
+			$title,
+			"{{#default_form:PFTestFormLinkerOwnForm01}}\n[[Category:$catName]]"
+		);
+
+		$this->assertSame( [ 'PFTestFormLinkerOwnForm01' ], PFFormLinker::getDefaultFormsForPage( $title ) );
+	}
+
+	public function testGetDefaultFormsForPageDedupesSharedCategoryDefaultForm(): void {
+		$sharedForm = 'PFTestFormLinkerSharedForm01';
+		$catA = 'PFTestFormLinkerCatA01';
+		$catB = 'PFTestFormLinkerCatB01';
+		$this->insertPage( Title::makeTitleSafe( NS_CATEGORY, $catA ), '{{#default_form:' . $sharedForm . '}}' );
+		$this->insertPage( Title::makeTitleSafe( NS_CATEGORY, $catB ), '{{#default_form:' . $sharedForm . '}}' );
+
+		$title = Title::newFromText( 'PFTestFormLinkerPageInTwoCats01' );
+		$this->insertPage( $title, "[[Category:$catA]]\n[[Category:$catB]]" );
+
+		$this->assertSame( [ $sharedForm ], PFFormLinker::getDefaultFormsForPage( $title ) );
+	}
+
+	public function testGetDefaultFormsForPageReturnsEmptyForSubpageWithOnlyNamespaceDefaultForm(): void {
+		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_PROJECT];
+		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
+		$this->insertPage( $nsPageTitle, '{{#default_form:PFTestFormLinkerNSSubpageForm01}}' );
+
+		$parentTitle = Title::newFromText( 'PFTestFormLinkerSubpageParent01', NS_PROJECT );
+		$this->insertPage( $parentTitle, 'Parent content.' );
+		$subpageTitle = Title::newFromText( 'PFTestFormLinkerSubpageParent01/Sub01', NS_PROJECT );
+		$this->insertPage( $subpageTitle, 'Subpage content.' );
+
+		$this->assertTrue( $subpageTitle->isSubpage() );
+		$this->assertSame( [], PFFormLinker::getDefaultFormsForPage( $subpageTitle ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// Note: createPageWithForm() is deliberately not covered here. It calls
+	// formHTML() with is_query=false, which runs formHTML()'s permission-check
+	// branch (PF_FormPrinter.php's getPermissionErrors()/getUserEffectiveGroups()
+	// path). That branch was observed to leave stale state that makes unrelated
+	// PFFormPrinterTest cases (data sets #5/#6, which depend on the *current*
+	// test user's effective groups) fail when run in the same PHPUnit process
+	// afterwards. Detailed formHTML()/page-text rendering behaviour for this
+	// call path is already covered by PF_FormPrinterTest and PFAutoeditAPITest,
+	// so the risk of a brittle, order-dependent test here outweighs the
+	// coverage gained.
+	// -------------------------------------------------------------------------
 
 	public function testSetBrokenLinkSkipsKnownLinks(): void {
 		$this->setMwGlobals( 'wgPageFormsLinkAllRedLinksToForms', true );
