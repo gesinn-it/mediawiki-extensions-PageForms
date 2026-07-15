@@ -39,8 +39,7 @@
 		"mediawiki/mediawiki-phan-config": "0.20.0",
 		"mediawiki/minus-x": "1.1.3",
 		"php-parallel-lint/php-console-highlighter": "1.0.0",
-		"php-parallel-lint/php-parallel-lint": "1.4.0",
-		"phpunit/phpcov": "^8.2"
+		"php-parallel-lint/php-parallel-lint": "1.4.0"
 	},
 	"scripts": {
 		"test": [
@@ -70,7 +69,7 @@
 		],
 		"phpunit-coverage": [
 			"@putenv Composer\\Config::disableProcessTimeout",
-			"bash -c 'status=0; php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testsuite extension-page-forms-unit --testdox --coverage-php coverage/php/unit.cov || status=$?; php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testsuite extension-page-forms-integration --testdox --coverage-php coverage/php/integration.cov || status=$?; vendor/bin/phpcov merge coverage/php --html coverage/php --clover coverage/php/coverage.xml --text coverage/php/coverage.txt; exit $status'"
+			"bash -c 'status=0; php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testsuite extension-page-forms-unit --testdox --coverage-php coverage/php/unit.cov || status=$?; php -d memory_limit=512M ../../tests/phpunit/phpunit.php -c phpunit.xml.dist --testsuite extension-page-forms-integration --testdox --coverage-php coverage/php/integration.cov || status=$?; [ -x .phpcov-tool/phpcov ] || composer create-project --no-interaction --quiet phpunit/phpcov .phpcov-tool ^8.2; .phpcov-tool/phpcov merge coverage/php --html coverage/php --clover coverage/php/coverage.xml --text coverage/php/coverage.txt; exit $status'"
 		],
 		"minus-x": "minus-x check ."
 	},
