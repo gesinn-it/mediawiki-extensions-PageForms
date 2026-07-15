@@ -108,10 +108,3 @@ ifdef NODE_JS
 	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && npm run analyze"
 	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && npx qunit --require ./tests/node-qunit/setup.js 'tests/node-qunit/**/*.test.js'"
 endif
-
-.PHONY: update-submodules
-update-submodules:
-	git submodule update --init --remote
-	git submodule status | grep gesinn-it-docs | awk '{print $$1}' > docs/.submodule-ref
-	git add --all
-	git diff --cached --quiet || git commit -m "chore(deps): update submodules to latest"
