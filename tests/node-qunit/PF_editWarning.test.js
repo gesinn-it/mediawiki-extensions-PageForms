@@ -123,3 +123,74 @@ QUnit.test( 'submit handler calls release()', ( assert ) => {
 		done();
 	}, 50 );
 } );
+
+// ── change-detection branches ───────────────────────────────────────────────────
+
+QUnit.test( 'test() returns false when no input value changed', ( assert ) => {
+	const done = assert.async();
+	createForm();
+	freshRequire();
+
+	setTimeout( () => {
+		const testFn = mw.confirmCloseWindow.firstCall.args[ 0 ].test;
+		assert.false( testFn(), 'unchanged plain input → no warning' );
+		done();
+	}, 50 );
+} );
+
+QUnit.test( 'test() returns true when a plain input value changed', ( assert ) => {
+	const done = assert.async();
+	createForm();
+	freshRequire();
+
+	setTimeout( () => {
+		$( '#pfForm input[type=text]' ).val( 'changed value' );
+		const testFn = mw.confirmCloseWindow.firstCall.args[ 0 ].test;
+		assert.true( testFn(), 'changed plain input → warning' );
+		done();
+	}, 50 );
+} );
+
+QUnit.test( 'test() returns false when a pfComboBox input is unchanged', ( assert ) => {
+	const done = assert.async();
+	$( '<form id="pfForm">' )
+		.append( $( '<input type="text" id="comboInput" class="pfComboBox">' ).val( 'combo value' ) )
+		.appendTo( document.body );
+	freshRequire();
+
+	setTimeout( () => {
+		const testFn = mw.confirmCloseWindow.firstCall.args[ 0 ].test;
+		assert.false( testFn(), 'unchanged pfComboBox input → no warning' );
+		done();
+	}, 50 );
+} );
+
+QUnit.test( 'test() returns true when a pfComboBox input changed', ( assert ) => {
+	const done = assert.async();
+	$( '<form id="pfForm">' )
+		.append( $( '<input type="text" id="comboInput" class="pfComboBox">' ).val( 'combo value' ) )
+		.appendTo( document.body );
+	freshRequire();
+
+	setTimeout( () => {
+		$( '#comboInput' ).val( 'changed combo value' );
+		const testFn = mw.confirmCloseWindow.firstCall.args[ 0 ].test;
+		assert.true( testFn(), 'changed pfComboBox input → warning' );
+		done();
+	}, 50 );
+} );
+
+// ── pf.addTemplateInstance hook ──────────────────────────────────────────────────
+
+QUnit.test( 'firing pf.addTemplateInstance sets changesWereMade to true', ( assert ) => {
+	const done = assert.async();
+	createForm();
+	freshRequire();
+
+	setTimeout( () => {
+		mw.hook( 'pf.addTemplateInstance' ).fire( $( '<div>' ) );
+		const testFn = mw.confirmCloseWindow.firstCall.args[ 0 ].test;
+		assert.true( testFn(), 'changesWereMade flipped by hook → warning, even with unchanged inputs' );
+		done();
+	}, 50 );
+} );

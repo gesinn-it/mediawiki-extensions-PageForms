@@ -92,10 +92,20 @@ function prepareMediaWiki() {
 			text: () => {
 			}
 		});
-		mw.hook = () => ({
-			add: () => {},
-			fire: () => {}
-		});
+		const hookCallbacks = Object.create(null);
+		mw.hook = (name) => {
+			if (!hookCallbacks[name]) {
+				hookCallbacks[name] = [];
+			}
+			return {
+				add: (...callbacks) => {
+					hookCallbacks[name].push(...callbacks);
+				},
+				fire: (...args) => {
+					hookCallbacks[name].forEach((callback) => callback(...args));
+				}
+			};
+		};
 		mw.user = {
 			tokens: {
 				get: () => ""
