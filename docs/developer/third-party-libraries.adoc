@@ -1,0 +1,63 @@
+= Third-Party Libraries
+:toc: left
+include::../attributes.adoc[]
+
+Page Forms bundles a number of third-party JavaScript libraries under `libs/` rather than
+managing them via npm. This page lists them for reference, along with their license.
+
+[cols="2,1,2,3"]
+|===
+| Library | Version | License | Used for
+
+| link:https://select2.org[Select2]
+| 4.0.13
+| MIT
+| Combo box / tag token inputs
+
+| link:https://github.com/SortableJS/Sortable[Sortable.js]
+| 1.8.0-rc1
+| MIT
+| Drag-and-drop reordering of multiple-instance template fields
+
+| link:https://www.jstree.com[jsTree]
+| 3.3.10
+| MIT
+| Tree-structured selection input
+
+| link:https://bossanova.uk/jsuites[jSuites]
+| —
+| MIT
+| Spreadsheet view UI components
+
+| link:https://bossanova.uk/jexcel[jspreadsheet (jExcel CE)]
+| 4.5.0
+| MIT
+| Spreadsheet view for multiple-instance templates
+
+| link:https://fullcalendar.io[FullCalendar]
+| 3.9.0
+| MIT
+| Calendar view for multiple-instance templates
+
+| link:https://fancyapps.com/fancybox[fancyBox]
+| 3.2.10
+| GPLv3 (open source) or commercial +
+_(compatible with this extension's GPL-2.0-or-later)_
+| Lightbox for image preview
+
+| link:https://github.com/prrashi/rateyo[rateYo]
+| 2.3.2
+| MIT
+| Star rating input
+
+| jquery.browser
+| — (adapted from jquery.migrate)
+| MIT
+| Browser detection shim, used where jQuery's own `$.browser` was removed
+|===
+
+NOTE: Versions above reflect the code currently vendored in `libs/`. When upgrading a
+bundled library, update the version in the file's header comment and in the table above.
+
+For build- and test-time dependencies (not shipped to the browser), see `composer.json`
+(PHP) and `package.json` (JavaScript tooling) in the repository root.
