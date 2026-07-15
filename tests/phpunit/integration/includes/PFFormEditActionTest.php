@@ -369,6 +369,55 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		return $title;
 	}
 
+	// -----------------------------------------------------------------------
+	// displayFormChooser
+	// -----------------------------------------------------------------------
+
+	/**
+	 * The "do not use a form" link is built from a system message
+	 * (pf-formedit-donotuseform) that is escaped once via Message::escaped()
+	 * and then handed to LinkRenderer::makeKnownLink() as the link text.
+	 *
+	 * Since the message is sysop/translator-editable, it must be wrapped in
+	 * HtmlArmor so LinkRenderer does not escape it a second time. This test
+	 * overrides the message with HTML metacharacters and asserts the
+	 * rendered link text is escaped exactly once (not double-escaped).
+	 */
+	public function testDisplayFormChooserDoesNotDoubleEscapeNoFormLink(): void {
+		// MW's test bootstrap sets $wgUseDatabaseMessages = false for
+		// isolation/speed; re-enable it so the on-wiki message override
+		// below is actually picked up by wfMessage().
+		$this->setMwGlobals( 'wgUseDatabaseMessages', true );
+
+		$this->editPage( 'PFFormEditActionChooserForm01', 'form content', '', PF_NS_FORM );
+
+		// Override the system message on-wiki, simulating a sysop/translator
+		// edit that introduces HTML metacharacters.
+		$overriddenText = 'Do <b>not</b> use a form & continue';
+		$this->editPage( 'MediaWiki:Pf-formedit-donotuseform', $overriddenText );
+
+		$title = Title::makeTitle( NS_MAIN, 'PFFormEditActionChooserTarget01' );
+		$context = new DerivativeContext( RequestContext::getMain() );
+		$context->setTitle( $title );
+		$output = new OutputPage( $context );
+		$output->setTitle( $title );
+
+		PFFormEditAction::displayFormChooser( $output, $title );
+		$html = $output->getHTML();
+
+		// The message text must appear escaped exactly once: HTML entities
+		// for the metacharacters, with the original tags/ampersand not
+		// rendered literally, and not double-escaped (e.g. "&amp;amp;").
+		$this->assertStringContainsString(
+			'Do &lt;b&gt;not&lt;/b&gt; use a form &amp; continue',
+			$html
+		);
+		$this->assertStringNotContainsString( '&amp;lt;', $html );
+		$this->assertStringNotContainsString( '&amp;amp;', $html );
+		// The tag must not have been interpreted as literal markup either.
+		$this->assertStringNotContainsString( '<b>not</b>', $html );
+	}
+
 	public function testGetName(): void {
 		$title = Title::makeTitle( NS_MAIN, 'PFFormEditActionGetName01' );
 		$article = Article::newFromTitle( $title, RequestContext::getMain() );

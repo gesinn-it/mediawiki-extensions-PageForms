@@ -80,7 +80,7 @@ class CalendarHtmlBuilder {
 		];
 		$loadingImage = Html::element( 'img', [ 'src' => "$scriptPath/skins/loading.gif" ] );
 		$text = "<div id='fullCalendarLoading1' style='display: none;'>" . $loadingImage . "</div>";
-		$text .= Html::rawElement( 'div', $templateDivAttrs, $text );
+		$text = Html::rawElement( 'div', $templateDivAttrs, $text );
 
 		$wgPageFormsCalendarParams[$templateName] = $params;
 		$wgPageFormsCalendarValues[$templateName] = $tif->getGridValues();

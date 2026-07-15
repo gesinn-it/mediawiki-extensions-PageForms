@@ -233,7 +233,7 @@ class PFFormLink {
 			OutputPage::setupOOUI();
 			$buttonAttrs = [
 				'type' => 'submit',
-				'label' => $inLinkStr,
+				'label' => new OOUI\HtmlSnippet( $inLinkStr ),
 				'title' => $inTooltip,
 				'flags' => 'progressive'
 			];
@@ -264,9 +264,13 @@ class PFFormLink {
 					$classStr .= " new";
 				}
 				// If no link string was specified, make it
-				// the name of the page.
+				// the name of the page. $inTargetName has already been
+				// run through Sanitizer::decodeCharReferences(), so it
+				// is raw, unescaped text at this point - it must be
+				// HTML-escaped before being used as link text, since
+				// $inLinkStr is inserted as raw HTML below.
 				if ( $inLinkStr == '' ) {
-					$inLinkStr = $inTargetName;
+					$inLinkStr = htmlspecialchars( $inTargetName );
 				}
 			}
 			$linkAttrs = [

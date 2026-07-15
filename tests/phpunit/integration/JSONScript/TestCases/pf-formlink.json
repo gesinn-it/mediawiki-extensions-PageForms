@@ -46,6 +46,14 @@
 		{
 			"page": "formlink with target input button and default target",
 			"contents": "{{#formlink:form=FORM|link type=button|link text=LINK TEXT|target input|target=My Page}}"
+		},
+		{
+			"page": "formlink with unescaped target and no link text",
+			"contents": "{{#formlink:form=FORM|target=<script>alert(1)</script>}}"
+		},
+		{
+			"page": "formlink button with ampersand in link text",
+			"contents": "{{#formlink:link type=button|form=FORM|link text=Foo & Bar}}"
 		}
 	],
 	"tests": [
@@ -171,6 +179,32 @@
 				],
 				"not-contain": [
 					"action=\"/index.php/Special:FormEdit/FORM/My"
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "target used as fallback link text must be HTML-escaped, not raw (stored XSS regression)",
+			"subject": "formlink with unescaped target and no link text",
+			"assert-output": {
+				"to-contain": [
+					"/\">&lt;script&gt;alert\\(1\\)&lt;\\/script&gt;<\\/a>/"
+				],
+				"not-contain": [
+					"<script>alert(1)</script>"
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "button link text with ampersand must be HTML-escaped exactly once, not double-escaped (SecurityCheck-DoubleEscaped regression)",
+			"subject": "formlink button with ampersand in link text",
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"oo-ui-labelElement-label\">Foo &amp; Bar</span>"
+				],
+				"not-contain": [
+					"Foo &amp;amp; Bar"
 				]
 			}
 		}

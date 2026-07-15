@@ -41,6 +41,43 @@ class CalendarHtmlBuilderTest extends TestCase {
 		$this->assertStringContainsString( 'loading.gif', $html );
 	}
 
+	public function testCalendarHtmlDoesNotDuplicateLoadingDiv(): void {
+		// Regression test: the loading-indicator div (id='fullCalendarLoading1')
+		// must be nested exactly once inside the FullCalendar container div, not
+		// duplicated at both the top level and inside the container. A previous
+		// self-referential compound assignment ($text .= ...) caused PHP to
+		// evaluate the RHS using the pre-assignment value of $text, duplicating
+		// the loading div and its id attribute in the output.
+		global $wgPageFormsCalendarParams, $wgPageFormsCalendarValues;
+		$wgPageFormsCalendarParams = [];
+		$wgPageFormsCalendarValues = [];
+
+		$tif = $this->makeTif( 'MyTemplate', [] );
+		$html = $this->builder->calendarHTML( $tif, '/extensions/PageForms' );
+
+		$this->assertSame(
+			1,
+			substr_count( $html, 'fullCalendarLoading1' ),
+			'The loading indicator div must appear exactly once in the output HTML.'
+		);
+		$this->assertSame(
+			1,
+			substr_count( $html, 'loading.gif' ),
+			'The loading image must appear exactly once in the output HTML.'
+		);
+		// The loading div must be nested inside the FullCalendar container div,
+		// not duplicated outside of it.
+		$containerPos = strpos( $html, 'pfFullCalendarJS' );
+		$loadingPos = strpos( $html, 'fullCalendarLoading1' );
+		$this->assertNotFalse( $containerPos );
+		$this->assertNotFalse( $loadingPos );
+		$this->assertGreaterThan(
+			$containerPos,
+			$loadingPos,
+			'The loading indicator div must be nested inside the FullCalendar container div.'
+		);
+	}
+
 	public function testCalendarHtmlSetsCalendarParams(): void {
 		global $wgPageFormsCalendarParams, $wgPageFormsCalendarValues;
 		$wgPageFormsCalendarParams = [];

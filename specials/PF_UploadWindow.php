@@ -524,14 +524,25 @@ class PFUploadWindow extends UnlistedSpecialPage {
 		// browsers. @TODO - fix handling in IE!
 		// $basename = utf8_decode( $basename );
 
+		// Escape all attacker-influenced values before interpolating them
+		// into the <script> block below, since none of them are otherwise
+		// sanitized and this is printed directly to the response body.
+		// Xml::encodeJsVar() JSON-encodes the value (escaping quotes,
+		// backslashes, and '<'/'>'/'&', which is safe for inline <script>
+		// blocks) and returns it already wrapped in double quotes, so it
+		// can be used directly as a JS string-literal expression.
+		$basenameJs = Xml::encodeJsVar( $basename );
+		$inputIdJs = Xml::encodeJsVar( $this->mInputID ?? '' );
+		$delimiterJs = Xml::encodeJsVar( $this->mDelimiter ?? '' );
+
 		$output = <<<END
 		<script type="text/javascript">
-		var input = parent.window.jQuery( parent.document.getElementById("{$this->mInputID}") );
+		var input = parent.window.jQuery( parent.document.getElementById({$inputIdJs}) );
 END;
 
 		if ( $this->mDelimiter == null ) {
 			$output .= <<<END
-		input.val( '$basename' );
+		input.val( $basenameJs );
 		input.change();
 END;
 		} else {
@@ -541,19 +552,19 @@ END;
 		// the file name; if it ends with a normal character, append
 		// both a delimiter and a file name; and add on a delimiter
 		// at the end in any case
-		var cur_value = parent.document.getElementById("{$this->mInputID}").value;
+		var cur_value = parent.document.getElementById({$inputIdJs}).value;
 
 		if (cur_value === '') {
-			input.val( '$basename' + '{$this->mDelimiter} ' );
+			input.val( $basenameJs + {$delimiterJs} + ' ' );
 			input.change();
 		} else {
 			var last_char = cur_value.charAt(cur_value.length - 1);
-			if (last_char == '{$this->mDelimiter}' || last_char == ' ') {
-				parent.document.getElementById("{$this->mInputID}").value += '$basename' + '{$this->mDelimiter} ';
+			if (last_char == {$delimiterJs} || last_char == ' ') {
+				parent.document.getElementById({$inputIdJs}).value += $basenameJs + {$delimiterJs} + ' ';
 				input.change();
 			} else {
-				parent.document.getElementById("{$this->mInputID}").value +=
-					'{$this->mDelimiter} $basename{$this->mDelimiter} ';
+				parent.document.getElementById({$inputIdJs}).value +=
+					{$delimiterJs} + ' ' + $basenameJs + {$delimiterJs} + ' ';
 				input.change();
 			}
 		}

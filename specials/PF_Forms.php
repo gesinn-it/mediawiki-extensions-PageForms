@@ -51,7 +51,9 @@ class PFForms extends QueryPage {
 		}
 
 		$title = Title::makeTitle( PF_NS_FORM, $pageName );
-		return $this->getLinkRenderer()->makeKnownLink( $title, htmlspecialchars( $title->getText() ) );
+		return $this->getLinkRenderer()->makeKnownLink(
+			$title, new HtmlArmor( htmlspecialchars( $title->getText() ) )
+		);
 	}
 
 	protected function getGroupName() {

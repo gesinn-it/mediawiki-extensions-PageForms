@@ -36,6 +36,10 @@
 		{
 			"page": "autoedit-invalidns",
 			"contents": "{{#autoedit:link text=EDIT ME|target=User:PFTestAutoEditUser01}}"
+		},
+		{
+			"page": "autoedit-button-ampersand",
+			"contents": "{{#autoedit:link type=button|link text=Foo & Bar}}"
 		}
 	],
 	"tests": [
@@ -130,6 +134,19 @@
 			"assert-output": {
 				"to-contain": [
 					"<div class=\"error\""
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "button link text with ampersand must be HTML-escaped exactly once, not double-escaped (SecurityCheck-DoubleEscaped regression)",
+			"subject": "autoedit-button-ampersand",
+			"assert-output": {
+				"to-contain": [
+					"<span class=\"oo-ui-labelElement-label\">Foo &amp; Bar</span>"
+				],
+				"not-contain": [
+					"Foo &amp;amp; Bar"
 				]
 			}
 		}

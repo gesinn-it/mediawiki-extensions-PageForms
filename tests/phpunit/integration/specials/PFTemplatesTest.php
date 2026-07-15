@@ -103,4 +103,20 @@ class PFTemplatesTest extends SpecialPageTestBase {
 		$this->assertIsString( $html );
 		$this->assertStringContainsString( 'PFTestFormatTemplate', $html );
 	}
+
+	public function testFormatResultEscapesTitleTextExactlyOnce() {
+		/** @var PFTemplates $page */
+		$page = $this->newSpecialPage();
+		$result = (object)[ 'value' => "PFTestFormatTemplate & Sons's" ];
+
+		$html = $page->formatResult( null, $result );
+
+		// The title text must be HTML-escaped exactly once. A regression that
+		// double-escapes (e.g. passing an already-escaped string to
+		// LinkRenderer::makeKnownLink() without wrapping it in HtmlArmor)
+		// would render mangled entities like "&amp;amp;" instead.
+		$this->assertStringContainsString( 'PFTestFormatTemplate &amp; Sons&#039;s', $html );
+		$this->assertStringNotContainsString( '&amp;amp;', $html );
+		$this->assertStringNotContainsString( '&amp;#039;', $html );
+	}
 }

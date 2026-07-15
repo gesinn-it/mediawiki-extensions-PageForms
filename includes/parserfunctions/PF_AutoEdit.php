@@ -151,7 +151,7 @@ class PFAutoEdit {
 		if ( $linkType == 'button' ) {
 			$attrs = [
 				'flags' => 'progressive',
-				'label' => $linkString,
+				'label' => new OOUI\HtmlSnippet( $linkString ),
 				'classes' => [ $classString ],
 				'href' => $linkToPage
 			];

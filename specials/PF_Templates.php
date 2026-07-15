@@ -67,7 +67,7 @@ class PFTemplates extends QueryPage {
 	public function formatResult( $skin, $result ) {
 		$title = Title::makeTitle( NS_TEMPLATE, $result->value );
 		$linkRenderer = $this->getLinkRenderer();
-		$text = $linkRenderer->makeKnownLink( $title, htmlspecialchars( $title->getText() ) );
+		$text = $linkRenderer->makeKnownLink( $title, new HtmlArmor( htmlspecialchars( $title->getText() ) ) );
 		$category = $this->getCategoryDefinedByTemplate( $title );
 		if ( $category !== '' ) {
 			$text .= ' ' . $this->msg(

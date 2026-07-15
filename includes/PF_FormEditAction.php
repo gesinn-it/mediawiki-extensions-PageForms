@@ -165,7 +165,10 @@ class PFFormEditAction extends Action {
 
 		$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
 		$noFormLink = $linkRenderer->makeKnownLink(
-			$title, wfMessage( 'pf-formedit-donotuseform' )->escaped(), [], [ 'action' => 'edit', 'redlink' => true ]
+			$title,
+			new HtmlArmor( wfMessage( 'pf-formedit-donotuseform' )->escaped() ),
+			[],
+			[ 'action' => 'edit', 'redlink' => true ]
 		);
 
 		$templateParser = new TemplateParser( __DIR__ . '/../templates' );

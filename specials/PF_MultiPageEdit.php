@@ -151,7 +151,7 @@ class PFMultiPageEdit extends QueryPage {
 			'height' => '500px',
 			'editMultiplePages' => true
 		];
-		$text .= Html::element( 'p', null, $this->msg( 'pf-spreadsheet-addrowinstructions' )->parse() );
+		$text .= Html::element( 'p', null, $this->msg( 'pf-spreadsheet-addrowinstructions' )->text() );
 		$loadingImage = Html::element( 'img', [ 'src' => "$pageFormsScriptPath/skins/loading.gif" ] );
 		$loadingImageDiv = '<div class="loadingImage">' . $loadingImage . '</div>';
 		$text .= Html::rawElement( 'div', $templateDivAttrs, $loadingImageDiv );

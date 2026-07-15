@@ -42,7 +42,6 @@ return [
     // PhanUndeclaredStaticMethod : 1 occurrence
     // PhanUndeclaredTypeReturnType : 1 occurrence
     // SecurityCheck-ReDoS : 1 occurrence
-    // SecurityCheck-XSS : 1 occurrence
 
     'file_suppressions' => [
         'includes/PF_AutocompleteAPI.php' => [
@@ -68,8 +67,7 @@ return [
         ],
         'includes/PF_FormEditAction.php' => [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormEditAction::displayFormChooser'],
-            'PhanTypeMismatchReturn' => ['\\PFFormEditAction::displayForm', '\\PFFormEditAction::show'],
-            'SecurityCheck-DoubleEscaped' => ['\\PFFormEditAction::displayFormChooser']
+            'PhanTypeMismatchReturn' => ['\\PFFormEditAction::displayForm', '\\PFFormEditAction::show']
         ],
         'includes/PF_FormField.php' => [
             'PhanTypeMismatchArgumentNullable' => ['\\PFFormField::newFromFormFieldTag'],
@@ -105,8 +103,7 @@ return [
         'includes/PF_Utils.php' => [
             'PhanTypeMismatchReturnProbablyReal' => ['\\PFUtils::makeLink'],
             'PhanUndeclaredClassMethod' => ['\\PFUtils::getSMWStore'],
-            'PhanUndeclaredTypeReturnType' => ['\\PFUtils::getSMWStore'],
-            'SecurityCheck-DoubleEscaped' => ['\\PFUtils::linkForSpecialPage']
+            'PhanUndeclaredTypeReturnType' => ['\\PFUtils::getSMWStore']
         ],
         'includes/PF_ValuesUtils.php' => [
             'MediaWikiNoEmptyIfDefined' => ['\\PFValuesUtils::getValuesFromExternalURL'],
@@ -168,8 +165,7 @@ return [
         ],
         'includes/parserfunctions/PF_AutoEdit.php' => [
             'PhanTypeMismatchArgumentNullableInternal' => ['\\PFAutoEdit::convertQueryString'],
-            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoEdit::run'],
-            'SecurityCheck-DoubleEscaped' => ['\\PFAutoEdit::run']
+            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoEdit::run']
         ],
         'includes/parserfunctions/PF_AutoEditRating.php' => [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoEditRating::run'],
@@ -182,8 +178,7 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFFormInputParserFunction::run']
         ],
         'includes/parserfunctions/PF_FormLink.php' => [
-            'PhanTypeMismatchArgumentNullable' => ['\\PFFormLink::createFormLink'],
-            'SecurityCheck-DoubleEscaped' => ['\\PFFormLink::createFormLink']
+            'PhanTypeMismatchArgumentNullable' => ['\\PFFormLink::createFormLink']
         ],
         'specials/PF_FormEdit.php' => [
             'PhanUndeclaredClassMethod' => ['\\PFFormEdit::showCaptcha'],
@@ -196,19 +191,16 @@ return [
         ],
         'specials/PF_Forms.php' => [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFForms::getPageHeader'],
-            'PhanTypeMismatchReturnProbablyReal' => ['\\PFForms::formatResult'],
-            'SecurityCheck-DoubleEscaped' => ['\\PFForms::formatResult']
+            'PhanTypeMismatchReturnProbablyReal' => ['\\PFForms::formatResult']
         ],
         'specials/PF_MultiPageEdit.php' => [
-            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFMultiPageEdit::displaySpreadsheet', '\\PFMultiPageEdit::getPageHeader'],
-            'SecurityCheck-DoubleEscaped' => ['\\PFMultiPageEdit::displaySpreadsheet']
+            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFMultiPageEdit::displaySpreadsheet', '\\PFMultiPageEdit::getPageHeader']
         ],
         'specials/PF_RunQuery.php' => [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFRunQuery::printPage']
         ],
         'specials/PF_Templates.php' => [
-            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFTemplates::getPageHeader'],
-            'SecurityCheck-DoubleEscaped' => ['\\PFTemplates::formatResult']
+            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFTemplates::getPageHeader']
         ],
         'specials/PF_UploadForm.php' => [
             'PhanTypeMismatchDimEmpty' => ['\\PFUploadForm::__construct'],
@@ -222,8 +214,7 @@ return [
             'PhanTypeMismatchArgumentNullable' => ['\\PFUploadWindow::execute'],
             'PhanTypeMismatchArgumentNullableInternal' => ['\\PFUploadWindow::processUpload'],
             'PhanUndeclaredMethod' => ['\\PFUploadWindow::getUploadForm', '\\PFUploadWindow::processUpload', '\\PFUploadWindow::showViewDeletedLinks', '\\PFUploadWindow::watchCheck'],
-            'SecurityCheck-DoubleEscaped' => ['\\PFUploadWindow::getExistsWarning'],
-            'SecurityCheck-XSS' => ['\\PFUploadWindow::processUpload']
+            'SecurityCheck-DoubleEscaped' => ['\\PFUploadWindow::getExistsWarning']
         ],
         'src/FormDefParser.php' => [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\MediaWiki\\Extension\\PageForms\\FormDefParser::preparePreloadData']
@@ -236,9 +227,6 @@ return [
         ],
         'src/FormSectionHtmlBuilder.php' => [
             'PhanTypeMismatchArgument' => ['\\MediaWiki\\Extension\\PageForms\\FormSectionHtmlBuilder::buildHtml']
-        ],
-        'src/CalendarHtmlBuilder.php' => [
-            'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\CalendarHtmlBuilder::calendarHTML']
         ],
         'src/SpreadsheetHtmlBuilder.php' => [
             'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\SpreadsheetHtmlBuilder::spreadsheetHTML', '\\MediaWiki\\Extension\\PageForms\\SpreadsheetHtmlBuilder::tableHTML']
