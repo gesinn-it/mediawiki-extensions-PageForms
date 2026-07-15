@@ -11,19 +11,22 @@ function freshRequire() {
 
 QUnit.module( 'PF_preview', {
 	beforeEach() {
+		// PF_preview.js registers a document-level VEForAllLoaded handler on every
+		// freshRequire(); without this, handlers from earlier tests pile up on the
+		// (never-reset) document and all fire together in later tests.
+		$( document ).off( 'VEForAllLoaded' );
 		global.validateAll = () => true;
-		mw.config = {
-			get: ( key ) => {
-				const values = {
-					wgAction: 'formedit',
-					wgCanonicalSpecialPageName: null,
-					wgCanonicalNamespace: null,
-					wgPageName: 'TestPage'
-				};
-				return Object.prototype.hasOwnProperty.call( values, key ) ? values[ key ] : null;
-			}
+		this.configValues = {
+			wgAction: 'formedit',
+			wgCanonicalSpecialPageName: null,
+			wgCanonicalNamespace: null,
+			wgPageName: 'TestPage'
 		};
-		mw.util = { getParamValue: () => null };
+		mw.config = {
+			get: ( key ) => Object.prototype.hasOwnProperty.call( this.configValues, key ) ? this.configValues[ key ] : null
+		};
+		this.paramValues = {};
+		mw.util = { getParamValue: ( key ) => Object.prototype.hasOwnProperty.call( this.paramValues, key ) ? this.paramValues[ key ] : null };
 	}
 } );
 
@@ -85,4 +88,193 @@ QUnit.test( 'pfAjaxPreview bails out silently when #wikiPreview is absent', ( as
 		threw = true;
 	}
 	assert.false( threw, 'no exception when the preview pane is absent' );
+} );
+
+// ── validateAll guard ────────────────────────────────────────────────────────
+
+QUnit.test( 'previewButtonClickedHandler does not call the API when validateAll returns false', ( assert ) => {
+	const done = assert.async();
+	global.validateAll = () => false;
+
+	sinon.stub( mw.Api.prototype, 'post' ).returns( $.Deferred().promise() );
+
+	$(
+		'<form id="pfForm">' +
+			'<input type="submit" id="wpPreview" value="Preview" />' +
+		'</form>' +
+		'<div id="wikiPreview" style="display:none;"></div>'
+	).appendTo( document.body );
+
+	freshRequire();
+
+	setTimeout( () => {
+		$( '#wpPreview' ).trigger( 'click' );
+		assert.false( mw.Api.prototype.post.called, 'post was not called when validateAll returns false' );
+		done();
+	}, 0 );
+} );
+
+// ── Special:FormEdit branch with mw.util.getParamValue ──────────────────────
+
+QUnit.test( 'Special:FormEdit branch uses form/target query params when present', function ( assert ) {
+	const done = assert.async();
+
+	this.configValues.wgAction = null;
+	this.configValues.wgCanonicalNamespace = 'Special';
+	this.configValues.wgCanonicalSpecialPageName = 'FormEdit';
+	this.configValues.wgPageName = 'Ignored/Slash/Path';
+	this.paramValues.form = 'ParamForm';
+	this.paramValues.target = 'ParamTarget';
+
+	sinon.stub( mw.Api.prototype, 'post' ).returns( $.Deferred().promise() );
+
+	$(
+		'<form id="pfForm">' +
+			'<input type="submit" id="wpPreview" value="Preview" />' +
+		'</form>' +
+		'<div id="wikiPreview" style="display:none;"></div>'
+	).appendTo( document.body );
+
+	freshRequire();
+
+	setTimeout( () => {
+		$( '#wpPreview' ).trigger( 'click' );
+		const data = mw.Api.prototype.post.args[ 0 ][ 0 ];
+		assert.strictEqual( data.form, 'ParamForm', 'form taken from query param, not slash-split fallback' );
+		assert.strictEqual( data.target, 'ParamTarget', 'target taken from query param, not slash-split fallback' );
+		done();
+	}, 0 );
+} );
+
+QUnit.test( 'Special:FormEdit branch falls back to slash-split pagename when params are absent', function ( assert ) {
+	const done = assert.async();
+
+	this.configValues.wgAction = null;
+	this.configValues.wgCanonicalNamespace = 'Special';
+	this.configValues.wgCanonicalSpecialPageName = 'FormEdit';
+	this.configValues.wgPageName = 'Ignored/MyForm/Some/Deep/Page';
+
+	sinon.stub( mw.Api.prototype, 'post' ).returns( $.Deferred().promise() );
+
+	$(
+		'<form id="pfForm">' +
+			'<input type="submit" id="wpPreview" value="Preview" />' +
+		'</form>' +
+		'<div id="wikiPreview" style="display:none;"></div>'
+	).appendTo( document.body );
+
+	freshRequire();
+
+	setTimeout( () => {
+		$( '#wpPreview' ).trigger( 'click' );
+		const data = mw.Api.prototype.post.args[ 0 ][ 0 ];
+		assert.strictEqual( data.form, 'MyForm', 'form taken from parts[1] when param is absent' );
+		assert.strictEqual( data.target, 'Some/Deep/Page', 'target re-joins remaining parts with slashes preserved' );
+		done();
+	}, 0 );
+} );
+
+// ── AJAX error handler ───────────────────────────────────────────────────────
+
+QUnit.test( 'AJAX error response renders responseText and concatenated error messages as text', ( assert ) => {
+	const done = assert.async();
+
+	sinon.stub( mw.Api.prototype, 'post' ).returns( $.Deferred().reject( 'http', {
+		xhr: {
+			responseText: JSON.stringify( {
+				responseText: 'Something went wrong.',
+				errors: [ { message: 'Field A is required.' }, { message: 'Field B is invalid.' } ]
+			} )
+		}
+	} ) );
+
+	$(
+		'<form id="pfForm">' +
+			'<input type="submit" id="wpPreview" value="Preview" />' +
+		'</form>' +
+		'<div id="wikiPreview" style="display:none;"></div>'
+	).appendTo( document.body );
+
+	freshRequire();
+
+	setTimeout( () => {
+		$( '#wpPreview' ).trigger( 'click' );
+		setTimeout( () => {
+			const $previewpane = $( '#wikiPreview' );
+			assert.notEqual( $previewpane.css( 'display' ), 'none', 'preview pane is shown' );
+			const text = $previewpane.find( 'p' ).text();
+			assert.true( text.includes( 'Something went wrong.' ), 'responseText included' );
+			assert.true( text.includes( 'Field A is required.' ), 'first error message appended' );
+			assert.true( text.includes( 'Field B is invalid.' ), 'second error message appended' );
+			done();
+		}, 0 );
+	}, 0 );
+} );
+
+// ── VEForAllLoaded click interception ───────────────────────────────────────
+
+QUnit.test( 'VEForAllLoaded actualizes VE fields before running the preview handler', ( assert ) => {
+	const done = assert.async();
+
+	mw.pageFormsActualizeVisualEditorFields = sinon.stub().callsFake( ( callback ) => callback() );
+
+	sinon.stub( mw.Api.prototype, 'post' ).returns(
+		$.Deferred().resolve( { result: '<html><body></body></html>' } ).promise()
+	);
+
+	$(
+		'<form id="pfForm">' +
+			'<input type="submit" id="wpPreview" value="Preview" />' +
+			'<div class="visualeditor"></div>' +
+		'</form>' +
+		'<div id="wikiPreview" style="display:none;"></div>'
+	).appendTo( document.body );
+
+	freshRequire();
+
+	setTimeout( () => {
+		$( document ).trigger( 'VEForAllLoaded' );
+		$( '#wpPreview' ).trigger( 'click' );
+
+		setTimeout( () => {
+			assert.true( mw.pageFormsActualizeVisualEditorFields.called, 'VE fields are actualized before the preview handler runs' );
+			assert.true( mw.Api.prototype.post.called, 'preview API call still happens after VE actualization' );
+			done();
+			delete mw.pageFormsActualizeVisualEditorFields;
+		}, 0 );
+	}, 0 );
+} );
+
+QUnit.test( 'VEForAllLoaded does not intercept clicks when no .visualeditor is present', ( assert ) => {
+	const done = assert.async();
+
+	mw.pageFormsActualizeVisualEditorFields = sinon.stub().callsFake( ( callback ) => callback() );
+
+	sinon.stub( mw.Api.prototype, 'post' ).returns(
+		$.Deferred().resolve( { result: '<html><body></body></html>' } ).promise()
+	);
+
+	$(
+		'<form id="pfForm">' +
+			'<input type="submit" id="wpPreview" value="Preview" />' +
+		'</form>' +
+		'<div id="wikiPreview" style="display:none;"></div>'
+	).appendTo( document.body );
+
+	freshRequire();
+
+	setTimeout( () => {
+		$( document ).trigger( 'VEForAllLoaded' );
+		$( '#wpPreview' ).trigger( 'click' );
+
+		setTimeout( () => {
+			assert.false(
+				mw.pageFormsActualizeVisualEditorFields.called,
+				'VE fields are not actualized when no .visualeditor element is present'
+			);
+			assert.true( mw.Api.prototype.post.called, 'preview API call still happens normally' );
+			done();
+			delete mw.pageFormsActualizeVisualEditorFields;
+		}, 0 );
+	}, 0 );
 } );

@@ -130,3 +130,433 @@ QUnit.module( 'pf.select2.base.textHighlight', {
 	} );
 
 } );
+
+const sinon = require( 'sinon' );
+
+// ===========================================================
+// getAutocompleteOpts
+// ===========================================================
+
+QUnit.module( 'pf.select2.base.getAutocompleteOpts', {
+	beforeEach() {
+		$( '<input id="input_1">' ).appendTo( document.body );
+	}
+}, () => {
+
+	QUnit.test( 'returns autocompletedatatype and autocompletesettings from attributes', ( assert ) => {
+		$( '#input_1' ).attr( 'autocompletedatatype', 'category' ).attr( 'autocompletesettings', 'Scientists' );
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+
+		const opts = instance.getAutocompleteOpts();
+
+		assert.strictEqual( opts.autocompletedatatype, 'category' );
+		assert.strictEqual( opts.autocompletesettings, 'Scientists' );
+	} );
+
+	QUnit.test( 'throws when autocompletesettings attribute is absent', ( assert ) => {
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+
+		assert.throws( () => {
+			instance.getAutocompleteOpts();
+		}, /^Error: No autocomplete settings set for input #input_1$/ );
+	} );
+
+} );
+
+// ===========================================================
+// dependentOn
+// ===========================================================
+
+QUnit.module( 'pf.select2.base.dependentOn', {
+	beforeEach() {
+		// Other test files (e.g. PF_ComboBoxInput.scroll.test.js) replace the shared
+		// pageforms.nameAttr shim with a hardcoded `() => 'name'` stub; restore the
+		// real origname/name logic here since dependentOn() depends on it.
+		pageforms.partOfMultiple = ( element ) => element.attr( 'origname' ) !== undefined;
+		pageforms.nameAttr = ( element ) => ( pageforms.partOfMultiple( element ) ? 'origname' : 'name' );
+		$( '<input id="input_1" name="City">' ).appendTo( document.body );
+	}
+}, () => {
+
+	QUnit.test( 'returns the base field name when this field is listed as dependent', ( assert ) => {
+		mw.config = { get: () => [ [ 'Country', 'City' ] ] };
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+
+		assert.strictEqual( instance.dependentOn(), 'Country' );
+	} );
+
+	QUnit.test( 'returns null when this field is not listed as dependent', ( assert ) => {
+		mw.config = { get: () => [ [ 'Country', 'SomeOtherField' ] ] };
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+
+		assert.strictEqual( instance.dependentOn(), null );
+	} );
+
+	QUnit.test( 'returns null when wgPageFormsDependentFields is empty', ( assert ) => {
+		mw.config = { get: () => [] };
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+
+		assert.strictEqual( instance.dependentOn(), null );
+	} );
+
+	QUnit.test( 'uses origname when the field is part of a multiple-instance template', ( assert ) => {
+		$( '#input_1' ).removeAttr( 'name' ).attr( 'origname', 'City' );
+		mw.config = { get: () => [ [ 'Country', 'City' ] ] };
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+
+		assert.strictEqual( instance.dependentOn(), 'Country' );
+	} );
+
+} );
+
+// ===========================================================
+// dependentOnMe
+// ===========================================================
+
+QUnit.module( 'pf.select2.base.dependentOnMe', () => {
+
+	QUnit.test( 'returns all fields dependent on this field', ( assert ) => {
+		mw.config = { get: () => [ [ 'Country', 'City' ], [ 'Country', 'Region' ], [ 'City', 'Street' ] ] };
+		const instance = new pageforms.select2.base();
+		const $element = $( '<input name="Country">' );
+
+		assert.deepEqual( instance.dependentOnMe( $element ), [ 'City', 'Region' ] );
+	} );
+
+	QUnit.test( 'returns an empty array when no fields depend on this field', ( assert ) => {
+		mw.config = { get: () => [ [ 'Country', 'City' ] ] };
+		const instance = new pageforms.select2.base();
+		const $element = $( '<input name="Unrelated">' );
+
+		assert.deepEqual( instance.dependentOnMe( $element ), [] );
+	} );
+
+} );
+
+// ===========================================================
+// getDependentFieldOpts
+// ===========================================================
+
+QUnit.module( 'pf.select2.base.getDependentFieldOpts', {
+	beforeEach() {
+		mw.config = { get: () => ( {} ) };
+	}
+}, () => {
+
+	QUnit.test( 'reads base value/prop from a plain [name=...] element', ( assert ) => {
+		$( '<input name="Country" value="Germany">' ).appendTo( document.body );
+		$( '<input id="input_1" name="City" autocompletesettings="City,list">' ).appendTo( document.body );
+
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+
+		const opts = instance.getDependentFieldOpts( 'Country' );
+
+		assert.strictEqual( opts.base_value, 'Germany' );
+		assert.strictEqual( opts.prop, 'City' );
+	} );
+
+	QUnit.test( 'base_prop falls back to the base element autocompletesettings attribute', ( assert ) => {
+		$( '<input name="Country" value="Germany" autocompletesettings="Country">' ).appendTo( document.body );
+		$( '<input id="input_1" name="City" autocompletesettings="City,list">' ).appendTo( document.body );
+
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+
+		const opts = instance.getDependentFieldOpts( 'Country' );
+
+		assert.strictEqual( opts.base_prop, 'Country' );
+	} );
+
+	QUnit.test( 'base_prop prefers wgPageFormsFieldProperties over the attribute fallback', ( assert ) => {
+		mw.config = { get: () => ( { Country: 'CountryProp' } ) };
+		$( '<input name="Country" value="Germany" autocompletesettings="IgnoredAttr">' ).appendTo( document.body );
+		$( '<input id="input_1" name="City" autocompletesettings="City,list">' ).appendTo( document.body );
+
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+
+		const opts = instance.getDependentFieldOpts( 'Country' );
+
+		assert.strictEqual( opts.base_prop, 'CountryProp' );
+	} );
+
+	QUnit.test( 'reads the base element from the enclosing multipleTemplateInstance via origname', ( assert ) => {
+		$(
+			'<div class="multipleTemplateInstance">' +
+				'<input origname="Country" value="Germany">' +
+				'<input id="input_1" origname="City" autocompletesettings="City,list">' +
+			'</div>'
+		).appendTo( document.body );
+
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+
+		const opts = instance.getDependentFieldOpts( 'Country' );
+
+		assert.strictEqual( opts.base_value, 'Germany' );
+		assert.strictEqual( opts.prop, 'City' );
+	} );
+
+} );
+
+// ===========================================================
+// destroy / refresh
+// ===========================================================
+
+QUnit.module( 'pf.select2.base.destroy', {
+	afterEach() {
+		sinon.restore();
+	}
+}, () => {
+
+	QUnit.test( 'calls select2("destroy") on the element', ( assert ) => {
+		const $element = $( '<input>' );
+		if ( typeof $.fn.select2 !== 'function' ) {
+			$.fn.select2 = function () {
+				return this;
+			};
+		}
+		const select2Stub = sinon.stub( $.fn, 'select2' );
+		const instance = new pageforms.select2.base();
+
+		instance.destroy( $element );
+
+		assert.true( select2Stub.calledWith( 'destroy' ) );
+	} );
+
+} );
+
+QUnit.module( 'pf.select2.base.refresh', {
+	afterEach() {
+		sinon.restore();
+	}
+}, () => {
+
+	QUnit.test( 'calls destroy then apply with the jQuery-wrapped element', ( assert ) => {
+		const element = $( '<input id="input_1">' ).appendTo( document.body )[ 0 ];
+		const instance = new pageforms.select2.base();
+		const destroySpy = sinon.stub( instance, 'destroy' );
+		const applySpy = sinon.stub( instance, 'apply' );
+
+		instance.refresh( element );
+
+		assert.true( destroySpy.calledOnce );
+		assert.true( applySpy.calledOnce );
+		assert.strictEqual( destroySpy.firstCall.args[ 0 ][ 0 ], element );
+		assert.strictEqual( applySpy.firstCall.args[ 0 ][ 0 ], element );
+	} );
+
+} );
+
+// ===========================================================
+// apply
+// ===========================================================
+
+QUnit.module( 'pf.select2.base.apply', {
+	beforeEach() {
+		// jsdom's window.Option is not exposed as a bare global by setup.js;
+		// apply() uses the bare `new Option(...)` constructor.
+		global.Option = window.Option;
+		this.configValues = { wgPageFormsAutocompleteOnAllChars: false };
+		mw.config = {
+			get: ( key ) => Object.prototype.hasOwnProperty.call( this.configValues, key ) ? this.configValues[ key ] : null
+		};
+		if ( typeof $.fn.select2 !== 'function' ) {
+			$.fn.select2 = function () {
+				return this;
+			};
+		}
+	},
+	afterEach() {
+		sinon.restore();
+	}
+}, () => {
+
+	function makeInputData() {
+		return {
+			dropdown: { $searchContainer: $( '<span></span>' ) },
+			$results: $( '<ul></ul>' )
+		};
+	}
+
+	QUnit.test( 'empties the element, applies select2, and restores the original value', ( assert ) => {
+		const $element = $( '<select id="input_1" value="Existing" autocompletesettings="Scientists"><option value="Stale">Stale</option></select>' )
+			.appendTo( document.body );
+		const inputData = makeInputData();
+
+		// apply() only appends an empty placeholder Option itself (no autocompletedatatype
+		// branch here); add the "Existing" option up front so $input.val(origValue) has a
+		// matching <option> to select — a <select> silently ignores .val() otherwise.
+		sinon.stub( $.fn, 'select2' ).callsFake( function () {
+			this.append( new Option( 'Existing', 'Existing', false, false ) );
+			this.data( 'select2', inputData );
+			return this;
+		} );
+
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+		instance.setOptions = () => ( {} );
+		instance.dependentOn = () => null;
+
+		instance.apply( $element );
+
+		assert.strictEqual( $element.find( 'option[value="Stale"]' ).length, 0, 'stale options are removed by empty()' );
+		assert.strictEqual( $element.val(), 'Existing', 'original value is restored' );
+	} );
+
+	QUnit.test( 'treats an undefined original value as an empty string', ( assert ) => {
+		const $element = $( '<select id="input_1" autocompletesettings="Scientists"></select>' ).appendTo( document.body );
+		const inputData = makeInputData();
+
+		sinon.stub( $.fn, 'select2' ).callsFake( function () {
+			this.data( 'select2', inputData );
+			return this;
+		} );
+
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+		instance.setOptions = () => ( {} );
+		instance.dependentOn = () => null;
+
+		instance.apply( $element );
+
+		assert.strictEqual( $element.val(), '', 'missing value attribute defaults to empty string' );
+	} );
+
+	QUnit.test( 'appends a placeholder option for remote autocompletion when not dependent on another field', ( assert ) => {
+		const $element = $( '<select id="input_1" value="Berlin" autocompletesettings="Cities,external data"></select>' )
+			.appendTo( document.body );
+		const inputData = makeInputData();
+
+		sinon.stub( $.fn, 'select2' ).callsFake( function () {
+			this.data( 'select2', inputData );
+			return this;
+		} );
+
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+		instance.setOptions = () => ( {} );
+		instance.dependentOn = () => null;
+		instance.getAutocompleteOpts = () => ( { autocompletedatatype: 'category', autocompletesettings: 'Cities,external data' } );
+
+		instance.apply( $element );
+
+		assert.strictEqual( $element.find( 'option[value="Berlin"]' ).length, 1, 'placeholder option restores the remote value' );
+	} );
+
+	QUnit.test( 'does not append a placeholder option when the field is dependent on another field', ( assert ) => {
+		const $element = $( '<select id="input_1" value="Berlin" autocompletesettings="Cities,external data"></select>' )
+			.appendTo( document.body );
+		const inputData = makeInputData();
+
+		sinon.stub( $.fn, 'select2' ).callsFake( function () {
+			this.data( 'select2', inputData );
+			return this;
+		} );
+
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+		instance.setOptions = () => ( {} );
+		instance.dependentOn = () => 'Country';
+		instance.getAutocompleteOpts = () => ( { autocompletedatatype: 'category', autocompletesettings: 'Cities,external data' } );
+
+		instance.apply( $element );
+
+		assert.strictEqual( $element.find( 'option[value="Berlin"]' ).length, 0, 'no placeholder option added when dependent' );
+	} );
+
+	QUnit.test( 'Tab keydown selects the highlighted result and adds a matching option if missing', ( assert ) => {
+		const $element = $( '<select id="input_1" autocompletesettings="Scientists"></select>' ).appendTo( document.body );
+		const inputData = makeInputData();
+		inputData.$results.append( $( '<li class="select2-results__option--highlighted">Einstein</li>' ) );
+
+		sinon.stub( $.fn, 'select2' ).callsFake( function () {
+			this.data( 'select2', inputData );
+			return this;
+		} );
+
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+		instance.setOptions = () => ( {} );
+		instance.dependentOn = () => null;
+
+		instance.apply( $element );
+
+		inputData.dropdown.$searchContainer.trigger( $.Event( 'keydown', { keyCode: 9 } ) );
+
+		assert.strictEqual( $element.find( 'option[value="Einstein"]' ).length, 1, 'option is created for the highlighted result' );
+		assert.strictEqual( $element.val(), 'Einstein', 'value is set to the highlighted result' );
+	} );
+
+	QUnit.test( 'Tab keydown with no highlighted result leaves the value unchanged', ( assert ) => {
+		const $element = $( '<select id="input_1" value="" autocompletesettings="Scientists"></select>' ).appendTo( document.body );
+		const inputData = makeInputData();
+
+		sinon.stub( $.fn, 'select2' ).callsFake( function () {
+			this.data( 'select2', inputData );
+			return this;
+		} );
+
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+		instance.setOptions = () => ( {} );
+		instance.dependentOn = () => null;
+
+		instance.apply( $element );
+
+		inputData.dropdown.$searchContainer.trigger( $.Event( 'keydown', { keyCode: 9 } ) );
+
+		assert.strictEqual( $element.val(), '', 'value stays empty when nothing is highlighted' );
+	} );
+
+	QUnit.test( 'Tab keydown is a no-op when existingvaluesonly is true', ( assert ) => {
+		const $element = $( '<select id="input_1" existingvaluesonly="true" autocompletesettings="Scientists"></select>' )
+			.appendTo( document.body );
+		const inputData = makeInputData();
+		inputData.$results.append( $( '<li class="select2-results__option--highlighted">Einstein</li>' ) );
+
+		sinon.stub( $.fn, 'select2' ).callsFake( function () {
+			this.data( 'select2', inputData );
+			return this;
+		} );
+
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+		instance.setOptions = () => ( {} );
+		instance.dependentOn = () => null;
+
+		instance.apply( $element );
+
+		inputData.dropdown.$searchContainer.trigger( $.Event( 'keydown', { keyCode: 9 } ) );
+
+		assert.strictEqual( $element.find( 'option[value="Einstein"]' ).length, 0, 'no option added when existingValuesOnly is true' );
+	} );
+
+	QUnit.test( 'swallows exceptions from select2() and logs them via console.log', ( assert ) => {
+		const $element = $( '<select id="input_1" autocompletesettings="Scientists"></select>' ).appendTo( document.body );
+		const thrown = new Error( 'select2 init failed' );
+		sinon.stub( $.fn, 'select2' ).throws( thrown );
+		const consoleLogSpy = sinon.stub( window.console, 'log' );
+
+		const instance = new pageforms.select2.base();
+		instance.id = 'input_1';
+		instance.setOptions = () => ( {} );
+
+		let threw = false;
+		try {
+			instance.apply( $element );
+		} catch ( e ) {
+			threw = true;
+		}
+		assert.false( threw, 'exception from select2() does not propagate out of apply()' );
+		assert.true( consoleLogSpy.calledWith( thrown ) );
+	} );
+
+} );
