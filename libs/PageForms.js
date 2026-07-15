@@ -755,13 +755,13 @@ $.fn.checkForPipes = function() {
 			// startTag ... endTag | startTag ... endTag
 			if ( matches[1].includes( endTag ) &&
 				matches[2].includes( startTag ) ) {
-				fieldVal = fieldVal.replace( pattern, "$1" + "\2" + "$2");
+				fieldVal = fieldVal.replace( pattern, "$1" + "\u0002" + "$2");
 			} else {
-				fieldVal = fieldVal.replace( pattern, "$1" + "\1" + "$2" );
+				fieldVal = fieldVal.replace( pattern, "$1" + "\u0001" + "$2" );
 			}
 		}
 	}
-	fieldVal = fieldVal.replace( "\2", '|' );
+	fieldVal = fieldVal.replace( "\u0002", '|' );
 
 	// Now check for pipes outside of brackets.
 	let nextPipe,
