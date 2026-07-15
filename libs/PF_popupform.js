@@ -750,7 +750,7 @@ window.ext.popupform = ( function () {
 
 	function handlePopupFormInput( ptarget, elem ) {
 		showForm();
-		reload = $(elem).hasClass('reload');
+		reload = elem.classList.contains('reload');
 
 		$iframe.on( 'load', () => {
 			// attach event handler to iframe
@@ -764,7 +764,7 @@ window.ext.popupform = ( function () {
 
 	function handlePopupFormLink( ptarget, elem ) {
 		showForm();
-		reload = $(elem).hasClass('reload');
+		reload = elem.classList.contains('reload');
 		// store initial readystate
 		let readystate = $iframe.contents()[0].readyState;
 

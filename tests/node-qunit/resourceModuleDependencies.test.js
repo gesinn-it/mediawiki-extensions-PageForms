@@ -65,10 +65,12 @@ QUnit.module( 'ResourceModule dependency completeness', () => {
 	for ( const { moduleName, scriptPath, dependencies } of records ) {
 		const fullPath = path.join( ROOT, scriptPath );
 
+		// eslint-disable-next-line security/detect-non-literal-fs-filename
 		if ( !fs.existsSync( fullPath ) ) {
 			continue;
 		}
 
+		// eslint-disable-next-line security/detect-non-literal-fs-filename
 		const source = fs.readFileSync( fullPath, 'utf8' );
 
 		for ( const { pattern, dependency, description } of DEPENDENCY_RULES ) {

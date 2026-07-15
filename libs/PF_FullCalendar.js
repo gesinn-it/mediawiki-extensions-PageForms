@@ -621,7 +621,7 @@
 				// Handle token input type
 				$(':input').each( function() {
 					tokensProto = new pf.select2.tokens();
-					if ( $( this ).hasClass( 'pfTokens' ) ){
+					if ( this.classList.contains( 'pfTokens' ) ){
 						tokensProto.apply( $(this) );
 					}
 				});
@@ -824,7 +824,7 @@
 				// Handling token input type
 				$(':input').each(function() {
 					tokensProto = new pf.select2.tokens();
-					if ( $( this ).hasClass( 'pfTokens' ) ) {
+					if ( this.classList.contains( 'pfTokens' ) ) {
 						tokensProto.apply( $(this) );
 					}
 				});

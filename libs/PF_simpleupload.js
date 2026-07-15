@@ -32,7 +32,7 @@
 			};
 		}
 
-		const isTokenInput = $input.hasClass('pfTokens');
+		const isTokenInput = $input[0].classList.contains('pfTokens');
 
 		const input = isTokenInput
 			? {

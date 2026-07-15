@@ -30,7 +30,7 @@
 		// Save the original value of the inputs.
 		$allInputs.each( ( index, element ) => {
 			const $element = $( element );
-			if ( $element.hasClass( 'pfComboBox' ) ) {
+			if ( element.classList.contains( 'pfComboBox' ) ) {
 				// data() can't be used for combobox inputs, probably because they use OOUI.
 				origValues[element.id] = $element.textSelection( 'getContents' );
 			} else {
@@ -59,7 +59,7 @@
 					// newText have to be different for the
 					// combobox input, due to its use of
 					// OOUI.
-					if ( $element.hasClass( 'pfComboBox' ) ) {
+					if ( element.classList.contains( 'pfComboBox' ) ) {
 						origText = origValues[element.id];
 						newText = $('#' + element.id).val();
 					} else {

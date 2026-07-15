@@ -196,7 +196,7 @@ function showDiv( div_id, $instanceWrapperDiv, initPage ) {
 			for ( let i = 0; i < showOnSelectVals.length; i++ ) {
 				const options = showOnSelectVals[i][0];
 				const div_id2 = showOnSelectVals[i][1];
-				if ( $uncoveredInput.hasClass( 'pfShowIfSelected' ) ) {
+				if ( $uncoveredInput[0].classList.contains( 'pfShowIfSelected' ) ) {
 					showDivIfSelected( options, div_id2, inputVal, $instanceWrapperDiv, initPage );
 				} else {
 					$uncoveredInput.showDivIfChecked( options, div_id2, $instanceWrapperDiv, initPage );
@@ -227,7 +227,7 @@ function hideDiv( div_id, $instanceWrapperDiv, initPage ) {
 
 	// If we're just setting up the page, and this element has already
 	// been marked to be shown by some other input, don't hide it.
-	if ( initPage && $elem.hasClass('shownByPF') ) {
+	if ( initPage && $elem[0].classList.contains('shownByPF') ) {
 		return;
 	}
 
@@ -1133,7 +1133,7 @@ $.fn.possiblyMinimizeAllOpenInstances = function() {
 			}
 
 			let curVal = $(this).val();
-			if ( $(this).hasClass('ve-ce-surface') ) {
+			if ( this.classList.contains('ve-ce-surface') ) {
 				// Special handling for VisualEditor/VEForAll textareas.
 				curVal = $(this).text();
 			}
@@ -1273,11 +1273,11 @@ $.fn.addInstance = function( addAboveCurInstance ) {
 	}
 
 	if ( wgPageFormsHeightForMinimizingInstances >= 0 ) {
-		if ( ! $multipleTemplateList.hasClass('minimizeAll') &&
+		if ( ! $multipleTemplateList[0].classList.contains('minimizeAll') &&
 			$multipleTemplateList.height() >= wgPageFormsHeightForMinimizingInstances ) {
 			$multipleTemplateList.addClass('minimizeAll');
 		}
-		if ( $multipleTemplateList.hasClass('minimizeAll') ) {
+		if ( $multipleTemplateList[0].classList.contains('minimizeAll') ) {
 			$multipleTemplateList
 				.addClass('currentFocus')
 				.possiblyMinimizeAllOpenInstances();
@@ -1538,7 +1538,7 @@ $.fn.setAutocompleteForDependentField = function( partOfMultiple ) {
 			$element = $('[name="' + dependentField + '"]');
 		}
 
-		if ( $element.hasClass( 'pfTokens' ) ) {
+		if ( $element[0].classList.contains( 'pfTokens' ) ) {
 			tokens = new pf.select2.tokens();
 			tokens.refresh($element);
 		} else {
@@ -1967,7 +1967,7 @@ $('form#pfForm').click( (e) => {
 	const $target = $(e.target);
 	// Ignore the "add instance" buttons - those get handling of their own.
 	const clickedOnAddAnother = $target.parents('.multipleTemplateAdder').length > 0;
-	if ( clickedOnAddAnother || $target.hasClass('addAboveButton') ) {
+	if ( clickedOnAddAnother || $target[0].classList.contains('addAboveButton') ) {
 		return;
 	}
 
@@ -1980,16 +1980,16 @@ $('form#pfForm').click( (e) => {
 	}
 
 	const $instancesList = $instance.closest('.multipleTemplateList');
-	if ( !$instancesList.hasClass('currentFocus') ) {
+	if ( !$instancesList[0].classList.contains('currentFocus') ) {
 		$('.multipleTemplateList.currentFocus')
 			.removeClass('currentFocus')
 			.possiblyMinimizeAllOpenInstances();
-		if ( $instancesList.hasClass('minimizeAll') ) {
+		if ( $instancesList[0].classList.contains('minimizeAll') ) {
 			$instancesList.addClass('currentFocus');
 		}
 	}
 
-	if ( $instance.hasClass('minimized') ) {
+	if ( $instance[0].classList.contains('minimized') ) {
 		$instancesList.possiblyMinimizeAllOpenInstances();
 		$instance.removeClass('minimized');
 		$instance.find('.fieldValuesDisplay').html('');

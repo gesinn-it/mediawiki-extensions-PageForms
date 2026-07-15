@@ -106,7 +106,7 @@ QUnit.test( 'rateyo.set triggers sendData → post called on success', ( assert 
 	setTimeout( () => {
 		assert.true( mw.Api.prototype.post.calledOnce, 'post called' );
 		setTimeout( () => {
-			assert.true( $result.hasClass( 'autoedit-result-ok' ), 'ok class set' );
+			assert.true( $result[ 0 ].classList.contains( 'autoedit-result-ok' ), 'ok class set' );
 			done();
 		}, 0 );
 	}, 50 );
@@ -126,7 +126,7 @@ QUnit.test( 'sendData: ajax error sets error class', ( assert ) => {
 
 	setTimeout( () => {
 		setTimeout( () => {
-			assert.true( $result.hasClass( 'autoedit-result-error' ), 'error class set' );
+			assert.true( $result[ 0 ].classList.contains( 'autoedit-result-error' ), 'error class set' );
 			done();
 		}, 0 );
 	}, 50 );

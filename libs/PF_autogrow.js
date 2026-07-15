@@ -10,6 +10,7 @@
  *
  * @author Jevin O. Sewaruth
  * @author Yaron Koren
+ * @param {jQuery} $
  */
 
 ( function( $ ) {

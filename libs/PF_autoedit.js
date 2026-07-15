@@ -15,7 +15,7 @@
 	function sendData( $trigger ){
 		const $autoedit = $trigger.closest( '.autoedit' );
 		const $result = $autoedit.find( '.autoedit-result' );
-		const reload = $trigger.hasClass( 'reload' );
+		const reload = $trigger[ 0 ].classList.contains( 'reload' );
 
 		$trigger.attr( 'class', 'autoedit-trigger autoedit-trigger-wait' );
 		$result.attr( 'class', 'autoedit-result autoedit-result-wait' );
@@ -88,7 +88,7 @@
 		const $autoedit = $trigger.closest( '.autoedit' );
 		const $editdata = $autoedit.find( 'form.autoedit-data' );
 		const targetpage = $editdata.find( 'input[name=target]' ).val();
-		const confirmEdit = $editdata.hasClass( 'confirm-edit' );
+		const confirmEdit = $editdata[ 0 ].classList.contains( 'confirm-edit' );
 		if ( confirmEdit ) {
 			OO.ui.confirm( mw.msg( 'pf_autoedit_confirm', targetpage ) ).then( (confirmed) => {
 				if ( confirmed ) {

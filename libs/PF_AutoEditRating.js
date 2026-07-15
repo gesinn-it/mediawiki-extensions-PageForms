@@ -56,7 +56,7 @@
 			.attr( 'value', value );
 		const targetpage = $editdata.find( 'input[name=target]' )
 			.val();
-		const confirmEdit = $editdata.hasClass( 'confirm-edit' );
+		const confirmEdit = $editdata[ 0 ].classList.contains( 'confirm-edit' );
 		if ( confirmEdit ) {
 			OO.ui.confirm( mw.msg( 'pf_autoedit_confirm', targetpage ) )
 				.then( (confirmed) => {

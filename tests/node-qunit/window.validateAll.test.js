@@ -21,7 +21,7 @@ QUnit.test('fails on missing year in mandatory date input field', (assert) => {
 
 	window.validateAll();
 
-	assert.true($('.yearInput').hasClass('inputError'));
+	assert.true($('.yearInput')[0].classList.contains('inputError'));
 	assert.equal($('.dateInput div.errorMessage').text(), 'the error message');
 });
 
@@ -30,7 +30,7 @@ QUnit.test('fails on missing month in mandatory date input field when day is pre
 
 	window.validateAll();
 
-	assert.true($('.monthInput').hasClass('inputError'));
+	assert.true($('.monthInput')[0].classList.contains('inputError'));
 	assert.equal($('.dateInput div.errorMessage').text(), 'the error message');
 });
 

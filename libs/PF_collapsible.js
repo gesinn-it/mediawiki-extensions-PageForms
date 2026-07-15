@@ -8,6 +8,8 @@
  *
  * Now it's less so, because that code used a .toggle() function that was
  * removed in jQuery 1.9.
+ *
+ * @param {jQuery} $
  */
 
 ( function( $ ) {
@@ -30,7 +32,7 @@
 			const $fieldset = $( this );
 
 			$fieldset.children( 'legend' ).click( () => {
-				if ( $fieldset.hasClass( 'pfCollapsedFieldset' ) ) {
+				if ( $fieldset[ 0 ].classList.contains( 'pfCollapsedFieldset' ) ) {
 					pfShowFieldsetContent( $fieldset );
 				} else {
 					pfHideFieldsetContent( $fieldset );

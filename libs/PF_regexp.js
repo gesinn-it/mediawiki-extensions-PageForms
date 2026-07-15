@@ -2,6 +2,7 @@
  * Javascript code to be used with input type regexp.
  *
  * @author Stephan Gambke
+ * @param {jQuery} $
  */
 
 ( function( $ ) {

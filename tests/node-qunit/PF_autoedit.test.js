@@ -100,8 +100,8 @@ QUnit.test( 'sendData: success status 200 sets ok classes', ( assert ) => {
 	setTimeout( () => {
 		$trigger.trigger( 'click' );
 		setTimeout( () => {
-			assert.true( $trigger.hasClass( 'autoedit-trigger-ok' ), 'trigger has ok class' );
-			assert.true( $result.hasClass( 'autoedit-result-ok' ), 'result has ok class' );
+			assert.true( $trigger[ 0 ].classList.contains( 'autoedit-trigger-ok' ), 'trigger has ok class' );
+			assert.true( $result[ 0 ].classList.contains( 'autoedit-result-ok' ), 'result has ok class' );
 			done();
 		}, 0 );
 	}, 50 );
@@ -116,8 +116,8 @@ QUnit.test( 'sendData: non-200 status sets error classes', ( assert ) => {
 	setTimeout( () => {
 		$trigger.trigger( 'click' );
 		setTimeout( () => {
-			assert.true( $trigger.hasClass( 'autoedit-trigger-error' ), 'trigger has error class' );
-			assert.true( $result.hasClass( 'autoedit-result-error' ), 'result has error class' );
+			assert.true( $trigger[ 0 ].classList.contains( 'autoedit-trigger-error' ), 'trigger has error class' );
+			assert.true( $result[ 0 ].classList.contains( 'autoedit-result-error' ), 'result has error class' );
 			done();
 		}, 0 );
 	}, 50 );
@@ -135,7 +135,7 @@ QUnit.test( 'sendData: ajax error handler sets error classes', ( assert ) => {
 	setTimeout( () => {
 		$trigger.trigger( 'click' );
 		setTimeout( () => {
-			assert.true( $result.hasClass( 'autoedit-result-error' ), 'result has error class' );
+			assert.true( $result[ 0 ].classList.contains( 'autoedit-result-error' ), 'result has error class' );
 			done();
 		}, 0 );
 	}, 50 );

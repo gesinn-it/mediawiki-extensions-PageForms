@@ -26,8 +26,8 @@ QUnit.test( 'pfMakeCollapsible collapses fieldset on init', ( assert ) => {
 
 	$fieldset.pfMakeCollapsible();
 
-	assert.true( $fieldset.hasClass( 'pfCollapsedFieldset' ), 'pfCollapsedFieldset added' );
-	assert.false( $fieldset.hasClass( 'pfExpandedFieldset' ), 'pfExpandedFieldset absent' );
+	assert.true( $fieldset[ 0 ].classList.contains( 'pfCollapsedFieldset' ), 'pfCollapsedFieldset added' );
+	assert.false( $fieldset[ 0 ].classList.contains( 'pfExpandedFieldset' ), 'pfExpandedFieldset absent' );
 } );
 
 QUnit.test( 'clicking legend expands a collapsed fieldset', ( assert ) => {
@@ -36,8 +36,8 @@ QUnit.test( 'clicking legend expands a collapsed fieldset', ( assert ) => {
 
 	$fieldset.children( 'legend' ).trigger( 'click' );
 
-	assert.true( $fieldset.hasClass( 'pfExpandedFieldset' ), 'pfExpandedFieldset added' );
-	assert.false( $fieldset.hasClass( 'pfCollapsedFieldset' ), 'pfCollapsedFieldset removed' );
+	assert.true( $fieldset[ 0 ].classList.contains( 'pfExpandedFieldset' ), 'pfExpandedFieldset added' );
+	assert.false( $fieldset[ 0 ].classList.contains( 'pfCollapsedFieldset' ), 'pfCollapsedFieldset removed' );
 } );
 
 QUnit.test( 'clicking legend twice collapses the fieldset again', ( assert ) => {
@@ -48,8 +48,8 @@ QUnit.test( 'clicking legend twice collapses the fieldset again', ( assert ) => 
 	$legend.trigger( 'click' ); // expand
 	$legend.trigger( 'click' ); // collapse
 
-	assert.true( $fieldset.hasClass( 'pfCollapsedFieldset' ), 'collapses again' );
-	assert.false( $fieldset.hasClass( 'pfExpandedFieldset' ), 'not expanded' );
+	assert.true( $fieldset[ 0 ].classList.contains( 'pfCollapsedFieldset' ), 'collapses again' );
+	assert.false( $fieldset[ 0 ].classList.contains( 'pfExpandedFieldset' ), 'not expanded' );
 } );
 
 QUnit.test( 'pfMakeCollapsible works on multiple fieldsets independently', ( assert ) => {
@@ -58,8 +58,8 @@ QUnit.test( 'pfMakeCollapsible works on multiple fieldsets independently', ( ass
 
 	$a.add( $b ).pfMakeCollapsible();
 
-	assert.true( $a.hasClass( 'pfCollapsedFieldset' ), 'first fieldset collapsed' );
-	assert.true( $b.hasClass( 'pfCollapsedFieldset' ), 'second fieldset collapsed' );
+	assert.true( $a[ 0 ].classList.contains( 'pfCollapsedFieldset' ), 'first fieldset collapsed' );
+	assert.true( $b[ 0 ].classList.contains( 'pfCollapsedFieldset' ), 'second fieldset collapsed' );
 } );
 
 QUnit.test( 'expanding one fieldset does not affect another', ( assert ) => {
@@ -69,6 +69,6 @@ QUnit.test( 'expanding one fieldset does not affect another', ( assert ) => {
 	$a.add( $b ).pfMakeCollapsible();
 	$a.children( 'legend' ).trigger( 'click' ); // expand only $a
 
-	assert.true( $a.hasClass( 'pfExpandedFieldset' ), '$a expanded' );
-	assert.true( $b.hasClass( 'pfCollapsedFieldset' ), '$b still collapsed' );
+	assert.true( $a[ 0 ].classList.contains( 'pfExpandedFieldset' ), '$a expanded' );
+	assert.true( $b[ 0 ].classList.contains( 'pfCollapsedFieldset' ), '$b still collapsed' );
 } );
