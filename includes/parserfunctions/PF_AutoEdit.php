@@ -99,7 +99,7 @@ class PFAutoEdit {
 						);
 						if ( !in_array( $targetTitle->getNamespace(), $allowedNamespaces ) ) {
 							$errorMsg = wfMessage( 'pf-autoedit-invalidnamespace', $targetTitle->getNsText() )->parse();
-							return Html::element( 'div', [ 'class' => 'error' ], $errorMsg );
+							return Html::rawElement( 'div', [ 'class' => 'error' ], $errorMsg );
 						}
 						$targetWikiPage = PFUtils::newWikiPageFromTitle( $targetTitle );
 						$targetWikiPage->clear();
@@ -123,7 +123,7 @@ class PFAutoEdit {
 
 		if ( $redirect != '' && $bringToPage ) {
 			$errorMsg = wfMessage( 'pf_autoedit_notsettogether', 'redirect', 'bring to page' )->parse();
-			return Html::element( 'div', [ 'class' => 'error' ], $errorMsg );
+			return Html::rawElement( 'div', [ 'class' => 'error' ], $errorMsg );
 		}
 
 		if ( $redirect != '' ) {

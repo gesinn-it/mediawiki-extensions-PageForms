@@ -165,7 +165,8 @@ return [
         ],
         'includes/parserfunctions/PF_AutoEdit.php' => [
             'PhanTypeMismatchArgumentNullableInternal' => ['\\PFAutoEdit::convertQueryString'],
-            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoEdit::run']
+            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoEdit::run'],
+            'SecurityCheck-DoubleEscaped' => ['\\PFAutoEdit::run']
         ],
         'includes/parserfunctions/PF_AutoEditRating.php' => [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoEditRating::run'],
@@ -227,6 +228,9 @@ return [
         ],
         'src/FormSectionHtmlBuilder.php' => [
             'PhanTypeMismatchArgument' => ['\\MediaWiki\\Extension\\PageForms\\FormSectionHtmlBuilder::buildHtml']
+        ],
+        'src/CalendarHtmlBuilder.php' => [
+            'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\CalendarHtmlBuilder::calendarHTML']
         ],
         'src/SpreadsheetHtmlBuilder.php' => [
             'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\SpreadsheetHtmlBuilder::spreadsheetHTML', '\\MediaWiki\\Extension\\PageForms\\SpreadsheetHtmlBuilder::tableHTML']

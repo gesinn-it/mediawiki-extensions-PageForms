@@ -2,6 +2,7 @@
 
 /**
  * @covers PFUtils
+ * @group Database
  */
 class PFUtilsTest extends MediaWikiIntegrationTestCase {
 

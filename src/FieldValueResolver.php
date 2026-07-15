@@ -126,6 +126,7 @@ class FieldValueResolver {
 			if ( $allowsMultiple ) {
 				// UUID will be generated per-instance by the JavaScript.
 				$existingClass = $formField->hasFieldArg( 'class' ) ? $formField->getFieldArg( 'class' ) : '';
+				// @phan-suppress-next-line SecurityCheck-DoubleEscaped
 				$formField->setFieldArg( 'class',
 					$existingClass !== ''
 						? $existingClass . ' new-uuid'

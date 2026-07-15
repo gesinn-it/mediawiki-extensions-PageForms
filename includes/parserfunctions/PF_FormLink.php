@@ -163,7 +163,7 @@ class PFFormLink {
 			if ( $inExistingPageLinkStr == '' ) {
 				return $linkRenderer->makeKnownLink( $targetTitle );
 			} else {
-				return $linkRenderer->makeKnownLink( $targetTitle, $inExistingPageLinkStr );
+				return $linkRenderer->makeKnownLink( $targetTitle, new HtmlArmor( $inExistingPageLinkStr ) );
 			}
 		}
 

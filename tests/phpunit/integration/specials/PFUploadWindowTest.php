@@ -237,7 +237,7 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 		// string argument (e.g. getElementById("x\");}}); ... ")) — not
 		// the raw value spliced into a bare double-quoted attribute-like
 		// context.
-		$this->assertRegExp(
+		$this->assertRegex(
 			'/getElementById\(\s*"(?:[^"\\\\]|\\\\.)*"\s*\)/',
 			$output,
 			'pfInputID must be passed to getElementById() as a fully quoted, escaped JSON string literal'
@@ -255,5 +255,18 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 		// literal where it could terminate the string early).
 		$this->assertStringContainsString( '"it\'s-a-test.jpg"', $output );
 		$this->assertStringNotContainsString( "'it's-a-test.jpg'", $output );
+	}
+
+	/**
+	 * Cross-version assertRegexp: uses assertMatchesRegularExpression (PHPUnit ≥ 9)
+	 * when available, otherwise falls back to assertRegExp (PHPUnit 8, MW 1.35).
+	 */
+	private function assertRegex( string $pattern, string $string, string $message = '' ): void {
+		if ( method_exists( $this, 'assertMatchesRegularExpression' ) ) {
+			$this->assertMatchesRegularExpression( $pattern, $string, $message );
+		} else {
+			// @phan-suppress-next-line PhanUndeclaredMethod
+			$this->assertRegExp( $pattern, $string, $message );
+		}
 	}
 }
