@@ -39,8 +39,14 @@ class PFUtils {
 	 */
 	public static function linkForSpecialPage( $linkRenderer, $specialPageName ) {
 		$specialPage = self::getSpecialPage( $specialPageName );
-		return $linkRenderer->makeKnownLink( $specialPage->getPageTitle(),
-			new HtmlArmor( $specialPage->getDescription() ) );
+		// Don't use SpecialPage::getDescription() directly: its return value's
+		// escaping is not consistent across MediaWiki versions (MW <= 1.42
+		// returns plain text via Message::text(), MW >= 1.43 returns the bare
+		// Message object, whose __toString() calls Message::parse() and is
+		// therefore already HTML). Resolve the message ourselves with
+		// ->text() and escape it exactly once.
+		$description = htmlspecialchars( $specialPage->msg( strtolower( $specialPage->getName() ) )->text() );
+		return $linkRenderer->makeKnownLink( $specialPage->getPageTitle(), new HtmlArmor( $description ) );
 	}
 
 	/**
