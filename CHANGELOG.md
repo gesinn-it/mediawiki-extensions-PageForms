@@ -6,6 +6,8 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-07-16
+
 ### Fixed
 - `libs/PageForms.js` (`checkForPipes()`): replace legacy octal string escapes, forbidden by the ECMAScript strict-mode grammar, with the equivalent unicode escapes; Babel's parser (used by `istanbul-lib-instrument` for JS coverage) threw a `SyntaxError` on this file, which `nyc` silently caught and fell back to instrumenting the raw source with no coverage counters and no error output, dropping `PageForms.js` entirely from the coverage report instead of showing it at its actual (near-0%) coverage ([#104](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/104))
 - `PFUploadWindow::processUpload()`: escape the attacker-controlled filename, input ID, and delimiter with `Xml::encodeJsVar()` before interpolating them into the inline `<script>` block; previously spliced in raw inside single-quoted JS string literals, allowing a crafted upload filename to break out and inject script (reflected XSS) ([#59](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/59))
@@ -19,6 +21,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - `PFValuesUtils::getAllPagesForQuery()`: use `SMWQueryProcessor::getQueryAndParamsFromFunctionParams()` instead of the removed `processFunctionParams()`/`addThisPrintout()`/`getProcessedParams()`/`createQuery()` sequence; `values from query` autocomplete fields crashed with `Call to undefined method SMWQueryProcessor::processFunctionParams()` on current SMW versions ([#96](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/96))
 - `PFRunQuery::printPage()`: read the `{{{info|query form at top}}}` result from `PFFormPrinter::formHTML()`'s return value instead of reading `$wgPageFormsRunQueryFormAtTop` before `formHTML()` had parsed the form definition and set it; the query form was always rendered below the results, regardless of the tag ([#97](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/97))
 - `PFRunQuery::printPage()`: forward the `ParserOutput` from parsing the query results (`$data_text`) to `OutputPage`, not just the form's own `ParserOutput`; on SMW 6, the tooltip stylesheet required by table headers (e.g. for preferred property labels) is registered only on the query result's `ParserOutput` and was silently dropped on the non-embedded `Special:RunQuery` path, leaving the tooltip text visible inline next to the property name in the header ([#95](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/95))
+- `PF_editWarning.js`: snapshot select-multiple field values consistently instead of as an array compared against a later stringified value; the "Leave site?" warning fired even when nothing had changed [`0466ee38`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/0466ee38)
 
 ### Changed
 - `PFFormPrinter::formHTML()`, `PFTemplateInForm::setFieldValuesFromSubmit()`, `PFWikiPage::createPageText()`/`createTemplateCallsForTemplateName()`/`createTemplateCall()`, `PFWikiPageTemplate::addUnhandledParams()`: take the current `WebRequest` as an explicit parameter instead of reading `RequestContext::getMain()->getRequest()`; removes the dual request-context access that made `PFRunQuery::printPage()`'s non-embedded path and other callers rely on manually syncing the global request context before calling `formHTML()` ([#99](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/99))
@@ -91,7 +94,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.1...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.2...HEAD
+[2.1.2]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.1...2.1.2
 [2.1.1]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.0.1...2.1.0
 [2.0.1]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.0.0...2.0.1
