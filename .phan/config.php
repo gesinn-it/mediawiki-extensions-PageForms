@@ -21,4 +21,24 @@ $cfg['exclude_analysis_directory_list'] = array_merge(
 	]
 );
 
+// Make dependency extensions (activated in the Makefile / ci.yml matrix)
+// visible to Phan's type-checker. mediawiki-phan-config only adds MW core
+// and MW vendor to directory_list by default, never extensions/. Without
+// this, every call into a dependency's classes surfaces as
+// PhanUndeclaredClass / PhanUndeclaredClassMethod noise instead of being
+// checked against the dependency's actual API.
+$IP = getenv( 'MW_INSTALL_PATH' ) !== false
+	? str_replace( '\\', '/', getenv( 'MW_INSTALL_PATH' ) )
+	: '../..';
+
+$dependencyExtensions = [
+	'SemanticMediaWiki',
+	'DisplayTitle',
+];
+
+foreach ( $dependencyExtensions as $ext ) {
+	$cfg['directory_list'][] = $IP . '/extensions/' . $ext;
+	$cfg['exclude_analysis_directory_list'][] = $IP . '/extensions/' . $ext;
+}
+
 return $cfg;

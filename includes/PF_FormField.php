@@ -735,7 +735,6 @@ class PFFormField {
 	 * Helper function to get an array of labels from an array of values
 	 * given a mapping property.
 	 * @param \SMW\Store|null $store
-	 * @suppress PhanUndeclaredTypeParameter For Store
 	 */
 	public function setValuesWithMappingProperty( $store = null ) {
 		$store ??= PFUtils::getSMWStore();

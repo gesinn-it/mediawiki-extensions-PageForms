@@ -180,7 +180,6 @@ class PFTemplateField {
 	 * a template is parsed during the creation of a form.
 	 * @param string $semantic_property
 	 * @param \SMW\Store|null $store
-	 * @suppress PhanUndeclaredTypeParameter For Store
 	 */
 	public function setSemanticProperty( $semantic_property, $store = null ) {
 		$this->mSemanticProperty = str_replace( '\\', '', $semantic_property ?? '' );

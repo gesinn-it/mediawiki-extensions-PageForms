@@ -9,27 +9,25 @@
  */
 return [
     // # Issue statistics:
-    // PhanUndeclaredClassMethod : 50+ occurrences
-    // SecurityCheck-DoubleEscaped : 45+ occurrences
-    // PhanTypeMismatchArgumentProbablyReal : 25+ occurrences
+    // SecurityCheck-DoubleEscaped : 35+ occurrences
+    // PhanTypeMismatchArgumentProbablyReal : 20+ occurrences
+    // PhanUndeclaredClassMethod : 15+ occurrences
     // PhanTypeMismatchArgumentNullable : 10+ occurrences
     // PhanUndeclaredMethod : 10+ occurrences
     // PhanTypeMismatchArgument : 7 occurrences
     // PhanTypeMismatchArgumentInternal : 7 occurrences
     // PhanTypeMismatchArgumentNullableInternal : 7 occurrences
     // PhanTypeMismatchProperty : 7 occurrences
-    // PhanUndeclaredConstant : 7 occurrences
-    // PhanUndeclaredClassConstant : 6 occurrences
     // PhanTypeMismatchReturn : 5 occurrences
+    // PhanNonClassMethodCall : 4 occurrences
     // PhanTypeMismatchReturnProbablyReal : 4 occurrences
     // PhanPossiblyUndeclaredVariable : 3 occurrences
     // PhanTypeMismatchPropertyProbablyReal : 3 occurrences
     // MediaWikiNoEmptyIfDefined : 2 occurrences
-    // PhanNonClassMethodCall : 2 occurrences
     // PhanRedundantCondition : 2 occurrences
     // PhanTypeMismatchDimFetchNullable : 2 occurrences
-    // PhanUndeclaredClassInstanceof : 2 occurrences
     // PhanUndeclaredClassReference : 2 occurrences
+    // PhanUndeclaredConstant : 2 occurrences
     // PhanPluginDuplicateConditionalNullCoalescing : 1 occurrence
     // PhanRedundantValueComparison : 1 occurrence
     // PhanTypeArraySuspiciousNullable : 1 occurrence
@@ -37,18 +35,15 @@ return [
     // PhanTypeMismatchArgumentInternalReal : 1 occurrence
     // PhanTypeMismatchDimEmpty : 1 occurrence
     // PhanTypeMismatchReturnNullable : 1 occurrence
-    // PhanUndeclaredClassProperty : 1 occurrence
     // PhanUndeclaredConstantOfClass : 1 occurrence
     // PhanUndeclaredStaticMethod : 1 occurrence
-    // PhanUndeclaredTypeReturnType : 1 occurrence
-    // SecurityCheck-ReDoS : 1 occurrence
 
     'file_suppressions' => [
         'includes/PF_AutocompleteAPI.php' => [
             'PhanTypeMismatchArgument' => ['\\PFAutocompleteAPI::getAllValuesForProperty', '\\closure'],
             'PhanTypeMismatchArgumentInternal' => ['\\PFAutocompleteAPI::getAllValuesForProperty'],
             'PhanTypeMismatchArgumentNullable' => ['\\PFAutocompleteAPI::computeAllValuesForProperty'],
-            'PhanUndeclaredClassMethod' => ['\\PFAutocompleteAPI::computeAllValuesForProperty']
+            'PhanUndeclaredMethod' => ['\\PFAutocompleteAPI::computeAllValuesForProperty']
         ],
         'includes/PF_AutoeditAPI.php' => [
             'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFAutoeditAPI::doStore'],
@@ -66,7 +61,6 @@ return [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormCache::purgeCache']
         ],
         'includes/PF_FormEditAction.php' => [
-            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormEditAction::displayFormChooser'],
             'PhanTypeMismatchReturn' => ['\\PFFormEditAction::displayForm', '\\PFFormEditAction::show']
         ],
         'includes/PF_FormField.php' => [
@@ -76,14 +70,12 @@ return [
         'includes/PF_FormPrinter.php' => [
             'PhanNonClassMethodCall' => ['\\PFFormPrinter::showDeletionLog'],
             'PhanPossiblyUndeclaredVariable' => ['\\PFFormPrinter::formHTML'],
-            'PhanTypeMismatchArgument' => ['\\PFFormPrinter::formHTML'],
             'PhanTypeMismatchArgumentNullableInternal' => ['\\PFFormPrinter::__construct', '\\PFFormPrinter::formHTML'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormPrinter::formHTML'],
             'PhanTypeMismatchProperty' => ['\\PFFormPrinter::formHTML'],
             'PhanTypeMismatchPropertyProbablyReal' => ['\\PFFormPrinter::__construct', '\\PFFormPrinter::formHTML'],
             'PhanUndeclaredMethod' => ['\\PFFormPrinter::formHTML'],
-            'SecurityCheck-DoubleEscaped' => ['\\PFFormPrinter::formHTML'],
-            'SecurityCheck-ReDoS' => ['\\PFFormPrinter::formHTML']
+            'SecurityCheck-DoubleEscaped' => ['\\PFFormPrinter::formHTML']
         ],
         'includes/PF_FormUtils.php' => [
             'PhanTypeInvalidLeftOperandOfNumericOp' => ['\\PFFormUtils::getStringForCurrentTime'],
@@ -97,24 +89,17 @@ return [
             'PhanUndeclaredClassReference' => ['\\PFHooks::setGlobalJSVariables']
         ],
         'includes/PF_TemplateField.php' => [
-            'PhanTypeMismatchArgumentNullable' => ['\\PFTemplateField::setTypeAndPossibleValues'],
-            'PhanUndeclaredClassMethod' => ['\\PFTemplateField::setTypeAndPossibleValues']
+            'PhanTypeMismatchArgumentNullable' => ['\\PFTemplateField::setTypeAndPossibleValues']
         ],
         'includes/PF_Utils.php' => [
-            'PhanTypeMismatchReturnProbablyReal' => ['\\PFUtils::makeLink'],
-            'PhanUndeclaredClassMethod' => ['\\PFUtils::getSMWStore'],
-            'PhanUndeclaredTypeReturnType' => ['\\PFUtils::getSMWStore']
+            'PhanTypeMismatchReturnProbablyReal' => ['\\PFUtils::makeLink']
         ],
         'includes/PF_ValuesUtils.php' => [
             'MediaWikiNoEmptyIfDefined' => ['\\PFValuesUtils::getValuesFromExternalURL'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFValuesUtils::getAllCategories', '\\PFValuesUtils::getAllValuesForProperty'],
-            'PhanUndeclaredClassConstant' => ['\\PFValuesUtils::getAllPagesForConcept', '\\PFValuesUtils::getAllPagesForQuery', '\\PFValuesUtils::getSourceCount'],
-            'PhanUndeclaredClassInstanceof' => ['\\PFValuesUtils::getSourceCount', '\\PFValuesUtils::getSMWPropertyValues'],
-            'PhanUndeclaredClassMethod' => ['\\PFValuesUtils::buildCountDescription', '\\PFValuesUtils::getAllPagesForConcept', '\\PFValuesUtils::getAllPagesForQuery', '\\PFValuesUtils::getAllValuesForProperty', '\\PFValuesUtils::getSourceCount', '\\PFValuesUtils::getSMWPropertyValues', '\\PFValuesUtils::getValuesFromExternalURL'],
-            'PhanUndeclaredClassProperty' => ['\\PFValuesUtils::getAllValuesForProperty', '\\PFValuesUtils::getSourceCount'],
-            'PhanTypeMismatchReturn' => ['\\PFValuesUtils::buildCountDescription'],
-            'PhanUndeclaredTypeReturnType' => ['\\PFValuesUtils::buildCountDescription'],
-            'PhanUndeclaredConstant' => ['\\PFValuesUtils::buildCountDescription', '\\PFValuesUtils::getAllPagesForConcept', '\\PFValuesUtils::getAllPagesForQuery']
+            'PhanUndeclaredClassMethod' => ['\\PFValuesUtils::getValuesFromExternalURL'],
+            'PhanUndeclaredConstant' => ['\\PFValuesUtils::buildCountDescription', '\\PFValuesUtils::getAllPagesForConcept'],
+            'PhanUndeclaredMethod' => ['\\PFValuesUtils::getAllValuesForProperty']
         ],
         'includes/forminputs/PF_DateInput.php' => [
             'PhanPossiblyUndeclaredVariable' => ['\\PFDateInput::parseDate'],
@@ -139,15 +124,8 @@ return [
         'includes/forminputs/PF_RegExpInput.php' => [
             'PhanNonClassMethodCall' => ['\\PFRegExpInput::__construct']
         ],
-        'includes/forminputs/PF_SFSelectAPIRequestProcessor.php' => [
-            'PhanUndeclaredClassConstant' => ['\\PFSFSelectAPIRequestProcessor::defaultGetSmwResultFromFunctionParams'],
-            'PhanUndeclaredClassMethod' => ['\\PFSFSelectAPIRequestProcessor::defaultGetSmwResultFromFunctionParams'],
-            'PhanUndeclaredConstant' => ['\\PFSFSelectAPIRequestProcessor::defaultGetSmwResultFromFunctionParams']
-        ],
-        'includes/forminputs/PF_SFSelectField.php' => [
-            'PhanUndeclaredClassConstant' => ['\\PFSFSelectField::setQuery'],
-            'PhanUndeclaredClassMethod' => ['\\PFSFSelectField::setQuery'],
-            'PhanUndeclaredConstant' => ['\\PFSFSelectField::setQuery']
+        'includes/forminputs/PF_SFSelectInput.php' => [
+            'SecurityCheck-DoubleEscaped' => ['\\PFSFSelectInput::getHTML']
         ],
         'includes/forminputs/PF_TextInput.php' => [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFTextInput::uploadableHTML'],
@@ -217,6 +195,9 @@ return [
             'PhanUndeclaredMethod' => ['\\PFUploadWindow::getUploadForm', '\\PFUploadWindow::processUpload', '\\PFUploadWindow::showViewDeletedLinks', '\\PFUploadWindow::watchCheck'],
             'SecurityCheck-DoubleEscaped' => ['\\PFUploadWindow::getExistsWarning']
         ],
+        'src/CalendarHtmlBuilder.php' => [
+            'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\CalendarHtmlBuilder::calendarHTML']
+        ],
         'src/FormDefParser.php' => [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\MediaWiki\\Extension\\PageForms\\FormDefParser::preparePreloadData']
         ],
@@ -228,9 +209,6 @@ return [
         ],
         'src/FormSectionHtmlBuilder.php' => [
             'PhanTypeMismatchArgument' => ['\\MediaWiki\\Extension\\PageForms\\FormSectionHtmlBuilder::buildHtml']
-        ],
-        'src/CalendarHtmlBuilder.php' => [
-            'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\CalendarHtmlBuilder::calendarHTML']
         ],
         'src/SpreadsheetHtmlBuilder.php' => [
             'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\SpreadsheetHtmlBuilder::spreadsheetHTML', '\\MediaWiki\\Extension\\PageForms\\SpreadsheetHtmlBuilder::tableHTML']

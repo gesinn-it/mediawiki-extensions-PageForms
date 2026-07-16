@@ -13,12 +13,11 @@ class PFValuesUtils {
 	/**
 	 * Helper function to handle getPropertyValues().
 	 *
-	 * @param Store $store
+	 * @param \SMW\Store $store
 	 * @param Title $subject
 	 * @param string $propID
 	 * @param \SMW\RequestOptions|null $requestOptions
 	 * @return array
-	 * @suppress PhanUndeclaredTypeParameter For Store
 	 */
 	public static function getSMWPropertyValues( $store, $subject, $propID, $requestOptions = null ) {
 		// If SMW is not installed, exit out.
@@ -111,7 +110,6 @@ class PFValuesUtils {
 	 * @param int|null $maxValues
 	 * @param bool|null $useDisplayTitle
 	 * @return array
-	 * @suppress PhanUndeclaredTypeParameter For Store
 	 */
 	public static function getAllValuesForProperty(
 		$property_name, $store = null, $maxValues = null, $useDisplayTitle = null

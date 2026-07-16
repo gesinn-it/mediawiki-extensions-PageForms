@@ -125,7 +125,7 @@ class PFUtils {
 
 	/**
 	 * Helper function to get the SMW data store, if SMW is installed.
-	 * @return Store|null
+	 * @return \SMW\Store|null
 	 */
 	public static function getSMWStore() {
 		if ( class_exists( '\SMW\StoreFactory' ) ) {
