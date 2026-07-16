@@ -375,6 +375,8 @@
 	pf.parseFieldIdentifier = parseFieldIdentifier;
 	pf.parsePlainlistQueryResult = parsePlainlistQueryResult;
 	pf.arrayEqual = arrayEqual;
+	pf.getRawNameAndValues = getRawNameAndValues;
+	pf.getSelectFieldPat = getSelectFieldPat;
 
 	initialize();
 
