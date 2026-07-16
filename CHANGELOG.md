@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Added
+- QUnit coverage for `possiblyMinimizeAllOpenInstances()` and `displayWizardScreen()` in `libs/PF_multipleInstance.js` (minimize-on-open-instance summarization, `data-displayed-fields-when-minimized` allow-list, wizard screen show/hide, back/continue button visibility and labels, progress circles vs. progress bar) ([#109](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/109))
+
 ### Fixed
 - `libs/PF_multipleInstance.js` (`displayWizardScreen()`): use the resolved `backText` variable (custom `data-back-text` or the `pf-wizard-back` message) as the wizard's "back" button label instead of the literal string `'backText'`; the button always displayed the literal text "backText" regardless of form configuration or language ([#109](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/109))
 

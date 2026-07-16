@@ -385,3 +385,268 @@ QUnit.test( 'wires up the addAboveButton to call addInstance( true )', ( assert 
 	assert.strictEqual( $wrapper.find( '.multipleTemplateList > .multipleTemplateInstance' ).length, 2,
 		'a new instance was added above the current one' );
 } );
+
+QUnit.module( 'PageForms possiblyMinimizeAllOpenInstances', {
+	beforeEach() {
+		stubShowOnSelectConfig();
+		// jsdom has no CSS engine — stub fadeOut to run its callback synchronously
+		// so the summary cell it inserts is observable without a real animation clock.
+		$.fn.fadeOut = function ( duration, callback ) {
+			if ( typeof callback === 'function' ) {
+				callback.call( this );
+			}
+			return this;
+		};
+	}
+} );
+
+function createMinimizeAllWrapper( { fieldValue = '', displayedFieldsWhenMinimized } = {} ) {
+	const listAttrs = [];
+	if ( displayedFieldsWhenMinimized !== undefined ) {
+		listAttrs.push( `data-displayed-fields-when-minimized="${ displayedFieldsWhenMinimized }"` );
+	}
+
+	const $wrapper = $( `
+		<div class="multipleTemplateWrapper">
+			<div class="multipleTemplateList minimizeAll" ${ listAttrs.join( ' ' ) }>
+				<div class="multipleTemplateInstance multipleTemplate">
+					<table class="multipleTemplateInstanceTable">
+						<tr>
+							<td class="instanceRearranger"></td>
+							<td class="instanceMain">
+								<input type="text" name="Foo[0][bar]" value="${ fieldValue }" />
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+	` ).appendTo( document.body );
+
+	return $wrapper;
+}
+
+QUnit.test( 'does nothing when the list is not marked for minimizing', ( assert ) => {
+	const $wrapper = createMinimizeAllWrapper();
+	const $list = $wrapper.find( '.multipleTemplateList' ).removeClass( 'minimizeAll' );
+
+	$list.possiblyMinimizeAllOpenInstances();
+
+	assert.false( $list.find( '.multipleTemplateInstance' ).hasClass( 'minimized' ),
+		'instance is left untouched when the list lacks the minimizeAll class' );
+} );
+
+QUnit.test( 'marks open instances as minimized', ( assert ) => {
+	const $wrapper = createMinimizeAllWrapper( { fieldValue: 'hello' } );
+	const $list = $wrapper.find( '.multipleTemplateList' );
+
+	$list.possiblyMinimizeAllOpenInstances();
+
+	assert.true( $list.find( '.multipleTemplateInstance' ).hasClass( 'minimized' ),
+		'open instance is marked as minimized' );
+} );
+
+QUnit.test( 'leaves already-minimized instances untouched', ( assert ) => {
+	const $wrapper = createMinimizeAllWrapper();
+	const $list = $wrapper.find( '.multipleTemplateList' );
+	$list.find( '.multipleTemplateInstance' ).addClass( 'minimized' );
+
+	$list.possiblyMinimizeAllOpenInstances();
+
+	assert.strictEqual( $list.find( '.fieldValuesDisplay' ).length, 0,
+		'a summary cell is not added a second time for an instance that is already minimized' );
+} );
+
+QUnit.test( 'shows "No data" when none of the instance\'s fields have a value', ( assert ) => {
+	const $wrapper = createMinimizeAllWrapper( { fieldValue: '' } );
+	const $list = $wrapper.find( '.multipleTemplateList' );
+
+	$list.possiblyMinimizeAllOpenInstances();
+
+	assert.true( $list.find( '.fieldValuesDisplay' ).html().includes( 'No data' ),
+		'summary falls back to "No data" when every field is empty' );
+} );
+
+QUnit.test( 'summarizes only the fields listed in data-displayed-fields-when-minimized', ( assert ) => {
+	const $wrapper = $( `
+		<div class="multipleTemplateWrapper">
+			<div class="multipleTemplateList minimizeAll" data-displayed-fields-when-minimized="bar">
+				<div class="multipleTemplateInstance multipleTemplate">
+					<table class="multipleTemplateInstanceTable">
+						<tr>
+							<td class="instanceRearranger"></td>
+							<td class="instanceMain">
+								<input type="text" name="Foo[0][bar]" value="shown value" />
+								<input type="text" name="Foo[0][baz]" value="hidden value" />
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+	` ).appendTo( document.body );
+	const $list = $wrapper.find( '.multipleTemplateList' );
+
+	$list.possiblyMinimizeAllOpenInstances();
+
+	const summaryHtml = $list.find( '.fieldValuesDisplay' ).html();
+	assert.true( summaryHtml.includes( 'shown value' ), 'field named in the allow-list is included' );
+	assert.false( summaryHtml.includes( 'hidden value' ), 'field not named in the allow-list is excluded' );
+} );
+
+QUnit.test( 'truncates long field values to 70 characters', ( assert ) => {
+	const longValue = 'a'.repeat( 100 );
+	const $wrapper = createMinimizeAllWrapper( { fieldValue: longValue } );
+	const $list = $wrapper.find( '.multipleTemplateList' );
+
+	$list.possiblyMinimizeAllOpenInstances();
+
+	const summaryHtml = $list.find( '.fieldValuesDisplay' ).html();
+	assert.true( summaryHtml.includes( 'a'.repeat( 70 ) + '...' ),
+		'value longer than 70 characters is truncated with an ellipsis' );
+} );
+
+QUnit.module( 'PageForms displayWizardScreen', {
+	beforeEach() {
+		stubShowOnSelectConfig();
+	}
+} );
+
+function createWizardScreens( screenCount, screenAttrs = {} ) {
+	let screensHtml = '';
+	for ( let i = 1; i <= screenCount; i++ ) {
+		const attrs = screenAttrs[ i ] || {};
+		const attrsHtml = Object.keys( attrs )
+			.map( ( key ) => `${ key }="${ attrs[ key ] }"` ).join( ' ' );
+		screensHtml += `<div class="pf-wizard-screen" ${ attrsHtml }>Screen ${ i }</div>`;
+	}
+	const $form = $( `<form id="pfForm">${ screensHtml }</form>` ).appendTo( document.body );
+	const $wizardNav = $( '<div class="pf-wizard-navigation"></div>' ).appendTo( $form );
+
+	return {
+		$wizardScreens: $form.find( 'div.pf-wizard-screen' ),
+		$wizardNav
+	};
+}
+
+QUnit.test( 'shows only the screen matching screenNum and hides the rest', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 3 );
+
+	$wizardScreens.displayWizardScreen( 2, $wizardNav );
+
+	assert.strictEqual( $wizardScreens.eq( 0 ).css( 'display' ), 'none', 'screen 1 is hidden' );
+	assert.notStrictEqual( $wizardScreens.eq( 1 ).css( 'display' ), 'none', 'screen 2 is shown' );
+	assert.strictEqual( $wizardScreens.eq( 2 ).css( 'display' ), 'none', 'screen 3 is hidden' );
+} );
+
+QUnit.test( 'shows a "back" button on any screen after the first', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 3 );
+
+	$wizardScreens.displayWizardScreen( 2, $wizardNav );
+
+	assert.strictEqual( $wizardNav.find( '.pf-wizard-back-button' ).length, 1,
+		'back button is present on screen 2' );
+} );
+
+QUnit.test( 'hides the "back" button on the first screen', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 3 );
+
+	$wizardScreens.displayWizardScreen( 1, $wizardNav );
+
+	assert.strictEqual( $wizardNav.find( '.pf-wizard-back-button' ).length, 0,
+		'back button is absent on the first screen' );
+} );
+
+QUnit.test( 'shows a "continue" button on any screen before the last', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 3 );
+
+	$wizardScreens.displayWizardScreen( 2, $wizardNav );
+
+	assert.strictEqual( $wizardNav.find( '.pf-wizard-continue-button' ).length, 1,
+		'continue button is present on screen 2' );
+} );
+
+QUnit.test( 'hides the "continue" button on the last screen', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 3 );
+
+	$wizardScreens.displayWizardScreen( 3, $wizardNav );
+
+	assert.strictEqual( $wizardNav.find( '.pf-wizard-continue-button' ).length, 0,
+		'continue button is absent on the last screen' );
+} );
+
+QUnit.test( 'clicking "continue" advances to the next screen', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 3 );
+	$wizardScreens.displayWizardScreen( 1, $wizardNav );
+
+	$wizardNav.find( '.pf-wizard-continue-button' ).trigger( 'click' );
+
+	assert.notStrictEqual( $wizardScreens.eq( 1 ).css( 'display' ), 'none', 'screen 2 is now shown' );
+	assert.strictEqual( $wizardScreens.eq( 0 ).css( 'display' ), 'none', 'screen 1 is now hidden' );
+} );
+
+QUnit.test( 'clicking "back" returns to the previous screen', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 3 );
+	$wizardScreens.displayWizardScreen( 2, $wizardNav );
+
+	$wizardNav.find( '.pf-wizard-back-button' ).trigger( 'click' );
+
+	assert.notStrictEqual( $wizardScreens.eq( 0 ).css( 'display' ), 'none', 'screen 1 is now shown' );
+	assert.strictEqual( $wizardScreens.eq( 1 ).css( 'display' ), 'none', 'screen 2 is now hidden' );
+} );
+
+QUnit.test( 'uses the mw.msg default label for the "back" button', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 2 );
+
+	$wizardScreens.displayWizardScreen( 2, $wizardNav );
+
+	assert.strictEqual( $wizardNav.find( '.pf-wizard-back-button' ).text(), 'pf-wizard-back',
+		'back button label comes from the pf-wizard-back message' );
+} );
+
+QUnit.test( 'uses the mw.msg default label for the "continue" button', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 2 );
+
+	$wizardScreens.displayWizardScreen( 1, $wizardNav );
+
+	assert.strictEqual( $wizardNav.find( '.pf-wizard-continue-button' ).text(), 'pf-wizard-continue',
+		'continue button label comes from the pf-wizard-continue message' );
+} );
+
+QUnit.test( 'uses a custom data-back-text label for the "back" button when set', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 2, { 2: { 'data-back-text': 'Go back' } } );
+
+	$wizardScreens.displayWizardScreen( 2, $wizardNav );
+
+	assert.strictEqual( $wizardNav.find( '.pf-wizard-back-button' ).text(), 'Go back',
+		'back button uses the screen\'s custom label instead of the default message' );
+} );
+
+QUnit.test( 'uses a custom data-continue-text label for the "continue" button when set', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 2, { 1: { 'data-continue-text': 'Next up' } } );
+
+	$wizardScreens.displayWizardScreen( 1, $wizardNav );
+
+	assert.strictEqual( $wizardNav.find( '.pf-wizard-continue-button' ).text(), 'Next up',
+		'continue button uses the screen\'s custom label instead of the default message' );
+} );
+
+QUnit.test( 'shows progress circles (not a progress bar) for 10 or fewer screens', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 3 );
+
+	$wizardScreens.displayWizardScreen( 2, $wizardNav );
+
+	assert.strictEqual( $wizardNav.find( '.pfWizardCircles' ).length, 1, 'progress circles are shown' );
+	assert.strictEqual( $wizardNav.find( '.oo-ui-progressBarWidget' ).length, 0, 'no progress bar is shown' );
+	assert.strictEqual( $wizardNav.find( '.pfWizardCircles > li.active' ).text(), '2',
+		'the circle for the current screen is marked active' );
+} );
+
+QUnit.test( 'shows a progress bar (not circles) for more than 10 screens', ( assert ) => {
+	const { $wizardScreens, $wizardNav } = createWizardScreens( 11 );
+
+	$wizardScreens.displayWizardScreen( 2, $wizardNav );
+
+	assert.strictEqual( $wizardNav.find( '.pfWizardCircles' ).length, 0, 'no progress circles are shown' );
+	assert.strictEqual( $wizardNav.find( '.oo-ui-progressBarWidget' ).length, 1, 'a progress bar is shown instead' );
+} );
