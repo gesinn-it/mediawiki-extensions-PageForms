@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ### Added
 - QUnit coverage for `possiblyMinimizeAllOpenInstances()` and `displayWizardScreen()` in `libs/PF_multipleInstance.js` (minimize-on-open-instance summarization, `data-displayed-fields-when-minimized` allow-list, wizard screen show/hide, back/continue button visibility and labels, progress circles vs. progress bar) ([#109](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/109))
+- QUnit coverage for `libs/PF_sfselect.js` (raised from 35.82% to 86%+ statement coverage): direct unit tests for the newly-exposed `getRawNameAndValues()`/`getSelectFieldPat()` helpers, plus DOM-event-driven tests for `getSfsObjects()` (multiple-instance dedup), `handleChange()` (non-select/input and nameless-element guards), `executeQuery()` (empty-value short-circuit, SMW #ask vs. parser-function query building, AJAX success/failure via a `sinon.stub($, 'get')`), and `setDependentValues()` (label-mode value/text splitting, `selectrm` instance-div removal) ([#106](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/106))
 
 ### Fixed
 - `libs/PF_multipleInstance.js` (`displayWizardScreen()`): use the resolved `backText` variable (custom `data-back-text` or the `pf-wizard-back` message) as the wizard's "back" button label instead of the literal string `'backText'`; the button always displayed the literal text "backText" regardless of form configuration or language ([#109](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/109))
