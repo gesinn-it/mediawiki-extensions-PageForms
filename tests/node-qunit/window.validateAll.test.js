@@ -1,4 +1,4 @@
-require('../../libs/PageForms.js');
+require('../../libs/PF_validation.js');
 
 QUnit.module('window.validateAll', {
 	beforeEach: (assert) => {

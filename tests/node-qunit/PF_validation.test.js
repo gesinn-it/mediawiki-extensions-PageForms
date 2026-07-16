@@ -1,6 +1,6 @@
 'use strict';
 
-require( '../../libs/PageForms.js' );
+require( '../../libs/PF_validation.js' );
 
 // MediaWiki core's default $wgUrlProtocols, as consumed by validateURLField().
 const WG_URL_PROTOCOLS = 'bitcoin\\:|ftp\\:\\/\\/|ftps\\:\\/\\/|geo\\:|git\\:\\/\\/|gopher\\:\\/\\/|http\\:\\/\\/|https\\:\\/\\/|' +
