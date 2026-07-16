@@ -252,6 +252,7 @@ Key JavaScript components include:
 PageForms.js
 PF_validation.js
 PF_showOnSelect.js
+PF_multipleInstance.js
 PF_formInput.js
 ----
 

@@ -169,6 +169,7 @@
 			"scripts": [
 				"libs/PF_validation.js",
 				"libs/PF_showOnSelect.js",
+				"libs/PF_multipleInstance.js",
 				"libs/PageForms.js",
 				"libs/PF_preview.js"
 			],
