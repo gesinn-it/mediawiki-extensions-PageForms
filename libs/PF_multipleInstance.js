@@ -111,7 +111,7 @@ $.fn.displayWizardScreen = function( screenNum, $wizardNav ) {
 			backText = mw.msg('pf-wizard-back');
 		}
 		const prevButton = new OO.ui.ButtonWidget( {
-			label: 'backText',
+			label: backText,
 			icon: 'previous',
 			classes: [ 'pf-wizard-back-button' ]
 		} );

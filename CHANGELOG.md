@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- `libs/PF_multipleInstance.js` (`displayWizardScreen()`): use the resolved `backText` variable (custom `data-back-text` or the `pf-wizard-back` message) as the wizard's "back" button label instead of the literal string `'backText'`; the button always displayed the literal text "backText" regardless of form configuration or language ([#109](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/109))
+
 ### Changed
 - Extracted the field-validation functions (`validateMandatoryField()`, `validateUniqueField()`, `validateURLField()`, `checkForPipes()`, etc.) and `window.validateAll()` out of `libs/PageForms.js` into a new `libs/PF_validation.js`, loaded before `libs/PageForms.js` in `ext.pageforms.main` (`addInstance()` calls `isAtMaxInstances()`, defined in the new file); no behavior change ([#116](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/116))
 - Extracted the "show on select" conditional-visibility functions (`showDiv()`/`hideDiv()`, `showIfSelected()`/`showIfChecked()`/`showIfCheckedCheckbox()`) and the `PageForms_registerInputInit()`/`PageForms_registerInputValidation()` registry out of `libs/PageForms.js` into a new `libs/PF_showOnSelect.js`, loaded before `libs/PageForms.js` in `ext.pageforms.main` (`initializeJSElements()` in `PageForms.js` calls into the registry and the show-on-select functions); no behavior change ([#116](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/116))
