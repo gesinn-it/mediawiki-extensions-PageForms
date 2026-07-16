@@ -180,6 +180,43 @@ QUnit.test( 'test() returns true when a pfComboBox input changed', ( assert ) =>
 	}, 50 );
 } );
 
+QUnit.test( 'test() returns false when a multi-select value is unchanged', ( assert ) => {
+	const done = assert.async();
+	$( '<form id="pfForm">' )
+		.append(
+			$( '<select multiple>' )
+				.append( $( '<option value="a" selected>' ) )
+				.append( $( '<option value="b">' ) )
+		)
+		.appendTo( document.body );
+	freshRequire();
+
+	setTimeout( () => {
+		const testFn = mw.confirmCloseWindow.firstCall.args[ 0 ].test;
+		assert.false( testFn(), 'unchanged multi-select → no warning' );
+		done();
+	}, 50 );
+} );
+
+QUnit.test( 'test() returns true when a multi-select value changed', ( assert ) => {
+	const done = assert.async();
+	$( '<form id="pfForm">' )
+		.append(
+			$( '<select multiple>' )
+				.append( $( '<option value="a" selected>' ) )
+				.append( $( '<option value="b">' ) )
+		)
+		.appendTo( document.body );
+	freshRequire();
+
+	setTimeout( () => {
+		$( '#pfForm select option[value=b]' ).prop( 'selected', true );
+		const testFn = mw.confirmCloseWindow.firstCall.args[ 0 ].test;
+		assert.true( testFn(), 'changed multi-select → warning' );
+		done();
+	}, 50 );
+} );
+
 // ── pf.addTemplateInstance hook ──────────────────────────────────────────────────
 
 QUnit.test( 'firing pf.addTemplateInstance sets changesWereMade to true', ( assert ) => {

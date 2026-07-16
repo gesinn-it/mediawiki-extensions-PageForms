@@ -34,7 +34,11 @@
 				// data() can't be used for combobox inputs, probably because they use OOUI.
 				origValues[element.id] = $element.textSelection( 'getContents' );
 			} else {
-				$element.data( 'origtext', $element.textSelection( 'getContents' ) );
+				// The addition of a blank string converts array values (e.g. from
+				// multi-select fields) to a string, so that the later comparison in
+				// test() - which does the same conversion - isn't comparing an array
+				// to a string for fields whose value never actually changed.
+				$element.data( 'origtext', $element.textSelection( 'getContents' ) + '' );
 			}
 		});
 
