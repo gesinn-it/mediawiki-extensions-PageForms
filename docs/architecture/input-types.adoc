@@ -224,7 +224,7 @@ The main entry point is:
 PageForms.js
 ----
 
-The system uses two registration mechanisms:
+The system uses two registration mechanisms, defined in `PF_showOnSelect.js`:
 
 ----
 PageForms_registerInputInit()
