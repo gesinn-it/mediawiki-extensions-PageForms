@@ -144,11 +144,7 @@
 		const srcName = parseFieldIdentifier( raw.name );
 
 		for ( let i = 0; i < sfsObjects.length; i++ ) {
-			if ( sfsObjects[ i ].hasOwnProperty( 'staticvalue' ) && sfsObjects[ i ].staticvalue ) {
-				changeSelected( sfsObjects[ i ], srcName );
-			} else {
-				executeQuery( sfsObjects[ i ], srcName, originalValues );
-			}
+			executeQuery( sfsObjects[ i ], srcName, originalValues );
 		}
 	}
 
@@ -188,32 +184,6 @@
 			}
 		}
 		return nameObj;
-	}
-
-	function changeSelected( sfsObject, nameobj ) {
-		const selectPat = getSelectFieldPat( nameobj, sfsObject );
-		$( selectPat ).each( ( index, element ) => {
-			let selectedValues = $( element ).val();
-			if ( !selectedValues && sfsObject.hasOwnProperty( 'curvalues' ) ) {
-				selectedValues = sfsObject.curvalues;
-			}
-			if ( !selectedValues ) {
-				selectedValues = [];
-			} else if ( !$.isArray( selectedValues ) ) {
-				selectedValues = [ selectedValues ];
-			}
-			if ( element.options && element.options.length > 0 ) {
-				const options = $.map( element.options, ( option ) => option.value );
-				for ( let c = 0; c < selectedValues.length; c++ ) {
-					if ( $.inArray( selectedValues[ c ], options ) ) {
-						const changed = $( element ).attr( 'data-changed' );
-						if ( changed ) {
-							$( element ).val( selectedValues[ c ] ).trigger( 'change' );
-						}
-					}
-				}
-			}
-		} );
 	}
 
 	function executeQuery( sfsObject, srcName, v ) {
