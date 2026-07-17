@@ -377,6 +377,11 @@ Test infrastructure notes:
   that assert URL paths must pin `wgArticlePath` in their `settings` block.
 * MW 1.43 ooui uses Web Components — `global.HTMLElement = window.HTMLElement`
   must be set in the node-qunit `setup.js`.
+* Driving a full OOUI `WindowManager`/`ProcessDialog` open/close cycle in
+  node-qunit requires `oojs-ui-windows.js` (not loaded by default), plus
+  `global.navigator` and a `requestAnimationFrame`/`cancelAnimationFrame`
+  stub — none of these are provided by this repo's jsdom version. All are
+  set up once in `setup.js`.
 
 == Extension Points
 
