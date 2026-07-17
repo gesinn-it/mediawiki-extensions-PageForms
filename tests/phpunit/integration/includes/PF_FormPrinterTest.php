@@ -914,6 +914,44 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// +/- autoedit modifier on a field absent from the page — issue #120
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Submitting a field via the autoedit `+` modifier (e.g.
+	 * TemplateName[FieldName+]=value) must not throw or warn when the page
+	 * has no existing template call for that field — getValuesFromPage()
+	 * only contains keys explicitly present on the page, defaulting to [].
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLWithAppendModifierOnFieldAbsentFromPageDoesNotThrow(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestModifierTpl01}}}\n"
+			. "{{{field|Notes}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		// No existing page content (source_is_page = false) and the field is
+		// submitted with the '+' (append) modifier suffix on its query key.
+		$fauxRequest = new \FauxRequest(
+			[ 'PFTestModifierTpl01' => [ 'Notes+' => 'Appended text' ] ],
+			true
+		);
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, true, false, null, null,
+			'PFTestModifierPage01', null, false, false, false, [],
+			self::getTestUser()->getUser(), $fauxRequest
+		);
+
+		$this->assertStringContainsString( 'Appended text', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
 	// Out-of-bounds string offset / unclosed tag guards — issue #119
 	// -------------------------------------------------------------------------
 

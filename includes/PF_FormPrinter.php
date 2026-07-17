@@ -723,7 +723,7 @@ class PFFormPrinter {
 					}
 
 					if ( $val_modifier !== null ) {
-						$page_value = $tif->getValuesFromPage()[$field_name];
+						$page_value = $tif->getValuesFromPage()[$field_name] ?? '';
 						$cur_value = $this->fieldValueResolver->applyValModifier(
 							(string)$cur_value, $val_modifier, (string)$page_value, $delimiter
 						);
