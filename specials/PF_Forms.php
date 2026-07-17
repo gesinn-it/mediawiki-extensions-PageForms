@@ -43,6 +43,11 @@ class PFForms extends QueryPage {
 		return false;
 	}
 
+	/**
+	 * @param Skin $skin
+	 * @param stdClass $result
+	 * @return string|null
+	 */
 	public function formatResult( $skin, $result ) {
 		$pageName = $result->value;
 

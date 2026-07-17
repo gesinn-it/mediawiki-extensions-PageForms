@@ -376,7 +376,7 @@ class PFFormUtils {
 
 	/**
 	 * Used by 'RunQuery' page
-	 * @return string
+	 * @return OOUI\FieldLayout
 	 */
 	public static function queryFormBottom() {
 		return self::runQueryButtonHTML( false );

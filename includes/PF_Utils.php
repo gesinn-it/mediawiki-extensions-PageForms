@@ -56,7 +56,7 @@ class PFUtils {
 	 * @param array $attrs link attributes
 	 * @param array $params query parameters
 	 *
-	 * @return string HTML link
+	 * @return string|null HTML link
 	 */
 	public static function makeLink( $linkRenderer, $title, $msg = null, $attrs = [], $params = [] ) {
 		$titleGlobal = RequestContext::getMain()->getTitle();

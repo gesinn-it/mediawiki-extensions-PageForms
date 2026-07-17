@@ -24,7 +24,7 @@ class PFFormEditAction extends Action {
 	 * output. Do not use globals $wgOut, $wgRequest, etc, in implementations; use
 	 * $this->getOutput(), etc.
 	 * @throws ErrorPageError
-	 * @return false
+	 * @return bool
 	 */
 	public function show() {
 		return self::displayForm( $this, $this->getArticle() );
@@ -351,7 +351,7 @@ class PFFormEditAction extends Action {
 	 * special pages)
 	 * @param Action $action
 	 * @param Article $article
-	 * @return true
+	 * @return bool
 	 */
 	public static function displayForm( $action, $article ) {
 		$output = $action->getOutput();

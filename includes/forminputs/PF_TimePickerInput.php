@@ -30,7 +30,7 @@ class PFTimePickerInput extends PFFormInput {
 	/**
 	 * Set up JS attributes
 	 *
-	 * @return string[]
+	 * @return array
 	 */
 	protected function setupJsInitAttribs() {
 		global $wgExtensionAssetsPath;

@@ -101,7 +101,7 @@ abstract class PFFormInput {
 	 * Returns the set of SMW property types which this input can
 	 * handle. See SMW's SMW_DataValueFactory.php
 	 *
-	 * @return string[]
+	 * @return string[]|null
 	 */
 	public static function getHandledPropertyTypes() {
 		return null;
@@ -164,7 +164,7 @@ abstract class PFFormInput {
 	 * Return an array of the default parameters for this input where the
 	 * parameter name is the key while the parameter value is the value.
 	 *
-	 * @return string[]
+	 * @return string[]|null
 	 */
 	public function getDefaultParameters() {
 		return null;

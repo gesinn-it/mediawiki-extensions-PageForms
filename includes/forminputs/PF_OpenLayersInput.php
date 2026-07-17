@@ -214,7 +214,7 @@ class PFOpenLayersInput extends PFFormInput {
 	 * Copied from CargoStore::coordinatePartToNumber() in the Cargo
 	 * extension.
 	 * @param string $coordinateStr
-	 * @return int
+	 * @return float
 	 * @throws MWException
 	 */
 	public static function coordinatePartToNumber( $coordinateStr ) {

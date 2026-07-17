@@ -95,7 +95,7 @@ class PFAutoeditAPI extends ApiBase {
 	 * 200 - ok
 	 * 400 - error
 	 *
-	 * @return int
+	 * @return int|null
 	 */
 	public function getStatus() {
 		return $this->mStatus;

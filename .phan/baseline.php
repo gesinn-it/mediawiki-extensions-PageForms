@@ -18,9 +18,7 @@ return [
     // PhanTypeMismatchArgumentInternal : 7 occurrences
     // PhanTypeMismatchArgumentNullableInternal : 7 occurrences
     // PhanTypeMismatchProperty : 7 occurrences
-    // PhanTypeMismatchReturn : 5 occurrences
     // PhanNonClassMethodCall : 4 occurrences
-    // PhanTypeMismatchReturnProbablyReal : 4 occurrences
     // PhanPossiblyUndeclaredVariable : 3 occurrences
     // PhanTypeMismatchPropertyProbablyReal : 3 occurrences
     // MediaWikiNoEmptyIfDefined : 2 occurrences
@@ -34,7 +32,6 @@ return [
     // PhanTypeInvalidLeftOperandOfNumericOp : 1 occurrence
     // PhanTypeMismatchArgumentInternalReal : 1 occurrence
     // PhanTypeMismatchDimEmpty : 1 occurrence
-    // PhanTypeMismatchReturnNullable : 1 occurrence
     // PhanUndeclaredConstantOfClass : 1 occurrence
     // PhanUndeclaredStaticMethod : 1 occurrence
 
@@ -52,16 +49,12 @@ return [
             'PhanTypeMismatchArgumentInternalReal' => ['\\PFAutoeditAPI::generateTargetName'],
             'PhanTypeMismatchArgumentNullable' => ['\\PFAutoeditAPI::doStore'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoeditAPI::finalizeResults'],
-            'PhanTypeMismatchReturnNullable' => ['\\PFAutoeditAPI::getStatus'],
             'PhanUndeclaredConstantOfClass' => ['\\PFAutoeditAPI::generateTargetName'],
             'PhanUndeclaredMethod' => ['\\PFAutoeditAPI::getFormTitle']
         ],
         'includes/PF_FormCache.php' => [
             'PhanTypeMismatchArgument' => ['\\PFFormCache::getFormDefinition'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormCache::purgeCache']
-        ],
-        'includes/PF_FormEditAction.php' => [
-            'PhanTypeMismatchReturn' => ['\\PFFormEditAction::displayForm', '\\PFFormEditAction::show']
         ],
         'includes/PF_FormField.php' => [
             'PhanTypeMismatchArgumentNullable' => ['\\PFFormField::newFromFormFieldTag'],
@@ -80,7 +73,6 @@ return [
         'includes/PF_FormUtils.php' => [
             'PhanTypeInvalidLeftOperandOfNumericOp' => ['\\PFFormUtils::getStringForCurrentTime'],
             'PhanTypeMismatchArgumentInternal' => ['\\PFFormUtils::getStringForCurrentTime'],
-            'PhanTypeMismatchReturn' => ['\\PFFormUtils::queryFormBottom'],
             'SecurityCheck-DoubleEscaped' => ['\\PFFormUtils::minorEditInputHTML', '\\PFFormUtils::watchInputHTML']
         ],
         'includes/PF_Hooks.php' => [
@@ -90,9 +82,6 @@ return [
         ],
         'includes/PF_TemplateField.php' => [
             'PhanTypeMismatchArgumentNullable' => ['\\PFTemplateField::setTypeAndPossibleValues']
-        ],
-        'includes/PF_Utils.php' => [
-            'PhanTypeMismatchReturnProbablyReal' => ['\\PFUtils::makeLink']
         ],
         'includes/PF_ValuesUtils.php' => [
             'MediaWikiNoEmptyIfDefined' => ['\\PFValuesUtils::getValuesFromExternalURL'],
@@ -110,13 +99,9 @@ return [
             'PhanTypeMismatchArgumentNullableInternal' => ['\\PFDateTimePicker::__construct'],
             'SecurityCheck-DoubleEscaped' => ['\\PFDateTimePicker::getHtmlText']
         ],
-        'includes/forminputs/PF_FormInput.php' => [
-            'PhanTypeMismatchReturnProbablyReal' => ['\\PFFormInput::getDefaultParameters', '\\PFFormInput::getHandledPropertyTypes']
-        ],
         'includes/forminputs/PF_OpenLayersInput.php' => [
             'PhanTypeMismatchArgumentNullable' => ['\\PFOpenLayersInput::mapLookupHTML'],
-            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFOpenLayersInput::mapLookupHTML'],
-            'PhanTypeMismatchReturn' => ['\\PFOpenLayersInput::coordinatePartToNumber']
+            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFOpenLayersInput::mapLookupHTML']
         ],
         'includes/forminputs/PF_RadioButtonInput.php' => [
             'PhanTypeArraySuspiciousNullable' => ['\\PFRadioButtonInput::getHTML']
@@ -131,9 +116,6 @@ return [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFTextInput::uploadableHTML'],
             'PhanUndeclaredMethod' => ['\\PFTextInput::getPreviewImage'],
             'SecurityCheck-DoubleEscaped' => ['\\PFTextInput::uploadableHTML']
-        ],
-        'includes/forminputs/PF_TimePickerInput.php' => [
-            'PhanTypeMismatchReturn' => ['\\PFTimePickerInput::setupJsInitAttribs']
         ],
         'includes/forminputs/PF_Tree.php' => [
             'PhanTypeMismatchArgumentNullable' => ['\\PFTree::addSubCategories']
@@ -169,8 +151,7 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFFormStart::execute']
         ],
         'specials/PF_Forms.php' => [
-            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFForms::getPageHeader'],
-            'PhanTypeMismatchReturnProbablyReal' => ['\\PFForms::formatResult']
+            'PhanTypeMismatchArgumentProbablyReal' => ['\\PFForms::getPageHeader']
         ],
         'specials/PF_MultiPageEdit.php' => [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFMultiPageEdit::displaySpreadsheet', '\\PFMultiPageEdit::getPageHeader']
