@@ -211,7 +211,7 @@ class PFAutoEdit {
 	public static function convertQueryString( $queryString, $inQueryArr ) {
 		// Change HTML-encoded ampersands directly to URL-encoded
 		// ampersands, so that the string doesn't get split up on the '&'.
-		$queryString = str_replace( '&amp;', '%26', $queryString );
+		$queryString = str_replace( '&amp;', '%26', $queryString ?? '' );
 		// "Decode" any other HTML tags.
 		$queryString = html_entity_decode( $queryString, ENT_QUOTES );
 		// next, replace  Foo[Bar] += Baz  with  Foo[Bar+] = Baz

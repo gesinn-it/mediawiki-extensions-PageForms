@@ -345,7 +345,7 @@ class PFAutocompleteAPI extends ApiBase {
 
 	/**
 	 * Move the exact match to the top for better autocompletion
-	 * @param string $substring
+	 * @param string|null $substring
 	 * @param array $values
 	 * @return array $values
 	 */

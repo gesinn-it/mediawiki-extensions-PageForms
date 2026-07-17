@@ -602,6 +602,7 @@ class PFAutoeditAPI extends ApiBase {
 
 			case EditPage::AS_BLOCKED_PAGE_FOR_USER:
 				// User is blocked from editing editor page
+				// @phan-suppress-next-line PhanTypeMismatchArgumentNullable Block is checked and not null
 				throw new UserBlockedError( $this->getUser()->getBlock() );
 
 			case EditPage::AS_IMAGE_REDIRECT_ANON:

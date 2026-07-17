@@ -34,7 +34,7 @@ class PFDateInput extends PFFormInput {
 			if ( $name == $cur_month || $i == $cur_month ) {
 				$optionAttrs['selected'] = 'selected';
 			}
-			$optionsText .= Html::element( 'option', $optionAttrs, $name );
+			$optionsText .= Html::element( 'option', $optionAttrs, $name ?? '' );
 		}
 		$selectAttrs = [
 			'class' => 'monthInput',

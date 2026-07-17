@@ -210,8 +210,9 @@ class PFUploadWindow extends UnlistedSpecialPage {
 		}
 
 		# Check blocks
-		if ( $this->getUser()->getBlock() ) {
-			throw new UserBlockedError( $this->getUser()->getBlock() );
+		$block = $this->getUser()->getBlock();
+		if ( $block ) {
+			throw new UserBlockedError( $block );
 		}
 
 		# Check whether we actually want to allow changing stuff
@@ -517,7 +518,7 @@ class PFUploadWindow extends UnlistedSpecialPage {
 			$basename = null;
 		}
 
-		$basename = str_replace( '_', ' ', $basename );
+		$basename = str_replace( '_', ' ', $basename ?? '' );
 		// UTF8-decoding is needed for IE.
 		// Actually, this doesn't seem to fix the encoding in IE
 		// any more... and it messes up the encoding for all other

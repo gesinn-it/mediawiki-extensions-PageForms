@@ -12,17 +12,16 @@ return [
     // SecurityCheck-DoubleEscaped : 35+ occurrences
     // PhanTypeMismatchArgumentProbablyReal : 20+ occurrences
     // PhanUndeclaredClassMethod : 15+ occurrences
-    // PhanTypeMismatchArgumentNullable : 10+ occurrences
     // PhanUndeclaredMethod : 10+ occurrences
     // PhanTypeMismatchArgument : 7 occurrences
     // PhanTypeMismatchArgumentInternal : 7 occurrences
-    // PhanTypeMismatchArgumentNullableInternal : 7 occurrences
     // PhanTypeMismatchProperty : 7 occurrences
     // PhanNonClassMethodCall : 4 occurrences
     // PhanPossiblyUndeclaredVariable : 3 occurrences
     // PhanTypeMismatchPropertyProbablyReal : 3 occurrences
     // MediaWikiNoEmptyIfDefined : 2 occurrences
     // PhanRedundantCondition : 2 occurrences
+    // PhanTypeMismatchArgumentNullableInternal : 2 occurrences
     // PhanTypeMismatchDimFetchNullable : 2 occurrences
     // PhanUndeclaredClassReference : 2 occurrences
     // PhanUndeclaredConstant : 2 occurrences
@@ -39,7 +38,6 @@ return [
         'includes/PF_AutocompleteAPI.php' => [
             'PhanTypeMismatchArgument' => ['\\PFAutocompleteAPI::getAllValuesForProperty', '\\closure'],
             'PhanTypeMismatchArgumentInternal' => ['\\PFAutocompleteAPI::getAllValuesForProperty'],
-            'PhanTypeMismatchArgumentNullable' => ['\\PFAutocompleteAPI::computeAllValuesForProperty'],
             'PhanUndeclaredMethod' => ['\\PFAutocompleteAPI::computeAllValuesForProperty']
         ],
         'includes/PF_AutoeditAPI.php' => [
@@ -47,7 +45,6 @@ return [
             'PhanRedundantCondition' => ['\\PFAutoeditAPI::doStore'],
             'PhanRedundantValueComparison' => ['\\PFAutoeditAPI::doStore'],
             'PhanTypeMismatchArgumentInternalReal' => ['\\PFAutoeditAPI::generateTargetName'],
-            'PhanTypeMismatchArgumentNullable' => ['\\PFAutoeditAPI::doStore'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoeditAPI::finalizeResults'],
             'PhanUndeclaredConstantOfClass' => ['\\PFAutoeditAPI::generateTargetName'],
             'PhanUndeclaredMethod' => ['\\PFAutoeditAPI::getFormTitle']
@@ -57,7 +54,6 @@ return [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormCache::purgeCache']
         ],
         'includes/PF_FormField.php' => [
-            'PhanTypeMismatchArgumentNullable' => ['\\PFFormField::newFromFormFieldTag'],
             'SecurityCheck-DoubleEscaped' => ['\\PFFormField::additionalHTMLForInput', '\\PFFormField::newFromFormFieldTag']
         ],
         'includes/PF_FormPrinter.php' => [
@@ -80,9 +76,6 @@ return [
             'PhanUndeclaredClassMethod' => ['\\PFHooks::addToAdminLinks', '\\PFHooks::setGlobalJSVariables'],
             'PhanUndeclaredClassReference' => ['\\PFHooks::setGlobalJSVariables']
         ],
-        'includes/PF_TemplateField.php' => [
-            'PhanTypeMismatchArgumentNullable' => ['\\PFTemplateField::setTypeAndPossibleValues']
-        ],
         'includes/PF_ValuesUtils.php' => [
             'MediaWikiNoEmptyIfDefined' => ['\\PFValuesUtils::getValuesFromExternalURL'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFValuesUtils::getAllCategories', '\\PFValuesUtils::getAllValuesForProperty'],
@@ -92,15 +85,12 @@ return [
         ],
         'includes/forminputs/PF_DateInput.php' => [
             'PhanPossiblyUndeclaredVariable' => ['\\PFDateInput::parseDate'],
-            'PhanTypeMismatchArgumentInternal' => ['\\PFDateInput::monthDropdownHTML'],
-            'PhanTypeMismatchArgumentNullable' => ['\\PFDateInput::monthDropdownHTML']
+            'PhanTypeMismatchArgumentInternal' => ['\\PFDateInput::monthDropdownHTML']
         ],
         'includes/forminputs/PF_DateTimePicker.php' => [
-            'PhanTypeMismatchArgumentNullableInternal' => ['\\PFDateTimePicker::__construct'],
             'SecurityCheck-DoubleEscaped' => ['\\PFDateTimePicker::getHtmlText']
         ],
         'includes/forminputs/PF_OpenLayersInput.php' => [
-            'PhanTypeMismatchArgumentNullable' => ['\\PFOpenLayersInput::mapLookupHTML'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFOpenLayersInput::mapLookupHTML']
         ],
         'includes/forminputs/PF_RadioButtonInput.php' => [
@@ -117,14 +107,10 @@ return [
             'PhanUndeclaredMethod' => ['\\PFTextInput::getPreviewImage'],
             'SecurityCheck-DoubleEscaped' => ['\\PFTextInput::uploadableHTML']
         ],
-        'includes/forminputs/PF_Tree.php' => [
-            'PhanTypeMismatchArgumentNullable' => ['\\PFTree::addSubCategories']
-        ],
         'includes/forminputs/PF_TreeInput.php' => [
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFTreeInput::getHTML']
         ],
         'includes/parserfunctions/PF_AutoEdit.php' => [
-            'PhanTypeMismatchArgumentNullableInternal' => ['\\PFAutoEdit::convertQueryString'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoEdit::run'],
             'SecurityCheck-DoubleEscaped' => ['\\PFAutoEdit::run']
         ],
@@ -133,13 +119,8 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFAutoEditRating::run']
         ],
         'includes/parserfunctions/PF_FormInputParserFunction.php' => [
-            'PhanTypeMismatchArgumentNullable' => ['\\PFFormInputParserFunction::run'],
-            'PhanTypeMismatchArgumentNullableInternal' => ['\\PFFormInputParserFunction::run'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormInputParserFunction::run'],
             'SecurityCheck-DoubleEscaped' => ['\\PFFormInputParserFunction::run']
-        ],
-        'includes/parserfunctions/PF_FormLink.php' => [
-            'PhanTypeMismatchArgumentNullable' => ['\\PFFormLink::createFormLink']
         ],
         'specials/PF_FormEdit.php' => [
             'PhanUndeclaredClassMethod' => ['\\PFFormEdit::showCaptcha'],
@@ -171,8 +152,6 @@ return [
             'PhanUndeclaredStaticMethod' => ['\\PFUploadSourceField::userCanExecute']
         ],
         'specials/PF_UploadWindow.php' => [
-            'PhanTypeMismatchArgumentNullable' => ['\\PFUploadWindow::execute'],
-            'PhanTypeMismatchArgumentNullableInternal' => ['\\PFUploadWindow::processUpload'],
             'PhanUndeclaredMethod' => ['\\PFUploadWindow::getUploadForm', '\\PFUploadWindow::processUpload', '\\PFUploadWindow::showViewDeletedLinks', '\\PFUploadWindow::watchCheck'],
             'SecurityCheck-DoubleEscaped' => ['\\PFUploadWindow::getExistsWarning']
         ],

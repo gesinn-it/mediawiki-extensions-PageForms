@@ -185,7 +185,7 @@ class PFTree {
 	 * @param array $children
 	 * @param int $level
 	 * @param int $depth
-	 * @param array $cur_values
+	 * @param array|null $cur_values
 	 * @return array
 	 */
 	public static function addSubCategories( $children, $level, $depth, $cur_values ) {

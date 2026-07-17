@@ -138,7 +138,7 @@ class PFTemplateField {
 			return;
 		}
 
-		$proptitle = Title::makeTitleSafe( SMW_NS_PROPERTY, $this->mSemanticProperty );
+		$proptitle = Title::makeTitleSafe( (int)SMW_NS_PROPERTY, $this->mSemanticProperty );
 		if ( $proptitle === null ) {
 			return;
 		}

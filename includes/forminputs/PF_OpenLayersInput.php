@@ -94,8 +94,10 @@ class PFOpenLayersInput extends PFFormInput {
 		if ( !$includeAddressLookup ) {
 			$text = '';
 		} elseif ( $addressLookupInput != '' ) {
+			// @phan-suppress-next-line PhanTypeMismatchArgumentNullable set whenever $includeAddressLookup
 			$text = new OOUI\ActionFieldLayout( $addressLookupInput, $addressLookupButton, [ 'align' => 'top' ] );
 		} else {
+			// @phan-suppress-next-line PhanTypeMismatchArgumentNullable set whenever $includeAddressLookup
 			$text = new OOUI\FieldLayout( $addressLookupButton );
 		}
 
@@ -132,7 +134,7 @@ class PFOpenLayersInput extends PFFormInput {
 			$boundCoords = $other_args['starting bounds'];
 			$boundCoords = explode( ";", $boundCoords );
 			$boundCoords[0] = self::parseCoordinatesString( $boundCoords[0] );
-			$boundCoords[1] = self::parseCoordinatesString( $boundCoords[1] );
+			$boundCoords[1] = self::parseCoordinatesString( $boundCoords[1] ?? '' );
 			$coordsInputAttrs['data-bound-coords'] = "$boundCoords[0];$boundCoords[1]";
 		}
 

@@ -82,7 +82,7 @@ class PFFormInputParserFunction {
 				$value = trim( $parser->recursivePreprocess( html_entity_decode( $elements[1], ENT_QUOTES ) ) );
 			} else {
 				$paramName = trim( $param );
-				$value = null;
+				$value = '';
 			}
 
 			if ( $paramName == 'form' ) {

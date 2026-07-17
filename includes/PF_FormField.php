@@ -282,7 +282,7 @@ class PFFormField {
 			} elseif ( $component == 'hidden' ) {
 				$f->mIsHidden = true;
 			} elseif ( $component == 'restricted' ) {
-				$f->mIsRestricted = ( !$user || !$user->isAllowed( 'editrestrictedfields' ) );
+				$f->mIsRestricted = !$user->isAllowed( 'editrestrictedfields' );
 			} elseif ( $component == 'list' ) {
 				$f->mIsList = true;
 			} elseif ( $component == 'unique' ) {

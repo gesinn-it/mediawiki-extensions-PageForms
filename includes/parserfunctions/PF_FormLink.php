@@ -161,8 +161,10 @@ class PFFormLink {
 		if ( $className == 'PFFormRedLink' && $targetPageExists ) {
 			$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
 			if ( $inExistingPageLinkStr == '' ) {
+				// @phan-suppress-next-line PhanTypeMismatchArgumentNullable non-null when $targetPageExists
 				return $linkRenderer->makeKnownLink( $targetTitle );
 			} else {
+				// @phan-suppress-next-line PhanTypeMismatchArgumentNullable non-null when $targetPageExists
 				return $linkRenderer->makeKnownLink( $targetTitle, new HtmlArmor( $inExistingPageLinkStr ) );
 			}
 		}
