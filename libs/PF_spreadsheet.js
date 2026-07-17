@@ -311,7 +311,7 @@ function getDeleteIcon() {
 		} else if ( autocompletedatatype == 'dep_on' ) {
 			// values dependent on
 			const dep_on_field = jexcel.prototype.dependenton(cell.getAttribute('origname'));
-			if ( dep_on_field !== null ) {
+			if ( dep_on_field !== undefined ) {
 				pfSpreadsheetAutocomplete = true;
 				config['autocompletesettings'] = cell.getAttribute('name');
 				config['dep_on_field'] = dep_on_field;
