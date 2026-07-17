@@ -49,6 +49,7 @@ function createDom() {
 	global.Node = window.Node;
 	global.HTMLElement = window.HTMLElement;
 	global.navigator = window.navigator;
+	global.location = window.location;
 	global.scroll = () => {};
 	// jsdom does not implement requestAnimationFrame; OOUI's WindowManager and
 	// PF's own blur/rAF width fix (PF_FormLinkTargetInput.js) rely on it.
