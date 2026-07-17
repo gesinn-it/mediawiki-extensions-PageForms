@@ -5,18 +5,22 @@
 
 /* global L */
 
-function setupMapFormInput( inputDiv, mapService ) {
+window.pageforms = window.pageforms || {};
+window.pf = window.pf || window.pageforms;
 
-	/**
-	 * Round off a number to five decimal places - that's the most
-	 * we need for coordinates, one would think.
-	 *
-	 * @param {Mixed} num
-	 * @return {Mixed}
-	 */
-	function pfRoundOffDecimal( num ) {
-		return Math.round( num * 100000 ) / 100000;
-	}
+/**
+ * Round off a number to five decimal places - that's the most
+ * we need for coordinates, one would think.
+ *
+ * @param {Mixed} num
+ * @return {Mixed}
+ */
+function pfRoundOffDecimal( num ) {
+	return Math.round( num * 100000 ) / 100000;
+}
+window.pf.pfRoundOffDecimal = pfRoundOffDecimal;
+
+function setupMapFormInput( inputDiv, mapService ) {
 
 	let map, marker, markers, mapCanvas, mapOptions, geocoder;
 	let numClicks = 0, timer = null;

@@ -4,6 +4,21 @@
 
 /* global L */
 
+window.pageforms = window.pageforms || {};
+window.pf = window.pf || window.pageforms;
+
+/**
+ * Round off a number to five decimal places - that's the most
+ * we need for coordinates, one would think.
+ *
+ * @param {Mixed} num
+ * @return {Mixed}
+ */
+function pfRoundOffDecimal( num ) {
+	return Math.round( num * 100000 ) / 100000;
+}
+window.pf.pfRoundOffDecimal = pfRoundOffDecimal;
+
 function setupMapFormInput( inputDiv, mapService ) {
 	let map, marker, markers, mapCanvas, mapOptions;
 	let imageHeight = null, imageWidth = null;
@@ -315,17 +330,6 @@ function setupMapFormInput( inputDiv, mapService ) {
 			new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
 			maps.getProjectionObject() // to Spherical Mercator Projection
 		);
-	}
-
-	/**
-	 * Round off a number to five decimal places - that's the most
-	 * we need for coordinates, one would think.
-	 *
-	 * @param {Mixed} num
-	 * @return {Mixed}
-	 */
-	function pfRoundOffDecimal( num ) {
-		return Math.round( num * 100000 ) / 100000;
 	}
 
 	function googleMapsSetMarker(location) {
