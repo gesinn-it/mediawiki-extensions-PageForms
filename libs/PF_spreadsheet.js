@@ -8,14 +8,34 @@
 
 // @TODO - make this based on the API limit, which in turn is based on whether the user has the "apihighlimits" right.
 const numPagesToQuery = 50;
-const saveIcon = '<span class="oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement oo-ui-iconElement-icon oo-ui-icon-check oo-ui-labelElement-invisible oo-ui-iconWidget" aria-disabled="false" title="' + mw.msg( 'upload-dialog-button-save' ) + '"></span>';
-const cancelIcon = '<span class="oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement oo-ui-iconElement-icon oo-ui-icon-close oo-ui-labelElement-invisible oo-ui-iconWidget" aria-disabled="false" title="' + mw.msg( 'cancel' ) + '"></span>';
-const addIcon = '<span class="oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement oo-ui-iconElement-icon oo-ui-icon-add oo-ui-labelElement-invisible oo-ui-iconWidget" aria-disabled="false" title="' + mw.msg( 'apisandbox-add-multi' ) + '"></span>';
-const upIcon = '<span class="oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement oo-ui-iconElement-icon oo-ui-icon-upTriangle oo-ui-labelElement-invisible oo-ui-iconWidget" aria-disabled="false" title="' + 'Raise' + '"></span>';
-const downIcon = '<span class="oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement oo-ui-iconElement-icon oo-ui-icon-downTriangle oo-ui-labelElement-invisible oo-ui-iconWidget" aria-disabled="false" title="' + 'Lower' + '"></span>';
-const deleteIcon = '<span class="oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement oo-ui-iconElement-icon oo-ui-icon-trash oo-ui-labelElement-invisible oo-ui-iconWidget" aria-disabled="false" title="' + mw.msg( 'delete' ) + '"></span>';
 const manageColumnTitle = '\u2699';
 const dataValues = [];
+
+// The icon HTML depends on mw.msg(), which is only safe to call once
+// MediaWiki has finished initializing - so build it lazily on first use
+// instead of at module-load time.
+function iconSpan( iconClass, title ) {
+	return '<span class="oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement oo-ui-iconElement-icon oo-ui-icon-' + iconClass +
+		' oo-ui-labelElement-invisible oo-ui-iconWidget" aria-disabled="false" title="' + title + '"></span>';
+}
+function getSaveIcon() {
+	return iconSpan( 'check', mw.msg( 'upload-dialog-button-save' ) );
+}
+function getCancelIcon() {
+	return iconSpan( 'close', mw.msg( 'cancel' ) );
+}
+function getAddIcon() {
+	return iconSpan( 'add', mw.msg( 'apisandbox-add-multi' ) );
+}
+function getUpIcon() {
+	return iconSpan( 'upTriangle', 'Raise' );
+}
+function getDownIcon() {
+	return iconSpan( 'downTriangle', 'Lower' );
+}
+function getDeleteIcon() {
+	return iconSpan( 'trash', mw.msg( 'delete' ) );
+}
 
 ( function( jexcel, mw ) {
 	const baseUrl = mw.config.get( 'wgScriptPath' );
@@ -202,8 +222,8 @@ const dataValues = [];
 	jexcel.prototype.saveNewRow = function( spreadsheetID, templateName, formName, rowNum, pageName, rowValues, columns, editMultiplePages ) {
 		const $manageCell = $( "div#" + spreadsheetID + " td[data-y=" + rowNum + "]" ).last();
 
-		const spanContents = '<a href="#" class="save-changes">' + saveIcon + '</a> | ' +
-			'<a href="#" class="cancel-changes">' + cancelIcon + '</a>';
+		const spanContents = '<a href="#" class="save-changes">' + getSaveIcon() + '</a> | ' +
+			'<a href="#" class="cancel-changes">' + getCancelIcon() + '</a>';
 
 		$manageCell.children('span.save-or-cancel')
 			.attr('id', 'page-span-' + pageName)
@@ -363,6 +383,12 @@ const dataValues = [];
 })( jexcel, mediaWiki );
 
 ( function ( $, mw, pf ) {
+
+	// mw.config.get() and the initial '.pfSpreadsheet' DOM scan are only
+	// safe to run once MediaWiki config/DOM are available - deferred into
+	// this function (invoked once below) so the module can be require()d
+	// without side effects.
+	function initSpreadsheets() {
 	const baseUrl = mw.config.get( 'wgScriptPath' ),
 		gridParams = mw.config.get( 'wgPageFormsGridParams' ),
 		gridValues = mw.config.get( 'wgPageFormsGridValues' );
@@ -722,15 +748,15 @@ const dataValues = [];
 							dataValues[spreadsheetID][rowNum][columnName] = jExcelValue;
 						} else if ( columnName === manageColumnTitle ) {
 							let cellContents = '<span class="save-or-cancel" style="display: none" id="page-span-' + pageName + '">' +
-								'<a href="#" class="save-changes">' + saveIcon + '</a> | ' +
-								'<a href="#" class="cancel-changes">' + cancelIcon + '</a>' +
+								'<a href="#" class="save-changes">' + getSaveIcon() + '</a> | ' +
+								'<a href="#" class="cancel-changes">' + getCancelIcon() + '</a>' +
 								'</span>';
 
 							if ( editMultiplePages === undefined ) {
 								cellContents += '<span class="mit-row-icons">' + // "mit" = "multiple-instance template"
-									'<a href="#" class="raise-row">' + upIcon + '</a>' +
-									' <a href="#" class="lower-row">' + downIcon + '</a>' +
-									' | <a href="#" class="delete-row">' + deleteIcon + '</a>' +
+									'<a href="#" class="raise-row">' + getUpIcon() + '</a>' +
+									' <a href="#" class="lower-row">' + getDownIcon() + '</a>' +
+									' | <a href="#" class="delete-row">' + getDeleteIcon() + '</a>' +
 									'</span>';
 							}
 							myData[rowNum].push( cellContents );
@@ -775,14 +801,14 @@ const dataValues = [];
 
 					if ( editMultiplePages === undefined ) {
 						manageCellContents = '<span class="mit-row-icons">' +
-							'<a href="#" class="raise-row">' + upIcon + '</a>' +
-							' <a href="#" class="lower-row">' + downIcon + '</a>' +
-							' | <a href="#" class="delete-row">' + deleteIcon + '</a>' +
+							'<a href="#" class="raise-row">' + getUpIcon() + '</a>' +
+							' <a href="#" class="lower-row">' + getDownIcon() + '</a>' +
+							' | <a href="#" class="delete-row">' + getDeleteIcon() + '</a>' +
 							'</span>';
 					} else {
 						manageCellContents = '<span class="save-or-cancel">' +
-							'<a class="save-new-row">' + addIcon + '</a> | ' +
-							'<a class="cancel-adding">' + cancelIcon + '</a></span>';
+							'<a class="save-new-row">' + getAddIcon() + '</a> | ' +
+							'<a class="cancel-adding">' + getCancelIcon() + '</a></span>';
 					}
 					$cell.html(manageCellContents);
 
@@ -976,6 +1002,8 @@ const dataValues = [];
 			});
 		});
 	});
+	}
 
+	initSpreadsheets();
 
 }( jQuery, mediaWiki, pf ) );
