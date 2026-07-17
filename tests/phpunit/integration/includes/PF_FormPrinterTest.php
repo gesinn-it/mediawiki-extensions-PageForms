@@ -914,6 +914,32 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Empty {{{}}} tag must not hang formHTML() — issue #118
+	// -------------------------------------------------------------------------
+
+	/**
+	 * A literal empty {{{}}} tag must not cause formHTML() to loop forever.
+	 * getFormTagComponents('') returns [], and the loop must advance past
+	 * the tag instead of retrying the same position indefinitely.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLWithEmptyTagDoesNotHang(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestEmptyTagPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertNotEmpty( $formHtml );
+	}
 
 	/**
 	 * Returns a mock Title for test
