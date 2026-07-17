@@ -540,9 +540,16 @@ class PFFormPrinter {
 					break;
 				}
 				$brackets_end_loc = strpos( $section, "}}}", $brackets_loc );
+				if ( $brackets_end_loc === false ) {
+					throw new MWException(
+						'<div class="error">Error in form definition!'
+						. ' The following tag is missing its closing \'}}}\':</div>'
+						. "\n<pre>" . htmlspecialchars( substr( $section, $brackets_loc ) ) . "</pre>"
+					);
+				}
 				// For cases with more than 3 ending brackets,
 				// take the last 3 ones as the tag end.
-				while ( $section[$brackets_end_loc + 3] == "}" ) {
+				while ( isset( $section[$brackets_end_loc + 3] ) && $section[$brackets_end_loc + 3] == "}" ) {
 					$brackets_end_loc++;
 				}
 				$bracketed_string = substr( $section, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 ) );

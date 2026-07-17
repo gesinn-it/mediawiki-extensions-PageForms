@@ -914,6 +914,34 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Out-of-bounds string offset / unclosed tag guards — issue #119
+	// -------------------------------------------------------------------------
+
+	/**
+	 * An unclosed {{{ tag (no matching }}} anywhere in the section) must
+	 * throw an actionable MWException instead of silently misparsing via
+	 * PHP's false + 3 === 3 coercion, which corrupts the substr() extraction
+	 * of the bracketed string and drops the tag from the output entirely
+	 * with no error raised.
+	 *
+	 * @covers \PFFormPrinter::formHTML
+	 */
+	public function testFormHTMLWithUnclosedTagThrowsMWException(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{field|Unclosed";
+
+		$this->expectException( \MWException::class );
+		$wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestUnclosedTagPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+	}
+
+	// -------------------------------------------------------------------------
 	// Empty {{{}}} tag must not hang formHTML() — issue #118
 	// -------------------------------------------------------------------------
 
