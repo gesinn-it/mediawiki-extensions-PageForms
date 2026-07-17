@@ -49,7 +49,7 @@ function setupMapFormInput( inputDiv, mapService ) {
 	}
 
 	function leafletSetMarker( location ) {
-		if ( marker === null) {
+		if ( marker == null ) {
 			marker = L.marker( location ).addTo( map );
 		} else {
 			marker.setLatLng( location, { draggable: true } );
