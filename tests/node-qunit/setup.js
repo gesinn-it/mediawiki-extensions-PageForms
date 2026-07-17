@@ -48,7 +48,12 @@ function createDom() {
 	global.document = window.document;
 	global.Node = window.Node;
 	global.HTMLElement = window.HTMLElement;
+	global.navigator = window.navigator;
 	global.scroll = () => {};
+	// jsdom does not implement requestAnimationFrame; OOUI's WindowManager and
+	// PF's own blur/rAF width fix (PF_FormLinkTargetInput.js) rely on it.
+	global.requestAnimationFrame = ( callback ) => setTimeout( callback, 0 );
+	global.cancelAnimationFrame = ( id ) => clearTimeout( id );
 	global.$ = global.jQuery = require('../../../../resources/lib/jquery/jquery.js');
 
 
@@ -77,6 +82,7 @@ function prepareMediaWiki() {
 	}
 	require('../../../../resources/lib/ooui/oojs-ui-core.js');
 	require('../../../../resources/lib/ooui/oojs-ui-widgets.js');
+	require('../../../../resources/lib/ooui/oojs-ui-windows.js');
 	require('../../../../resources/lib/ooui/oojs-ui-wikimediaui.js');
 
 	const doReset = () => {

@@ -227,6 +227,11 @@
 		return baseUrl + separator + encodeURIComponent( normalised );
 	}
 
+	// Expose pure helpers on the pf namespace so Node QUnit tests can reach them
+	// without needing to trigger DOM events.
+	pf.pfTargetInputReadConfig = readConfig;
+	pf.pfTargetInputBuildTargetUrl = buildTargetUrl;
+
 	$( document ).on( 'click', '[data-pf-target-input]', function ( e ) {
 		const $trigger = $( this );
 
