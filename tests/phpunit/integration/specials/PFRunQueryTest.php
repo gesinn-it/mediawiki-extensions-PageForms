@@ -31,6 +31,21 @@ class PFRunQueryTest extends SpecialPageTestBase {
 		$this->assertStringContainsString( 'error', $html );
 	}
 
+	/**
+	 * Visiting the bare special page with no subpage and no 'form' request
+	 * parameter leaves $query (and therefore $form_name) null. PHP 8.1+
+	 * deprecates passing null to str_replace()'s non-nullable $subject
+	 * parameter, which phpunit.xml.dist's convertWarningsToExceptions turns
+	 * into a fatal test exception.
+	 *
+	 * @see https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/141
+	 */
+	public function testExecuteWithNoSubpageAndNoFormParamDoesNotThrow() {
+		[ $html ] = $this->executeSpecialPage( null, new FauxRequest( [] ) );
+
+		$this->assertStringContainsString( 'error', $html );
+	}
+
 	public function testExecuteWithNonexistentForm() {
 		[ $html ] = $this->executeSpecialPage( '', new FauxRequest( [ 'form' => 'NonExistentForm' ] ) );
 
