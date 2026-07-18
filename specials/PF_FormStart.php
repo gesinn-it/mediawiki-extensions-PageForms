@@ -37,6 +37,7 @@ class PFFormStart extends SpecialPage {
 			if ( isset( $queryparts[1] ) ) {
 				$target_name = $queryparts[1];
 				$this->doRedirect( $form_name, $target_name, $params );
+				return;
 			}
 
 			// Get namespace from the URL, if it's there.
@@ -148,12 +149,17 @@ END;
 		$out = $this->getOutput();
 
 		$page_title = Title::newFromText( $page_name );
+		if ( !$page_title ) {
+			$out->addHTML( $this->msg( 'pf_formstart_badtitle', $page_name )->escaped() );
+			return;
+		}
 		if ( $page_title->exists() ) {
 			// It exists - see if page is a redirect; if
 			// it is, edit the target page instead.
 			$content = PFUtils::newWikiPageFromTitle( $page_title )->getContent();
-			if ( $content && $content->getRedirectTarget() ) {
-				$page_title = $content->getRedirectTarget();
+			$redirect_target = $content ? $content->getRedirectTarget() : null;
+			if ( $redirect_target ) {
+				$page_title = $redirect_target;
 				$page_name = PFUtils::titleURLString( $page_title );
 			}
 			// HACK - if this is the default form for

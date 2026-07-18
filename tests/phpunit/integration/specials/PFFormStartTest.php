@@ -32,4 +32,17 @@ class PFFormStartTest extends SpecialPageTestBase {
 		$this->assertStringContainsString( 'No forms have been defined on this site.', $html );
 	}
 
+	public function testUrlPathTargetRedirectsWithoutTrailingForm() {
+		[ $html ] = $this->executeSpecialPage( 'SomeForm/SomeTarget' );
+
+		$this->assertStringContainsString( '<meta http-equiv="refresh"', $html );
+		$this->assertStringNotContainsString( '<form action=', $html );
+	}
+
+	public function testUrlPathTargetWithInvalidTitleShowsError() {
+		[ $html ] = $this->executeSpecialPage( 'SomeForm/Some<Target' );
+
+		$this->assertStringContainsString( 'pf_formstart_badtitle', $html );
+	}
+
 }
