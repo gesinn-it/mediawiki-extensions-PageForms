@@ -418,7 +418,14 @@ class PFFormPrinter {
 			$this->mPageTitle = Title::newFromText(
 				$request->getVal( 'namespace' ) . ":Page Forms permissions test" );
 		} else {
-			$this->mPageTitle = Title::newFromText( $page_name );
+			// $page_name may not be a syntactically valid title (e.g. it was
+			// generated from a page name formula, or came from an untrusted
+			// request value); fall back to the same placeholder title used
+			// above for permission-testing purposes rather than leaving
+			// $this->mPageTitle null, which fatals in getPermissionErrors()
+			// and other unguarded uses below.
+			$this->mPageTitle = Title::newFromText( $page_name ) ?? Title::newFromText(
+				$request->getVal( 'namespace' ) . ":Page Forms permissions test" );
 		}
 
 		if ( $user === null ) {

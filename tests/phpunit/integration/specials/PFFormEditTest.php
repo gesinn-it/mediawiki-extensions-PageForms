@@ -64,6 +64,28 @@ class PFFormEditTest extends SpecialPageTestBase {
 		$this->assertStringContainsString( 'Thing[Name]', $html );
 	}
 
+	public function testValidFormWithInvalidTargetTitleDoesNotFatal() {
+		// A non-empty target that is not a syntactically valid MediaWiki title
+		// (e.g. "Foo[Bar") makes Title::newFromText( $page_name ) return null in
+		// PFFormPrinter::formHTML(), which previously fataled when passed to
+		// PermissionManager::getPermissionErrors() (a non-nullable LinkTarget
+		// parameter). Uses a valid, non-empty form name so execution reaches
+		// formHTML() instead of short-circuiting on an invalid form.
+		$formText = <<<EOF
+			{{{for template|Thing|label=Thing}}}
+			{| class="formtable"
+			! Name:
+			| {{{field|Name|input type=text}}}
+			|}
+			{{{end template}}}
+		EOF;
+		$this->insertPage( 'Form:Thing', $formText );
+
+		[ $html ] = $this->executeSpecialPage( 'Thing/Foo[Bar' );
+
+		$this->assertStringContainsString( '<legend>Thing</legend>', $html );
+	}
+
 	public function testNullTargetTitleDoesNotFatalOnExists() {
 		// PFFormEdit::printForm() derives $targetTitle from $result['target']
 		// (PFAutoeditAPI::getOptions(), read after $module->execute() has run) and
