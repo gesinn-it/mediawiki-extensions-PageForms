@@ -57,7 +57,30 @@ class PFTemplate {
 
 		$paramsForPage = reset( $properties );
 		$paramsForProperty = reset( $paramsForPage );
-		$this->mTemplateParams = unserialize( $paramsForProperty );
+		$this->mTemplateParams = self::safeUnserializeTemplateParams( $paramsForProperty );
+	}
+
+	/**
+	 * Safely deserialize the value stored in the 'PageFormsTemplateParams'
+	 * page property, disallowing object deserialization to prevent PHP
+	 * object injection, and failing gracefully (returning null) on a
+	 * malformed payload instead of emitting warnings or a fatal error.
+	 *
+	 * @param string $serialized
+	 * @return array|null
+	 */
+	private static function safeUnserializeTemplateParams( $serialized ) {
+		set_error_handler( static function () {
+			// Suppress unserialize()'s E_WARNING/E_NOTICE for malformed input;
+			// the is_array() check below already handles the failure case.
+			return true;
+		} );
+		try {
+			$result = unserialize( $serialized, [ 'allowed_classes' => false ] );
+		} finally {
+			restore_error_handler();
+		}
+		return is_array( $result ) ? $result : null;
 	}
 
 	public function getTemplateParams() {
