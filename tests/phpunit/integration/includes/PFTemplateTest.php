@@ -67,7 +67,12 @@ class PFTemplateTest extends MediaWikiIntegrationTestCase {
 		$this->editPage( $title, 'Template content.' );
 
 		$pageId = $title->getArticleID( IDBAccessObject::READ_LATEST );
-		$dbw = MediaWikiServices::getInstance()->getConnectionProvider()->getPrimaryDatabase();
+		if ( version_compare( MW_VERSION, '1.41', '>=' ) ) {
+			$dbw = MediaWikiServices::getInstance()->getConnectionProvider()->getPrimaryDatabase();
+		} else {
+			// MW < 1.41: getConnectionProvider() did not exist; use getDBLoadBalancer()
+			$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
+		}
 		$dbw->upsert(
 			'page_props',
 			[ 'pp_page' => $pageId, 'pp_propname' => 'PageFormsTemplateParams', 'pp_value' => $serializedParams ],
