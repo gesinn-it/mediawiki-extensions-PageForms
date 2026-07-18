@@ -304,6 +304,7 @@ END;
 		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
 			return MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
 		}
+		// MW < 1.42: getConnectionProvider() did not exist; getDBLoadBalancer() was the only option
 		return MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 	}
 
