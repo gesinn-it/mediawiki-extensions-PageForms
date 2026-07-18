@@ -108,4 +108,34 @@ class PFFormCacheTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringNotContainsString( '<includeonly>', $result );
 		$this->assertStringContainsString( 'wrapped', $result );
 	}
+
+	// -----------------------------------------------------------------------
+	// getFormDefinition — uncacheable parse with no form_id (preview/preload)
+	// -----------------------------------------------------------------------
+
+	public function testGetFormDefinitionWithNullFormIdAndUncacheableOutputDoesNotThrow() {
+		$parser = $this->getServiceContainer()->getParserFactory()->create();
+		$title = Title::newFromText( 'PFFormCacheTestNullFormId01', PF_NS_FORM );
+		$parser->setOptions( ParserOptions::newFromAnon() );
+		$parser->setTitle( $title );
+		// getFormDefinition() calls Parser::parse() with $clearState = false,
+		// which assumes an outer parse already initialized $parser->mOutput.
+		$parser->clearState();
+		// A tag hook that forces the ParserOutput to report itself uncacheable,
+		// matching the $output->getCacheTime() == -1 branch in getFormDefinition().
+		$parser->setHook( 'pftestnocache', static function ( $input, $args, Parser $parser ) {
+			$parser->getOutput()->setCacheTime( '-1' );
+			return '';
+		} );
+
+		$formDef = '<pftestnocache/>{{{standard input|save}}}';
+
+		// form_id = null (as used for preview/preload/red-link contexts via
+		// PFFormLinker::createPageWithForm()) must not reach
+		// purgeCache( Article::newFromID( null ) ), which throws a TypeError
+		// since purgeCache() requires a non-nullable WikiPage.
+		$result = PFFormCache::getFormDefinition( $parser, $formDef, null );
+
+		$this->assertIsString( $result );
+	}
 }

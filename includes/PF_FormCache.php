@@ -136,8 +136,10 @@ class PFFormCache {
 		);
 
 		if ( $output->getCacheTime() == -1 ) {
-			$form_article = Article::newFromID( $form_id );
-			self::purgeCache( $form_article );
+			$form_article = $form_id !== null ? Article::newFromID( $form_id ) : null;
+			if ( $form_article !== null ) {
+				self::purgeCache( $form_article );
+			}
 			wfDebug( "Caching disabled for form definition $form_id\n" );
 		} elseif ( $form_id !== null ) {
 			self::cacheFormDefinition( $form_id, $form_def, $parser );
