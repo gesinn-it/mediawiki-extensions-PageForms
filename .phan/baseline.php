@@ -41,9 +41,9 @@ return [
             'PhanUndeclaredMethod' => ['\\PFAutocompleteAPI::computeAllValuesForProperty']
         ],
         'includes/PF_AutoeditAPI.php' => [
-            'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFAutoeditAPI::doStore'],
-            'PhanRedundantCondition' => ['\\PFAutoeditAPI::doStore'],
-            'PhanRedundantValueComparison' => ['\\PFAutoeditAPI::doStore'],
+            'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFAutoeditAPI::handleSaveStatus'],
+            'PhanRedundantCondition' => ['\\PFAutoeditAPI::handleSaveStatus'],
+            'PhanRedundantValueComparison' => ['\\PFAutoeditAPI::handleSaveStatus'],
             'PhanTypeMismatchArgumentInternalReal' => ['\\PFAutoeditAPI::generateTargetName'],
             'PhanTypeMismatchArgumentProbablyReal' => ['\\PFAutoeditAPI::finalizeResults'],
             'PhanUndeclaredConstantOfClass' => ['\\PFAutoeditAPI::generateTargetName'],

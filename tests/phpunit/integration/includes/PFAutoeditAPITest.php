@@ -1009,4 +1009,331 @@ class PFAutoeditAPITest extends ApiTestCase {
 			$this->assertRegExp( $pattern, $string, $message );
 		}
 	}
+
+	// -------------------------------------------------------------------------
+	// doStore() – regression tests for issue #126
+	//
+	// doStore() signals failure via two different conventions depending on the
+	// EditPage::AS_* status: some branches throw (caught by execute()'s
+	// try/catch and turned into an ERROR-level logMessage(), status 400),
+	// others call logMessage() directly with a non-ERROR level and return,
+	// leaving status 200. These tests pin down the CURRENT, intentional
+	// behavior of each branch as a regression safety net before doStore() is
+	// refactored to a single documented contract.
+	//
+	// All scenarios are driven through the public execute() entry point,
+	// exactly like a real API request, rather than by calling doStore()
+	// directly (it is protected and expects an EditPage built by
+	// setupEditPage()).
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Creates a minimal Form: page with one template field and returns its name.
+	 */
+	private function createTestForm( string $formName, string $templateName = 'AEStoreTpl' ): string {
+		$formDef = "{{{for template|$templateName}}}\n"
+			. "{{{field|text}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+		$this->insertPage( Title::makeTitle( PF_NS_FORM, $formName ), $formDef );
+		return $formName;
+	}
+
+	/**
+	 * Drives PFAutoeditAPI::execute() as a real 'save' submission and returns
+	 * the module so the caller can inspect getStatus() / getResult().
+	 *
+	 * Uses ApiTestCase::doApiRequest() (rather than hand-building an ApiMain
+	 * with a local RequestContext) so that RequestContext::getMain() is set
+	 * up and torn down the same way the MediaWiki test framework expects —
+	 * PFAutoeditAPI reads RequestContext::getMain() internally (e.g. in
+	 * doStore()/formHTML()'s preload path), and a hand-rolled local context
+	 * left that global context mutated for later tests in the same process.
+	 *
+	 * Defaults to a fresh getMutableTestUser() rather than getTestUser(): the
+	 * latter returns a single shared, registry-cached user reused by many
+	 * other test classes (e.g. PFFormPrinterTest reads/mutates its group
+	 * membership and RequestContext::getMain()'s user); saving pages as that
+	 * shared user here caused cross-test pollution (issue #126) when the
+	 * full suite ran in one process. Pass $testUser explicitly when the
+	 * caller needs to act on that same user afterwards (e.g. blocking it).
+	 *
+	 * Explicitly restores RequestContext::getMain()'s title and user
+	 * afterwards: PFAutoeditAPI::doStore() temporarily repoints
+	 * RequestContext::getMain() at the target title for the duration of
+	 * internalAttemptSave(), and ApiTestCase::doApiRequest() itself points
+	 * RequestContext::getMain() at $testUser for the duration of the
+	 * request — neither is undone once execute()/doApiRequest() returns,
+	 * which otherwise leaks into later tests that read
+	 * RequestContext::getMain()->getTitle()/getUser() (e.g.
+	 * PFFormPrinterTest's watchcreations check, which expects the shared
+	 * getTestUser() user to still be set there).
+	 */
+	private function executeStore(
+		string $formName, string $targetName, array $extraOptions = [], ?TestUser $testUser = null
+	): PFAutoeditAPI {
+		$testUser ??= $this->getMutableTestUser();
+		$user = $testUser->getUser();
+
+		$requestData = array_merge( [
+			'action' => 'pfautoedit',
+			'form' => $formName,
+			'target' => $targetName,
+			'wpSave' => '1',
+			'wpEditToken' => $user->getEditToken(),
+		], $extraOptions );
+
+		$mainContext = RequestContext::getMain();
+		$originalTitle = $mainContext->getTitle();
+		$originalUser = $mainContext->getUser();
+		try {
+			[ , , , $main ] = $this->doApiRequest( $requestData, null, true, $testUser->getAuthority() );
+			return $main->getModuleFromPath( 'pfautoedit' );
+		} finally {
+			$mainContext->setTitle( $originalTitle );
+			$mainContext->setUser( $originalUser );
+		}
+	}
+
+	/**
+	 * A user without 'edit' rights must be blocked from saving: doStore()
+	 * logs the permission errors via logMessage() (default ERROR level) and
+	 * returns early, without throwing. This must surface as status 400.
+	 *
+	 * @covers \PFAutoeditAPI::doStore
+	 */
+	public function testDoStoreWithoutEditRightsReturnsErrorStatus(): void {
+		$this->setGroupPermissions( '*', 'edit', false );
+		$this->setGroupPermissions( 'user', 'edit', false );
+
+		try {
+			$formName = $this->createTestForm( 'AEStoreFormPermission' );
+
+			$module = $this->executeStore( $formName, 'AEStoreTargetPermission' );
+
+			$this->assertSame( 400, $module->getStatus() );
+			$result = $module->getResult()->getResultData();
+			$this->assertArrayHasKey( 'errors', $result );
+		} finally {
+			// PermissionManager::isEveryoneAllowed() caches its result per
+			// service instance and is not invalidated by
+			// overrideConfigValue() reverting wgGroupPermissions in
+			// tearDown(); left uncleared, the cached "edit is denied" answer
+			// leaks into later, unrelated tests that share the same service
+			// instance within the process.
+			$this->resetServices();
+		}
+	}
+
+	/**
+	 * An invalid edit token makes tokenOk() fail, which throws MWException
+	 * (session_fail_preview). execute() catches it and reports status 400.
+	 *
+	 * @covers \PFAutoeditAPI::doStore
+	 */
+	public function testDoStoreWithBadEditTokenReturnsErrorStatus(): void {
+		$formName = $this->createTestForm( 'AEStoreFormBadToken' );
+
+		$module = $this->executeStore( $formName, 'AEStoreTargetBadToken', [
+			'wpEditToken' => 'not-a-valid-token',
+		] );
+
+		$this->assertSame( 400, $module->getStatus() );
+		$result = $module->getResult()->getResultData();
+		$this->assertArrayHasKey( 'errors', $result );
+		$this->assertStringContainsString(
+			'session',
+			strtolower( $result['errors'][0]['message'] ),
+			'Bad-token failure should surface the session_fail_preview message'
+		);
+	}
+
+	/**
+	 * Successfully creating a brand-new page (AS_SUCCESS_NEW_ARTICLE) must
+	 * keep status 200 and set a 'redirect' result value, and the page must
+	 * actually be created.
+	 *
+	 * @covers \PFAutoeditAPI::doStore
+	 */
+	public function testDoStoreCreatingNewPageSucceeds(): void {
+		$formName = $this->createTestForm( 'AEStoreFormNewPage' );
+		$targetName = 'AEStoreTargetNewPage';
+
+		$module = $this->executeStore( $formName, $targetName, [
+			'AEStoreTpl' => [ 'text' => 'Hello new page' ],
+		] );
+
+		$this->assertSame( 200, $module->getStatus() );
+		$result = $module->getResult()->getResultData();
+		$this->assertArrayHasKey( 'redirect', $result );
+		$this->assertArrayNotHasKey( 'errors', $result );
+
+		$title = Title::newFromText( $targetName );
+		$this->assertTrue( $title->exists(), 'Target page must have been created' );
+	}
+
+	/**
+	 * Successfully updating an existing page (AS_SUCCESS_UPDATE) must keep
+	 * status 200, set a 'redirect' result value, and persist the new content.
+	 *
+	 * @covers \PFAutoeditAPI::doStore
+	 */
+	public function testDoStoreUpdatingExistingPageSucceeds(): void {
+		$formName = $this->createTestForm( 'AEStoreFormUpdatePage' );
+		$targetName = 'AEStoreTargetUpdatePage';
+
+		$this->insertPage( $targetName, '{{AEStoreTpl|text=old value}}' );
+
+		$module = $this->executeStore( $formName, $targetName, [
+			'AEStoreTpl' => [ 'text' => 'new value' ],
+		] );
+
+		$this->assertSame( 200, $module->getStatus() );
+		$result = $module->getResult()->getResultData();
+		$this->assertArrayHasKey( 'redirect', $result );
+		$this->assertArrayNotHasKey( 'errors', $result );
+
+		$title = Title::newFromText( $targetName );
+		$page = PFUtils::newWikiPageFromTitle( $title );
+		$text = $page->getContent()->getWikitextForTransclusion();
+		$this->assertStringContainsString( 'new value', $text );
+	}
+
+	/**
+	 * AS_BLANK_ARTICLE (submitting no content for a brand-new page) is
+	 * treated as a non-fatal, recoverable outcome by historical convention
+	 * ("return false; // success"): doStore() logs at DEBUG level and issues
+	 * a redirect, but must NOT flip status to 400. This is one of the two
+	 * branches central to issue #126 — pinned down explicitly so a future
+	 * refactor cannot silently turn it into an error.
+	 *
+	 * @covers \PFAutoeditAPI::doStore
+	 */
+	public function testDoStoreWithBlankArticleIsNonFatal(): void {
+		// A free-text-only form maps directly onto the page's wikitext, so
+		// submitting an empty free_text produces genuinely blank wikitext,
+		// which EditPage reports as AS_BLANK_ARTICLE.
+		$formDef = "{{{standard input|free text}}}\n"
+			. "{{{standard input|save}}}";
+		$formName = 'AEStoreFormBlankArticle';
+		$this->insertPage( Title::makeTitle( PF_NS_FORM, $formName ), $formDef );
+
+		$targetName = 'AEStoreTargetBlankArticle';
+
+		$module = $this->executeStore( $formName, $targetName, [
+			'free_text' => '',
+		] );
+
+		$this->assertSame(
+			200,
+			$module->getStatus(),
+			'AS_BLANK_ARTICLE must not flip the status to 400 (historical "return false; // success" contract)'
+		);
+		$result = $module->getResult()->getResultData();
+		$this->assertArrayHasKey( 'redirect', $result );
+
+		$title = Title::newFromText( $targetName );
+		$this->assertFalse( $title->exists(), 'Blank article must not have been created' );
+	}
+
+	/**
+	 * AS_HOOK_ERROR (a hook aborts the save, e.g. via EditFilterMergedContent
+	 * returning false) is treated as non-fatal by historical convention: only
+	 * a DEBUG-level logMessage(), no exception, status stays 200. This is the
+	 * second branch central to issue #126.
+	 *
+	 * @covers \PFAutoeditAPI::doStore
+	 */
+	public function testDoStoreWithHookAbortedSaveIsNonFatal(): void {
+		$this->setTemporaryHook( 'EditFilterMergedContent', static function ( $context, $content, $status, $summary ) {
+			$status->value = EditPage::AS_HOOK_ERROR;
+			return false;
+		} );
+
+		$formName = $this->createTestForm( 'AEStoreFormHookAbort' );
+		$targetName = 'AEStoreTargetHookAbort';
+
+		$module = $this->executeStore( $formName, $targetName, [
+			'AEStoreTpl' => [ 'text' => 'Hello hook abort' ],
+		] );
+
+		$this->assertSame(
+			200,
+			$module->getStatus(),
+			'AS_HOOK_ERROR must not flip the status to 400 (historical "return false" contract) even though'
+				. ' logMessage() still records a DEBUG-level entry in the result'
+		);
+
+		$title = Title::newFromText( $targetName );
+		$this->assertFalse( $title->exists(), 'Page must not have been created when a hook aborts the save' );
+	}
+
+	/**
+	 * AS_SPAM_ERROR (summary matches $wgSummarySpamRegex) throws MWException,
+	 * caught by execute() and reported as status 400 — one of the genuinely
+	 * fatal branches, to contrast with the two non-fatal ones above.
+	 *
+	 * @covers \PFAutoeditAPI::doStore
+	 */
+	public function testDoStoreWithSpamSummaryReturnsErrorStatus(): void {
+		$this->setMwGlobals( 'wgSummarySpamRegex', [ '/viagra/i' ] );
+
+		$formName = $this->createTestForm( 'AEStoreFormSpam' );
+		$targetName = 'AEStoreTargetSpam';
+
+		$module = $this->executeStore( $formName, $targetName, [
+			'AEStoreTpl' => [ 'text' => 'Hello spam' ],
+			'wpSummary' => 'buy viagra now',
+		] );
+
+		$this->assertSame( 400, $module->getStatus() );
+		$result = $module->getResult()->getResultData();
+		$this->assertArrayHasKey( 'errors', $result );
+
+		$title = Title::newFromText( $targetName );
+		$this->assertFalse( $title->exists(), 'Page must not have been created when the summary is flagged as spam' );
+	}
+
+	/**
+	 * A blocked user attempting to save triggers AS_BLOCKED_PAGE_FOR_USER,
+	 * which throws UserBlockedError. execute() catches it and reports status
+	 * 400.
+	 *
+	 * @covers \PFAutoeditAPI::doStore
+	 */
+	public function testDoStoreWithBlockedUserReturnsErrorStatus(): void {
+		// A dedicated mutable user, not the shared getTestUser() one: blocking
+		// that shared, registry-cached user would leak into unrelated tests
+		// that also call getTestUser() expecting an unblocked user.
+		$testUser = $this->getMutableTestUser();
+		$user = $testUser->getUser();
+
+		$block = new \MediaWiki\Block\DatabaseBlock( [
+			'address' => $user->getName(),
+			'by' => $user,
+			'reason' => 'AEStoreBlockTest',
+			'expiry' => 'infinity',
+		] );
+		$block->setTarget( $user );
+		$blockStore = \MediaWiki\MediaWikiServices::getInstance()->getDatabaseBlockStore();
+		$blockStore->insertBlock( $block );
+
+		try {
+			$formName = $this->createTestForm( 'AEStoreFormBlockedUser' );
+			$targetName = 'AEStoreTargetBlockedUser';
+
+			$module = $this->executeStore( $formName, $targetName, [
+				'AEStoreTpl' => [ 'text' => 'Hello blocked user' ],
+			], $testUser );
+
+			$this->assertSame( 400, $module->getStatus() );
+			$result = $module->getResult()->getResultData();
+			$this->assertArrayHasKey( 'errors', $result );
+
+			$title = Title::newFromText( $targetName );
+			$this->assertFalse( $title->exists(), 'Page must not have been created for a blocked user' );
+		} finally {
+			$blockStore->deleteBlock( $block );
+		}
+	}
 }

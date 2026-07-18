@@ -417,6 +417,44 @@ class PFAutoeditAPI extends ApiBase {
 		$this->setResultFromOutput();
 	}
 
+	/**
+	 * Attempts to save the page edited by $editor and reports the outcome.
+	 *
+	 * Error signaling contract: this method uses two different, deliberate
+	 * conventions depending on whether the outcome is considered
+	 * recoverable/non-fatal or fatal. The caller (doAction(), via execute())
+	 * does not use this method's return value; the outcome is communicated
+	 * exclusively through logMessage()/getResult()/getOutput() side effects
+	 * and, for fatal outcomes, through a thrown exception.
+	 *
+	 * - Recoverable/non-fatal outcomes (permission errors, AS_HOOK_ERROR,
+	 *   AS_BLANK_ARTICLE, and the AS_SUCCESS_* / AS_HOOK_ERROR_EXPECTED
+	 *   branches): logged via logMessage() at a level below self::ERROR (or
+	 *   not logged as an error at all), and the method returns without
+	 *   throwing. logMessage() only flips the API result to status 400 when
+	 *   called at the default self::ERROR level, so these branches leave the
+	 *   request looking like a success (status 200) even though a redirect
+	 *   or an informational message may still be produced. This mirrors the
+	 *   underlying EditPage::AS_* semantics: e.g. a hook is expected to
+	 *   surface its own user-facing error, and a blank submission simply
+	 *   redirects back to the edit form instead of failing outright.
+	 *
+	 * - Fatal outcomes (e.g. AS_CONTENT_TOO_BIG, AS_SPAM_ERROR, a bad edit
+	 *   token, or a blocked/unauthorized user): reported by throwing. Some
+	 *   branches throw a generic MWException (caught by execute() and
+	 *   turned into a logMessage() call at the default self::ERROR level —
+	 *   behaviorally identical to calling logMessage() directly); others
+	 *   throw a MediaWiki-typed exception (UserBlockedError, PermissionsError,
+	 *   ReadOnlyError, ThrottledError) that carries semantic meaning consumed
+	 *   elsewhere in MediaWiki's error-handling stack and must not be
+	 *   downgraded to a plain string message.
+	 *
+	 * See handleSaveStatus() for the full mapping of EditPage::AS_* status
+	 * values to one of these two conventions.
+	 *
+	 * @param EditPage $editor
+	 * @return void
+	 */
 	protected function doStore( EditPage $editor ) {
 		$title = $editor->getTitle();
 
@@ -461,6 +499,23 @@ class PFAutoeditAPI extends ApiBase {
 		} else {
 			throw new MWException( $this->msg( 'session_fail_preview' )->parse() );
 		}
+
+		$this->handleSaveStatus( $status, $editor, $resultDetails );
+	}
+
+	/**
+	 * Maps the EditPage::AS_* status returned by EditPage::internalAttemptSave()
+	 * to a result/redirect/exception, per the contract documented on doStore().
+	 *
+	 * @param \Status $status
+	 * @param EditPage $editor
+	 * @param array $resultDetails
+	 * @return false|void Always false or void; the return value is not used
+	 *  by the caller (kept only because some branches historically returned
+	 *  false to mark a non-fatal outcome — see doStore()'s docblock).
+	 */
+	private function handleSaveStatus( \Status $status, EditPage $editor, array $resultDetails ) {
+		$title = $editor->getTitle();
 
 		switch ( $status->value ) {
 			case EditPage::AS_HOOK_ERROR_EXPECTED:
