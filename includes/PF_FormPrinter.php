@@ -398,6 +398,7 @@ class PFFormPrinter {
 		$wgPageFormsFieldNum = 0;
 		$this->counters = new FormCounters();
 		$this->runQueryFormAtTop = false;
+		$this->standardInputsIncluded = false;
 		$source_page_matches_this_form = false;
 		$form_page_title = null;
 		$generated_page_name = $page_name_formula;
