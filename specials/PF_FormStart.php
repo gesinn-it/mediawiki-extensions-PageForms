@@ -185,7 +185,7 @@ END;
 			// Of all the request values, send on to 'FormEdit' only
 			// 'preload', 'returnto', and specific form fields - we can
 			// identify the latter because they show up as arrays.
-			foreach ( $_REQUEST as $key => $val ) {
+			foreach ( $this->getRequest()->getValues() as $key => $val ) {
 				if ( is_array( $val ) ) {
 					$redirect_url .= ( strpos( $redirect_url, '?' ) > -1 ) ? '&' : '?';
 					// Re-add the key (i.e. the template
@@ -196,7 +196,7 @@ END;
 					$redirect_url .= http_build_query( $wrapperArray );
 				} elseif ( $key == 'preload' || $key == 'returnto' ) {
 					$redirect_url .= ( strpos( $redirect_url, '?' ) > -1 ) ? '&' : '?';
-					$redirect_url .= "$key=$val";
+					$redirect_url .= http_build_query( [ $key => $val ] );
 				}
 			}
 		}

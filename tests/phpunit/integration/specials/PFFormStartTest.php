@@ -45,4 +45,13 @@ class PFFormStartTest extends SpecialPageTestBase {
 		$this->assertStringContainsString( 'pf_formstart_badtitle', $html );
 	}
 
+	public function testReturntoValueIsUrlEncodedInRedirect() {
+		$request = new FauxRequest( [ 'returnto' => 'A&B' ] );
+
+		[ $html ] = $this->executeSpecialPage( 'SomeForm/SomeNonexistentTarget', $request );
+
+		$this->assertStringContainsString( 'returnto=A%26B', $html );
+		$this->assertStringNotContainsString( 'returnto=A&B', $html );
+	}
+
 }
