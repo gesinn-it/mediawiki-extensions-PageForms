@@ -277,8 +277,7 @@ class PFTemplate {
 
 	/**
 	 * Creates the text of a template, when called from
-	 * Special:CreateTemplate, Special:CreateClass or the Page Schemas
-	 * extension.
+	 * Special:CreateTemplate or Special:CreateClass.
 	 * @return string
 	 */
 	public function createText() {
