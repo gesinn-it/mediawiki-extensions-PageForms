@@ -227,4 +227,32 @@ class FormSectionHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'Intro text.', $html );
 		$this->assertStringNotContainsString( 'Details text.', $html );
 	}
+
+	public function testLookAheadFindsNextSectionTagAtOffsetZero(): void {
+		// The next '{{{' tag starts at offset 0 of $form_def_section (brackets_end_loc = 0).
+		// strpos() returns int 0 for this match; a loose `== false` comparison would
+		// misinterpret this as "not found" and fall through to end-of-content handling,
+		// swallowing "Details text." into the "Intro" section instead of stopping before it.
+		$existingContent = "== Intro ==\nIntro text.\n== Details ==\nDetails text.\n";
+
+		$formDef = '{{{section|Details|level=2}}}';
+
+		$request = new FauxRequest();
+		$wikiPage = new PFWikiPage();
+
+		$html = $this->builder->buildHtml(
+			[ 'section', 'Intro', 'level=2' ],
+			$formDef,
+			0,
+			true,
+			$existingContent,
+			$request,
+			$wikiPage,
+			false,
+			$this->user
+		);
+
+		$this->assertStringContainsString( 'Intro text.', $html );
+		$this->assertStringNotContainsString( 'Details text.', $html );
+	}
 }

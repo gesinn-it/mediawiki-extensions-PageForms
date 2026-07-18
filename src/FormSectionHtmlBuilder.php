@@ -163,7 +163,7 @@ class FormSectionHtmlBuilder {
 
 		while ( !$next_section_found ) {
 			$next_bracket_start_loc = strpos( $form_def_section, '{{{', $previous_brackets_end_loc );
-			if ( $next_bracket_start_loc == false ) {
+			if ( $next_bracket_start_loc === false ) {
 				$section_end_loc = strpos( $existing_page_content, '{{', $section_start_loc );
 				$next_section_found = true;
 			} else {
