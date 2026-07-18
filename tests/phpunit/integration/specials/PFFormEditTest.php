@@ -41,6 +41,12 @@ class PFFormEditTest extends SpecialPageTestBase {
 		$this->assertStringContainsString( '<b>InvalidForm</b> is not a valid form.', $html );
 	}
 
+	public function testTargetWithInvalidTitleCharactersDoesNotFatal() {
+		[ $html ] = $this->executeSpecialPage( '/Foo[Bar' );
+
+		$this->assertStringContainsString( 'The specified target page <b>Foo[Bar</b> is invalid.', $html );
+	}
+
 	public function testValidForm() {
 		$formText = <<<EOF
 			{{{for template|Thing|label=Thing}}}

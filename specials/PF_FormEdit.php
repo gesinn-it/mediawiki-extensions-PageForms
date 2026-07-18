@@ -103,7 +103,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 			// If the page was submitted, form data should be
 			// complete => do not preload
 			$module->setOption( 'preload', false );
-		} elseif ( $targetName !== '' && Title::newFromText( $targetName )->exists() ) {
+		} elseif ( $targetName !== '' && ( $targetNameTitle = Title::newFromText( $targetName ) ) && $targetNameTitle->exists() ) {
 			// If target page exists, do not overwrite it with
 			// preload data; just preload the page's data.
 			$module->setOption( 'preload', true );
