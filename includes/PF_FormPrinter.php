@@ -48,7 +48,7 @@ class PFFormPrinter {
 	/**
 	 * This property stores mPageTitle values
 	 *
-	 * @var array
+	 * @var Title|null
 	 */
 	public $mPageTitle;
 
@@ -342,6 +342,368 @@ class PFFormPrinter {
 	}
 
 	/**
+	 * Resolve $this->mPageTitle (needed for permission testing even when the real
+	 * page name isn't known yet) and compute the edit-permission errors for formHTML().
+	 *
+	 * Also shows the page's previous deletion log, as a side effect, matching the
+	 * original inline behavior in formHTML().
+	 *
+	 * @param bool $is_embedded
+	 * @param bool $is_query
+	 * @param string|null $page_name
+	 * @param string|null $page_name_formula
+	 * @param WebRequest $request
+	 * @param User $user
+	 * @param bool $form_submitted
+	 * @return array [ array $permissionErrors, bool $userCanEditPage ]
+	 */
+	private function resolvePageTitleAndPermissions(
+		$is_embedded, $is_query, $page_name, $page_name_formula, $request, $user, $form_submitted
+	): array {
+		// Disable all form elements if user doesn't have edit
+		// permission - two different checks are needed, because
+		// editing permissions can be set in different ways.
+		// HACK - sometimes we don't know the page name in advance, but
+		// we still need to set a title here for testing permissions.
+		if ( $is_embedded || $is_query ) {
+			// If this is an embedded form (probably a 'RunQuery') or we're in Special:RunQuery,
+			// just use the name of the actual page we're on.
+			$titleGlobal = RequestContext::getMain()->getTitle();
+			$this->mPageTitle = $titleGlobal;
+		} elseif ( $page_name === '' || $page_name === null ) {
+			$this->mPageTitle = Title::newFromText(
+				$request->getVal( 'namespace' ) . ":Page Forms permissions test" );
+		} else {
+			// $page_name may not be a syntactically valid title (e.g. it was
+			// generated from a page name formula, or came from an untrusted
+			// request value); fall back to the same placeholder title used
+			// above for permission-testing purposes rather than leaving
+			// $this->mPageTitle null, which fatals in getPermissionErrors()
+			// and other unguarded uses below.
+			$this->mPageTitle = Title::newFromText( $page_name ) ?? Title::newFromText(
+				$request->getVal( 'namespace' ) . ":Page Forms permissions test" );
+		}
+
+		global $wgOut;
+		// Show previous set of deletions for this page, if it's been
+		// deleted before.
+		if ( !$form_submitted &&
+			( $this->mPageTitle && !$this->mPageTitle->exists() &&
+			$page_name_formula === null )
+		) {
+			$this->showDeletionLog( $wgOut );
+		}
+
+		$permissionErrors = [];
+		$userCanEditPage = true;
+		// Unfortunately, we can't just call userCan() or its
+		// equivalent here because it seems to ignore the setting
+		// "$wgEmailConfirmToEdit = true;". Instead, we'll just get the
+		// permission errors from the start, and use those to determine
+		// whether the page is editable.
+		if ( !$is_query ) {
+			$permissionErrors = MediaWikiServices::getInstance()->getPermissionManager()
+					->getPermissionErrors( 'edit', $user, $this->mPageTitle );
+			if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
+				$permissionErrors = [ [ 'readonlytext',
+					[ MediaWikiServices::getInstance()->getReadOnlyMode()->getReason() ] ] ];
+			}
+			$userCanEditPage = count( $permissionErrors ) == 0;
+			MediaWikiServices::getInstance()->getHookContainer()->run(
+				'PageForms::UserCanEditPage', [ $this->mPageTitle, &$userCanEditPage ]
+			);
+		}
+
+		return [ $permissionErrors, $userCanEditPage ];
+	}
+
+	/**
+	 * Finish assembling $form_text and $page_text after the per-section tag-dispatch
+	 * loop in formHTML() completes: resolve free text, substitute it into both the
+	 * form and the page text, add the warning/form-bottom/hidden-fields boilerplate,
+	 * and finalize the ParserOutput to return to the caller.
+	 *
+	 * @param array $args Keyed by: form_text, placeholderFields, free_text_was_included,
+	 *   source_is_page, existing_page_content, is_autocreate, request, preloaded_free_text,
+	 *   wiki_page, page_name_formula, page_name, is_query, source_page_matches_this_form,
+	 *   form_submitted, form_is_disabled, user, parser, formDefParserModules,
+	 *   formDefParserModuleStyles, is_embedded, form_page_title
+	 * @return array [ string $form_text, string $page_text, string|null $form_page_title, ParserOutput $parserOutput ]
+	 */
+	private function finalizeFormAndPageText( array $args ): array {
+		$form_text = $args['form_text'];
+		$existing_page_content = $args['existing_page_content'];
+		$request = $args['request'];
+		$wiki_page = $args['wiki_page'];
+		$user = $args['user'];
+		$parser = $args['parser'];
+		$form_page_title = $args['form_page_title'];
+
+		// Cleanup - everything has been browsed.
+		// Remove all the remaining placeholder
+		// tags in the HTML and wiki-text.
+		foreach ( $args['placeholderFields'] as $stringToReplace ) {
+			// Remove the @<insertHTML>@ tags from the generated
+			// HTML form.
+			$form_text = str_replace( self::makePlaceholderInFormHTML( $stringToReplace ), '', $form_text );
+		}
+
+		// If it wasn't included in the form definition, add the
+		// 'free text' input as a hidden field at the bottom.
+		if ( !$args['free_text_was_included'] ) {
+			$form_text .= Html::hidden( 'pf_free_text', '!free_text!' );
+		}
+		// Get free text, and add to page data, as well as retroactively
+		// inserting it into the form.
+
+		if ( $args['source_is_page'] ) {
+			// If the page is the source, free_text will just be
+			// whatever in the page hasn't already been inserted
+			// into the form.
+			$free_text = trim( $existing_page_content );
+		// ...or get it from the form submission, if it's not called from #formredlink
+		} elseif ( !$args['is_autocreate'] && $request->getCheck( 'pf_free_text' ) ) {
+			$free_text = $request->getVal( 'pf_free_text' );
+			if ( !$args['free_text_was_included'] ) {
+				$wiki_page->addFreeTextSection();
+			}
+		} elseif ( $args['preloaded_free_text'] != null ) {
+			$free_text = $args['preloaded_free_text'];
+		} else {
+			$free_text = null;
+		}
+
+		if ( $wiki_page->freeTextOnlyInclude() ) {
+			$free_text = str_replace( "<onlyinclude>", '', $free_text );
+			$free_text = str_replace( "</onlyinclude>", '', $free_text );
+			$free_text = trim( $free_text );
+		}
+
+		$page_text = '';
+
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::BeforeFreeTextSubst',
+			[ &$free_text, $existing_page_content, &$page_text ] );
+
+		// Now that we have the free text, we can create the full page
+		// text.
+		// The page text needs to be created whether or not the form
+		// was submitted, in case this is called from #formredlink.
+		$wiki_page->setFreeText( $free_text );
+		$page_text = $wiki_page->createPageText( $request );
+
+		// Also substitute the free text into the form.
+		$escaped_free_text = Sanitizer::safeEncodeAttribute( $free_text ?? '' );
+		$form_text = str_replace( '!free_text!', $escaped_free_text, $form_text );
+
+		// Add a warning in, if we're editing an existing page and that
+		// page appears to not have been created with this form.
+		if ( !$args['is_query'] && $args['page_name_formula'] === null &&
+			$this->mPageTitle->exists() && $existing_page_content !== ''
+			&& !$args['source_page_matches_this_form'] ) {
+			$form_text = "\t" . '<div class="warningbox">' .
+				// Prepend with a colon in case it's a file or category page.
+				wfMessage( 'pf_formedit_formwarning', ':' . $args['page_name'] )->parse() .
+				"</div>\n<br clear=\"both\" />\n" . $form_text;
+		}
+
+		// Add form bottom, if no custom "standard inputs" have been defined.
+		if ( !$this->standardInputsIncluded ) {
+			if ( $args['is_query'] ) {
+				$form_text .= PFFormUtils::queryFormBottom();
+			} else {
+				$form_text .= PFFormUtils::formBottom( $args['form_submitted'], $args['form_is_disabled'] );
+			}
+		}
+
+		if ( !$args['is_query'] ) {
+			$form_text .= Html::hidden( 'wpStarttime', wfTimestampNow() );
+			// This variable is called $mwWikiPage and not
+			// something simpler, to avoid confusion with the
+			// variable $wiki_page, which is of type PFWikiPage.
+			$mwWikiPage = PFUtils::newWikiPageFromTitle( $this->mPageTitle );
+			$form_text .= Html::hidden( 'wpEdittime', $mwWikiPage->getTimestamp() );
+			$form_text .= Html::hidden( 'editRevId', 0 );
+			$form_text .= Html::hidden( 'wpEditToken', $user->getEditToken() );
+			$form_text .= Html::hidden( 'wpUnicodeCheck', EditPage::UNICODE_CHECK );
+			$form_text .= Html::hidden( 'wpUltimateParam', true );
+		}
+
+		$form_text .= "\t</form>\n";
+		$parser->replaceLinkHolders( $form_text );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::RenderingEnd', [ &$form_text ] );
+
+		// Capture the internal parser's output so callers can forward
+		// ResourceLoader modules (and other metadata) registered by parser
+		// tag hooks (e.g. <headertabs />) to the real OutputPage via
+		// addParserOutputMetadata(). This must be done by the caller because
+		// formHTML() has no handle on the caller's OutputPage instance.
+		$parserOutput = $parser->getOutput();
+		// Restore modules that were registered during form-definition parsing
+		// but cleared by PFFormField::clearState() during field rendering.
+		if ( $args['formDefParserModules'] ) {
+			$parserOutput->addModules( $args['formDefParserModules'] );
+		}
+		if ( $args['formDefParserModuleStyles'] ) {
+			$parserOutput->addModuleStyles( $args['formDefParserModuleStyles'] );
+		}
+
+		// Send the autocomplete values to the browser, along with the
+		// mappings of which values should apply to which fields.
+		// If doing a replace, the page text is actually the modified
+		// original page.
+		if ( !$args['is_embedded'] ) {
+			$form_page_title = $parser->recursiveTagParse( str_replace( "{{!}}", "|", $form_page_title ?? '' ) );
+		} else {
+			$form_page_title = null;
+		}
+
+		return [ $form_text, $page_text, $form_page_title, $parserOutput ];
+	}
+
+	/**
+	 * Build the HTML for a {{{standard input}}} form-definition tag, as used by formHTML().
+	 * Caller is responsible for the "ignore this tag" early-exit (query vs. non-query
+	 * 'run query' handling) and for setting $this->standardInputsIncluded.
+	 *
+	 * @param string $input_name
+	 * @param array $tag_components
+	 * @param bool $form_is_disabled
+	 * @param bool $form_submitted
+	 * @param WebRequest $request
+	 * @param Parser $parser
+	 * @param string|null $page_name
+	 * @return string
+	 */
+	private function buildStandardInputTagHtml(
+		$input_name, array $tag_components, $form_is_disabled, $form_submitted, $request, $parser, $page_name
+	): string {
+		return $this->standardInputHtmlBuilder->buildHtml(
+			$input_name,
+			$tag_components,
+			$form_is_disabled,
+			(bool)$form_submitted,
+			$request,
+			$parser,
+			$this->mPageTitle,
+			$page_name
+		);
+	}
+
+	/**
+	 * Build the HTML for a {{{section}}} form-definition tag, as used by formHTML().
+	 * Increments the tab-index/field-num globals (and $this->counters) before delegating.
+	 *
+	 * @param array $tag_components
+	 * @param string $section
+	 * @param int $brackets_end_loc
+	 * @param bool $source_is_page
+	 * @param string|null $existing_page_content
+	 * @param WebRequest $request
+	 * @param PFWikiPage $wiki_page
+	 * @param bool $form_is_disabled
+	 * @param User $user
+	 * @param int &$fieldNum
+	 * @param int &$tabIndex
+	 * @return string
+	 */
+	private function buildSectionTagHtml(
+		array $tag_components, $section, $brackets_end_loc, $source_is_page, $existing_page_content,
+		$request, $wiki_page, $form_is_disabled, $user, &$fieldNum, &$tabIndex
+	): string {
+		$fieldNum++;
+		$tabIndex++;
+		$this->counters->fieldNum = $fieldNum;
+		$this->counters->tabIndex = $tabIndex;
+
+		return $this->formSectionHtmlBuilder->buildHtml(
+			$tag_components,
+			$section,
+			$brackets_end_loc,
+			$source_is_page,
+			$existing_page_content,
+			$request,
+			$wiki_page,
+			$form_is_disabled,
+			$user,
+			$this->counters
+		);
+	}
+
+	/**
+	 * Create a fresh Parser instance for use by formHTML(), titled at $this->mPageTitle.
+	 *
+	 * @param User $user
+	 * @return Parser
+	 */
+	private function createFreshParser( $user ) {
+		// getFreshParser() was removed in MW 1.43; use the factory on newer versions.
+		$globalParser = PFUtils::getParser();
+		if ( method_exists( $globalParser, 'getFreshParser' ) ) {
+			// MW < 1.43: reset the global parser instance in-place
+			// @phan-suppress-next-line PhanUndeclaredMethod -- getFreshParser() removed in MW 1.43, guarded above
+			$parser = $globalParser->getFreshParser();
+			if ( !$parser->getOptions() ) {
+				$parser->setOptions( ParserOptions::newFromUser( $user ) );
+			}
+		} else {
+			// MW 1.43+: create a fresh parser via the factory
+			$parser = MediaWikiServices::getInstance()->getParserFactory()->create();
+			$parser->setOptions( ParserOptions::newFromUser( $user ) );
+		}
+		$parser->setTitle( $this->mPageTitle );
+		// This is needed in order to make sure $parser->mLinkHolders
+		// is set.
+		$parser->clearState();
+		return $parser;
+	}
+
+	/**
+	 * Process the sub-components of a {{{info}}} form-definition tag, as used by formHTML().
+	 *
+	 * Reads 'create title'/'add title', 'edit title' and 'query title' (returning
+	 * whichever applies as $form_page_title), and applies the side effects of
+	 * 'includeonly free text'/'onlyinclude free text' (on $wiki_page) and
+	 * 'query form at top' (on $this->runQueryFormAtTop).
+	 *
+	 * @param array $tag_components
+	 * @param bool $is_query
+	 * @param PFWikiPage $wiki_page
+	 * @param string|null $form_page_title current value, returned unchanged if no title tag applies
+	 * @return string|null
+	 */
+	private function processInfoTag( array $tag_components, $is_query, PFWikiPage $wiki_page, $form_page_title ) {
+		foreach ( array_slice( $tag_components, 1 ) as $component ) {
+			$sub_components = array_map( 'trim', explode( '=', $component, 2 ) );
+			// Tag names are case-insensitive
+			$tag = strtolower( $sub_components[0] );
+			if ( $tag == 'create title' || $tag == 'add title' ) {
+				// Handle this only if
+				// we're adding a page.
+				if ( !$is_query && !$this->mPageTitle->exists() ) {
+					$form_page_title = $sub_components[1];
+				}
+			} elseif ( $tag == 'edit title' ) {
+				// Handle this only if
+				// we're editing a page.
+				if ( !$is_query && $this->mPageTitle->exists() ) {
+					$form_page_title = $sub_components[1];
+				}
+			} elseif ( $tag == 'query title' ) {
+				// Handle this only if
+				// we're in 'RunQuery'.
+				if ( $is_query ) {
+					$form_page_title = $sub_components[1];
+				}
+			} elseif ( $tag == 'includeonly free text' || $tag == 'onlyinclude free text' ) {
+				$wiki_page->makeFreeTextOnlyInclude();
+			} elseif ( $tag == 'query form at top' ) {
+				$this->runQueryFormAtTop = true;
+			}
+		}
+		return $form_page_title;
+	}
+
+	/**
 	 * This function is the real heart of the entire Page Forms
 	 * extension. It handles two main actions: (1) displaying a form on the
 	 * screen, given a form definition and possibly page contents (if an
@@ -391,6 +753,7 @@ class PFFormPrinter {
 		// used for setting various HTML IDs
 		global $wgPageFormsFieldNum;
 		global $wgPageFormsShowExpandAllLink;
+		global $wgOut;
 
 		// Initialize some variables.
 		$wiki_page = new PFWikiPage();
@@ -405,60 +768,15 @@ class PFFormPrinter {
 		$new_text = "";
 		$original_page_content = $existing_page_content;
 
-		// Disable all form elements if user doesn't have edit
-		// permission - two different checks are needed, because
-		// editing permissions can be set in different ways.
-		// HACK - sometimes we don't know the page name in advance, but
-		// we still need to set a title here for testing permissions.
-		if ( $is_embedded || $is_query ) {
-			// If this is an embedded form (probably a 'RunQuery') or we're in Special:RunQuery,
-			// just use the name of the actual page we're on.
-			$titleGlobal = RequestContext::getMain()->getTitle();
-			$this->mPageTitle = $titleGlobal;
-		} elseif ( $page_name === '' || $page_name === null ) {
-			$this->mPageTitle = Title::newFromText(
-				$request->getVal( 'namespace' ) . ":Page Forms permissions test" );
-		} else {
-			// $page_name may not be a syntactically valid title (e.g. it was
-			// generated from a page name formula, or came from an untrusted
-			// request value); fall back to the same placeholder title used
-			// above for permission-testing purposes rather than leaving
-			// $this->mPageTitle null, which fatals in getPermissionErrors()
-			// and other unguarded uses below.
-			$this->mPageTitle = Title::newFromText( $page_name ) ?? Title::newFromText(
-				$request->getVal( 'namespace' ) . ":Page Forms permissions test" );
-		}
-
 		if ( $user === null ) {
 			$user = RequestContext::getMain()->getUser();
 		}
 
-		global $wgOut;
-		// Show previous set of deletions for this page, if it's been
-		// deleted before.
-		if ( !$form_submitted &&
-			( $this->mPageTitle && !$this->mPageTitle->exists() &&
-			$page_name_formula === null )
-		) {
-			$this->showDeletionLog( $wgOut );
-		}
-		// Unfortunately, we can't just call userCan() or its
-		// equivalent here because it seems to ignore the setting
-		// "$wgEmailConfirmToEdit = true;". Instead, we'll just get the
-		// permission errors from the start, and use those to determine
-		// whether the page is editable.
-		if ( !$is_query ) {
-			$permissionErrors = MediaWikiServices::getInstance()->getPermissionManager()
-					->getPermissionErrors( 'edit', $user, $this->mPageTitle );
-			if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
-				$permissionErrors = [ [ 'readonlytext',
-					[ MediaWikiServices::getInstance()->getReadOnlyMode()->getReason() ] ] ];
-			}
-			$userCanEditPage = count( $permissionErrors ) == 0;
-			MediaWikiServices::getInstance()->getHookContainer()->run(
-				'PageForms::UserCanEditPage', [ $this->mPageTitle, &$userCanEditPage ]
-			);
-		}
+		// Disable all form elements if user doesn't have edit permission.
+		// Also resolves $this->mPageTitle as a side effect (needed below).
+		[ $permissionErrors, $userCanEditPage ] = $this->resolvePageTitleAndPermissions(
+			$is_embedded, $is_query, $page_name, $page_name_formula, $request, $user, $form_submitted
+		);
 
 		// Start off with a loading spinner - this will be removed by
 		// the JavaScript once everything has finished loading.
@@ -493,23 +811,7 @@ class PFFormPrinter {
 				Html::element( 'a', [ 'href' => '#' ], 'Expand all collapsed parts of the form' ) ) . "\n";
 		}
 
-		// getFreshParser() was removed in MW 1.43; use the factory on newer versions.
-		$globalParser = PFUtils::getParser();
-		if ( method_exists( $globalParser, 'getFreshParser' ) ) {
-			// MW < 1.43: reset the global parser instance in-place
-			$parser = $globalParser->getFreshParser();
-			if ( !$parser->getOptions() ) {
-				$parser->setOptions( ParserOptions::newFromUser( $user ) );
-			}
-		} else {
-			// MW 1.43+: create a fresh parser via the factory
-			$parser = MediaWikiServices::getInstance()->getParserFactory()->create();
-			$parser->setOptions( ParserOptions::newFromUser( $user ) );
-		}
-		$parser->setTitle( $this->mPageTitle );
-		// This is needed in order to make sure $parser->mLinkHolders
-		// is set.
-		$parser->clearState();
+		$parser = $this->createFreshParser( $user );
 
 		$form_def = PFFormCache::getFormDefinition( $parser, $form_def, $form_id );
 		// Snapshot RL modules registered by parser tag hooks during form-definition
@@ -960,14 +1262,8 @@ END;
 					// set a flag so that the standard 'form bottom' won't get displayed
 					$this->standardInputsIncluded = true;
 
-					$new_text = $this->standardInputHtmlBuilder->buildHtml(
-						$input_name,
-						$tag_components,
-						$form_is_disabled,
-						(bool)$form_submitted,
-						$request,
-						$parser,
-						$this->mPageTitle,
+					$new_text = $this->buildStandardInputTagHtml(
+						$input_name, $tag_components, $form_is_disabled, $form_submitted, $request, $parser,
 						$page_name
 					);
 					$section = substr_replace(
@@ -977,22 +1273,9 @@ END;
 				// for section processing
 				// =====================================================
 				} elseif ( $tag_title == 'section' ) {
-					$wgPageFormsFieldNum++;
-					$wgPageFormsTabIndex++;
-					$this->counters->fieldNum = $wgPageFormsFieldNum;
-					$this->counters->tabIndex = $wgPageFormsTabIndex;
-
-					$form_section_text = $this->formSectionHtmlBuilder->buildHtml(
-						$tag_components,
-						$section,
-						$brackets_end_loc,
-						$source_is_page,
-						$existing_page_content,
-						$request,
-						$wiki_page,
-						$form_is_disabled,
-						$user,
-						$this->counters
+					$form_section_text = $this->buildSectionTagHtml(
+						$tag_components, $section, $brackets_end_loc, $source_is_page, $existing_page_content,
+						$request, $wiki_page, $form_is_disabled, $user, $wgPageFormsFieldNum, $wgPageFormsTabIndex
 					);
 
 					$section = substr_replace(
@@ -1009,34 +1292,9 @@ END;
 						);
 					}
 					$info_tag_seen = true;
-					foreach ( array_slice( $tag_components, 1 ) as $component ) {
-						$sub_components = array_map( 'trim', explode( '=', $component, 2 ) );
-						// Tag names are case-insensitive
-						$tag = strtolower( $sub_components[0] );
-						if ( $tag == 'create title' || $tag == 'add title' ) {
-							// Handle this only if
-							// we're adding a page.
-							if ( !$is_query && !$this->mPageTitle->exists() ) {
-								$form_page_title = $sub_components[1];
-							}
-						} elseif ( $tag == 'edit title' ) {
-							// Handle this only if
-							// we're editing a page.
-							if ( !$is_query && $this->mPageTitle->exists() ) {
-								$form_page_title = $sub_components[1];
-							}
-						} elseif ( $tag == 'query title' ) {
-							// Handle this only if
-							// we're in 'RunQuery'.
-							if ( $is_query ) {
-								$form_page_title = $sub_components[1];
-							}
-						} elseif ( $tag == 'includeonly free text' || $tag == 'onlyinclude free text' ) {
-							$wiki_page->makeFreeTextOnlyInclude();
-						} elseif ( $tag == 'query form at top' ) {
-							$this->runQueryFormAtTop = true;
-						}
-					}
+					$form_page_title = $this->processInfoTag(
+						$tag_components, $is_query, $wiki_page, $form_page_title
+					);
 					// Replace the {{{info}}} tag with a hidden span, instead of a blank, to avoid a
 					// potential security issue.
 					$section = substr_replace(
@@ -1167,123 +1425,29 @@ END;
 		}
 		// end for
 
-		// Cleanup - everything has been browsed.
-		// Remove all the remaining placeholder
-		// tags in the HTML and wiki-text.
-		foreach ( $placeholderFields as $stringToReplace ) {
-			// Remove the @<insertHTML>@ tags from the generated
-			// HTML form.
-			$form_text = str_replace( self::makePlaceholderInFormHTML( $stringToReplace ), '', $form_text );
-		}
-
-		// If it wasn't included in the form definition, add the
-		// 'free text' input as a hidden field at the bottom.
-		if ( !$free_text_was_included ) {
-			$form_text .= Html::hidden( 'pf_free_text', '!free_text!' );
-		}
-		// Get free text, and add to page data, as well as retroactively
-		// inserting it into the form.
-
-		if ( $source_is_page ) {
-			// If the page is the source, free_text will just be
-			// whatever in the page hasn't already been inserted
-			// into the form.
-			$free_text = trim( $existing_page_content );
-		// ...or get it from the form submission, if it's not called from #formredlink
-		} elseif ( !$is_autocreate && $request->getCheck( 'pf_free_text' ) ) {
-			$free_text = $request->getVal( 'pf_free_text' );
-			if ( !$free_text_was_included ) {
-				$wiki_page->addFreeTextSection();
-			}
-		} elseif ( $preloaded_free_text != null ) {
-			$free_text = $preloaded_free_text;
-		} else {
-			$free_text = null;
-		}
-
-		if ( $wiki_page->freeTextOnlyInclude() ) {
-			$free_text = str_replace( "<onlyinclude>", '', $free_text );
-			$free_text = str_replace( "</onlyinclude>", '', $free_text );
-			$free_text = trim( $free_text );
-		}
-
-		$page_text = '';
-
-		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::BeforeFreeTextSubst',
-			[ &$free_text, $existing_page_content, &$page_text ] );
-
-		// Now that we have the free text, we can create the full page
-		// text.
-		// The page text needs to be created whether or not the form
-		// was submitted, in case this is called from #formredlink.
-		$wiki_page->setFreeText( $free_text );
-		$page_text = $wiki_page->createPageText( $request );
-
-		// Also substitute the free text into the form.
-		$escaped_free_text = Sanitizer::safeEncodeAttribute( $free_text ?? '' );
-		$form_text = str_replace( '!free_text!', $escaped_free_text, $form_text );
-
-		// Add a warning in, if we're editing an existing page and that
-		// page appears to not have been created with this form.
-		if ( !$is_query && $page_name_formula === null &&
-			$this->mPageTitle->exists() && $existing_page_content !== ''
-			&& !$source_page_matches_this_form ) {
-			$form_text = "\t" . '<div class="warningbox">' .
-				// Prepend with a colon in case it's a file or category page.
-				wfMessage( 'pf_formedit_formwarning', ':' . $page_name )->parse() .
-				"</div>\n<br clear=\"both\" />\n" . $form_text;
-		}
-
-		// Add form bottom, if no custom "standard inputs" have been defined.
-		if ( !$this->standardInputsIncluded ) {
-			if ( $is_query ) {
-				$form_text .= PFFormUtils::queryFormBottom();
-			} else {
-				$form_text .= PFFormUtils::formBottom( $form_submitted, $form_is_disabled );
-			}
-		}
-
-		if ( !$is_query ) {
-			$form_text .= Html::hidden( 'wpStarttime', wfTimestampNow() );
-			// This variable is called $mwWikiPage and not
-			// something simpler, to avoid confusion with the
-			// variable $wiki_page, which is of type PFWikiPage.
-			$mwWikiPage = PFUtils::newWikiPageFromTitle( $this->mPageTitle );
-			$form_text .= Html::hidden( 'wpEdittime', $mwWikiPage->getTimestamp() );
-			$form_text .= Html::hidden( 'editRevId', 0 );
-			$form_text .= Html::hidden( 'wpEditToken', $user->getEditToken() );
-			$form_text .= Html::hidden( 'wpUnicodeCheck', EditPage::UNICODE_CHECK );
-			$form_text .= Html::hidden( 'wpUltimateParam', true );
-		}
-
-		$form_text .= "\t</form>\n";
-		$parser->replaceLinkHolders( $form_text );
-		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::RenderingEnd', [ &$form_text ] );
-
-		// Capture the internal parser's output so callers can forward
-		// ResourceLoader modules (and other metadata) registered by parser
-		// tag hooks (e.g. <headertabs />) to the real OutputPage via
-		// addParserOutputMetadata(). This must be done by the caller because
-		// formHTML() has no handle on the caller's OutputPage instance.
-		$parserOutput = $parser->getOutput();
-		// Restore modules that were registered during form-definition parsing
-		// but cleared by PFFormField::clearState() during field rendering.
-		if ( $formDefParserModules ) {
-			$parserOutput->addModules( $formDefParserModules );
-		}
-		if ( $formDefParserModuleStyles ) {
-			$parserOutput->addModuleStyles( $formDefParserModuleStyles );
-		}
-
-		// Send the autocomplete values to the browser, along with the
-		// mappings of which values should apply to which fields.
-		// If doing a replace, the page text is actually the modified
-		// original page.
-		if ( !$is_embedded ) {
-			$form_page_title = $parser->recursiveTagParse( str_replace( "{{!}}", "|", $form_page_title ?? '' ) );
-		} else {
-			$form_page_title = null;
-		}
+		[ $form_text, $page_text, $form_page_title, $parserOutput ] = $this->finalizeFormAndPageText( [
+			'form_text' => $form_text,
+			'placeholderFields' => $placeholderFields,
+			'free_text_was_included' => $free_text_was_included,
+			'source_is_page' => $source_is_page,
+			'existing_page_content' => $existing_page_content,
+			'is_autocreate' => $is_autocreate,
+			'request' => $request,
+			'preloaded_free_text' => $preloaded_free_text,
+			'wiki_page' => $wiki_page,
+			'page_name_formula' => $page_name_formula,
+			'page_name' => $page_name,
+			'is_query' => $is_query,
+			'source_page_matches_this_form' => $source_page_matches_this_form,
+			'form_submitted' => $form_submitted,
+			'form_is_disabled' => $form_is_disabled,
+			'user' => $user,
+			'parser' => $parser,
+			'formDefParserModules' => $formDefParserModules,
+			'formDefParserModuleStyles' => $formDefParserModuleStyles,
+			'is_embedded' => $is_embedded,
+			'form_page_title' => $form_page_title,
+		] );
 
 		return [
 			$form_text, $page_text, $form_page_title, $generated_page_name, $parserOutput, $this->runQueryFormAtTop
