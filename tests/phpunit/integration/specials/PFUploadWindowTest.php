@@ -123,6 +123,55 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 	}
 
 	/**
+	 * showUploadForm() must call showViewDeletedLinks() when mDesiredDestName
+	 * IS set — i.e. the user is actively re-uploading a file with a known
+	 * destination name — matching upstream SpecialUpload::showUploadForm(),
+	 * which guards the equivalent call with `if ( $this->mDesiredDestName )`.
+	 */
+	public function testShowUploadFormShowsViewDeletedLinksWhenDestNameIsSet() {
+		/** @var PFUploadWindow&\PHPUnit\Framework\MockObject\MockObject $page */
+		$page = $this->getMockBuilder( PFUploadWindow::class )
+			->onlyMethods( [ 'showViewDeletedLinks' ] )
+			->getMock();
+		$page->method( 'showViewDeletedLinks' )
+			->willThrowException( new RuntimeException( 'showViewDeletedLinks called' ) );
+		$page->mDesiredDestName = 'PFTestUploadWindowReupload.png';
+
+		$form = $this->createMock( PFUploadForm::class );
+		$form->method( 'show' )->willReturn( null );
+
+		$method = new ReflectionMethod( PFUploadWindow::class, 'showUploadForm' );
+		$method->setAccessible( true );
+
+		$this->expectException( RuntimeException::class );
+		$this->expectExceptionMessage( 'showViewDeletedLinks called' );
+
+		$method->invoke( $page, $form );
+	}
+
+	/**
+	 * showUploadForm() must NOT call showViewDeletedLinks() when
+	 * mDesiredDestName is empty — there is no destination file yet to show
+	 * deletion notices for.
+	 */
+	public function testShowUploadFormSkipsViewDeletedLinksWhenDestNameIsEmpty() {
+		/** @var PFUploadWindow&\PHPUnit\Framework\MockObject\MockObject $page */
+		$page = $this->getMockBuilder( PFUploadWindow::class )
+			->onlyMethods( [ 'showViewDeletedLinks' ] )
+			->getMock();
+		$page->expects( $this->never() )->method( 'showViewDeletedLinks' );
+		$page->mDesiredDestName = '';
+
+		$form = $this->createMock( PFUploadForm::class );
+		$form->expects( $this->once() )->method( 'show' );
+
+		$method = new ReflectionMethod( PFUploadWindow::class, 'showUploadForm' );
+		$method->setAccessible( true );
+
+		$method->invoke( $page, $form );
+	}
+
+	/**
 	 * getInitialPageText() with no copyright upload returns only the comment.
 	 */
 	public function testGetInitialPageTextReturnsStringWithoutCopyrightUpload() {

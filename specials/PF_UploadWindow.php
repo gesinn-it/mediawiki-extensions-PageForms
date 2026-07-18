@@ -257,7 +257,7 @@ class PFUploadWindow extends UnlistedSpecialPage {
 	 */
 	protected function showUploadForm( $form ) {
 		# Add links if file was previously deleted
-		if ( !$this->mDesiredDestName ) {
+		if ( $this->mDesiredDestName ) {
 			$this->showViewDeletedLinks();
 		}
 
