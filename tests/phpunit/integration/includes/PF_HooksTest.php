@@ -152,9 +152,7 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// setPostEditCookie() — guard-clause paths only; the cookie-setting path
-	// requires a full RequestContext response object and is not worth the
-	// setup complexity here.
+	// setPostEditCookie()
 	// -------------------------------------------------------------------------
 
 	public function testSetPostEditCookieReturnsTrueWhenGlobalFormPrinterIsNull(): void {
@@ -181,6 +179,39 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 			$this->assertTrue( $result );
 		} finally {
 			$wgPageFormsFormPrinter = $savedFormPrinter;
+		}
+	}
+
+	public function testSetPostEditCookieSkipsCookieForBotEditSignalledViaRequestContext(): void {
+		global $wgPageFormsFormPrinter;
+		$this->assertNotNull(
+			$wgPageFormsFormPrinter,
+			'PFHooks::initialize() must have run to set up the global form printer'
+		);
+		// Build fixtures under the default request first, so the real
+		// PageSaveComplete hook fired by insertPage() doesn't interfere with
+		// the bot-flagged request swapped in below.
+		[ $wikiPage, $user, $summary, $flags, $revisionRecord, $editResult ] = $this->newSetPostEditCookieArgs();
+
+		$context = RequestContext::getMain();
+		$savedRequest = $context->getRequest();
+		// The bot flag must be honoured via RequestContext/WebRequest, not $_REQUEST,
+		// so it is controllable through a FauxRequest in tests. With the form
+		// printer present (guard clause not triggered), the only remaining
+		// early-return path is the bot-flag check itself.
+		$botRequest = new FauxRequest( [ 'bot' => 'true' ] );
+		$context->setRequest( $botRequest );
+
+		try {
+			$result = PFHooks::setPostEditCookie( $wikiPage, $user, $summary, $flags, $revisionRecord, $editResult );
+
+			$this->assertTrue( $result );
+			$this->assertFalse(
+				$botRequest->response()->hasCookies(),
+				'A bot edit must not set the post-edit cookie'
+			);
+		} finally {
+			$context->setRequest( $savedRequest );
 		}
 	}
 

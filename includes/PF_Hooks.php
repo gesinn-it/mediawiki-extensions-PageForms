@@ -290,8 +290,9 @@ class PFHooks {
 		WikiPage $wikiPage, MediaWiki\User\UserIdentity $user, string $summary, int $flags,
 		MediaWiki\Revision\RevisionRecord $revisionRecord, MediaWiki\Storage\EditResult $editResult
 	) {
+		$request = RequestContext::getMain()->getRequest();
 		// Bots don't need this cookie
-		if ( array_key_exists( 'bot', $_REQUEST ) && $_REQUEST['bot'] === 'true' ) {
+		if ( $request->getVal( 'bot' ) === 'true' ) {
 			return true;
 		}
 		// Have this take effect only if the save came from a form -
@@ -303,7 +304,7 @@ class PFHooks {
 
 		// Code based loosely on EditPage::setPostEditCookie().
 		$postEditKey = EditPage::POST_EDIT_COOKIE_KEY_PREFIX . $revisionRecord->getID();
-		$response = RequestContext::getMain()->getRequest()->response();
+		$response = $request->response();
 		$response->setCookie( $postEditKey, 'saved', time() + EditPage::POST_EDIT_COOKIE_DURATION );
 		return true;
 	}
