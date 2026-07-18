@@ -236,7 +236,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		$html = $builder->formFieldHTML( $formField, 'some value' );
 
 		$this->assertStringContainsString( 'MyTemplate[MyField_translate_number_tag]', $html );
-		$this->assertStringContainsString( $tag, $html );
+		$this->assertStringContainsString( htmlspecialchars( $tag ), $html );
 	}
 
 	public function testFormFieldHtmlEmitsHiddenTranslateTagInputForPlainInputName(): void {
@@ -255,7 +255,28 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		$html = $builder->formFieldHTML( $formField, 'val' );
 
 		$this->assertStringContainsString( 'plain_field_translate_number_tag', $html );
-		$this->assertStringContainsString( $tag, $html );
+		$this->assertStringContainsString( htmlspecialchars( $tag ), $html );
+	}
+
+	public function testFormFieldHtmlEscapesTranslateTagContainingSingleQuote(): void {
+		global $wgPageFormsFieldNum;
+		$wgPageFormsFieldNum = 0;
+
+		// Malicious translate tag containing a single quote and an onmouseover handler.
+		// If the hidden input were built via raw string concatenation with '...' attribute
+		// delimiters, this value would break out of the value attribute and inject markup.
+		$tag = "<!--T:1'onmouseover='alert(1)-->";
+		$formField = $this->makeTranslatableHiddenFormField(
+			'plain_field',
+			'val',
+			$tag
+		);
+		$builder = new FormFieldHtmlBuilder( [], [] );
+
+		$html = $builder->formFieldHTML( $formField, 'val' );
+
+		$this->assertStringNotContainsString( "onmouseover='alert(1)", $html );
+		$this->assertStringContainsString( '&#039;', $html );
 	}
 
 	// -----------------------------------------------------------------------

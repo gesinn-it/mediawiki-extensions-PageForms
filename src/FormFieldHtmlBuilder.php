@@ -170,7 +170,7 @@ class FormFieldHtmlBuilder {
 				$inputName .= '_translate_number_tag';
 			}
 			$translateTag = $form_field->getFieldArg( 'translate_number_tag' );
-			$text .= "<input type='hidden' name='$inputName' value='$translateTag'/>";
+			$text .= Html::hidden( $inputName, $translateTag );
 		}
 	}
 }
