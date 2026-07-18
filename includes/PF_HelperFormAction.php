@@ -100,14 +100,14 @@ class PFHelperFormAction extends Action {
 
 		// If there's no 'edit' tab, look for the 'view source' tab
 		// instead.
-		if ( $edit_tab_location == null ) {
+		if ( $edit_tab_location === false ) {
 			$edit_tab_location = array_search( 'viewsource', $tab_keys );
 		}
 
 		// This should rarely happen, but if there was no edit *or*
 		// view source tab, set the location index to -1, so the
 		// tab shows up near the end.
-		if ( $edit_tab_location == null ) {
+		if ( $edit_tab_location === false ) {
 			$edit_tab_location = -1;
 		}
 		array_splice( $tab_keys, $edit_tab_location, 0, 'formcreate' );

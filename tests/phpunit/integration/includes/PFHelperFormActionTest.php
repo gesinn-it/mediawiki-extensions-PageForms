@@ -169,6 +169,22 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [ 'view', 'formcreate', 'viewsource', 'history' ], array_keys( $links['views'] ) );
 	}
 
+	public function testDisplayTabInsertedBeforeEditWhenEditIsFirstTab(): void {
+		$title = Title::makeTitle( PF_NS_FORM, 'PFHelperFormActionEditFirst01' );
+		$links = [
+			'views' => [
+				'edit'    => [ 'text' => 'Edit', 'href' => '#edit' ],
+				'history' => [ 'text' => 'History', 'href' => '#history' ],
+			]
+		];
+
+		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
+		PFHelperFormAction::displayTab( $context, $links );
+
+		$this->assertArrayHasKey( 'formcreate', $links['views'] );
+		$this->assertSame( [ 'formcreate', 'edit', 'history' ], array_keys( $links['views'] ) );
+	}
+
 	public function testDisplayTabInsertedAtEndWhenNoEditOrViewsourceTab(): void {
 		$title = Title::makeTitle( PF_NS_FORM, 'PFHelperFormActionNoEditOrVS01' );
 		$links = [

@@ -117,6 +117,25 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [ 'view', 'formedit', 'viewsource', 'history' ], array_keys( $links['views'] ) );
 	}
 
+	public function testDisplayTabInsertedBeforeEditWhenEditIsFirstTab(): void {
+		$title = $this->getExistingTestTitleWithDefaultForm(
+			'PFFormEditActionEditFirst01',
+			'PFFormEditActionForm09'
+		);
+		$links = [
+			'views' => [
+				'edit'    => [ 'text' => 'Edit', 'href' => '#edit' ],
+				'history' => [ 'text' => 'History', 'href' => '#history' ],
+			]
+		];
+
+		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
+		PFFormEditAction::displayTab( $context, $links );
+
+		$this->assertArrayHasKey( 'formedit', $links['views'] );
+		$this->assertSame( [ 'formedit', 'edit', 'history' ], array_keys( $links['views'] ) );
+	}
+
 	public function testDisplayTabInsertedAtEndWhenNoEditOrViewsourceTab(): void {
 		$title = $this->getExistingTestTitleWithDefaultForm(
 			'PFFormEditActionNoEditOrViewSource01',
