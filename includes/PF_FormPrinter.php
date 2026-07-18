@@ -534,6 +534,7 @@ class PFFormPrinter {
 		$tif = null;
 		// This array will keep track of all the replaced @<name>@ strings
 		$placeholderFields = [];
+		$info_tag_seen = false;
 
 		for ( $section_num = 0; $section_num < count( $form_def_sections ); $section_num++ ) {
 			$start_position = 0;
@@ -1000,7 +1001,13 @@ END;
 				// page info processing
 				// =====================================================
 				} elseif ( $tag_title == 'info' ) {
-					// TODO: Generate an error message if this is included more than once
+					if ( $info_tag_seen ) {
+						throw new MWException(
+							'<div class="error">Error in form definition:'
+							. ' only one \'info\' tag is allowed per form.</div>'
+						);
+					}
+					$info_tag_seen = true;
 					foreach ( array_slice( $tag_components, 1 ) as $component ) {
 						$sub_components = array_map( 'trim', explode( '=', $component, 2 ) );
 						// Tag names are case-insensitive

@@ -641,6 +641,29 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
+	/**
+	 * A form definition with more than one {{{info}}} tag is a user error;
+	 * the second tag must not silently overwrite the first.
+	 *
+	 * @see https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/94
+	 */
+	public function testFormHTMLDuplicateInfoTagThrowsMWException(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{info|create title=First Title}}}\n"
+			. "{{{info|create title=Second Title}}}\n"
+			. "{{{standard input|save}}}";
+
+		$this->expectException( \MWException::class );
+		$wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestDuplicateInfoTagPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+	}
+
 	public function testFormHTMLForbiddenCharactersInFieldTagThrowsMWException(): void {
 		global $wgPageFormsFormPrinter, $wgOut;
 
