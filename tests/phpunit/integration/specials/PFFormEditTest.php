@@ -64,6 +64,23 @@ class PFFormEditTest extends SpecialPageTestBase {
 		$this->assertStringContainsString( 'Thing[Name]', $html );
 	}
 
+	public function testNullTargetTitleDoesNotFatalOnExists() {
+		// PFFormEdit::printForm() derives $targetTitle from $result['target']
+		// (PFAutoeditAPI::getOptions(), read after $module->execute() has run) and
+		// calls $targetTitle->exists() when $targetName (the original request
+		// value) is non-empty. $result['target'] can be a string for which
+		// Title::newFromText() returns null (e.g. via the 'PageForms::SetTargetName'
+		// hook, or a page-name formula with no "{num}" tag, which
+		// PFAutoeditAPI::generateTargetName() returns unvalidated). There is no
+		// realistic end-to-end request that reaches this guard without first
+		// hitting an unrelated, unguarded Title::newFromText() call in
+		// PFFormPrinter::formHTML() (PF_FormPrinter.php:444, out of scope here) -
+		// so this exercises the guarded expression directly.
+		$targetTitle = Title::newFromText( 'Foo[Bar' );
+		$this->assertNull( $targetTitle );
+		$this->assertFalse( (bool)( $targetTitle && $targetTitle->exists() ) );
+	}
+
 	public function testPrintAltFormsList() {
 		// Create an instance of PFFormEdit
 		$formEdit = $this->newSpecialPage();

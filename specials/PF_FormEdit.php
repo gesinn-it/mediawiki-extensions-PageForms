@@ -99,11 +99,13 @@ class PFFormEdit extends UnlistedSpecialPage {
 		$module->setOption( 'form', $form_name );
 		$module->setOption( 'target', $targetName );
 
+		$targetNameTitle = $targetName !== '' ? Title::newFromText( $targetName ) : null;
+
 		if ( $req->getCheck( 'wpSave' ) || $req->getCheck( 'wpPreview' ) || $req->getCheck( 'wpDiff' ) ) {
 			// If the page was submitted, form data should be
 			// complete => do not preload
 			$module->setOption( 'preload', false );
-		} elseif ( $targetName !== '' && ( $targetNameTitle = Title::newFromText( $targetName ) ) && $targetNameTitle->exists() ) {
+		} elseif ( $targetNameTitle && $targetNameTitle->exists() ) {
 			// If target page exists, do not overwrite it with
 			// preload data; just preload the page's data.
 			$module->setOption( 'preload', true );
@@ -165,7 +167,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 		} elseif ( $result[ 'form' ] !== '' ) {
 			if ( $targetName === '' ) {
 				$pageTitle = $this->msg( 'pf_formedit_createtitlenotarget', $result[ 'form' ] )->text();
-			} elseif ( $targetTitle->exists() ) {
+			} elseif ( $targetTitle && $targetTitle->exists() ) {
 				$pageTitle = $this->msg( 'pf_formedit_edittitle', $result[ 'form' ], $targetName )->text();
 			} else {
 				$pageTitle = $this->msg( 'pf_formedit_createtitle', $result[ 'form' ], $targetName )->text();
@@ -218,7 +220,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 
 	/**
 	 * Show captcha from Extension:ConfirmEdit, if any.
-	 * @param Title $targetTitle
+	 * @param Title|null $targetTitle
 	 */
 	protected function showCaptcha( $targetTitle ) {
 		if ( !method_exists( 'ConfirmEditHooks', 'getInstance' ) ) {
