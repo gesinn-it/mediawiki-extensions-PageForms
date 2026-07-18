@@ -357,6 +357,17 @@ class PFUploadWindow extends UnlistedSpecialPage {
 	}
 
 	/**
+	 * Shows an excerpt of the deletion log for the given page, mirroring
+	 * SpecialUpload::showViewDeletedLinks() in MediaWiki core.
+	 *
+	 * @param OutputPage $out
+	 * @param string $name Prefixed text of the page to show the log for
+	 */
+	protected function showDeletionLog( OutputPage $out, string $name ) {
+		LogEventsList::showLogExtract( $out, 'delete', $name, '', [ 'lim' => 10 ] );
+	}
+
+	/**
 	 * Stashes the upload and shows the main upload form.
 	 *
 	 * Note: only errors that can be handled by changing the name or

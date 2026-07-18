@@ -47,6 +47,49 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 	}
 
 	/**
+	 * showViewDeletedLinks() must not crash when the destination file was
+	 * previously deleted and does not currently exist, because that branch
+	 * calls showDeletionLog(), which must exist on PFUploadWindow.
+	 *
+	 * Regression test for: "Call to undefined method
+	 * PFUploadWindow::showDeletionLog()"
+	 */
+	public function testShowViewDeletedLinksDoesNotCrashOnDeletedFile() {
+		$sysop = $this->getTestUser( [ 'sysop' ] )->getAuthority();
+		$title = Title::makeTitle( NS_FILE, 'PFTestUploadWindowDeletedFile.png' );
+
+		$this->insertPage( $title );
+		$page = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
+		$page->doDeleteArticleReal( 'test deletion', $sysop );
+
+		// Use a non-privileged user (without 'deletedhistory') so the
+		// unrelated Skin::linkKnown() branch above is skipped and this
+		// test isolates the showDeletionLog() bug under test.
+		$performer = $this->getTestUser()->getAuthority();
+
+		/** @var PFUploadWindow $specialPage */
+		$specialPage = $this->newSpecialPage();
+		$specialPage->setContext( RequestContext::getMain() );
+		RequestContext::getMain()->setUser( $performer->getUser() );
+		$specialPage->mDesiredDestName = $title->getText();
+
+		$method = new ReflectionMethod( PFUploadWindow::class, 'showViewDeletedLinks' );
+		$method->setAccessible( true );
+
+		$exception = null;
+		try {
+			$method->invoke( $specialPage );
+		} catch ( Error $e ) {
+			$exception = $e;
+		}
+
+		$this->assertNull(
+			$exception,
+			'showViewDeletedLinks() must not throw when the destination file was previously deleted'
+		);
+	}
+
+	/**
 	 * getUploadForm() must return a PFUploadForm instance without throwing,
 	 * given a fully wired context.
 	 */
