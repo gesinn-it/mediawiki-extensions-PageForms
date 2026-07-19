@@ -400,7 +400,15 @@ class PFFormUtils {
 		];
 	}
 
+	/** @var bool Guards against redundant re-computation within the same request. */
+	private static $globalVarsForSpreadsheetSet = false;
+
 	public static function setGlobalVarsForSpreadsheet() {
+		if ( self::$globalVarsForSpreadsheetSet ) {
+			return;
+		}
+		self::$globalVarsForSpreadsheetSet = true;
+
 		global $wgPageFormsContLangYes, $wgPageFormsContLangNo, $wgPageFormsContLangMonths;
 
 		// JS variables that hold boolean and date values in the wiki's
@@ -415,6 +423,15 @@ class PFFormUtils {
 		foreach ( $monthMessages as $monthMsg ) {
 			$wgPageFormsContLangMonths[] = wfMessage( $monthMsg )->inContentLanguage()->text();
 		}
+	}
+
+	/**
+	 * Test-only helper to reset the guard in setGlobalVarsForSpreadsheet().
+	 *
+	 * @internal
+	 */
+	public static function resetGlobalVarsForSpreadsheetGuard() {
+		self::$globalVarsForSpreadsheetSet = false;
 	}
 
 	/** @deprecated since PageForms 6.x — use PFFormCache::getFormDefinition() instead. */

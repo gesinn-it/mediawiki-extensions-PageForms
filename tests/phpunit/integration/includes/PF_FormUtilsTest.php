@@ -227,4 +227,38 @@ class PFFormUtilsTest extends TestCase {
 		$result = PFFormUtils::getChangedIndex( 2, 3, null );
 		$this->assertSame( 2, $result );
 	}
+
+	/**
+	 * Test for setGlobalVarsForSpreadsheet method.
+	 *
+	 * Verifies that a second call within the same request is a no-op: it must not
+	 * recompute (and thus overwrite) the globals once they have already been set,
+	 * so that CalendarHtmlBuilder and SpreadsheetHtmlBuilder calling it redundantly
+	 * only pays the wfMessage() lookup cost once per request.
+	 *
+	 * @covers PFFormUtils::setGlobalVarsForSpreadsheet
+	 */
+	public function testSetGlobalVarsForSpreadsheetSkipsRecomputationOnSecondCall() {
+		global $wgPageFormsContLangYes;
+
+		PFFormUtils::resetGlobalVarsForSpreadsheetGuard();
+
+		PFFormUtils::setGlobalVarsForSpreadsheet();
+		$firstValue = $wgPageFormsContLangYes;
+
+		// Simulate the global having been externally changed after the first call;
+		// a guarded second call must leave it untouched.
+		$wgPageFormsContLangYes = 'sentinel-value-set-between-calls';
+
+		PFFormUtils::setGlobalVarsForSpreadsheet();
+
+		$this->assertSame(
+			'sentinel-value-set-between-calls',
+			$wgPageFormsContLangYes,
+			'Second call must not recompute the global once the guard has been tripped'
+		);
+		$this->assertNotSame( '', $firstValue, 'First call must have computed a real value' );
+
+		PFFormUtils::resetGlobalVarsForSpreadsheetGuard();
+	}
 }
