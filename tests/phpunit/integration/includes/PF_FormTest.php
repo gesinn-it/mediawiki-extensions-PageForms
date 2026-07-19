@@ -24,18 +24,16 @@ class PFFormTest extends MediaWikiIntegrationTestCase {
 	 * @covers PFForm::getFormName
 	 */
 	public function testGetFormName() {
-		$actual = $this->pfForm->getFormName();
-		$this->assertTrue( (bool)equalTo( $actual ) );
-		$this->assertEquals( $actual, $this->pfForm->getFormName() );
+		// A freshly constructed PFForm() has no name until create() sets one.
+		$this->assertNull( $this->pfForm->getFormName() );
 	}
 
 	/**
 	 * @covers PFForm::getItems
 	 */
 	public function testGetItems() {
-		$actual = $this->pfForm->getItems();
-		$this->assertTrue( (bool)equalTo( $actual ) );
-		$this->assertEquals( $actual, $this->pfForm->getItems() );
+		// A freshly constructed PFForm() has no items until create() sets some.
+		$this->assertNull( $this->pfForm->getItems() );
 	}
 
 	public function testCreateNormalizesUnderscoresToSpaces() {
