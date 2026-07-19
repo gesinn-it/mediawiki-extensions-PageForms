@@ -95,6 +95,14 @@ class InputTypeRegistryTest extends TestCase {
 		$this->assertSame( [], $this->registry->getPossibleInputTypes( true, '_str' ) );
 	}
 
+	public function testGetPossibleInputTypesAccumulatesAcrossRegisteredClasses() {
+		// PFTextInput::getOtherPropTypesHandled() and PFComboBoxInput::getOtherPropTypesHandled()
+		// both include '_wpg', so both input type names must appear in the result.
+		$this->registry->register( 'PFTextInput' );
+		$this->registry->register( 'PFComboBoxInput' );
+		$this->assertSame( [ 'text', 'combobox' ], $this->registry->getPossibleInputTypes( false, '_wpg' ) );
+	}
+
 	// -----------------------------------------------------------------------
 	// Idempotency — registering the same class twice must not duplicate
 	// -----------------------------------------------------------------------
