@@ -155,19 +155,17 @@ class PFFormFieldTest extends TestCase {
 		$this->mockTemplateInForm->method( 'getTemplateName' )->willReturn( 'TestTemplate' );
 		$this->mockTemplateInForm->method( 'strictParsing' )->willReturn( true );
 
-		// Create the PFFormField object
-		$formField = PFFormField::create( $this->mockTemplateField );
+		// Call the method under test - with strict parsing enabled and no matching
+		// field found, newFromFormFieldTag() must return early with a fresh,
+		// empty PFTemplateField and mIsList = false (src/PF_FormField.php:232-239).
+		$formField = PFFormField::newFromFormFieldTag(
+			$tagComponents, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
+		);
 
-		$this->assertSame( $this->mockTemplateField, $formField->template_field );
-
-		if ( $this->mockTemplateInForm->strictParsing() ) {
-
-			$formField->template_field = new PFTemplateField();
-
-			// Assert that mIsList is null (not set) when a fresh PFTemplateField is assigned
-			$this->assertInstanceOf( PFTemplateField::class, $formField->template_field );
-			$this->assertNull( $formField->template_field->isList() );
-		}
+		$this->assertInstanceOf( PFTemplateField::class, $formField->template_field );
+		$this->assertNotSame( $this->mockTemplateField, $formField->template_field );
+		$this->assertNull( $formField->template_field->isList() );
+		$this->assertFalse( $formField->isList() );
 	}
 
 	public function testMandatoryComponent() {
