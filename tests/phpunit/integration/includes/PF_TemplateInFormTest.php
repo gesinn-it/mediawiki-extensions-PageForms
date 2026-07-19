@@ -1,13 +1,12 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
-
 /**
  * @covers PFTemplateInForm
+ * @group Database
  *
  * @author gesinn-it-ilm
  */
-class PFTemplateInFormTest extends TestCase {
+class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -44,28 +43,21 @@ class PFTemplateInFormTest extends TestCase {
 	}
 
 	public function testCreateWithoutFormFields() {
-		// Create a mock for PFTemplate and its methods
-		$mockTemplate = $this->createMock( PFTemplate::class );
-		$mockTemplate->method( 'getTemplateFields' )->willReturn( [
-			'field1',
-			'field2'
-		] );
+		// PFTemplateInForm::create() with no $formFields argument loads the fields
+		// from the real Template: page via PFTemplate::newFromName(). Create an
+		// actual template page with two non-semantic placeholder fields.
+		$this->insertPage(
+			Title::newFromText( 'PFTestTemplateInFormCreate', NS_TEMPLATE ),
+			'{{{field1}}} {{{field2}}}'
+		);
 
-		// Use ReflectionClass to override the static method
-		$reflection = new ReflectionClass( PFTemplate::class );
-		$method = $reflection->getMethod( 'newFromName' );
-		$method->setAccessible( true );
+		$templateInForm = PFTemplateInForm::create( 'PFTestTemplateInFormCreate' );
 
-		$originalMethod = $method->getClosure();
-
-		// Call the `create` method
-		$templateInForm = PFTemplateInForm::create( 'TestTemplate' );
-
-		// Assertions
 		$this->assertInstanceOf( PFTemplateInForm::class, $templateInForm );
-		$this->assertEquals( 'TestTemplate', $templateInForm->getTemplateName() );
-		$this->assertNotEmpty( $mockTemplate->getTemplateFields() );
-		$this->assertCount( 2, $mockTemplate->getTemplateFields() );
+		$this->assertEquals( 'PFTestTemplateInFormCreate', $templateInForm->getTemplateName() );
+		$this->assertCount( 2, $templateInForm->getFields() );
+		$this->assertSame( 'field1', $templateInForm->getFields()[0]->getTemplateField()->getFieldName() );
+		$this->assertSame( 'field2', $templateInForm->getFields()[1]->getTemplateField()->getFieldName() );
 	}
 
 	public function testSetFieldValuesFromSubmitSingleInstance(): void {
