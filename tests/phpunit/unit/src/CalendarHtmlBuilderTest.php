@@ -144,7 +144,15 @@ class CalendarHtmlBuilderTest extends TestCase {
 
 		$params = $wgPageFormsCalendarParams['T'][0];
 		$this->assertSame( 'select', $params['type'] );
-		$this->assertArrayHasKey( 'items', $params );
+		$this->assertSame(
+			[
+				[ 'Name' => '', 'Id' => '' ],
+				[ 'Name' => 'A', 'Id' => 'A' ],
+				[ 'Name' => 'B', 'Id' => 'B' ],
+				[ 'Name' => 'C', 'Id' => 'C' ],
+			],
+			$params['items']
+		);
 	}
 
 	public function testCalendarHtmlParamsIncludeLabelAsTitleWhenSet(): void {
