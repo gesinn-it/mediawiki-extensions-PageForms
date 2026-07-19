@@ -668,7 +668,7 @@ class PFFormUtils {
 		$day = date( "j", $cur_time );
 		if ( $wgAmericanDates == true ) {
 			$month_names = self::getMonthNames();
-			$month_name = $month_names[$month - 1];
+			$month_name = $month_names[(int)$month - 1];
 			$curTimeString = "$month_name $day, $year";
 		} else {
 			$curTimeString = "$year-$month-$day";

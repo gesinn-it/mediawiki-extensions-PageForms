@@ -751,6 +751,19 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 'X b a', $result );
 	}
 
+	public function testShowDeletionLogReturnsFalseWithoutPageTitle(): void {
+		$formPrinter = new PFFormPrinter();
+		$result = $formPrinter->showDeletionLog( RequestContext::getMain()->getOutput() );
+		$this->assertFalse( $result );
+	}
+
+	public function testShowDeletionLogReturnsTrueWithPageTitle(): void {
+		$formPrinter = new PFFormPrinter();
+		$formPrinter->mPageTitle = Title::makeTitle( NS_MAIN, 'TestShowDeletionLogPage' );
+		$result = $formPrinter->showDeletionLog( RequestContext::getMain()->getOutput() );
+		$this->assertTrue( $result );
+	}
+
 	public function testPlaceholderFormat(): void {
 		$result = PFFormPrinter::placeholderFormat( 'MyTemplate', 'MyField' );
 		$this->assertStringContainsString( 'MyTemplate', $result );

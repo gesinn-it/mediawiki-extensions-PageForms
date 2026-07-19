@@ -11,24 +11,10 @@ return [
     // # Issue statistics:
     // SecurityCheck-DoubleEscaped : 35+ occurrences
     // PhanTypeMismatchProperty : 4 occurrences
-    // PhanNonClassMethodCall : 3 occurrences
-    // MediaWikiNoEmptyIfDefined : 2 occurrences
-    // PhanRedundantCondition : 2 occurrences
-    // PhanPluginDuplicateConditionalNullCoalescing : 1 occurrence
-    // PhanPossiblyUndeclaredVariable : 1 occurrence
-    // PhanRedundantValueComparison : 1 occurrence
-    // PhanTypeArraySuspiciousNullable : 1 occurrence
-    // PhanTypeInvalidLeftOperandOfNumericOp : 1 occurrence
     // PhanTypeMismatchDimEmpty : 1 occurrence
     // PhanTypeMismatchPropertyProbablyReal : 1 occurrence
-    // PhanUndeclaredClassMethod : 1 occurrence
 
     'file_suppressions' => [
-        'includes/PF_AutoeditAPI.php' => [
-            'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFAutoeditAPI::handleSaveStatus'],
-            'PhanRedundantCondition' => ['\\PFAutoeditAPI::handleSaveStatus'],
-            'PhanRedundantValueComparison' => ['\\PFAutoeditAPI::handleSaveStatus']
-        ],
         'includes/PF_FormField.php' => [
             'SecurityCheck-DoubleEscaped' => ['\\PFFormField::additionalHTMLForInput', '\\PFFormField::newFromFormFieldTag']
         ],
@@ -36,24 +22,10 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFFormPrinter::formHTML']
         ],
         'includes/PF_FormUtils.php' => [
-            'PhanTypeInvalidLeftOperandOfNumericOp' => ['\\PFFormUtils::getStringForCurrentTime'],
             'SecurityCheck-DoubleEscaped' => ['\\PFFormUtils::minorEditInputHTML', '\\PFFormUtils::watchInputHTML']
-        ],
-        'includes/PF_ValuesUtils.php' => [
-            'MediaWikiNoEmptyIfDefined' => ['\\PFValuesUtils::getValuesFromExternalURL'],
-            'PhanUndeclaredClassMethod' => ['\\PFValuesUtils::getValuesFromExternalURL']
-        ],
-        'includes/forminputs/PF_DateInput.php' => [
-            'PhanPossiblyUndeclaredVariable' => ['\\PFDateInput::parseDate']
         ],
         'includes/forminputs/PF_DateTimePicker.php' => [
             'SecurityCheck-DoubleEscaped' => ['\\PFDateTimePicker::getHtmlText']
-        ],
-        'includes/forminputs/PF_RadioButtonInput.php' => [
-            'PhanTypeArraySuspiciousNullable' => ['\\PFRadioButtonInput::getHTML']
-        ],
-        'includes/forminputs/PF_RegExpInput.php' => [
-            'PhanNonClassMethodCall' => ['\\PFRegExpInput::__construct']
         ],
         'includes/forminputs/PF_SFSelectInput.php' => [
             'SecurityCheck-DoubleEscaped' => ['\\PFSFSelectInput::getHTML']

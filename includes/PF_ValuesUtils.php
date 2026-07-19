@@ -1066,12 +1066,12 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			return wfMessage( 'pf-blankexturl' );
 		}
 		$url = str_replace( '<substr>', urlencode( $substring ), $url );
-		$page_contents = Http::get( $url );
-		if ( empty( $page_contents ) ) {
+		$page_contents = MediaWikiServices::getInstance()->getHttpRequestFactory()->get( $url, [], __METHOD__ );
+		if ( $page_contents === null || $page_contents === '' ) {
 			return wfMessage( 'pf-externalpageempty' );
 		}
 		$data = json_decode( $page_contents );
-		if ( empty( $data ) ) {
+		if ( $data === null || $data === [] ) {
 			return wfMessage( 'pf-externalpagebadjson' );
 		}
 		$return_values = [];

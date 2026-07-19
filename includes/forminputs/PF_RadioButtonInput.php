@@ -52,6 +52,10 @@ class PFRadioButtonInput extends PFEnumInput {
 			$itemClass .= ' ' . $other_args['class'];
 		}
 
+		if ( array_key_exists( 'value_labels', $other_args ) && is_string( $other_args['value_labels'] ) ) {
+			$other_args['value_labels'] = json_decode( $other_args['value_labels'], true );
+		}
+
 		foreach ( $possible_values as $originalValue => $value ) {
 			$wgPageFormsTabIndex++;
 			$wgPageFormsFieldNum++;
@@ -73,11 +77,6 @@ class PFRadioButtonInput extends PFEnumInput {
 			if ( $value === '' ) {
 				// blank/"None" value
 				$label = wfMessage( 'pf_formedit_none' )->text();
-			} elseif (
-				array_key_exists( 'value_labels', $other_args ) &&
-				is_string( $other_args['value_labels'] ) ) {
-				$other_args['value_labels'] = json_decode( $other_args['value_labels'], true );
-				$label = htmlspecialchars( $other_args['value_labels'][$value] );
 			} elseif (
 				array_key_exists( 'value_labels', $other_args ) &&
 				is_array( $other_args['value_labels'] ) &&

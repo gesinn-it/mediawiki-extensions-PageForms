@@ -191,9 +191,12 @@ class PFFormPrinter {
 	/**
 	 * Show the set of previous deletions for the page being edited.
 	 * @param OutputPage $out
-	 * @return true
+	 * @return bool
 	 */
 	public function showDeletionLog( $out ) {
+		if ( $this->mPageTitle === null ) {
+			return false;
+		}
 		LogEventsList::showLogExtract( $out, 'delete', $this->mPageTitle->getPrefixedText(),
 			'', [ 'lim' => 10,
 				'conds' => [ "log_action != 'revision'" ],

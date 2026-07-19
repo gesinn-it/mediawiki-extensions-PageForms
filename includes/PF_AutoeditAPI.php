@@ -577,7 +577,7 @@ class PFAutoeditAPI extends ApiBase {
 			case EditPage::AS_SUCCESS_NEW_ARTICLE:
 				// Article successfully created
 				$query = $resultDetails['redirect'] ? 'redirect=no' : '';
-				$anchor = isset( $resultDetails['sectionanchor'] ) ? $resultDetails['sectionanchor'] : '';
+				$anchor = $resultDetails['sectionanchor'] ?? '';
 
 				// Give extensions a chance to modify URL query on create
 				$sectionanchor = null;
@@ -601,7 +601,7 @@ class PFAutoeditAPI extends ApiBase {
 				if ( $returnto !== null ) {
 					// Purge the returnto page
 					$returntoPage = PFUtils::newWikiPageFromTitle( $returnto );
-					if ( $returntoPage && $returntoPage->exists() && $reload ) {
+					if ( $returntoPage->exists() && $reload ) {
 						$returntoPage->doPurge();
 					}
 					$redirect = $returnto->getFullURL();
@@ -622,6 +622,7 @@ class PFAutoeditAPI extends ApiBase {
 				);
 
 				if ( $resultDetails['redirect'] ) {
+					// @phan-suppress-next-line PhanRedundantValueComparison -- hook may set $extraQuery
 					if ( $extraQuery == '' ) {
 						$extraQuery = 'redirect=no';
 					} else {
@@ -636,7 +637,7 @@ class PFAutoeditAPI extends ApiBase {
 				if ( $returnto !== null ) {
 					// Purge the returnto page
 					$returntoPage = PFUtils::newWikiPageFromTitle( $returnto );
-					if ( $returntoPage && $returntoPage->exists() && $reload ) {
+					if ( $returntoPage->exists() && $reload ) {
 						$returntoPage->doPurge();
 					}
 					$redirect = $returnto->getFullURL();

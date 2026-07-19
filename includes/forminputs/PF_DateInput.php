@@ -126,6 +126,7 @@ class PFDateInput extends PFFormInput {
 		$year = $date_array['year'];
 		$month = $date_array['month'];
 		$day = $date_array['day'];
+		$time = null;
 		if ( $includeTime ) {
 			$time = sprintf( '%02d:%02d:%02d', $date_array['hour'],
 				$date_array['minute'], $date_array['second'] );
