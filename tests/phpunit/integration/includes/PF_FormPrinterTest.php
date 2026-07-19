@@ -732,10 +732,11 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 
 	public function testGetDefaultInputTypeSMWReturnsSomethingForStringType(): void {
 		global $wgPageFormsFormPrinter;
-		// SMW type _str (plain string) with isList=false → should return PFTextInput or similar
-		$result = $wgPageFormsFormPrinter->getDefaultInputTypeSMW( false, '' );
-		// When there is no hook for this type, null is acceptable
-		$this->assertTrue( $result === null || is_string( $result ) );
+		// SMW type _txt (plain text) with isList=false is registered by
+		// PFTextInput::getDefaultPropTypes() (includes/forminputs/PF_TextInput.php:25)
+		// and must map to the 'text' input type.
+		$result = $wgPageFormsFormPrinter->getDefaultInputTypeSMW( false, '_txt' );
+		$this->assertSame( 'text', $result );
 	}
 
 	public function testGetPossibleInputTypesSMWReturnsArray(): void {
