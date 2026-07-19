@@ -15,6 +15,9 @@ class PFRegExpInput extends PFFormInput {
 	/** @var PFFormInput */
 	protected $mBaseInput;
 
+	/** @var string */
+	protected $mRegExp;
+
 	public static function getName(): string {
 		return 'regexp';
 	}
@@ -54,6 +57,7 @@ class PFRegExpInput extends PFFormInput {
 		} else {
 			$regExp = '.*';
 		}
+		$this->mRegExp = $regExp;
 
 		// set inverse string
 		$invertRegexp = array_key_exists( 'inverse', $this->mOtherArgs );
@@ -203,7 +207,9 @@ class PFRegExpInput extends PFFormInput {
 	 * @return string
 	 */
 	public function getHtmlText(): string {
-		return $this->mBaseInput->getHtmlText();
+		$html = $this->mBaseInput->getHtmlText();
+		$dataAttr = trim( Html::expandAttributes( [ 'data-regexp' => $this->mRegExp ] ) );
+		return preg_replace( '/<input\b/', '<input ' . $dataAttr, $html, 1 );
 	}
 
 	/**
