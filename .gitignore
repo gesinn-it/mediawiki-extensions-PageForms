@@ -20,6 +20,5 @@ coverage
 build/docker-compose.override.yml
 .env
 
-# Local DCI custom extensions — not committed, only for local development
-extensions.local.json
+# Local DCI custom extensions helper script — not committed, provided by the base image
 install-extensions.sh

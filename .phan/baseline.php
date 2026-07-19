@@ -13,10 +13,9 @@ return [
     // PhanUndeclaredMethod : 10+ occurrences
     // PhanTypeMismatchProperty : 4 occurrences
     // PhanNonClassMethodCall : 3 occurrences
-    // PhanUndeclaredClassMethod : 3 occurrences
     // MediaWikiNoEmptyIfDefined : 2 occurrences
     // PhanRedundantCondition : 2 occurrences
-    // PhanUndeclaredClassReference : 2 occurrences
+    // PhanUndeclaredClassMethod : 2 occurrences
     // PhanPluginDuplicateConditionalNullCoalescing : 1 occurrence
     // PhanPossiblyUndeclaredVariable : 1 occurrence
     // PhanRedundantValueComparison : 1 occurrence
@@ -24,6 +23,7 @@ return [
     // PhanTypeInvalidLeftOperandOfNumericOp : 1 occurrence
     // PhanTypeMismatchDimEmpty : 1 occurrence
     // PhanTypeMismatchPropertyProbablyReal : 1 occurrence
+    // PhanUndeclaredClassReference : 1 occurrence
     // PhanUndeclaredConstantOfClass : 1 occurrence
     // PhanUndeclaredStaticMethod : 1 occurrence
 
@@ -47,10 +47,6 @@ return [
         'includes/PF_FormUtils.php' => [
             'PhanTypeInvalidLeftOperandOfNumericOp' => ['\\PFFormUtils::getStringForCurrentTime'],
             'SecurityCheck-DoubleEscaped' => ['\\PFFormUtils::minorEditInputHTML', '\\PFFormUtils::watchInputHTML']
-        ],
-        'includes/PF_Hooks.php' => [
-            'PhanUndeclaredClassMethod' => ['\\PFHooks::setGlobalJSVariables'],
-            'PhanUndeclaredClassReference' => ['\\PFHooks::setGlobalJSVariables']
         ],
         'includes/PF_ValuesUtils.php' => [
             'MediaWikiNoEmptyIfDefined' => ['\\PFValuesUtils::getValuesFromExternalURL'],
