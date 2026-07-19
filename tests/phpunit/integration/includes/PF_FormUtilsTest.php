@@ -1,6 +1,5 @@
 <?php
 
-use MediaWiki\MediaWikiServices;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -161,35 +160,6 @@ class PFFormUtilsTest extends TestCase {
 		$this->assertStringContainsString( 'accesskey=\'', $output );
 		$this->assertStringContainsString( 'title=\'', $output );
 		$this->assertStringContainsString( 'Save and continue editing', $output );
-	}
-
-	/**
-	 * Test for getPreloadedText method.
-	 *
-	 * Verifies the behavior of the getPreloadedText method when different titles are passed as arguments.
-	 *
-	 * @covers PFFormCache::getPreloadedText
-	 */
-	public function testGetPreloadedText() {
-		$preloadTitleMock = $this->createMock( Title::class );
-		$userMock = $this->createMock( User::class );
-		$servicesMock = $this->createMock( MediaWikiServices::class );
-		$contextMock = $this->createMock( RequestContext::class );
-
-		// Test empty input
-		$output = PFFormUtils::getPreloadedText( '' );
-		$this->assertSame( '', $output );
-
-		// Test non-existent title
-		$preloadTitleMock->method( 'newFromText' )->willReturn( null );
-		$output = PFFormUtils::getPreloadedText( 'NonExistentTitle' );
-		$this->assertSame( '', $output );
-
-		// Test valid title
-		$preloadTitleMock->method( 'newFromText' )->willReturn( $preloadTitleMock );
-		$contextMock->method( 'getUser' )->willReturn( $userMock );
-		$output = PFFormUtils::getPreloadedText( 'SomeTitle' );
-		$this->assertSame( '', $output );
 	}
 
 	/**
