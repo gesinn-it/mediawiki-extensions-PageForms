@@ -10,7 +10,6 @@
 return [
     // # Issue statistics:
     // SecurityCheck-DoubleEscaped : 35+ occurrences
-    // PhanUndeclaredMethod : 6 occurrences
     // PhanTypeMismatchProperty : 4 occurrences
     // PhanNonClassMethodCall : 3 occurrences
     // MediaWikiNoEmptyIfDefined : 2 occurrences
@@ -23,18 +22,12 @@ return [
     // PhanTypeMismatchDimEmpty : 1 occurrence
     // PhanTypeMismatchPropertyProbablyReal : 1 occurrence
     // PhanUndeclaredClassMethod : 1 occurrence
-    // PhanUndeclaredConstantOfClass : 1 occurrence
 
     'file_suppressions' => [
-        'includes/PF_AutocompleteAPI.php' => [
-            'PhanUndeclaredMethod' => ['\\PFAutocompleteAPI::computeAllValuesForProperty']
-        ],
         'includes/PF_AutoeditAPI.php' => [
             'PhanPluginDuplicateConditionalNullCoalescing' => ['\\PFAutoeditAPI::handleSaveStatus'],
             'PhanRedundantCondition' => ['\\PFAutoeditAPI::handleSaveStatus'],
-            'PhanRedundantValueComparison' => ['\\PFAutoeditAPI::handleSaveStatus'],
-            'PhanUndeclaredConstantOfClass' => ['\\PFAutoeditAPI::generateTargetName'],
-            'PhanUndeclaredMethod' => ['\\PFAutoeditAPI::getFormTitle']
+            'PhanRedundantValueComparison' => ['\\PFAutoeditAPI::handleSaveStatus']
         ],
         'includes/PF_FormField.php' => [
             'SecurityCheck-DoubleEscaped' => ['\\PFFormField::additionalHTMLForInput', '\\PFFormField::newFromFormFieldTag']
@@ -48,8 +41,7 @@ return [
         ],
         'includes/PF_ValuesUtils.php' => [
             'MediaWikiNoEmptyIfDefined' => ['\\PFValuesUtils::getValuesFromExternalURL'],
-            'PhanUndeclaredClassMethod' => ['\\PFValuesUtils::getValuesFromExternalURL'],
-            'PhanUndeclaredMethod' => ['\\PFValuesUtils::getAllValuesForProperty']
+            'PhanUndeclaredClassMethod' => ['\\PFValuesUtils::getValuesFromExternalURL']
         ],
         'includes/forminputs/PF_DateInput.php' => [
             'PhanPossiblyUndeclaredVariable' => ['\\PFDateInput::parseDate']
@@ -67,7 +59,6 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFSFSelectInput::getHTML']
         ],
         'includes/forminputs/PF_TextInput.php' => [
-            'PhanUndeclaredMethod' => ['\\PFTextInput::getPreviewImage'],
             'SecurityCheck-DoubleEscaped' => ['\\PFTextInput::uploadableHTML']
         ],
         'includes/parserfunctions/PF_AutoEdit.php' => [
@@ -78,9 +69,6 @@ return [
         ],
         'includes/parserfunctions/PF_FormInputParserFunction.php' => [
             'SecurityCheck-DoubleEscaped' => ['\\PFFormInputParserFunction::run']
-        ],
-        'specials/PF_FormEdit.php' => [
-            'PhanUndeclaredMethod' => ['\\PFFormEdit::printForm']
         ],
         'specials/PF_FormStart.php' => [
             'SecurityCheck-DoubleEscaped' => ['\\PFFormStart::execute']

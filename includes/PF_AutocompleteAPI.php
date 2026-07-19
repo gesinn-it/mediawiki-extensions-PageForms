@@ -222,7 +222,8 @@ class PFAutocompleteAPI extends ApiBase {
 
 		$property = SMW\DataValueFactory::getInstance()->newPropertyValueByLabel( $property_name );
 
-		$propertyHasTypePage = ( $property->getPropertyTypeID() == '_wpg' );
+		$propertyHasTypePage = ( $property instanceof SMW\DataValues\PropertyValue
+			&& $property->getPropertyTypeID() == '_wpg' );
 		$conditions = [ 'p_ids.smw_title' => $property_name ];
 
 		// Use raw table names (without tableName()) so that $db->select() can
@@ -260,7 +261,8 @@ class PFAutocompleteAPI extends ApiBase {
 
 		if ( $basePropertyName !== null ) {
 			$baseProperty = SMW\DataValueFactory::getInstance()->newPropertyValueByLabel( $basePropertyName );
-			$basePropertyHasTypePage = ( $baseProperty->getPropertyTypeID() == '_wpg' );
+			$basePropertyHasTypePage = ( $baseProperty instanceof SMW\DataValues\PropertyValue
+				&& $baseProperty->getPropertyTypeID() == '_wpg' );
 
 			$basePropertyName = str_replace( ' ', '_', $basePropertyName );
 			$conditions['base_p_ids.smw_title'] = $basePropertyName;

@@ -133,7 +133,7 @@ class PFValuesUtils {
 		}
 
 		$property = SMW\DataValueFactory::getInstance()->newPropertyValueByLabel( $property_name );
-		if ( $property->getPropertyTypeID() !== '_wpg' ) {
+		if ( !( $property instanceof SMW\DataValues\PropertyValue ) || $property->getPropertyTypeID() !== '_wpg' ) {
 			return $values;
 		}
 

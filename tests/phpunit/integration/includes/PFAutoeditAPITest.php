@@ -466,6 +466,70 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// getFormTitle – redirect chain resolution
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Sets $module's protected mOptions['form'] via reflection and invokes
+	 * the protected getFormTitle(), returning its result.
+	 */
+	private function callGetFormTitle( PFAutoeditAPI $module, string $formName ): Title {
+		$ref = new ReflectionClass( PFAutoeditAPI::class );
+
+		$mOptions = $ref->getProperty( 'mOptions' );
+		$mOptions->setAccessible( true );
+		$mOptions->setValue( $module, [ 'form' => $formName ] );
+
+		$getFormTitle = $ref->getMethod( 'getFormTitle' );
+		$getFormTitle->setAccessible( true );
+		return $getFormTitle->invoke( $module );
+	}
+
+	/**
+	 * getFormTitle() must follow a multi-hop redirect chain (form A → form B
+	 * → form C) to its final, non-redirect target.
+	 *
+	 * Regression test for: "Call to undeclared method
+	 * MediaWiki\Content\Content::getUltimateRedirectTarget"
+	 */
+	public function testGetFormTitleFollowsMultiHopRedirectChain(): void {
+		$this->createTestForm( 'PFTestGetFormTitleFinalForm' );
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, 'PFTestGetFormTitleMiddleForm' ),
+			'#REDIRECT [[Form:PFTestGetFormTitleFinalForm]]'
+		);
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, 'PFTestGetFormTitleStartForm' ),
+			'#REDIRECT [[Form:PFTestGetFormTitleMiddleForm]]'
+		);
+
+		[ $module ] = $this->newModule();
+		$formTitle = $this->callGetFormTitle( $module, 'PFTestGetFormTitleStartForm' );
+
+		$this->assertSame( 'PFTestGetFormTitleFinalForm', $formTitle->getText() );
+	}
+
+	/**
+	 * getFormTitle() must throw when a redirect chain exceeds the hop limit
+	 * (a redirect loop never resolves to a non-redirect target).
+	 */
+	public function testGetFormTitleThrowsOnRedirectLoop(): void {
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, 'PFTestGetFormTitleLoopA' ),
+			'#REDIRECT [[Form:PFTestGetFormTitleLoopB]]'
+		);
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, 'PFTestGetFormTitleLoopB' ),
+			'#REDIRECT [[Form:PFTestGetFormTitleLoopA]]'
+		);
+
+		[ $module ] = $this->newModule();
+
+		$this->expectException( MWException::class );
+		$this->callGetFormTitle( $module, 'PFTestGetFormTitleLoopA' );
+	}
+
+	// -------------------------------------------------------------------------
 	// finalizeResults – 'ok text' / 'error text' copy-paste bug
 	// -------------------------------------------------------------------------
 

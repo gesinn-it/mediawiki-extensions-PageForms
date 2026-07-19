@@ -9,6 +9,7 @@ declare( strict_types=1 );
 use MediaWiki\Extension\PageForms\HtmlFormDataExtractor;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
+use Wikimedia\Rdbms\IDBAccessObject;
 
 /**
  * @ingroup PageForms
@@ -289,10 +290,20 @@ class PFAutoeditAPI extends ApiBase {
 		if ( $formTitle->isRedirect() ) {
 			$this->logMessage( 'Form ' . $this->mOptions['form'] . ' is a redirect. Finding target.', self::DEBUG );
 
-			$formWikiPage = PFUtils::newWikiPageFromTitle( $formTitle );
-			$formTitle = $formWikiPage->getContent( RevisionRecord::RAW )->getUltimateRedirectTarget();
+			// MediaWiki core has no built-in "resolve the whole redirect
+			// chain" helper, so follow it one hop at a time, same as
+			// MediaWiki's own redirect handling; a fixed hop limit
+			// guards against redirect loops.
+			$maxRedirectHops = 5;
+			for ( $i = 0; $i < $maxRedirectHops && $formTitle->isRedirect(); $i++ ) {
+				$newTitle = PFUtils::newWikiPageFromTitle( $formTitle )->getRedirectTarget();
+				if ( !( $newTitle instanceof Title ) || !$newTitle->isValidRedirectTarget() ) {
+					break;
+				}
+				$formTitle = $newTitle;
+			}
 
-			// if we exceeded $wgMaxRedirects or encountered an invalid redirect target, give up
+			// if we exceeded the hop limit or encountered an invalid redirect target, give up
 			if ( $formTitle->isRedirect() ) {
 				$newTitle = PFUtils::newWikiPageFromTitle( $formTitle )->getRedirectTarget();
 
@@ -835,12 +846,12 @@ class PFAutoeditAPI extends ApiBase {
 			// If title exists already, cycle through numbers for
 			// this tag until we find one that gives a nonexistent
 			// page title.
-			// We cannot use $targetTitle->exists(); it does not use
-			// Title::GAID_FOR_UPDATE, which is needed to get
-			// correct data from cache; use
+			// We cannot use $targetTitle->exists(); it does not read
+			// the latest data from the primary DB, which is needed to
+			// get correct data instead of a stale cached result; use
 			// $targetTitle->getArticleID() instead.
 			$numAttemptsAtTitle = 0;
-			while ( $targetTitle->getArticleID( Title::GAID_FOR_UPDATE ) !== 0 ) {
+			while ( $targetTitle->getArticleID( IDBAccessObject::READ_LATEST ) !== 0 ) {
 				$numAttemptsAtTitle++;
 
 				if ( $isRandom ) {
