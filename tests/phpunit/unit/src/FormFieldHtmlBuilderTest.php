@@ -70,12 +70,14 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		$formField = $this->makeListFormField( 'input_list' );
 		$builder = new FormFieldHtmlBuilder( [], [] );
 
-		// PFTextInput::getHtmlText() is called; we just verify no exception is thrown
-		// and the output is a non-empty string (PFTextInput renders an <input> element).
+		// FormFieldHtmlBuilder sets $other_args['size'] = 100 for list fields with
+		// no explicit size (src/FormFieldHtmlBuilder.php:76-85), which PFTextInput::getHtmlText()
+		// renders as a size="100" attribute.
 		$html = $builder->formFieldHTML( $formField, '' );
 
 		$this->assertIsString( $html );
 		$this->assertStringContainsString( '<input', $html );
+		$this->assertStringContainsString( 'size="100"', $html );
 	}
 
 	// -----------------------------------------------------------------------
