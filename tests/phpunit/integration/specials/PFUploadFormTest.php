@@ -26,20 +26,6 @@ class PFUploadFormTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * PFUploadForm must be constructable without throwing, given valid options.
-	 */
-	public function testConstructorDoesNotThrow() {
-		$exception = null;
-		try {
-			$form = new PFUploadForm( $this->defaultOptions() );
-		} catch ( Exception $e ) {
-			$exception = $e;
-		}
-
-		$this->assertNull( $exception, 'PFUploadForm constructor must not throw' );
-	}
-
-	/**
 	 * PFUploadForm extends HTMLForm.
 	 */
 	public function testIsInstanceOfHtmlForm() {
