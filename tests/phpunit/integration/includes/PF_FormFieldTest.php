@@ -335,7 +335,6 @@ class PFFormFieldTest extends TestCase {
 	}
 
 	public function testMappingTypeWithMappingTemplate() {
-		$mappingType = null;
 		$tag_components = [ '', '', 'mapping template' ];
 
 		// Call the method
@@ -348,15 +347,9 @@ class PFFormFieldTest extends TestCase {
 		);
 
 		$this->assertTrue( $formField->getFieldArgs()['mapping template'] );
-
-		if ( $formField->getFieldArgs()['mapping template'] != null ) {
-			$mappingType = 'template';
-			$this->assertSame( 'template', $mappingType );
-		}
 	}
 
 	public function testMappingTypeWithMappingProperty() {
-		$mappingType = null;
 		$tag_components = [ '', '', 'mapping property' ];
 
 		// Call the method
@@ -369,11 +362,6 @@ class PFFormFieldTest extends TestCase {
 		);
 
 		$this->assertTrue( $formField->getFieldArgs()['mapping property'] );
-
-		if ( $formField->getFieldArgs()['mapping property'] != null ) {
-			$mappingType = 'property';
-			$this->assertSame( 'property', $mappingType );
-		}
 	}
 
 	public function testSetMappedValuesTemplate() {
