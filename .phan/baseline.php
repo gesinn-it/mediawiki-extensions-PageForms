@@ -15,7 +15,6 @@ return [
     // PhanNonClassMethodCall : 3 occurrences
     // MediaWikiNoEmptyIfDefined : 2 occurrences
     // PhanRedundantCondition : 2 occurrences
-    // PhanUndeclaredClassMethod : 2 occurrences
     // PhanPluginDuplicateConditionalNullCoalescing : 1 occurrence
     // PhanPossiblyUndeclaredVariable : 1 occurrence
     // PhanRedundantValueComparison : 1 occurrence
@@ -23,7 +22,7 @@ return [
     // PhanTypeInvalidLeftOperandOfNumericOp : 1 occurrence
     // PhanTypeMismatchDimEmpty : 1 occurrence
     // PhanTypeMismatchPropertyProbablyReal : 1 occurrence
-    // PhanUndeclaredClassReference : 1 occurrence
+    // PhanUndeclaredClassMethod : 1 occurrence
     // PhanUndeclaredConstantOfClass : 1 occurrence
     // PhanUndeclaredStaticMethod : 1 occurrence
 
@@ -82,8 +81,6 @@ return [
             'SecurityCheck-DoubleEscaped' => ['\\PFFormInputParserFunction::run']
         ],
         'specials/PF_FormEdit.php' => [
-            'PhanUndeclaredClassMethod' => ['\\PFFormEdit::showCaptcha'],
-            'PhanUndeclaredClassReference' => ['\\PFFormEdit::showCaptcha'],
             'PhanUndeclaredMethod' => ['\\PFFormEdit::printForm']
         ],
         'specials/PF_FormStart.php' => [
