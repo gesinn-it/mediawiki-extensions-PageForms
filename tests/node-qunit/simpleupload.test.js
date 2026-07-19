@@ -23,7 +23,7 @@ QUnit.test('does not show preview while typing (input event must not trigger pre
 	// Typing partial text fires DOM 'input' on every keystroke. Loading a
 	// preview for partial text causes 404s. Only confirmed values (blur→change
 	// or dropdown selection→OOUI change) should trigger the preview.
-	const clock = sinon.useFakeTimers();
+	const clock = sinon.useFakeTimers( { toFake: [ 'setTimeout' ] } );
 	sinon.replace(OO.ui, OO.ui.SelectFileInputWidget ? 'SelectFileInputWidget' : 'SelectFileWidget', function() {
 		this.currentFiles = [];
 		this.on = function() {};
@@ -45,7 +45,7 @@ QUnit.test('updates preview when combobox fires pf-combobox-choose event (dropdo
 	// pf.ComboBoxInput overrides onMenuChoose() to fire a 'pf-combobox-choose'
 	// jQuery event on the native input.  simpleupload listens to this event to
 	// update the preview only on confirmed selection, not while typing.
-	const clock = sinon.useFakeTimers();
+	const clock = sinon.useFakeTimers( { toFake: [ 'setTimeout' ] } );
 	sinon.replace(OO.ui, OO.ui.SelectFileInputWidget ? 'SelectFileInputWidget' : 'SelectFileWidget', function() {
 		this.currentFiles = [];
 		this.on = function() {};
