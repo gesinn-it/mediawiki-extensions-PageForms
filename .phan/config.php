@@ -11,6 +11,7 @@ $cfg['directory_list'] = array_merge(
 		'src',
 		'includes',
 		'specials',
+		'.phan/stubs',
 	]
 );
 
