@@ -40,9 +40,10 @@ class PFFormPrinter {
 	 */
 	public $mInputTypeHooks;
 	/**
-	 * This property stores standardInputsIncluded values
+	 * Whether the form definition already includes a custom "standard input"
+	 * (save/watch/minor-edit controls), so the default set should not be appended.
 	 *
-	 * @var array
+	 * @var bool
 	 */
 	public $standardInputsIncluded;
 	/**
@@ -118,6 +119,7 @@ class PFFormPrinter {
 		// Add this if the Semantic Maps extension is not
 		// included, or if it's SM (really Maps) v4.0 or higher.
 		if ( !$wgPageFormsDisableOutsideServices ) {
+			// @phan-suppress-next-line PhanTypeMismatchArgumentNullableInternal SM_VERSION guarded by defined()
 			if ( !defined( 'SM_VERSION' ) || version_compare( SM_VERSION, '4.0', '>=' ) ) {
 				$this->registerInputType( 'PFGoogleMapsInput' );
 			}
@@ -1308,7 +1310,7 @@ END;
 			$multipleTemplateHTML = '';
 			if ( $tif ) {
 				if ( $tif->getLabel() != null ) {
-					$fieldsetStartHTML = "<fieldset>\n" . Html::element( 'legend', null, $tif->getLabel() ) . "\n";
+					$fieldsetStartHTML = "<fieldset>\n" . Html::element( 'legend', [], $tif->getLabel() ) . "\n";
 					$fieldsetStartHTML .= $tif->getIntro();
 					if ( !$tif->allowsMultiple() ) {
 						$form_text .= $fieldsetStartHTML;

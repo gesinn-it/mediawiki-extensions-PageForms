@@ -111,6 +111,24 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		$this->assertStringContainsString( '<input', $html );
 	}
 
+	public function testFormFieldHtmlWithNullInputTypeDoesNotMatchEmptyStringHook(): void {
+		global $wgPageFormsFieldNum;
+		$wgPageFormsFieldNum = 1;
+
+		// getInputType() === null is the genuine "no input type set" default
+		// (PFFormField::create() sets mInputType = null). A hook incidentally
+		// registered under the '' key must not be picked up for it, and
+		// array_key_exists( null, ... ) must never be reached (PHP 8.1+ deprecation).
+		$formField = $this->makeVisibleFormField( null, '', 'input_n' );
+		$inputTypeHooks = [ '' => [ StubFormInput::class, [] ] ];
+		$builder = new FormFieldHtmlBuilder( $inputTypeHooks, [] );
+
+		$html = $builder->formFieldHTML( $formField, '' );
+
+		$this->assertStringNotContainsString( StubFormInput::STUB_HTML, $html );
+		$this->assertStringContainsString( '<input', $html );
+	}
+
 	// -----------------------------------------------------------------------
 	// formFieldHTML — regex-wrapped input (PFRegExpInput)
 	// -----------------------------------------------------------------------
@@ -307,7 +325,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 	}
 
 	private function makeVisibleFormField(
-		string $inputType,
+		?string $inputType,
 		string $propertyType,
 		string $inputName
 	): PFFormField {

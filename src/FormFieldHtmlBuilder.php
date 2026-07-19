@@ -45,6 +45,8 @@ class FormFieldHtmlBuilder {
 		$class_name = null;
 		$text = '';
 
+		$input_type = $form_field->getInputType();
+
 		if ( $form_field->isHidden() ) {
 			$attribs = [];
 			if ( $form_field->hasFieldArg( 'class' ) ) {
@@ -52,14 +54,14 @@ class FormFieldHtmlBuilder {
 			}
 			$text = Html::hidden( $form_field->getInputName(), $cur_value, $attribs );
 			$other_args = [];
-		} elseif ( $form_field->getInputType() !== '' &&
-				array_key_exists( $form_field->getInputType(), $this->inputTypeHooks ) &&
-				$this->inputTypeHooks[$form_field->getInputType()] != null ) {
+		} elseif ( $input_type !== null && $input_type !== '' &&
+				array_key_exists( $input_type, $this->inputTypeHooks ) &&
+				$this->inputTypeHooks[$input_type] != null ) {
 			// Last argument to constructor should be a hash,
 			// merging the default values for this input type with
 			// all other properties set in the form definition, plus
 			// some semantic-related arguments.
-			$hook_values = $this->inputTypeHooks[$form_field->getInputType()];
+			$hook_values = $this->inputTypeHooks[$input_type];
 			$class_name = $hook_values[0];
 			$other_args = $form_field->getArgumentsForInputCall( $hook_values[1] );
 		} else {
@@ -94,7 +96,7 @@ class FormFieldHtmlBuilder {
 			}
 
 			$form_input = new $class_name(
-				$fieldNum, $cur_value, $form_field->getInputName(),
+				(string)$fieldNum, $cur_value, $form_field->getInputName(),
 				$form_field->isDisabled(), $other_args
 			);
 

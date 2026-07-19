@@ -13,12 +13,9 @@ return [
 	// PhanUndeclaredClassMethod : 15+ occurrences
 	// PhanUndeclaredMethod : 10+ occurrences
 	// PhanTypeMismatchProperty : 4 occurrences
-	// PhanTypeMismatchPropertyProbablyReal : 4 occurrences
 	// PhanNonClassMethodCall : 3 occurrences
 	// MediaWikiNoEmptyIfDefined : 2 occurrences
 	// PhanRedundantCondition : 2 occurrences
-	// PhanTypeMismatchArgumentProbablyReal : 2 occurrences
-	// PhanTypeMismatchDimFetchNullable : 2 occurrences
 	// PhanUndeclaredClassReference : 2 occurrences
 	// PhanUndeclaredConstant : 2 occurrences
 	// PhanPluginDuplicateConditionalNullCoalescing : 1 occurrence
@@ -26,10 +23,8 @@ return [
 	// PhanRedundantValueComparison : 1 occurrence
 	// PhanTypeArraySuspiciousNullable : 1 occurrence
 	// PhanTypeInvalidLeftOperandOfNumericOp : 1 occurrence
-	// PhanTypeMismatchArgument : 1 occurrence
-	// PhanTypeMismatchArgumentInternal : 1 occurrence
-	// PhanTypeMismatchArgumentNullableInternal : 1 occurrence
 	// PhanTypeMismatchDimEmpty : 1 occurrence
+	// PhanTypeMismatchPropertyProbablyReal : 1 occurrence
 	// PhanUndeclaredConstantOfClass : 1 occurrence
 	// PhanUndeclaredStaticMethod : 1 occurrence
 
@@ -48,9 +43,6 @@ return [
 			'SecurityCheck-DoubleEscaped' => ['\\PFFormField::additionalHTMLForInput', '\\PFFormField::newFromFormFieldTag']
 		],
 		'includes/PF_FormPrinter.php' => [
-			'PhanTypeMismatchArgumentNullableInternal' => ['\\PFFormPrinter::__construct'],
-			'PhanTypeMismatchArgumentProbablyReal' => ['\\PFFormPrinter::formHTML'],
-			'PhanTypeMismatchPropertyProbablyReal' => ['\\PFFormPrinter::__construct', '\\PFFormPrinter::formHTML'],
 			'SecurityCheck-DoubleEscaped' => ['\\PFFormPrinter::formHTML']
 		],
 		'includes/PF_FormUtils.php' => [
@@ -119,9 +111,6 @@ return [
 			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\CalendarHtmlBuilder::calendarHTML']
 		],
 		'src/FormFieldHtmlBuilder.php' => [
-			'PhanTypeMismatchArgument' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML'],
-			'PhanTypeMismatchArgumentInternal' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML'],
-			'PhanTypeMismatchDimFetchNullable' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML'],
 			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::addTranslatableInput', '\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML']
 		],
 		'src/SpreadsheetHtmlBuilder.php' => [

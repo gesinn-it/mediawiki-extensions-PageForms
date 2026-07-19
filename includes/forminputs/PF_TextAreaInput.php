@@ -21,8 +21,9 @@ class PFTextAreaInput extends PFFormInput {
 	}
 
 	/**
-	 * @param string $input_number The number of the input in the form. For a simple HTML input
-	 *  element this should end up in the id attribute in the format 'input_<number>'.
+	 * @param string|null $input_number The number of the input in the form. For a simple HTML input
+	 *  element this should end up in the id attribute in the format 'input_<number>'. Null for inputs
+	 *  that never use a numbered id (e.g. the free-text field).
 	 * @param string $cur_value The current value of the input field. For a simple HTML input
 	 *  element this should end up in the value attribute.
 	 * @param string $input_name The name of the input. For a simple HTML input element this should
