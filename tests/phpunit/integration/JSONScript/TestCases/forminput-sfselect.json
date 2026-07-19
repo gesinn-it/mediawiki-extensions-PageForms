@@ -9,7 +9,7 @@
 		{
 			"namespace": "PF_NS_FORM",
 			"page": "PFTestSFSForm01",
-			"contents": "{{{for template|PFTestSFSTpl01}}}\n{{{field|PFSFSField01|input type=SF_Select|sametemplate|field=PFSFSField01}}}\n{{{end template}}}"
+			"contents": "{{{for template|PFTestSFSTpl01}}}\n{{{field|PFSFSField01|input type=SF_Select|sametemplate|field=PFSFSField01|values=PFSFSOptA,PFSFSOptB}}}\n{{{end template}}}"
 		},
 		{
 			"page": "PFTestSFSSubj01",
