@@ -157,9 +157,26 @@ asyncTest( 'a double click clears the pending single-click marker timer', ( asse
 	const { $coordsInput } = createMapInput( 'pfGoogleMapsInput' );
 	freshRequire();
 	return flushReady().then( () => {
+		// Spy on setTimeout/clearTimeout (always calling through to the real
+		// timer, so jQuery's/other internal scheduling isn't broken), installed
+		// only now so flushReady()'s own setTimeout calls aren't captured. This
+		// proves the double-click handler actually cancels the pending
+		// single-click timer, instead of racing a fixed wait against
+		// production's 200ms delay.
+		const setTimeoutSpy = sinon.spy( global, 'setTimeout' );
+		const clearTimeoutSpy = sinon.spy( global, 'clearTimeout' );
+
 		const map = global.google.maps.instances.maps[ 0 ];
 		global.google.maps.event.trigger( map, 'click', { latLng: new global.google.maps.LatLng( 9, 9 ) } );
 		global.google.maps.event.trigger( map, 'dblclick', {} );
+
+		const markerTimerHandle = setTimeoutSpy.returnValues[ 0 ];
+		assert.ok( clearTimeoutSpy.calledWith( markerTimerHandle ),
+			'clearTimeout was called with the pending single-click marker timer handle' );
+
+		setTimeoutSpy.restore();
+		clearTimeoutSpy.restore();
+
 		return flushReady();
 	} ).then( () => {
 		assert.strictEqual( $coordsInput.val(), '', 'no marker was placed because the click timer was cancelled' );
