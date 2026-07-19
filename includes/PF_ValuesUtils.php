@@ -198,6 +198,25 @@ class PFValuesUtils {
 	}
 
 	/**
+	 * Escape a string for safe interpolation into a SPARQL string literal
+	 * delimited by double quotes (SPARQL 1.1 grammar: STRING_LITERAL2).
+	 *
+	 * Backslash must be escaped first, otherwise escaping the quotes
+	 * afterwards would double-escape the backslashes just introduced.
+	 *
+	 * @param string $value
+	 * @return string
+	 */
+	private static function escapeSparqlStringLiteral( string $value ): string {
+		$value = str_replace( '\\', '\\\\', $value );
+		$value = str_replace( '"', '\\"', $value );
+		$value = str_replace( "\n", '\\n', $value );
+		$value = str_replace( "\r", '\\r', $value );
+		$value = str_replace( "\t", '\\t', $value );
+		return $value;
+	}
+
+	/**
 	 * This function is used for fetching the values from wikidata based on the provided
 	 * annotations. For queries with substring, the function returns all the values which
 	 * have the substring in it.
@@ -227,8 +246,9 @@ class PFValuesUtils {
 			if ( is_numeric( str_replace( "Q", "", $val ) ) ) {
 				$attributesQuery .= " wd:" . $val . ";";
 			} else {
+				$escapedVal = self::escapeSparqlStringLiteral( $val );
 				$attributesQuery .= "?customLabel" . $count . " .
-				?customLabel" . $count . " rdfs:label \"" . $val . "\"@" . $wgLanguageCode . " . ";
+				?customLabel" . $count . " rdfs:label \"" . $escapedVal . "\"@" . $wgLanguageCode . " . ";
 				$count++;
 				$attributesQuery .= "?value ";
 			}
@@ -237,6 +257,7 @@ class PFValuesUtils {
 		$attributesQuery = rtrim( $attributesQuery, ";" );
 		$attributesQuery = rtrim( $attributesQuery, ". ?value " );
 
+		$escapedSubstring = self::escapeSparqlStringLiteral( strtolower( $substring ?? '' ) );
 		$sparqlQueryString = "
 SELECT DISTINCT ?valueLabel WHERE {
 {
@@ -244,7 +265,7 @@ SELECT ?value  WHERE {
 ?value " . $attributesQuery . " .
 ?value rdfs:label ?valueLabel .
 FILTER(LANG(?valueLabel) = \"" . $wgLanguageCode . "\") .
-FILTER(REGEX(LCASE(?valueLabel), \"\\\\b" . strtolower( $substring ) . "\"))
+FILTER(REGEX(LCASE(?valueLabel), \"\\\\b" . $escapedSubstring . "\"))
 } ";
 		if ( $substring != null ) {
 			global $wgPageFormsMaxAutocompleteValues;

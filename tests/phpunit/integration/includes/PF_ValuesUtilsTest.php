@@ -342,6 +342,91 @@ class PFValuesUtilsTest extends TestCase {
 		$this->assertArrayHasKey( 0, $result );
 	}
 
+	// -------------------------------------------------------------------------
+	// getAllValuesFromWikidata (SPARQL injection regression — live query.wikidata.org)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Regression test for a SPARQL injection in getAllValuesFromWikidata(): a
+	 * "values from wikidata" filter value was spliced unescaped into a SPARQL
+	 * string literal, letting a Form editor break out of the literal and inject
+	 * arbitrary SPARQL sent to the public https://query.wikidata.org/sparql
+	 * endpoint. This test fires the adversarial payload at the real endpoint and
+	 * asserts the call completes without triggering a malformed-query error and
+	 * without leaking the injected marker into the result set.
+	 *
+	 * @covers \PFValuesUtils::getAllValuesFromWikidata
+	 */
+	public function testGetAllValuesFromWikidataEscapesInjectionInFilterValue(): void {
+		$this->skipIfWikidataUnreachable();
+
+		// Breaks out of the rdfs:label string literal, closes the surrounding
+		// triple pattern and group, and unions in a query that would surface a
+		// distinctive marker value if the injected SPARQL were executed.
+		$payload = 'nomatch"@en . } UNION { BIND("INJECTED-MARKER" AS ?valueLabel) } #';
+		$query = urlencode( 'P31=' . $payload );
+
+		$result = PFValuesUtils::getAllValuesFromWikidata( $query );
+
+		$this->assertIsArray( $result );
+		$this->assertNotContains(
+			'INJECTED-MARKER',
+			$result,
+			'Injected SPARQL must not be executed against the live endpoint'
+		);
+	}
+
+	/**
+	 * Same injection class, but via the $substring parameter (the autocomplete
+	 * search term), which is spliced into a REGEX() string literal.
+	 *
+	 * @covers \PFValuesUtils::getAllValuesFromWikidata
+	 */
+	public function testGetAllValuesFromWikidataEscapesInjectionInSubstring(): void {
+		$this->skipIfWikidataUnreachable();
+
+		$GLOBALS['wgPageFormsMaxAutocompleteValues'] = 100;
+
+		$query = urlencode( 'P31=Q6256' );
+		$substringPayload = 'x")) } UNION { BIND("INJECTED-MARKER" AS ?valueLabel) } #';
+
+		$result = PFValuesUtils::getAllValuesFromWikidata( $query, $substringPayload );
+
+		$this->assertIsArray( $result );
+		$this->assertNotContains( 'INJECTED-MARKER', $result );
+	}
+
+	/**
+	 * A legitimate value containing a double quote must still work as literal
+	 * text (i.e. escaping does not just strip quotes, it round-trips them), and
+	 * a well-known real filter must still return the expected label.
+	 *
+	 * @covers \PFValuesUtils::getAllValuesFromWikidata
+	 */
+	public function testGetAllValuesFromWikidataReturnsRealValueForLegitimateFilter(): void {
+		$this->skipIfWikidataUnreachable();
+
+		// wdt:P31 wd:Q6256 = "instance of: country" - Germany (Q183) is one match.
+		$query = urlencode( 'P31=Q6256' );
+
+		$result = PFValuesUtils::getAllValuesFromWikidata( $query );
+
+		$this->assertIsArray( $result );
+		$this->assertContains( 'Germany', $result );
+	}
+
+	private function skipIfWikidataUnreachable(): void {
+		set_error_handler( static function () {
+			return true;
+		} );
+		$reachable = fsockopen( 'query.wikidata.org', 443, $errno, $errstr, 5 );
+		restore_error_handler();
+		if ( $reachable === false ) {
+			$this->markTestSkipped( 'query.wikidata.org is not reachable from this environment' );
+		}
+		fclose( $reachable );
+	}
+
 	/**
 	 * Build a mock SMW store that returns the given string values from getPropertyValues().
 	 *
