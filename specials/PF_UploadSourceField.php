@@ -43,16 +43,4 @@ class PFUploadSourceField extends HTMLTextField {
 		return $this->mParams['size'] ?? 60;
 	}
 
-	/**
-	 * This page can be shown if uploading is enabled.
-	 * Handle permission checking elsewhere in order to be able to show
-	 * custom error messages.
-	 *
-	 * @param User $user
-	 * @return bool
-	 */
-	public function userCanExecute( User $user ) {
-		return UploadBase::isEnabled() && parent::userCanExecute( $user );
-	}
-
 }

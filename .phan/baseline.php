@@ -10,7 +10,7 @@
 return [
     // # Issue statistics:
     // SecurityCheck-DoubleEscaped : 35+ occurrences
-    // PhanUndeclaredMethod : 10+ occurrences
+    // PhanUndeclaredMethod : 6 occurrences
     // PhanTypeMismatchProperty : 4 occurrences
     // PhanNonClassMethodCall : 3 occurrences
     // MediaWikiNoEmptyIfDefined : 2 occurrences
@@ -24,7 +24,6 @@ return [
     // PhanTypeMismatchPropertyProbablyReal : 1 occurrence
     // PhanUndeclaredClassMethod : 1 occurrence
     // PhanUndeclaredConstantOfClass : 1 occurrence
-    // PhanUndeclaredStaticMethod : 1 occurrence
 
     'file_suppressions' => [
         'includes/PF_AutocompleteAPI.php' => [
@@ -91,12 +90,8 @@ return [
             'PhanTypeMismatchProperty' => ['\\PFUploadForm::__construct'],
             'PhanTypeMismatchPropertyProbablyReal' => ['\\PFUploadForm::__construct']
         ],
-        'specials/PF_UploadSourceField.php' => [
-            'PhanUndeclaredStaticMethod' => ['\\PFUploadSourceField::userCanExecute']
-        ],
         'specials/PF_UploadWindow.php' => [
-            'PhanUndeclaredMethod' => ['\\PFUploadWindow::getUploadForm', '\\PFUploadWindow::processUpload', '\\PFUploadWindow::showViewDeletedLinks', '\\PFUploadWindow::watchCheck'],
-            'SecurityCheck-DoubleEscaped' => ['\\PFUploadWindow::getExistsWarning']
+            'SecurityCheck-DoubleEscaped' => ['\\PFUploadWindow::getExistsWarning', '\\PFUploadWindow::showViewDeletedLinks']
         ],
         'src/CalendarHtmlBuilder.php' => [
             'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\CalendarHtmlBuilder::calendarHTML']

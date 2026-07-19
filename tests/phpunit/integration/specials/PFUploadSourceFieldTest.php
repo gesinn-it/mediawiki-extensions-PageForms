@@ -61,11 +61,4 @@ class PFUploadSourceFieldTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( 42, $field->getSize() );
 	}
-
-	public function testUserCanExecuteReturnsFalseWhenUploadDisabled(): void {
-		$this->overrideConfigValue( 'EnableUploads', false );
-		$field = $this->makeField();
-
-		$this->assertFalse( $field->userCanExecute( $this->getTestSysop()->getUser() ) );
-	}
 }

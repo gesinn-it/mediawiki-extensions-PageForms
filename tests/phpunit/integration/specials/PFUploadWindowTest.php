@@ -172,6 +172,45 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 	}
 
 	/**
+	 * showViewDeletedLinks() must not crash for a privileged user (with
+	 * 'deletedhistory') on a deleted file — this exercises the "restore
+	 * link" branch that renders via LinkRenderer::makeKnownLink(), unlike
+	 * testShowViewDeletedLinksDoesNotCrashOnDeletedFile() above which uses
+	 * an unprivileged user specifically to skip this branch.
+	 *
+	 * Regression test for: "Call to undeclared method Skin::linkKnown"
+	 */
+	public function testShowViewDeletedLinksDoesNotCrashForPrivilegedUserOnDeletedFile() {
+		$sysop = $this->getTestUser( [ 'sysop' ] )->getAuthority();
+		$title = Title::makeTitle( NS_FILE, 'PFTestUploadWindowDeletedFilePrivileged.png' );
+
+		$this->insertPage( $title );
+		$page = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
+		$page->doDeleteArticleReal( 'test deletion', $sysop );
+
+		/** @var PFUploadWindow $specialPage */
+		$specialPage = $this->newSpecialPage();
+		$specialPage->setContext( RequestContext::getMain() );
+		RequestContext::getMain()->setUser( $sysop->getUser() );
+		$specialPage->mDesiredDestName = $title->getText();
+
+		$method = new ReflectionMethod( PFUploadWindow::class, 'showViewDeletedLinks' );
+		$method->setAccessible( true );
+
+		$exception = null;
+		try {
+			$method->invoke( $specialPage );
+		} catch ( Error $e ) {
+			$exception = $e;
+		}
+
+		$this->assertNull(
+			$exception,
+			'showViewDeletedLinks() must not throw for a privileged user on a deleted file'
+		);
+	}
+
+	/**
 	 * getInitialPageText() with no copyright upload returns only the comment.
 	 */
 	public function testGetInitialPageTextReturnsStringWithoutCopyrightUpload() {

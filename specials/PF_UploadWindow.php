@@ -312,11 +312,7 @@ class PFUploadWindow extends UnlistedSpecialPage {
 		# Add footer to form
 		if ( !$this->msg( 'uploadfooter' )->isDisabled() ) {
 			$output = $this->getOutput();
-			if ( method_exists( $output, 'parseAsInterface' ) ) {
-				$uploadFooter = $output->parseAsInterface( $this->msg( 'uploadfooter' )->plain() );
-			} else {
-				$uploadFooter = $output->parse( $this->msg( 'uploadfooter' )->plain() );
-			}
+			$uploadFooter = $output->parseAsInterface( $this->msg( 'uploadfooter' )->plain() );
 			$footerHtml = '<div id="mw-upload-footer-message">' . $uploadFooter . "</div>\n";
 			if ( version_compare( MW_VERSION, '1.38', '>=' ) ) {
 				$form->addPostHtml( $footerHtml );
@@ -341,8 +337,9 @@ class PFUploadWindow extends UnlistedSpecialPage {
 		// Show a subtitle link to deleted revisions (to sysops et al only)
 		$count = $title->isDeleted();
 		if ( $count > 0 && $this->getUser()->isAllowed( 'deletedhistory' ) ) {
+			$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
 			$link = $this->msg( $this->getUser()->isAllowed( 'delete' ) ? 'thisisdeleted' : 'viewdeleted' )
-				->rawParams( $this->getSkin()->linkKnown(
+				->rawParams( $linkRenderer->makeKnownLink(
 					SpecialPage::getTitleFor( 'Undelete', $title->getPrefixedText() ),
 					$this->msg( 'restorelink' )->numParams( $count )->escaped()
 				)
@@ -461,11 +458,7 @@ class PFUploadWindow extends UnlistedSpecialPage {
 		$status = $this->mUpload->fetchFile();
 		$output = $this->getOutput();
 		if ( !$status->isOK() ) {
-			if ( method_exists( $output, 'parseAsInterface' ) ) {
-				$statusText = $output->parseAsInterface( $status->getWikiText() );
-			} else {
-				$statusText = $output->parse( $status->getWikiText() );
-			}
+			$statusText = $output->parseAsInterface( $status->getWikiText() );
 			return $this->showUploadForm( $this->getUploadForm( $statusText ) );
 		}
 
@@ -506,11 +499,7 @@ class PFUploadWindow extends UnlistedSpecialPage {
 		}
 		$status = $this->mUpload->performUpload( $this->mComment, $pageText, $this->mWatchThis, $this->getUser() );
 		if ( !$status->isGood() ) {
-			if ( method_exists( $output, 'parseAsInterface' ) ) {
-				$statusText = $output->parseAsInterface( $status->getWikiText() );
-			} else {
-				$statusText = $output->parse( $status->getWikiText() );
-			}
+			$statusText = $output->parseAsInterface( $status->getWikiText() );
 			return $this->uploadError( $statusText );
 		}
 
@@ -654,13 +643,8 @@ END;
 		if ( $local && $local->exists() ) {
 			// We're uploading a new version of an existing file.
 			// No creation, so don't watch it if we're not already.
-			if ( method_exists( \MediaWiki\Watchlist\WatchlistManager::class, 'isWatched' ) ) {
-				// MediaWiki 1.37+
-				return MediaWikiServices::getInstance()->getWatchlistManager()
-					->isWatched( $this->getUser(), $local->getTitle() );
-			} else {
-				return $this->getUser()->isWatched( $local->getTitle() );
-			}
+			return MediaWikiServices::getInstance()->getWatchlistManager()
+				->isWatched( $this->getUser(), $local->getTitle() );
 		}
 		// New page should get watched if that's our option.
 		return MediaWikiServices::getInstance()->getUserOptionsLookup()
