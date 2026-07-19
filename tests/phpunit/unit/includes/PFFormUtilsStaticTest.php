@@ -164,7 +164,7 @@ class PFFormUtilsStaticTest extends TestCase {
 	 */
 	public function testGenerateUUIDIsUnique() {
 		$uuids = array_unique( array_map( static fn () => PFFormUtils::generateUUID(), range( 1, 20 ) ) );
-		$this->assertGreaterThan( 1, count( $uuids ), 'generateUUID should not return the same value every time' );
+		$this->assertCount( 20, $uuids, 'generateUUID should return a distinct value on every call' );
 	}
 
 }
