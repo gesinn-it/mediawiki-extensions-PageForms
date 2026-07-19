@@ -86,6 +86,13 @@ class FormFieldHtmlBuilder {
 		}
 
 		if ( $class_name !== null ) {
+			// If a regex was defined, add it to $other_args before constructing the
+			// base input, so that PFRegExpInput::newFromInput() (which reads the
+			// base input's already-set mOtherArgs) actually sees it.
+			if ( $template_field->getRegex() !== null ) {
+				$other_args['regexp'] = $template_field->getRegex();
+			}
+
 			$form_input = new $class_name(
 				$fieldNum, $cur_value, $form_field->getInputName(),
 				$form_field->isDisabled(), $other_args
@@ -94,7 +101,6 @@ class FormFieldHtmlBuilder {
 			// If a regex was defined, make this a "regexp" input that wraps
 			// around the real one.
 			if ( $template_field->getRegex() !== null ) {
-				$other_args['regexp'] = $template_field->getRegex();
 				$form_input = PFRegExpInput::newFromInput( $form_input );
 			}
 			$form_input->addJavaScript();

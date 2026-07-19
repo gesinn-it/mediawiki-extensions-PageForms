@@ -135,9 +135,10 @@ class FormFieldHtmlBuilderTest extends TestCase {
 
 		$html = $builder->formFieldHTML( $formField, 'abc' );
 
-		// PFRegExpInput delegates getHtmlText() to its base input (StubFormInput), so
-		// the output must contain the stub HTML.
-		$this->assertStringContainsString( StubFormInput::STUB_HTML, $html );
+		// PFRegExpInput delegates getHtmlText() to its base input (StubFormInput), then
+		// injects a data-regexp attribute into the base input's rendered <input> tag.
+		$this->assertStringContainsString( 'data-regexp="^[a-z]+$"', $html );
+		$this->assertStringContainsString( 'class="stub"', $html );
 
 		$wgPageFormsFormPrinter = null;
 	}
