@@ -124,7 +124,7 @@ class PFValuesUtils {
 		$useDisplayTitle ??= $wgPageFormsUseDisplayTitle;
 
 		$requestoptions = new \SMW\RequestOptions();
-		$requestoptions->limit = $maxValues;
+		$requestoptions->limit = (int)$maxValues;
 		$values = self::getSMWPropertyValues( $store, null, $property_name, $requestoptions );
 		sort( $values );
 
