@@ -43,6 +43,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - `PFUtils::getSMWStore()`, `PFValuesUtils::getSMWPropertyValues()`: corrected `@param`/`@return` docblocks referencing the bare `Store` class (MediaWiki core, unrelated) to `\SMW\Store`; surfaced once Phan was given visibility into SMW's classes (see CI change below)
 - `libs/PF_multipleInstance.js` (`displayWizardScreen()`): use the resolved `backText` variable (custom `data-back-text` or the `pf-wizard-back` message) as the wizard's "back" button label instead of the literal string `'backText'`; the button always displayed the literal text "backText" regardless of form configuration or language ([#109](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/109))
 
+### Fixed
+- JSONScript `api-pfautocomplete_no-source-returns-empty-result.json`: the assertion now matches the exact empty-result response structure instead of only the substring `"pfautocomplete":`, which is present in every successful `action=pfautocomplete` response regardless of content and never actually verified the result was empty ([#157](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/157))
+
 ### Removed
 - `libs/PF_sfselect.js`: removed `changeSelected()` and the `staticvalue` branch in `handleChange()` that called it; no PHP code path (`PF_SFSelectInput.php` or the `sf_select` JSON config builder) ever sets a `staticvalue` property on the config, so the branch was unreachable dead code left over from the original SemanticFormsSelect extension. It also carried two latent bugs (an always-true `$.inArray()` check missing the `!== -1` comparison, and a `.trigger( 'change' )` call that could re-enter `handleChange()` without converging) that are moot now that the code is gone. `handleChange()` now always calls `executeQuery()` ([#117](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/117))
 

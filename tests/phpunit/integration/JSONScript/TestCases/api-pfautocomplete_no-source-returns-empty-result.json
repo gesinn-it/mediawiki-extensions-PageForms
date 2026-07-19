@@ -13,7 +13,7 @@
 				}
 			},
 			"assert-output": {
-				"to-contain": "\"pfautocomplete\":"
+				"to-contain": "{\"pfautocomplete\":{\"_element\":\"p\"},\"_type\":\"assoc\"}"
 			}
 		}
 	],
