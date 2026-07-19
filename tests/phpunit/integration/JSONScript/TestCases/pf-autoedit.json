@@ -40,6 +40,10 @@
 		{
 			"page": "autoedit-button-ampersand",
 			"contents": "{{#autoedit:link type=button|link text=Foo & Bar}}"
+		},
+		{
+			"page": "autoedit-redirect-bringtopage-conflict",
+			"contents": "{{#autoedit:link text=EDIT ME|target=autoedit-redirect-bringtopage-conflict|redirect=SomeOtherPage|bring to page}}"
 		}
 	],
 	"tests": [
@@ -147,6 +151,17 @@
 				],
 				"not-contain": [
 					"Foo &amp;amp; Bar"
+				]
+			}
+		},
+		{
+			"type": "format",
+			"about": "redirect and bring to page set together returns pf_autoedit_notsettogether error",
+			"subject": "autoedit-redirect-bringtopage-conflict",
+			"assert-output": {
+				"to-contain": [
+					"<div class=\"error\">",
+					"cannot be set in the same function"
 				]
 			}
 		}
