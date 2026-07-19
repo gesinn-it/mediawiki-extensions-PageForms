@@ -38,25 +38,21 @@ class PFFormUtilsStaticTest extends TestCase {
 	}
 
 	/**
-	 * A single-element array (checkbox unchecked) returns the "no" word.
+	 * A single-element array (checkbox unchecked) and a two-element array
+	 * (checkbox checked) must map to different words — PFUtils::getWordForYesOrNo()
+	 * is called with false and true respectively (includes/PF_FormUtils.php:535-538).
+	 * The actual words are locale-dependent, so we only assert they differ,
+	 * which still catches a regression that swaps the two boolean arguments.
 	 */
-	public function testGetStringFromPassedInArrayCheckboxUnchecked() {
-		$value = [ 'No' ];
-		$result = PFFormUtils::getStringFromPassedInArray( $value, ',' );
-		// PFUtils::getWordForYesOrNo(false) — actual word is locale-dependent,
-		// we only assert it is a non-empty string.
-		$this->assertIsString( $result );
-		$this->assertNotSame( '', $result );
-	}
+	public function testGetStringFromPassedInArrayCheckboxUncheckedDiffersFromChecked() {
+		$unchecked = PFFormUtils::getStringFromPassedInArray( [ 'No' ], ',' );
+		$checked = PFFormUtils::getStringFromPassedInArray( [ 'No', 'Yes' ], ',' );
 
-	/**
-	 * A two-element array (checkbox checked) returns the "yes" word.
-	 */
-	public function testGetStringFromPassedInArrayCheckboxChecked() {
-		$value = [ 'No', 'Yes' ];
-		$result = PFFormUtils::getStringFromPassedInArray( $value, ',' );
-		$this->assertIsString( $result );
-		$this->assertNotSame( '', $result );
+		$this->assertIsString( $unchecked );
+		$this->assertNotSame( '', $unchecked );
+		$this->assertIsString( $checked );
+		$this->assertNotSame( '', $checked );
+		$this->assertNotSame( $unchecked, $checked );
 	}
 
 	/**
