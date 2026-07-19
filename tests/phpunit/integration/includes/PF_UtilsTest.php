@@ -137,11 +137,12 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testLinkTextReturnsNameWhenTitleIsInvalid() {
-		// Title::makeTitleSafe returns null for certain invalid names.
-		// An empty string is not safe for NS_MAIN, but behaviour may vary by
-		// MW version, so we just assert the return is a string.
-		$result = PFUtils::linkText( NS_MAIN, 'ValidPage' );
-		$this->assertIsString( $result );
+		// '<' is not allowed in a page title, so Title::makeTitleSafe() returns
+		// null for it on any supported MW version; linkText() must then fall
+		// back to returning the raw name as plain text (includes/PF_Utils.php:145-149).
+		$invalidName = 'Invalid<Title';
+		$result = PFUtils::linkText( NS_MAIN, $invalidName );
+		$this->assertSame( $invalidName, $result );
 	}
 
 	public function testGetNsTextReturnsStringForMainNs() {
