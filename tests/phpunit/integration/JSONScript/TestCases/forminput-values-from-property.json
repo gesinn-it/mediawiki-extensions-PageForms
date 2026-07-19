@@ -48,7 +48,7 @@
 				"to-contain": [
 					"autocompletesettings=\"PFTestVFProp01\""
 				],
-				"to-not-contain": [
+				"not-contain": [
 					"autocompletedatatype=\"property\""
 				]
 			}
@@ -65,7 +65,7 @@
 				"to-contain": [
 					"autocompletesettings=\"PFTestVFProp02,list"
 				],
-				"to-not-contain": [
+				"not-contain": [
 					"autocompletedatatype=\"property\""
 				]
 			}

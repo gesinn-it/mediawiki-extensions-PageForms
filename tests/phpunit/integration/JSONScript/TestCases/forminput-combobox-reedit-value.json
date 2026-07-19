@@ -55,7 +55,7 @@
 				"to-contain": [
 					"<option selected=\"\">Project Planning</option>"
 				],
-				"not-to-contain": [
+				"not-contain": [
 					"<option selected=\"\" value=\"2\">Project Planning</option>",
 					"autocompletedatatype=\"property\""
 				]

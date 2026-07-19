@@ -50,7 +50,7 @@
 				}
 			},
 			"assert-output": {
-				"to-not-contain": "Result Beta"
+				"not-contain": "Result Beta"
 			}
 		}
 	],

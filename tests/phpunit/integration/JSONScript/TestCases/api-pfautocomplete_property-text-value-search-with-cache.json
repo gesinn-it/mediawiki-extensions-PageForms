@@ -43,7 +43,7 @@
 				}
 			},
 			"assert-output": {
-				"to-not-contain": "Cached Beta"
+				"not-contain": "Cached Beta"
 			}
 		}
 	],

@@ -33,7 +33,7 @@
 				"to-contain": [
 					"autocompletesettings=\"PFTestVFCat01\""
 				],
-				"to-not-contain": [
+				"not-contain": [
 					"autocompletedatatype=\"category\""
 				]
 			}

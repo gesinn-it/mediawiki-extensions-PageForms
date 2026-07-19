@@ -43,7 +43,7 @@
 				}
 			},
 			"assert-output": {
-				"to-not-contain": "Jane Doe"
+				"not-contain": "Jane Doe"
 			}
 		}
 	],

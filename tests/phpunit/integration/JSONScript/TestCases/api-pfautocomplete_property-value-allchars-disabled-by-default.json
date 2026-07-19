@@ -64,7 +64,7 @@
 				}
 			},
 			"assert-output": {
-				"to-not-contain": "\"title\":\"FooBar\""
+				"not-contain": "\"title\":\"FooBar\""
 			}
 		},
 		{
@@ -94,7 +94,7 @@
 				}
 			},
 			"assert-output": {
-				"to-not-contain": "\"title\":\"PFTestACPropAllCharsOffTarget FooBar\""
+				"not-contain": "\"title\":\"PFTestACPropAllCharsOffTarget FooBar\""
 			}
 		}
 	],

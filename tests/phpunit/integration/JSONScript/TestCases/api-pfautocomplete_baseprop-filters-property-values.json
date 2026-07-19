@@ -58,7 +58,7 @@
 				}
 			},
 			"assert-output": {
-				"to-not-contain": "Beta Value"
+				"not-contain": "Beta Value"
 			}
 		}
 	],
