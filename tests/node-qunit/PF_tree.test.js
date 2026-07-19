@@ -211,13 +211,22 @@ QUnit.test( 'handleSearch wires a keyup handler that calls jstree search', ( ass
 
 QUnit.test( 'handleSearch escapes brackets in the tree id selector', ( assert ) => {
 	const $el = createTreeElement();
-	$( '<input id="tree\\[0\\]treeinput_searchinput">' ).appendTo( document.body );
+	// Real '[' and ']' characters in the id attribute value (not literal backslashes) —
+	// handleSearch() is responsible for escaping these for use in its jQuery selector.
+	const $searchInput = $( '<input>' )
+		.attr( 'id', 'tree[0]treeinput_searchinput' )
+		.appendTo( document.body );
 	const tree = new pf.TreeInput( $el[ 0 ] );
 
-	const jsTree = { jstree: () => {} };
+	const searchCalls = [];
+	const jsTree = {
+		jstree: ( ...args ) => searchCalls.push( args )
+	};
 
-	assert.expect( 0 );
 	tree.handleSearch( { id: 'tree[0]treeinput' }, jsTree );
+	$searchInput.val( 'foo' ).trigger( 'keyup' );
+
+	assert.equal( searchCalls.length, 1, 'jstree search invoked once, proving the escaped selector matched the element' );
 } );
 
 // --- applyJSTree ---
