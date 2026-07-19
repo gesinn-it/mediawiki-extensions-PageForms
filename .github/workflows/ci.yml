@@ -37,6 +37,7 @@ jobs:
             smw_version: '6.0.1'
             php_version: 8.3
             dt_version: 4.0.3
+            al_version: 0.7
             database_type: mysql
             database_image: "mysql:8"
             coverage: true
@@ -45,6 +46,7 @@ jobs:
             smw_version: '7.2.0'
             php_version: 8.3
             dt_version: 4.0.3
+            al_version: 0.7
             database_type: mysql
             database_image: "mysql:8"
             coverage: false
@@ -53,6 +55,7 @@ jobs:
             smw_version: '7.2.0'
             php_version: 8.3
             dt_version: 4.0.3
+            al_version: 0.7
             database_type: mysql
             database_image: "mariadb:10.11"
             coverage: false
@@ -63,6 +66,7 @@ jobs:
       SMW_VERSION: ${{ matrix.smw_version }}
       PHP_VERSION: ${{ matrix.php_version }}
       DT_VERSION: ${{ matrix.dt_version }}
+      AL_VERSION: ${{ matrix.al_version }}
       DB_TYPE: ${{ matrix.database_type }}
       DB_IMAGE: ${{ matrix.database_image }}
       # Run JS tests only for the coverage entry (MW 1.43): older base images

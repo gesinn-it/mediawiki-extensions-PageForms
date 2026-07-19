@@ -34,6 +34,7 @@ $IP = getenv( 'MW_INSTALL_PATH' ) !== false
 $dependencyExtensions = [
 	'SemanticMediaWiki',
 	'DisplayTitle',
+	'AdminLinks',
 ];
 
 foreach ( $dependencyExtensions as $ext ) {

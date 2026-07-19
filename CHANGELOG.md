@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ### Changed
 - `.github/workflows/ci.yml`: bump the two SMW 7.x CI matrix legs from `7.1.0` to `7.2.0`
+- `.phan/config.php`: added `AdminLinks` (the CI matrix's activated dependency extension) to `directory_list` and `exclude_analysis_directory_list`, making its classes visible to Phan's type-checker instead of surfacing as undeclared-class noise; regenerated `.phan/baseline.php` on the CI coverage matrix row (MW 1.43 / SMW 6.0.1 / DT 4.0.3 / AL 0.7) ([#62](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/62))
 
 ### Fixed
 - `FormFieldHtmlBuilder::formFieldHTML()`: a field with no `input type` set (the genuine default state, distinct from an explicit empty string) is no longer matched against an input-type hook incidentally registered under the `''` key. Previously `getInputType() !== ''` let a `null` input type through to `array_key_exists( null, $this->inputTypeHooks )`, which PHP treats as looking up the `''` key ([#60](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/60))
