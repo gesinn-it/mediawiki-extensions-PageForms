@@ -84,7 +84,7 @@ class FormSectionHtmlBuilder {
 		}
 
 		$sectionInput = new PFTextAreaInput(
-			$fieldNum, $section_text, $input_name,
+			(string)$fieldNum, $section_text, $input_name,
 			( $form_is_disabled || $page_section_in_form->isRestricted() ), $other_args
 		);
 		$sectionInput->addJavaScript();

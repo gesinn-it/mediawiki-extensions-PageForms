@@ -68,10 +68,10 @@ class PFFormCache {
 	 *
 	 * @param Parser $parser
 	 * @param string|null $form_def Raw wikitext of the form definition (optional)
-	 * @param string|null $form_id Page ID of the form page (optional)
+	 * @param int|null $form_id Page ID of the form page (optional)
 	 * @return string Parsed form definition HTML/wikitext
 	 */
-	public static function getFormDefinition( Parser $parser, $form_def = null, $form_id = null ): string {
+	public static function getFormDefinition( Parser $parser, ?string $form_def = null, ?int $form_id = null ): string {
 		if ( $form_id !== null ) {
 			$cachedDef = self::getFormDefinitionFromCache( $form_id, $parser );
 
@@ -136,9 +136,11 @@ class PFFormCache {
 		);
 
 		if ( $output->getCacheTime() == -1 ) {
-			$form_article = $form_id !== null ? Article::newFromID( $form_id ) : null;
-			if ( $form_article !== null ) {
-				self::purgeCache( $form_article );
+			$form_wikipage = $form_id !== null
+				? MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $form_id )
+				: null;
+			if ( $form_wikipage !== null ) {
+				self::purgeCache( $form_wikipage );
 			}
 			wfDebug( "Caching disabled for form definition $form_id\n" );
 		} elseif ( $form_id !== null ) {
@@ -151,11 +153,11 @@ class PFFormCache {
 	/**
 	 * Get a form definition from cache.
 	 *
-	 * @param string $form_id
+	 * @param int $form_id
 	 * @param Parser $parser
 	 * @return string|null Cached definition, or null on miss / cache disabled
 	 */
-	protected static function getFormDefinitionFromCache( $form_id, Parser $parser ): ?string {
+	protected static function getFormDefinitionFromCache( int $form_id, Parser $parser ): ?string {
 		global $wgPageFormsCacheFormDefinitions;
 
 		if ( !$wgPageFormsCacheFormDefinitions ) {
@@ -178,11 +180,11 @@ class PFFormCache {
 	/**
 	 * Store a form definition in cache.
 	 *
-	 * @param string $form_id
+	 * @param int $form_id
 	 * @param string $form_def
 	 * @param Parser $parser
 	 */
-	protected static function cacheFormDefinition( $form_id, $form_def, Parser $parser ): void {
+	protected static function cacheFormDefinition( int $form_id, string $form_def, Parser $parser ): void {
 		global $wgPageFormsCacheFormDefinitions;
 
 		if ( !$wgPageFormsCacheFormDefinitions ) {
@@ -281,11 +283,11 @@ class PFFormCache {
 	/**
 	 * Get a cache key for a form definition.
 	 *
-	 * @param string $formId Page ID of the form
+	 * @param int $formId Page ID of the form
 	 * @param Parser|null $parser Provide to get a user-options-specific key
 	 * @return string
 	 */
-	public static function getCacheKey( $formId, $parser = null ): string {
+	public static function getCacheKey( int $formId, ?Parser $parser = null ): string {
 		$cache = self::getFormCache();
 
 		return ( $parser === null )

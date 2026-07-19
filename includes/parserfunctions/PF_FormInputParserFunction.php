@@ -217,7 +217,7 @@ class PFFormInputParserFunction {
 		$formInputAttrs['data-button-label'] = ( $inButtonStr != '' )
 			? $inButtonStr
 			: wfMessage( 'pf_formstart_createoredit' )->escaped();
-		$formContents .= Html::element( 'div', $formInputAttrs, null );
+		$formContents .= Html::element( 'div', $formInputAttrs, '' );
 
 		MediaWikiServices::getInstance()->getHookContainer()->run(
 			'PageForms::FormInputEnd', [ $params, &$formContents ]

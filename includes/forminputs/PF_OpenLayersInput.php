@@ -144,7 +144,7 @@ class PFOpenLayersInput extends PFFormInput {
 			'class' => 'pfMapCanvas',
 			'id' => 'pfMapCanvas' . $wgPageFormsFieldNum,
 			'style' => "height: $height; width: $width;"
-		], null );
+		], '' );
 
 		$text .= Html::rawElement( 'div', [ 'style' => 'padding-top: 10px; padding-bottom: 10px;' ], $coordsInput );
 		$text .= "$mapCanvas\n";

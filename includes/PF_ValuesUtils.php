@@ -14,12 +14,12 @@ class PFValuesUtils {
 	 * Helper function to handle getPropertyValues().
 	 *
 	 * @param \SMW\Store $store
-	 * @param Title $subject
+	 * @param Title|null $subject
 	 * @param string $propID
 	 * @param \SMW\RequestOptions|null $requestOptions
 	 * @return array
 	 */
-	public static function getSMWPropertyValues( $store, $subject, $propID, $requestOptions = null ) {
+	public static function getSMWPropertyValues( $store, ?Title $subject, $propID, $requestOptions = null ) {
 		// If SMW is not installed, exit out.
 		if ( !class_exists( '\SMW\DIWikiPage' ) ) {
 			return [];
@@ -89,7 +89,7 @@ class PFValuesUtils {
 		$res = $db->select(
 			'category',
 			'cat_title',
-			 null,
+			[],
 			__METHOD__
 		);
 		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {

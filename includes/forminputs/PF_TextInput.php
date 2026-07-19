@@ -122,7 +122,7 @@ class PFTextInput extends PFFormInput {
 			$text .= Html::rawElement( 'span', [
 				'class'         => 'simpleUploadInterface',
 				'data-input-id' => $input_id
-			], null );
+			], '' );
 
 			return $text;
 		}

@@ -165,7 +165,7 @@ class PFAutocompleteAPI extends ApiBase {
 
 				$cache = PFFormCache::getFormCache();
 		// Remove trailing whitespace to avoid unnecessary database selects
-		$cacheKeyString = $property_name . '::' . rtrim( $substring );
+		$cacheKeyString = $property_name . '::' . rtrim( $substring ?? '' );
 		if ( $basePropertyName !== null ) {
 			$cacheKeyString .= ',' . $basePropertyName . ',' . $baseValue;
 		}
@@ -202,7 +202,7 @@ class PFAutocompleteAPI extends ApiBase {
 	 * have been stable since SMWSQLStore3 (SMW 2.x) and are unchanged in SMW 7.
 	 *
 	 * @param string $property_name
-	 * @param string $substring
+	 * @param string|null $substring
 	 * @param string|null $basePropertyName
 	 * @param mixed $baseValue
 	 * @return array

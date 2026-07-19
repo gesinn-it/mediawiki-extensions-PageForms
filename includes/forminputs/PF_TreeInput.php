@@ -128,7 +128,7 @@ class PFTreeInput extends PFFormInput {
 		}
 		// ==== GESINN PATCH END ====
 
-		$text = Html::element( 'div', $treeInputAttrs, null );
+		$text = Html::element( 'div', $treeInputAttrs, '' );
 		$text .= "<input type='hidden' class='PFTree_data' name='" . $input_name . "'>";
 
 		if ( !empty( $params['search-input'] ) ) {
@@ -136,7 +136,7 @@ class PFTreeInput extends PFFormInput {
 				Html::element( 'input', [
 					'id' => $input_name . 'treeinput_searchinput',
 					'class' => 'PFTreeSearchInput',
-				], null ) )
+				], '' ) )
 			. " " . $text;
 		}
 
