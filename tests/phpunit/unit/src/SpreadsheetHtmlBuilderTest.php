@@ -231,7 +231,7 @@ class SpreadsheetHtmlBuilderTest extends TestCase {
 		$this->builder->spreadsheetHTML( $tif, $out, '/extensions/PageForms' );
 
 		$params = $wgPageFormsGridParams['T'][0];
-		$this->assertArrayHasKey( 'values', $params );
+		$this->assertSame( [ 'A', 'B', 'C' ], $params['values'] );
 	}
 
 	public function testSpreadsheetHtmlHeightAttributeSetWhenPresent(): void {
