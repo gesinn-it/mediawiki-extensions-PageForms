@@ -15,6 +15,11 @@
 			"contents": "[[PFTestVFPropDTPage01::PFTestVFDTTarget01]]"
 		},
 		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestVFDTTempl01",
+			"contents": "{{{PFTestVFDTField01|}}}"
+		},
+		{
 			"namespace": "PF_NS_FORM",
 			"page": "PFTestVFDTForm01",
 			"contents": "{{{for template|PFTestVFDTTempl01}}}\n{{{field|PFTestVFDTField01|input type=dropdown|values from property=PFTestVFPropDTPage01}}}\n{{{end template}}}"
