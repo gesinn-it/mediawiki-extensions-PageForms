@@ -312,36 +312,6 @@ class PFFormPrinter {
 	}
 
 	/**
-	 * Split a form definition string into sections on {{{for template}}} / {{{end template}}}
-	 * boundaries.
-	 *
-	 * @param string $form_def Form definition wikitext.
-	 * @return list<string>
-	 */
-	private function splitFormDefIntoSections( string $form_def ): array {
-		$form_def_sections = [];
-		$start_position = 0;
-		$section_start = 0;
-		$brackets_loc = strpos( $form_def, '{{{', $start_position );
-		while ( $brackets_loc !== false ) {
-			$brackets_end_loc = strpos( $form_def, '}}}', $brackets_loc );
-			$bracketed_string = substr( $form_def, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 ) );
-			$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
-			if ( count( $tag_components ) > 0 ) {
-				$tag_title = trim( $tag_components[0] );
-				if ( $tag_title === 'for template' || $tag_title === 'end template' ) {
-					$form_def_sections[] = substr( $form_def, $section_start, $brackets_loc - $section_start );
-					$section_start = $brackets_loc;
-				}
-			}
-			$start_position = $brackets_loc + 1;
-			$brackets_loc = strpos( $form_def, '{{{', $start_position );
-		}
-		$form_def_sections[] = trim( substr( $form_def, $section_start ) );
-		return $form_def_sections;
-	}
-
-	/**
 	 * Resolve $this->mPageTitle (needed for permission testing even when the real
 	 * page name isn't known yet) and compute the edit-permission errors for formHTML().
 	 *
@@ -826,7 +796,7 @@ class PFFormPrinter {
 		// @HACK - replace the 'free text' standard input with a
 		// field declaration to get it to be handled as a field.
 		$form_def = str_replace( 'standard input|free text', 'field|#freetext#', $form_def );
-		$form_def_sections = $this->splitFormDefIntoSections( $form_def );
+		$form_def_sections = $this->formDefParser->splitFormDefIntoSections( $form_def );
 
 		// Cycle through the form definition file, and possibly an
 		// existing article as well, finding template and field

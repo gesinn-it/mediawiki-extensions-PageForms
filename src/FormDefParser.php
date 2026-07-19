@@ -124,7 +124,7 @@ class FormDefParser {
 	 *   replaced by 'field|#freetext#' when needed).
 	 * @return list<string>
 	 */
-	private function splitFormDefIntoSections( string $form_def ): array {
+	public function splitFormDefIntoSections( string $form_def ): array {
 		$form_def_sections = [];
 		$start_position = 0;
 		$section_start = 0;
@@ -133,10 +133,12 @@ class FormDefParser {
 			$brackets_end_loc = strpos( $form_def, '}}}', $brackets_loc );
 			$bracketed_string = substr( $form_def, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 ) );
 			$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
-			$tag_title = trim( $tag_components[0] );
-			if ( $tag_title === 'for template' || $tag_title === 'end template' ) {
-				$form_def_sections[] = substr( $form_def, $section_start, $brackets_loc - $section_start );
-				$section_start = $brackets_loc;
+			if ( count( $tag_components ) > 0 ) {
+				$tag_title = trim( $tag_components[0] );
+				if ( $tag_title === 'for template' || $tag_title === 'end template' ) {
+					$form_def_sections[] = substr( $form_def, $section_start, $brackets_loc - $section_start );
+					$section_start = $brackets_loc;
+				}
 			}
 			$start_position = $brackets_loc + 1;
 			$brackets_loc = strpos( $form_def, '{{{', $start_position );
