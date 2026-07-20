@@ -372,8 +372,11 @@ class FormFieldTest extends TestCase {
 		// Create the FormField object
 		$formField = FormField::create( $this->mockTemplateField );
 
-		// Set the mapping type to 'template'
-		$formField->setFieldArg( 'mapping template', 'TestTemplate' );
+		// This name must not collide with any template page created by other
+		// tests in the suite (e.g. PFMultiPageEditTest creates Template:TestTemplate);
+		// setValuesWithMappingTemplate() does a real Title::exists() lookup, so a
+		// name collision would make this test order-dependent.
+		$formField->setFieldArg( 'mapping template', 'NonExistentMappingTemplateForFormFieldTest' );
 		$formField->setPossibleValues( [ 'val1' => 'val1', 'val2' => 'val2' ] );
 
 		// Call the method under test
