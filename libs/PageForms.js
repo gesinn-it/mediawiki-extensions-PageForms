@@ -436,7 +436,7 @@ $('form#pfForm').click( (e) => {
 	}
 
 	const $instance = $target.closest('.multipleTemplateInstance');
-	if ( $instance === null ) {
+	if ( $instance.length === 0 ) {
 		$('.multipleTemplateList.currentFocus')
 			.removeClass('currentFocus')
 			.possiblyMinimizeAllOpenInstances();

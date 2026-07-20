@@ -180,7 +180,7 @@
 
 		// First, handle "show on select" stuff.
 		const $parentSpan = $( input_id ).closest( 'span' );
-		if ( $parentSpan[ 0 ].classList.contains( 'pfShowIfSelected' ) ) {
+		if ( $parentSpan.length > 0 && $parentSpan[ 0 ].classList.contains( 'pfShowIfSelected' ) ) {
 			mw.hook( 'pf.comboboxChange' ).fire( $parentSpan );
 		}
 

@@ -6,6 +6,13 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- `TypeError: Cannot read properties of undefined (reading 'classList')` thrown from `hideDiv()` in `libs/PF_showOnSelect.js` when a `show on select` target div ID does not exist in the current form's DOM (e.g. a multi-template form whose field maps div IDs across templates that are not all present on the same form); guard against an empty jQuery selection before dereferencing `[0]`
+- `TypeError: Cannot read properties of undefined (reading 'classList')` thrown from the `form#pfForm` click handler in `libs/PageForms.js` on (almost) any click outside a `.multipleTemplateInstance`; the guard compared a jQuery object against `null` (jQuery's `.closest()` never returns `null`, only an empty collection), so it never took effect once `hasClass()` reads were replaced with direct `classList` access — replaced with a `.length === 0` check
+- Same latent `classList` access hardened defensively in `libs/PF_ComboBoxInput.js`'s `setValues()` for the case where the input has no `<span>` ancestor
+
+## [2.1.3] - 2026-07-20
+
 ### Added
 - QUnit coverage for `libs/PF_FullCalendar.js` (raised from 0% to 42.89%+ statement coverage), via a new `tests/node-qunit/fullCalendarMock.js` fake of the `$.fn.fullCalendar` jQuery-plugin API (init-time `events`/`select`/`eventClick` callback capture, plus the `renderEvent`/`updateEvent`/`removeEvents`/`clientEvents` command surface) and a `$.fancybox.open` stub that actually inserts the popup markup into the DOM (production code immediately queries it by input name): the `events` callback populating the calendar from `wgPageFormsCalendarValues` for both single-date and start/end-date-field templates (including skipping rows with invalid dates), the day-click (`select`) create-event popup flow (date-field pre-fill, `renderEvent` on submit), the `eventClick` edit/delete popup flow (field pre-fill from the clicked event's `contents`, `removeEvents` on delete, `updateEvent` on submit), and the `#pfForm` submit handler's hidden-input generation from `clientEvents()` ([#114](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/114))
 - QUnit coverage for `libs/PF_popupform.js` (raised from 0% to 72.75%+ statement coverage): the popup-form iframe overlay's public API (`handlePopupFormInput()`/`handlePopupFormLink()`/`adjustFrameSize()`), driven with a `$.browser`-shape stub (`webkit`/`safari`/`mozilla`, since that plugin property is read unconditionally but the plugin file itself is excluded from coverage) and a `navigator.userAgent`/`platform` stub forcing the "broken browser" (synchronous show/hide, no jQuery fade animations) code path for deterministic assertions; covers the `<a>`-vs-`<form>` iframe-target wiring in both entry points, `adjustFrameSize()`'s content-geometry sizing (including the zero-dimension Firefox fallback, the webkit/safari scroll-target branch, the mozilla deferred-sizing branch, and the animate-vs-direct-resize branches), and the submit-interception flow (error-page write-back-and-close, and the `reload`-class purge-then-reload-after-save path via `mw.Api`) ([#113](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/113))
@@ -188,7 +195,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.2...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.3...HEAD
+[2.1.3]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.2...2.1.3
 [2.1.2]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.1...2.1.2
 [2.1.1]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.0.1...2.1.0

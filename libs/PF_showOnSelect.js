@@ -229,6 +229,12 @@ function hideDiv( div_id, $instanceWrapperDiv, initPage ) {
 		$elem = $('#' + div_id);
 	}
 
+	// The div this "show on select" entry points to may not exist in the
+	// DOM, e.g. for a multipleTemplateInstance that has since been removed.
+	if ( $elem.length === 0 ) {
+		return;
+	}
+
 	// If we're just setting up the page, and this element has already
 	// been marked to be shown by some other input, don't hide it.
 	if ( initPage && $elem[0].classList.contains('shownByPF') ) {
