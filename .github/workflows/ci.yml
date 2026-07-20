@@ -17,6 +17,29 @@ on:
 
 jobs:
 
+  psr4-guard:
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check src/ for strict_types and namespace declarations
+        run: |
+          status=0
+          while IFS= read -r -d '' file; do
+            if ! grep -q "declare( strict_types *= *1 *);" "$file"; then
+              echo "::error file=$file::missing declare( strict_types=1 );"
+              status=1
+            fi
+            if ! grep -q "^namespace MediaWiki\\\\Extension\\\\PageForms" "$file"; then
+              echo "::error file=$file::missing namespace MediaWiki\\Extension\\PageForms declaration"
+              status=1
+            fi
+          done < <(find src -name '*.php' -print0)
+          exit $status
+
   test:
 
     runs-on: ubuntu-24.04

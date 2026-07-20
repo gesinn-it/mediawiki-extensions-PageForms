@@ -1,0 +1,85 @@
+= PSR-4 Migration Guide
+:toc: left
+include::../attributes.adoc[]
+
+`src/` is fully migrated to PSR-4 autoloading under the
+`MediaWiki\Extension\PageForms\` namespace: every class there has
+`declare( strict_types=1 )`, a `namespace` declaration, one class per file,
+and a filename matching the class name. It is autoloaded via both
+Composer's own `autoload.psr-4` map in `composer.json` and `extension.json`'s
+`AutoloadNamespaces` — the two must always agree.
+
+`includes/` and `specials/` predate namespaces: no `namespace` declaration,
+`PF_`-prefixed filenames, `PF`-prefixed class names, and each class listed
+individually in `extension.json`'s `AutoloadClasses`. This page defines the
+target layout and conventions that every migration issue moving a class out
+of `includes/`/`specials/` into `src/` must follow, so the rules are decided
+once instead of re-litigated per PR.
+
+== Target namespace layout
+
+Each legacy subfolder maps to a sub-namespace under `src/`. Files move into
+the matching subdirectory of `src/` and take the sub-namespace below;
+`includes/` root and `specials/` classes are flat (no sub-namespace) since
+they cover unrelated concerns (core models/utilities vs. special pages) that
+don't warrant their own grouping.
+
+[cols="1,1"]
+|===
+| Legacy path | Target namespace
+
+| `includes/` (root)
+| `MediaWiki\Extension\PageForms\`
+
+| `includes/forminputs/`
+| `MediaWiki\Extension\PageForms\FormInputs\`
+
+| `includes/parserfunctions/`
+| `MediaWiki\Extension\PageForms\ParserFunctions\`
+
+| `includes/wikipage/`
+| `MediaWiki\Extension\PageForms\WikiPage\`
+
+| `specials/`
+| `MediaWiki\Extension\PageForms\`
+|===
+
+== Class-rename convention
+
+1. Strip the `PF` prefix from the class name. `PFFormPrinter` → `FormPrinter`,
+   `PFWikiPageTemplate` → `WikiPageTemplate`.
+2. Re-case any all-caps acronym in the remainder to UpperCamelCase, treating
+   it as a single word: `API` → `Api`, `SF` → `Sf`, `URL` → `Url`. Consecutive
+   acronyms are re-cased independently, not merged: `PFSFSelectAPI` →
+   `SfSelectApi`, `PFSFSelectAPIRequestProcessor` → `SfSelectApiRequestProcessor`.
+3. The filename matches the new class name exactly: `PF_SFSelectAPI.php` →
+   `SfSelectApi.php`.
+4. The file moves into the `src/` subdirectory matching its target namespace
+   from the table above.
+
+This mirrors the casing MediaWiki core itself uses for acronyms in class
+names (e.g. `ApiBase`, `Sanitizer::escapeUrl`) and keeps names guessable
+without a lookup table.
+
+== Backward compatibility for old global class names
+
+Every renamed/moved class gets a `class_alias( NewNamespacedName::class,
+'PFOldName' )` shim, registered from the extension's setup
+(`PageForms.hooks.php` or an equivalent autoload-time registration file so
+the alias exists before any hook fires). This preserves external code doing
+`class_exists( 'PFForm' )`, `instanceof PFForm`, or `new PFForm()` — a real
+compatibility concern here since other extensions and site-specific code
+have historically referenced these globals directly.
+
+Shims are kept for a full major version cycle after the class that
+introduces them ships, then removed in the next major release. Each shim's
+introduction is recorded in `CHANGELOG.md` as a deprecation entry naming the
+old and new class name and the major version in which the shim will be
+removed.
+
+== Tooling guard
+
+CI enforces that every file under `src/` has both `declare( strict_types=1
+);` and a `namespace` declaration, so this cannot regress once migration of
+`includes/`/`specials/` classes starts. See `.github/workflows/ci.yml`
+(`PSR-4 src/ guard` step).

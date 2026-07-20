@@ -36,5 +36,11 @@ CSS stylesheets.
 `languages/`::
 i18n JSON files and PHP aliases/magic word definitions.
 
+`src/`::
+PSR-4 autoloaded classes under the `MediaWiki\Extension\PageForms\`
+namespace. `includes/` and `specials/` are being migrated here
+incrementally; see xref:psr4-migration.adoc[PSR-4 Migration Guide] for the
+target layout and conventions.
+
 `tests/`::
 PHPUnit and QUnit test suites.

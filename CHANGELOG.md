@@ -6,6 +6,11 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Added
+- `composer.json`: `autoload.psr-4` block mapping `MediaWiki\Extension\PageForms\` to `src/`, matching `extension.json`'s `AutoloadNamespaces` (previously Composer's own autoload map was empty and autoloading relied solely on MediaWiki's extension registration)
+- `.github/workflows/ci.yml`: new `psr4-guard` job that fails when a file under `src/` lacks `declare( strict_types=1 );` or a `namespace MediaWiki\Extension\PageForms` declaration, preventing regressions once the `includes/`/`specials/` → `src/` migration starts
+- `docs/developer/psr4-migration.adoc`: target sub-namespace layout for `includes/forminputs/`, `includes/parserfunctions/`, `includes/wikipage/`, `includes/` root, and `specials/`; the `PF`-prefix-stripping class-rename convention with acronym casing rules (`SF`/`API` → `Sf`/`Api`); and the backward-compatibility policy for old global class names (`class_alias()` shims kept for one major version cycle, recorded as `CHANGELOG.md` deprecation entries) ([#166](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/166))
+
 ## [2.1.3] - 2026-07-20
 
 ### Added

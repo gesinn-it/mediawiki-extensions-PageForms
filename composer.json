@@ -17,6 +17,11 @@
 			"name": "Yaron Koren"
 		}
 	],
+	"autoload": {
+		"psr-4": {
+			"MediaWiki\\Extension\\PageForms\\": "src/"
+		}
+	},
 	"require": {
 		"php": ">=8.0",
 		"composer/installers": "1.*,>=1.0.1"

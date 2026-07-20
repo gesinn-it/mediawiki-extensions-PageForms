@@ -6,6 +6,7 @@ include::../attributes.adoc[]
 This guide covers extension points, hooks, custom input types, and code structure for developers.
 
 * xref:code-structure.adoc[Code Structure] — overview of the codebase layout
+* xref:psr4-migration.adoc[PSR-4 Migration Guide] — target namespace layout, class-rename convention, and BC policy for the `includes/`/`specials/` → `src/` migration
 * xref:defining-new-inputs.adoc[Defining New Input Types] — how to implement a custom input
 * xref:hooks.adoc[Hooks Reference] — all available hooks with signatures and examples
 * xref:api.adoc[API Reference] — the `pfautoedit` and `pfautocomplete` API modules
