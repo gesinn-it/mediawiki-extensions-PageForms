@@ -3,6 +3,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormUtils;
+
 /**
  * @ingroup PFFormInput
  */
@@ -106,7 +108,7 @@ class PFRadioButtonInput extends PFEnumInput {
 		// Do the 'show on select' handling.
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$spanClass .= ' pfShowIfChecked';
-			PFFormUtils::setShowOnSelect( $other_args['show on select'], $spanID );
+			FormUtils::setShowOnSelect( $other_args['show on select'], $spanID );
 		}
 		$spanAttrs = [
 			'id' => $spanID,

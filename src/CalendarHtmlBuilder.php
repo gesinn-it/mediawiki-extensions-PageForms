@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use Html;
-use PFFormUtils;
 
 /**
  * Assembles the HTML fragment for calendar display mode within a PageForms form:
@@ -17,11 +16,11 @@ class CalendarHtmlBuilder {
 	 * Builds the calendar params array and container HTML, and populates the
 	 * global variables consumed by the FullCalendar ResourceLoader module.
 	 *
-	 * @param \PFTemplateInForm $tif
+	 * @param TemplateInForm $tif
 	 * @param string $scriptPath
 	 * @return string HTML string
 	 */
-	public function calendarHTML( \PFTemplateInForm $tif, string $scriptPath ): string {
+	public function calendarHTML( TemplateInForm $tif, string $scriptPath ): string {
 		global $wgPageFormsCalendarParams, $wgPageFormsCalendarValues;
 
 		$params = [];
@@ -85,7 +84,7 @@ class CalendarHtmlBuilder {
 		$wgPageFormsCalendarParams[$templateName] = $params;
 		$wgPageFormsCalendarValues[$templateName] = $tif->getGridValues();
 
-		PFFormUtils::setGlobalVarsForSpreadsheet();
+		FormUtils::setGlobalVarsForSpreadsheet();
 
 		return $text;
 	}

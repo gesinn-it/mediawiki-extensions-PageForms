@@ -1,28 +1,39 @@
 <?php
 
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms\Tests\Integration;
+
+use BagOStuff;
+use MediaWiki\Extension\PageForms\FormCache;
 use MediaWiki\MediaWikiServices;
+use MediaWikiIntegrationTestCase;
+use Parser;
+use ParserOptions;
+use Title;
+use WikiPage;
 
 /**
- * Integration tests for PFFormCache — the form-definition caching subsystem
- * extracted from PFFormUtils.
+ * Integration tests for FormCache — the form-definition caching subsystem
+ * extracted from FormUtils.
  *
  * @group PF
  * @group Database
- * @covers PFFormCache::getFormCache
- * @covers PFFormCache::getCacheKey
- * @covers PFFormCache::purgeCache
- * @covers PFFormCache::purgeCacheOnSave
- * @covers PFFormCache::getPreloadedText
- * @covers PFFormCache::getFormDefinition
+ * @covers \MediaWiki\Extension\PageForms\FormCache::getFormCache
+ * @covers \MediaWiki\Extension\PageForms\FormCache::getCacheKey
+ * @covers \MediaWiki\Extension\PageForms\FormCache::purgeCache
+ * @covers \MediaWiki\Extension\PageForms\FormCache::purgeCacheOnSave
+ * @covers \MediaWiki\Extension\PageForms\FormCache::getPreloadedText
+ * @covers \MediaWiki\Extension\PageForms\FormCache::getFormDefinition
  */
-class PFFormCacheTest extends MediaWikiIntegrationTestCase {
+class FormCacheTest extends MediaWikiIntegrationTestCase {
 
 	// -----------------------------------------------------------------------
 	// getFormCache
 	// -----------------------------------------------------------------------
 
 	public function testGetFormCacheReturnsBagOStuff() {
-		$cache = PFFormCache::getFormCache();
+		$cache = FormCache::getFormCache();
 		$this->assertInstanceOf( BagOStuff::class, $cache );
 	}
 
@@ -31,7 +42,7 @@ class PFFormCacheTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	public function testGetCacheKeyWithoutParserReturnsString() {
-		$key = PFFormCache::getCacheKey( '42' );
+		$key = FormCache::getCacheKey( 42 );
 		$this->assertIsString( $key );
 		$this->assertStringContainsString( 'PageForms', $key );
 		$this->assertStringContainsString( '42', $key );
@@ -41,14 +52,14 @@ class PFFormCacheTest extends MediaWikiIntegrationTestCase {
 		// getServiceContainer() was added in MW 1.36; use MediaWikiServices::getInstance() for MW 1.35 compat.
 		$parser = MediaWikiServices::getInstance()->getParser();
 		$parser->setOptions( ParserOptions::newFromAnon() );
-		$keyWithout = PFFormCache::getCacheKey( '7' );
-		$keyWith = PFFormCache::getCacheKey( '7', $parser );
+		$keyWithout = FormCache::getCacheKey( 7 );
+		$keyWith = FormCache::getCacheKey( 7, $parser );
 		$this->assertNotSame( $keyWithout, $keyWith );
 	}
 
 	public function testGetCacheKeysDifferForDifferentIds() {
-		$key1 = PFFormCache::getCacheKey( '1' );
-		$key2 = PFFormCache::getCacheKey( '2' );
+		$key1 = FormCache::getCacheKey( 1 );
+		$key2 = FormCache::getCacheKey( 2 );
 		$this->assertNotSame( $key1, $key2 );
 	}
 
@@ -66,7 +77,7 @@ class PFFormCacheTest extends MediaWikiIntegrationTestCase {
 			$wikiPage = WikiPage::factory( $title );
 			// @codeCoverageIgnoreEnd
 		}
-		$result = PFFormCache::purgeCache( $wikiPage );
+		$result = FormCache::purgeCache( $wikiPage );
 		$this->assertTrue( $result );
 	}
 
@@ -75,12 +86,12 @@ class PFFormCacheTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	public function testGetPreloadedTextEmptyStringReturnsEmpty() {
-		$this->assertSame( '', PFFormCache::getPreloadedText( '' ) );
+		$this->assertSame( '', FormCache::getPreloadedText( '' ) );
 	}
 
 	public function testGetPreloadedTextNonExistentTitleReturnsEmpty() {
 		// Non-existent page → getPageText returns '' and no noinclude stripping needed
-		$result = PFFormCache::getPreloadedText( 'PFFormCacheTestNonExistentPage12345' );
+		$result = FormCache::getPreloadedText( 'PFFormCacheTestNonExistentPage12345' );
 		$this->assertSame( '', $result );
 	}
 
@@ -91,7 +102,7 @@ class PFFormCacheTest extends MediaWikiIntegrationTestCase {
 			'',
 			NS_MAIN
 		);
-		$result = PFFormCache::getPreloadedText( 'PFFormCacheTestPreloadPage01' );
+		$result = FormCache::getPreloadedText( 'PFFormCacheTestPreloadPage01' );
 		$this->assertStringContainsString( 'Hello preload', $result );
 		$this->assertStringNotContainsString( 'hidden', $result );
 		$this->assertStringNotContainsString( '<noinclude>', $result );
@@ -104,7 +115,7 @@ class PFFormCacheTest extends MediaWikiIntegrationTestCase {
 			'',
 			NS_MAIN
 		);
-		$result = PFFormCache::getPreloadedText( 'PFFormCacheTestPreloadPage02' );
+		$result = FormCache::getPreloadedText( 'PFFormCacheTestPreloadPage02' );
 		$this->assertStringNotContainsString( '<includeonly>', $result );
 		$this->assertStringContainsString( 'wrapped', $result );
 	}
@@ -131,10 +142,10 @@ class PFFormCacheTest extends MediaWikiIntegrationTestCase {
 		$formDef = '<pftestnocache/>{{{standard input|save}}}';
 
 		// form_id = null (as used for preview/preload/red-link contexts via
-		// PFFormLinker::createPageWithForm()) must not reach
+		// FormLinker::createPageWithForm()) must not reach
 		// purgeCache( Article::newFromID( null ) ), which throws a TypeError
 		// since purgeCache() requires a non-nullable WikiPage.
-		$result = PFFormCache::getFormDefinition( $parser, $formDef, null );
+		$result = FormCache::getFormDefinition( $parser, $formDef, null );
 
 		$this->assertIsString( $result );
 	}

@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 class PFWikiPageTest extends TestCase {
 
 	/**
-	 * Builds a stub matching the subset of PFTemplateInForm's interface that
+	 * Builds a stub matching the subset of TemplateInForm's interface that
 	 * PFWikiPage::addTemplate() relies on.
 	 * @return PHPUnit\Framework\MockObject\MockObject
 	 */

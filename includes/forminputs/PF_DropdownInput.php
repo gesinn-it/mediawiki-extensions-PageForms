@@ -3,6 +3,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormUtils;
+
 /**
  * @ingroup PFFormInput
  */
@@ -37,7 +39,7 @@ class PFDropdownInput extends PFEnumInput {
 		$input_id = "input_$wgPageFormsFieldNum";
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$className .= ' pfShowIfSelected';
-			PFFormUtils::setShowOnSelect( $other_args['show on select'], $input_id );
+			FormUtils::setShowOnSelect( $other_args['show on select'], $input_id );
 		}
 		$innerDropdown = '';
 		// Add a blank value at the beginning, unless this is a

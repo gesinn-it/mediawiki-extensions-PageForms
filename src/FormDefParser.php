@@ -6,8 +6,6 @@ namespace MediaWiki\Extension\PageForms;
 
 use ParserFactory;
 use ParserOptions;
-use PFFormCache;
-use PFTemplateInForm;
 use PFUtils;
 use RequestContext;
 
@@ -30,7 +28,7 @@ class FormDefParser {
 	 *
 	 * @param string $form_def Form definition wikitext.
 	 * @param string $existing_page_content Wikitext of the page being edited.
-	 * @param ?int $form_id Optional form page ID (used by PFFormCache).
+	 * @param ?int $form_id Optional form page ID (used by FormCache).
 	 * @return array<string, mixed>
 	 */
 	public function preparePreloadData( string $form_def, string $existing_page_content, ?int $form_id = null ): array {
@@ -41,7 +39,7 @@ class FormDefParser {
 		$parser->setOptions( ParserOptions::newFromUser( $user ) );
 		$parser->clearState();
 
-		$form_def = PFFormCache::getFormDefinition( $parser, $form_def, $form_id );
+		$form_def = FormCache::getFormDefinition( $parser, $form_def, $form_id );
 
 		// Neutralise the 'free text' standard input so it doesn't confuse the scan.
 		$form_def = str_replace( 'standard input|free text', 'field|#freetext#', $form_def );
@@ -75,7 +73,7 @@ class FormDefParser {
 					$template_name = str_replace( '_', ' ', $parser->recursiveTagParse( $tag_components[1] ) );
 					// Top-level array key: spaces → underscores, matching HtmlFormDataExtractor output.
 					$template_key = str_replace( ' ', '_', $template_name );
-					$tif = PFTemplateInForm::newFromFormTag( $tag_components, $parser );
+					$tif = TemplateInForm::newFromFormTag( $tag_components, $parser );
 					$tif->setPageRelatedInfo( $existing_page_content );
 					if ( $tif->pageCallsThisTemplate() ) {
 						$tif->setFieldValuesFromPage( $existing_page_content );

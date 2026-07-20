@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use Parser;
-use PFFormUtils;
 use Sanitizer;
 use Title;
 use WebRequest;
@@ -22,7 +21,7 @@ class StandardInputHtmlBuilder {
 	 * @param bool $formSubmitted
 	 * @param WebRequest $request
 	 * @param Parser $parser
-	 * @param Title|null $pageTitle The resolved page title (mPageTitle from PFFormPrinter).
+	 * @param Title|null $pageTitle The resolved page title (mPageTitle from FormPrinter).
 	 * @param string|null $pageName The raw page name string passed to formHTML().
 	 * @return string HTML fragment
 	 */
@@ -59,34 +58,34 @@ class StandardInputHtmlBuilder {
 
 		if ( $inputName == 'summary' ) {
 			$value = $request->getVal( 'wpSummary' );
-			return (string)PFFormUtils::summaryInputHTML( $formIsDisabled, $inputLabel, $attr, $value );
+			return (string)FormUtils::summaryInputHTML( $formIsDisabled, $inputLabel, $attr, $value );
 		} elseif ( $inputName == 'minor edit' ) {
 			$isChecked = $request->getCheck( 'wpMinoredit' );
-			return (string)PFFormUtils::minorEditInputHTML(
+			return (string)FormUtils::minorEditInputHTML(
 				$formSubmitted, $formIsDisabled, $isChecked, $inputLabel, $attr
 			);
 		} elseif ( $inputName == 'watch' ) {
 			$isChecked = $request->getCheck( 'wpWatchthis' );
-			return (string)PFFormUtils::watchInputHTML(
+			return (string)FormUtils::watchInputHTML(
 				$formSubmitted, $formIsDisabled, $isChecked, $inputLabel, $attr
 			);
 		} elseif ( $inputName == 'save' ) {
-			return (string)PFFormUtils::saveButtonHTML( $formIsDisabled, $inputLabel, $attr );
+			return (string)FormUtils::saveButtonHTML( $formIsDisabled, $inputLabel, $attr );
 		} elseif ( $inputName == 'save and continue' ) {
 			// Omit the button in one-step-process where the page title already matches
 			// the destination page name (embedded/query contexts set a different title).
 			if ( $pageTitle == $pageName ) {
-				return (string)PFFormUtils::saveAndContinueButtonHTML( $formIsDisabled, $inputLabel, $attr );
+				return (string)FormUtils::saveAndContinueButtonHTML( $formIsDisabled, $inputLabel, $attr );
 			}
 			return '';
 		} elseif ( $inputName == 'preview' ) {
-			return (string)PFFormUtils::showPreviewButtonHTML( $formIsDisabled, $inputLabel, $attr );
+			return (string)FormUtils::showPreviewButtonHTML( $formIsDisabled, $inputLabel, $attr );
 		} elseif ( $inputName == 'changes' ) {
-			return (string)PFFormUtils::showChangesButtonHTML( $formIsDisabled, $inputLabel, $attr );
+			return (string)FormUtils::showChangesButtonHTML( $formIsDisabled, $inputLabel, $attr );
 		} elseif ( $inputName == 'cancel' ) {
-			return (string)PFFormUtils::cancelLinkHTML( $formIsDisabled, $inputLabel, $attr );
+			return (string)FormUtils::cancelLinkHTML( $formIsDisabled, $inputLabel, $attr );
 		} elseif ( $inputName == 'run query' ) {
-			return (string)PFFormUtils::runQueryButtonHTML( $formIsDisabled, $inputLabel, $attr );
+			return (string)FormUtils::runQueryButtonHTML( $formIsDisabled, $inputLabel, $attr );
 		}
 
 		return '';

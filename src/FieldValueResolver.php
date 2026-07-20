@@ -4,8 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use PFFormField;
-use PFFormUtils;
 use User;
 
 /**
@@ -88,7 +86,7 @@ class FieldValueResolver {
 	 *
 	 * Unrecognised default values are returned unchanged (no-op).
 	 *
-	 * @param PFFormField $formField The form field being rendered (class arg mutated for uuid/multiple)
+	 * @param FormField $formField The form field being rendered (class arg mutated for uuid/multiple)
 	 * @param string $curValue Current field value (empty or equal to the token when unresolved)
 	 * @param string $curValueInTemplate Current template value (may already carry a concrete value)
 	 * @param bool $allowsMultiple Whether the enclosing template allows multiple instances
@@ -97,7 +95,7 @@ class FieldValueResolver {
 	 * @return array{0: string, 1: string} [$curValue, $curValueInTemplate] after resolution
 	 */
 	public function resolveDefaultValue(
-		PFFormField $formField,
+		FormField $formField,
 		string $curValue,
 		string $curValueInTemplate,
 		bool $allowsMultiple,
@@ -113,7 +111,7 @@ class FieldValueResolver {
 				( $inputType == '' &&
 					$formField->getTemplateField()->getPropertyType() == '_dat' )
 			) {
-				$curValue = $curValueInTemplate = PFFormUtils::getStringForCurrentTime(
+				$curValue = $curValueInTemplate = FormUtils::getStringForCurrentTime(
 					$inputType == 'datetime', $formField->hasFieldArg( 'include timezone' )
 				);
 			}
@@ -133,7 +131,7 @@ class FieldValueResolver {
 						: 'new-uuid'
 				);
 			} else {
-				$curValue = $curValueInTemplate = PFFormUtils::generateUUID();
+				$curValue = $curValueInTemplate = FormUtils::generateUUID();
 			}
 		}
 

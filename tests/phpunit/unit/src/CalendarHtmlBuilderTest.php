@@ -3,6 +3,9 @@
 declare( strict_types=1 );
 
 use MediaWiki\Extension\PageForms\CalendarHtmlBuilder;
+use MediaWiki\Extension\PageForms\FormField;
+use MediaWiki\Extension\PageForms\TemplateField;
+use MediaWiki\Extension\PageForms\TemplateInForm;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -200,8 +203,8 @@ class CalendarHtmlBuilderTest extends TestCase {
 		string $templateName,
 		array $fields,
 		array $gridValues = []
-	): PFTemplateInForm {
-		$tif = $this->createMock( PFTemplateInForm::class );
+	): TemplateInForm {
+		$tif = $this->createMock( TemplateInForm::class );
 		$tif->method( 'getTemplateName' )->willReturn( $templateName );
 		$tif->method( 'getFields' )->willReturn( $fields );
 		$tif->method( 'getGridValues' )->willReturn( $gridValues );
@@ -218,10 +221,10 @@ class CalendarHtmlBuilderTest extends TestCase {
 		?array $possibleValues,
 		?string $label = null
 	): object {
-		$templateField = $this->createMock( PFTemplateField::class );
+		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getFieldName' )->willReturn( $fieldName );
 
-		$formField = $this->createMock( PFFormField::class );
+		$formField = $this->createMock( FormField::class );
 		$formField->template_field = $templateField;
 		$formField->method( 'getInputType' )->willReturn( $inputType );
 		$formField->method( 'getPossibleValues' )->willReturn( $possibleValues );

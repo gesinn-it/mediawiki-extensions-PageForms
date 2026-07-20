@@ -1,11 +1,20 @@
 <?php
 
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms\Tests\Integration;
+
+use MediaWiki\Extension\PageForms\Template;
+use MediaWiki\Extension\PageForms\TemplateField;
+use MediaWikiIntegrationTestCase;
+use PFUtils;
+
 if ( !class_exists( 'MediaWikiIntegrationTestCase' ) ) {
 	class_alias( 'MediaWikiTestCase', 'MediaWikiIntegrationTestCase' );
 }
 
 /**
- * Integration tests for PFTemplate::createText(), covering all supported
+ * Integration tests for Template::createText(), covering all supported
  * template formats and the printCategoryTag() helper.
  *
  * createText() delegates to MediaWikiServices::getHookContainer() once at the
@@ -13,27 +22,27 @@ if ( !class_exists( 'MediaWikiIntegrationTestCase' ) ) {
  * logic and can be tested by inspecting the returned wikitext.
  *
  * @group PF
- * @covers PFTemplate::createText
- * @covers PFTemplate::createTextForField
- * @covers PFTemplate::printCategoryTag
- * @covers PFTemplate::setFormat
- * @covers PFTemplate::setFullWikiTextStatus
- * @covers PFTemplate::setCategoryName
- * @covers PFTemplate::setConnectingProperty
- * @covers PFTemplate::setAggregatingInfo
- * @covers PFTemplate::getFieldNamed
- * @covers PFTemplate::getTemplateFields
+ * @covers \MediaWiki\Extension\PageForms\Template::createText
+ * @covers \MediaWiki\Extension\PageForms\Template::createTextForField
+ * @covers \MediaWiki\Extension\PageForms\Template::printCategoryTag
+ * @covers \MediaWiki\Extension\PageForms\Template::setFormat
+ * @covers \MediaWiki\Extension\PageForms\Template::setFullWikiTextStatus
+ * @covers \MediaWiki\Extension\PageForms\Template::setCategoryName
+ * @covers \MediaWiki\Extension\PageForms\Template::setConnectingProperty
+ * @covers \MediaWiki\Extension\PageForms\Template::setAggregatingInfo
+ * @covers \MediaWiki\Extension\PageForms\Template::getFieldNamed
+ * @covers \MediaWiki\Extension\PageForms\Template::getTemplateFields
  */
-class PFTemplateCreateTextTest extends MediaWikiIntegrationTestCase {
+class TemplateCreateTextTest extends MediaWikiIntegrationTestCase {
 
 	// -----------------------------------------------------------------------
 	// Helpers
 	// -----------------------------------------------------------------------
 
-	private function makeTemplate( array $fieldDefs, string $name = 'TestTemplate' ): PFTemplate {
+	private function makeTemplate( array $fieldDefs, string $name = 'TestTemplate' ): Template {
 		$fields = [];
 		foreach ( $fieldDefs as $def ) {
-			$fields[] = PFTemplateField::create(
+			$fields[] = TemplateField::create(
 				$def['name'],
 				$def['label'] ?? $def['name'],
 				$def['property'] ?? null,
@@ -42,7 +51,7 @@ class PFTemplateCreateTextTest extends MediaWikiIntegrationTestCase {
 				$def['display'] ?? null
 			);
 		}
-		return new PFTemplate( $name, $fields );
+		return new Template( $name, $fields );
 	}
 
 	// -----------------------------------------------------------------------
@@ -50,12 +59,12 @@ class PFTemplateCreateTextTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	public function testPrintCategoryTagEmptyWhenNoCategory() {
-		$t = new PFTemplate( 'T', [] );
+		$t = new Template( 'T', [] );
 		$this->assertSame( '', $t->printCategoryTag() );
 	}
 
 	public function testPrintCategoryTagReturnsWikilink() {
-		$t = new PFTemplate( 'T', [] );
+		$t = new Template( 'T', [] );
 		$t->setCategoryName( 'MyCategory' );
 		$result = $t->printCategoryTag();
 		$this->assertStringContainsString( 'MyCategory', $result );
@@ -90,7 +99,7 @@ class PFTemplateCreateTextTest extends MediaWikiIntegrationTestCase {
 	// NOTE: testCreateTextNoSMWUsesTemplateDisplay and testCreateTextNoFieldsProducesValidWikitext
 	// were removed. They tested the `if ( !defined( 'SMW_VERSION' ) )` early-return branch
 	// in createText(), which is unreachable in this CI environment (SMW always present).
-	// That branch is annotated with @codeCoverageIgnore in PF_Template.php.
+	// That branch is annotated with @codeCoverageIgnore in src/Template.php.
 
 	// -----------------------------------------------------------------------
 	// createText — fullWikiText path
@@ -108,10 +117,10 @@ class PFTemplateCreateTextTest extends MediaWikiIntegrationTestCase {
 
 	public function testCreateTextFullWikiTextSkipsEmptyFieldNames() {
 		$fields = [
-			PFTemplateField::create( '', null ),
-			PFTemplateField::create( 'ValidField', null ),
+			TemplateField::create( '', null ),
+			TemplateField::create( 'ValidField', null ),
 		];
-		$t = new PFTemplate( 'T', $fields );
+		$t = new Template( 'T', $fields );
 		$t->setFullWikiTextStatus( true );
 		$text = $t->createText();
 		$this->assertStringContainsString( '|ValidField=', $text );

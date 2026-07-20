@@ -1,16 +1,23 @@
 <?php
+
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use PFUtils;
+use PFValuesUtils;
+use SMW\DIProperty;
+use Title;
+
 /**
- * Defines a class, PFTemplateField, that represents a field in a template,
+ * Defines a class, TemplateField, that represents a field in a template,
  * including any possible SMW storage it may have. Used in both
  * creating templates and displaying user-created forms.
  *
  * @author Yaron Koren
  * @ingroup PF
  */
-
-use SMW\DIProperty;
-
-class PFTemplateField {
+class TemplateField {
 	/** @var string */
 	private $mFieldName;
 	private $mValueLabels;
@@ -43,7 +50,7 @@ class PFTemplateField {
 	public static function create(
 		$name, $label, $semanticProperty = null, $isList = null, $delimiter = null, $display = null
 	) {
-		$f = new PFTemplateField();
+		$f = new TemplateField();
 		$f->mFieldName = trim( str_replace( '\\', '', $name ) );
 		if ( $label !== null ) {
 			// Keep this field null if no value was set.
@@ -98,7 +105,7 @@ class PFTemplateField {
 	}
 
 	public static function newFromParams( $fieldName, $fieldParams ) {
-		$f = new PFTemplateField();
+		$f = new TemplateField();
 		$f->mFieldName = $fieldName;
 		foreach ( $fieldParams as $key => $value ) {
 			if ( $key == 'label' ) {
@@ -257,7 +264,7 @@ class PFTemplateField {
 			return $this->mForm;
 		}
 
-		$defaultFormForNamespace = PFFormLinker::getDefaultFormForNamespace( $this->mNamespace );
+		$defaultFormForNamespace = FormLinker::getDefaultFormForNamespace( $this->mNamespace );
 		if ( $defaultFormForNamespace !== null ) {
 			$this->mForm = $defaultFormForNamespace;
 			return $defaultFormForNamespace;
@@ -265,7 +272,7 @@ class PFTemplateField {
 
 		if ( $this->mCategory != null ) {
 			$categoryPage = Title::makeTitleSafe( NS_CATEGORY, $this->mCategory );
-			$defaultFormForCategory = PFFormLinker::getDefaultForm( $categoryPage );
+			$defaultFormForCategory = FormLinker::getDefaultForm( $categoryPage );
 			if ( $defaultFormForCategory !== null ) {
 				$this->mForm = $defaultFormForCategory;
 				return $defaultFormForCategory;

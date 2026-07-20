@@ -8,9 +8,9 @@ namespace MediaWiki\Extension\PageForms;
  * Semantic MediaWiki property types.
  *
  * This class owns the five lookup tables that were previously private fields
- * of PFFormPrinter. PFFormPrinter delegates registration and lookup to an
+ * of FormPrinter. FormPrinter delegates registration and lookup to an
  * instance of this class; the two public hook arrays ($mSemanticTypeHooks and
- * $mInputTypeHooks) remain on PFFormPrinter for backward compatibility with
+ * $mInputTypeHooks) remain on FormPrinter for backward compatibility with
  * external code that accesses them directly.
  */
 class InputTypeRegistry {
@@ -34,9 +34,9 @@ class InputTypeRegistry {
 	 * Register an input type class and populate the lookup tables for its
 	 * supported SMW property types.
 	 *
-	 * The caller (PFFormPrinter) is responsible for also updating
+	 * The caller (FormPrinter) is responsible for also updating
 	 * $mSemanticTypeHooks and $mInputTypeHooks via its own setters, since
-	 * those remain on PFFormPrinter for backward compatibility.
+	 * those remain on FormPrinter for backward compatibility.
 	 *
 	 * @param string $inputTypeClass Fully qualified class name of the input type.
 	 */

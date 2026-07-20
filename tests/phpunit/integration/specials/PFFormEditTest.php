@@ -67,7 +67,7 @@ class PFFormEditTest extends SpecialPageTestBase {
 	public function testValidFormWithInvalidTargetTitleDoesNotFatal() {
 		// A non-empty target that is not a syntactically valid MediaWiki title
 		// (e.g. "Foo[Bar") makes Title::newFromText( $page_name ) return null in
-		// PFFormPrinter::formHTML(), which previously fataled when passed to
+		// FormPrinter::formHTML(), which previously fataled when passed to
 		// PermissionManager::getPermissionErrors() (a non-nullable LinkTarget
 		// parameter). Uses a valid, non-empty form name so execution reaches
 		// formHTML() instead of short-circuiting on an invalid form.
@@ -96,7 +96,7 @@ class PFFormEditTest extends SpecialPageTestBase {
 		// PFAutoeditAPI::generateTargetName() returns unvalidated). There is no
 		// realistic end-to-end request that reaches this guard without first
 		// hitting an unrelated, unguarded Title::newFromText() call in
-		// PFFormPrinter::formHTML() (PF_FormPrinter.php:444, out of scope here) -
+		// FormPrinter::formHTML() (src/FormPrinter.php:444, out of scope here) -
 		// so this exercises the guarded expression directly.
 		$targetTitle = Title::newFromText( 'Foo[Bar' );
 		$this->assertNull( $targetTitle );

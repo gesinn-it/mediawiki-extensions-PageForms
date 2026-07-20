@@ -1,8 +1,19 @@
 <?php
 
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use CommentStore;
+use Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RenderedRevision;
 use OOUI\ButtonInputWidget;
+use Parser;
+use PFUtils;
+use RequestContext;
+use Title;
+use WikiPage;
 
 /**
  * Utilities for the display and retrieval of forms.
@@ -13,12 +24,12 @@ use OOUI\ButtonInputWidget;
  * @author Eugene Mednikov
  * @ingroup PF
  */
-class PFFormUtils {
+class FormUtils {
 
 	/**
 	 * Add a hidden input for each field in the template call that's
 	 * not handled by the form itself
-	 * @param PFTemplateInForm|null $template_in_form
+	 * @param TemplateInForm|null $template_in_form
 	 * @return string
 	 */
 	public static function unhandledFieldsHTML( $template_in_form ) {
@@ -65,8 +76,8 @@ class PFFormUtils {
 			$attr['classes'] = [ $attr['class'] ];
 		}
 
-		$text = new OOUI\FieldLayout(
-			new OOUI\TextInputWidget( $attr ),
+		$text = new \OOUI\FieldLayout(
+			new \OOUI\TextInputWidget( $attr ),
 			[
 				'align' => 'top',
 				'label' => $label
@@ -108,13 +119,13 @@ class PFFormUtils {
 		}
 
 		// We can't use OOUI\FieldLayout here, because it will make the display too wide.
-		$labelWidget = new OOUI\LabelWidget( [
-			'label' => new OOUI\HtmlSnippet( $label )
+		$labelWidget = new \OOUI\LabelWidget( [
+			'label' => new \OOUI\HtmlSnippet( $label )
 		] );
 		$text = Html::rawElement(
 			'label',
 			[ 'title' => wfMessage( 'tooltip-minoredit' )->parse() ],
-			new OOUI\CheckboxInputWidget( $attrs ) . $labelWidget
+			new \OOUI\CheckboxInputWidget( $attrs ) . $labelWidget
 		);
 		// Inline element so it is valid inside both <div> and <p> containers
 		$text = Html::rawElement( 'span', [ 'class' => 'pf-submit-option' ], $text );
@@ -167,13 +178,13 @@ class PFFormUtils {
 		}
 
 		// We can't use OOUI\FieldLayout here, because it will make the display too wide.
-		$labelWidget = new OOUI\LabelWidget( [
-			'label' => new OOUI\HtmlSnippet( $label )
+		$labelWidget = new \OOUI\LabelWidget( [
+			'label' => new \OOUI\HtmlSnippet( $label )
 		] );
 		$text = Html::rawElement(
 			'label',
 			[ 'title' => wfMessage( 'tooltip-watch' )->parse() ],
-			new OOUI\CheckboxInputWidget( $attrs ) . $labelWidget
+			new \OOUI\CheckboxInputWidget( $attrs ) . $labelWidget
 		);
 		// Inline element so it is valid inside both <div> and <p> containers
 		$text = Html::rawElement( 'span', [ 'class' => 'pf-submit-option' ], $text );
@@ -317,7 +328,7 @@ class PFFormUtils {
 			$attr['classes'][] = $attr['class'];
 		}
 
-		return "\t\t" . new OOUI\ButtonWidget( $attr ) . "\n";
+		return "\t\t" . new \OOUI\ButtonWidget( $attr ) . "\n";
 	}
 
 	public static function runQueryButtonHTML( $is_disabled = false, $label = null, $attr = [] ) {
@@ -336,7 +347,7 @@ class PFFormUtils {
 			'flags' => [ 'primary', 'progressive' ],
 			'icon' => 'search'
 		] );
-		return new OOUI\FieldLayout( $buttonHTML );
+		return new \OOUI\FieldLayout( $buttonHTML );
 	}
 
 	/**
@@ -369,14 +380,14 @@ class PFFormUtils {
 		);
 	}
 
-	/** @deprecated since PageForms 6.x — use PFFormCache::getPreloadedText() instead. */
+	/** @deprecated since PageForms 6.x — use FormCache::getPreloadedText() instead. */
 	public static function getPreloadedText( $preload ) {
-		return PFFormCache::getPreloadedText( $preload );
+		return FormCache::getPreloadedText( $preload );
 	}
 
 	/**
 	 * Used by 'RunQuery' page
-	 * @return OOUI\FieldLayout
+	 * @return \OOUI\FieldLayout
 	 */
 	public static function queryFormBottom() {
 		return self::runQueryButtonHTML( false );
@@ -434,29 +445,29 @@ class PFFormUtils {
 		self::$globalVarsForSpreadsheetSet = false;
 	}
 
-	/** @deprecated since PageForms 6.x — use PFFormCache::getFormDefinition() instead. */
+	/** @deprecated since PageForms 6.x — use FormCache::getFormDefinition() instead. */
 	public static function getFormDefinition( Parser $parser, $form_def = null, $form_id = null ) {
-		return PFFormCache::getFormDefinition( $parser, $form_def, $form_id );
+		return FormCache::getFormDefinition( $parser, $form_def, $form_id );
 	}
 
-	/** @deprecated since PageForms 6.x — use PFFormCache::purgeCache() instead. */
+	/** @deprecated since PageForms 6.x — use FormCache::purgeCache() instead. */
 	public static function purgeCache( WikiPage $wikipage ) {
-		return PFFormCache::purgeCache( $wikipage );
+		return FormCache::purgeCache( $wikipage );
 	}
 
-	/** @deprecated since PageForms 6.x — use PFFormCache::purgeCacheOnSave() instead. */
+	/** @deprecated since PageForms 6.x — use FormCache::purgeCacheOnSave() instead. */
 	public static function purgeCacheOnSave( RenderedRevision $renderedRevision ) {
-		return PFFormCache::purgeCacheOnSave( $renderedRevision );
+		return FormCache::purgeCacheOnSave( $renderedRevision );
 	}
 
-	/** @deprecated since PageForms 6.x — use PFFormCache::getFormCache() instead. */
+	/** @deprecated since PageForms 6.x — use FormCache::getFormCache() instead. */
 	public static function getFormCache() {
-		return PFFormCache::getFormCache();
+		return FormCache::getFormCache();
 	}
 
-	/** @deprecated since PageForms 6.x — use PFFormCache::getCacheKey() instead. */
+	/** @deprecated since PageForms 6.x — use FormCache::getCacheKey() instead. */
 	public static function getCacheKey( $formId, $parser = null ) {
-		return PFFormCache::getCacheKey( $formId, $parser );
+		return FormCache::getCacheKey( $formId, $parser );
 	}
 
 	/**
@@ -527,7 +538,7 @@ class PFFormUtils {
 	 * is an array, then it might be from a checkbox or date input — in that
 	 * case, convert it into a string.
 	 *
-	 * Extracted from PFFormPrinter, where a forwarding alias is kept for
+	 * Extracted from FormPrinter, where a forwarding alias is kept for
 	 * backward compatibility with external callers.
 	 *
 	 * @param array $value
@@ -627,7 +638,7 @@ class PFFormUtils {
 	/**
 	 * Returns HTML for a loading overlay (spinner + background mask).
 	 *
-	 * Extracted from PFFormPrinter, where a forwarding alias is kept for
+	 * Extracted from FormPrinter, where a forwarding alias is kept for
 	 * backward compatibility with external callers.
 	 *
 	 * @return string
@@ -647,7 +658,7 @@ class PFFormUtils {
 	/**
 	 * Returns a string representing the current date (and optionally time).
 	 *
-	 * Extracted from PFFormPrinter, where a forwarding alias is kept for
+	 * Extracted from FormPrinter, where a forwarding alias is kept for
 	 * backward compatibility with external callers.
 	 *
 	 * @param bool $includeTime Whether to append the current time.
@@ -705,7 +716,7 @@ class PFFormUtils {
 	/**
 	 * Generates a random UUID v4 string.
 	 *
-	 * Extracted from PFFormPrinter (was private), now public so it can be
+	 * Extracted from FormPrinter (was private), now public so it can be
 	 * tested and reused outside the form rendering pipeline.
 	 *
 	 * @return string

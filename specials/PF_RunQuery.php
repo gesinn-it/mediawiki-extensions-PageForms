@@ -195,7 +195,7 @@ END;
 		PFUtils::addFormRLModules( $embedded ? PFUtils::getParser() : null );
 		if ( !$embedded ) {
 			// Use the ParserOutput returned by formHTML() rather than the global
-			// parser's, since PFFormField::clearState() resets the latter during
+			// parser's, since FormField::clearState() resets the latter during
 			// field rendering and drops ResourceLoader modules registered by
 			// parser tag hooks (e.g. ext.headertabs from <headertabs />).
 			if ( $formParserOutput ) {

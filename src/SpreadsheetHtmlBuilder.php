@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use Html;
-use PFFormUtils;
 
 /**
  * Assembles the HTML fragments for spreadsheet/table display mode within
@@ -17,13 +16,13 @@ class SpreadsheetHtmlBuilder {
 	 * Creates the HTML for the inner table used in display=table mode for
 	 * every instance of a template.
 	 *
-	 * @param \PFTemplateInForm $tif
+	 * @param TemplateInForm $tif
 	 * @param int $instanceNum
 	 * @param callable $fieldHtmlCallback Signature: ( $formField, $curValue ): string
 	 * @return string
 	 */
 	public function tableHTML(
-		\PFTemplateInForm $tif, int $instanceNum, callable $fieldHtmlCallback, ?FormCounters $counters = null
+		TemplateInForm $tif, int $instanceNum, callable $fieldHtmlCallback, ?FormCounters $counters = null
 	): string {
 		global $wgPageFormsFieldNum;
 
@@ -121,14 +120,14 @@ class SpreadsheetHtmlBuilder {
 
 	/**
 	 * Creates the jspreadsheet container div and populates the global
-	 * variables consumed by PFFormUtils::setGlobalVarsForSpreadsheet().
+	 * variables consumed by FormUtils::setGlobalVarsForSpreadsheet().
 	 *
-	 * @param \PFTemplateInForm $tif
+	 * @param TemplateInForm $tif
 	 * @param \OutputPage $out
 	 * @param string $scriptPath
 	 * @return string|null HTML string, or null when the template has no fields
 	 */
-	public function spreadsheetHTML( \PFTemplateInForm $tif, \OutputPage $out, string $scriptPath ): ?string {
+	public function spreadsheetHTML( TemplateInForm $tif, \OutputPage $out, string $scriptPath ): ?string {
 		global $wgPageFormsGridValues, $wgPageFormsGridParams;
 
 		if ( count( $tif->getFields() ) === 0 ) {
@@ -213,7 +212,7 @@ class SpreadsheetHtmlBuilder {
 		$wgPageFormsGridParams[$templateName] = $gridParams;
 		$wgPageFormsGridValues[$templateName] = $tif->getGridValues();
 
-		PFFormUtils::setGlobalVarsForSpreadsheet();
+		FormUtils::setGlobalVarsForSpreadsheet();
 
 		return $text;
 	}

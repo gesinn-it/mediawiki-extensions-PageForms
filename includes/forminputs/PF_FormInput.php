@@ -92,7 +92,7 @@ abstract class PFFormInput {
 	 * Returns the name of the input type this class handles.
 	 *
 	 * This is the name to be used in the field definition for the "input type"
-	 * parameter. Used in PFFormPrinter::registerInputType().
+	 * parameter. Used in FormPrinter::registerInputType().
 	 *
 	 * @return string The name of the input type this class handles.
 	 */

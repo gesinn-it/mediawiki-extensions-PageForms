@@ -8,6 +8,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormLinker;
+
 /**
  * @ingroup PFSpecialPages
  */
@@ -169,7 +171,7 @@ END;
 			// Is this logic necessary? Or should we just
 			// out-guess the user and always send to the
 			// standard form-edit page, with the 'correct' form?
-			$default_forms = PFFormLinker::getDefaultFormsForPage( $page_title );
+			$default_forms = FormLinker::getDefaultFormsForPage( $page_title );
 			if ( count( $default_forms ) > 0 ) {
 				$default_form_name = $default_forms[0];
 			} else {

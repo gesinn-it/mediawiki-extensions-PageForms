@@ -1,20 +1,29 @@
 <?php
 
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms\Tests\Integration;
+
+use MediaWiki\Extension\PageForms\FormField;
+use MediaWiki\Extension\PageForms\TemplateField;
+use MediaWikiIntegrationTestCase;
+use ReflectionClass;
+
 /**
- * Integration tests for PFFormField value-mapping methods that require a real
+ * Integration tests for FormField value-mapping methods that require a real
  * wiki DB and parser (setValuesWithMappingTemplate).
  *
- * Separated from PFFormFieldTest (which extends PHPUnit\Framework\TestCase) so
+ * Separated from FormFieldTest (which extends PHPUnit\Framework\TestCase) so
  * that DB access is contained to this file and does not slow down the pure
  * unit tests.
  *
- * @covers PFFormField
+ * @covers \MediaWiki\Extension\PageForms\FormField
  *
  * @group PF
  * @group Database
  * @group medium
  */
-class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
+class FormFieldMappingTest extends MediaWikiIntegrationTestCase {
 
 	// -------------------------------------------------------------------------
 	// setValuesWithMappingTemplate
@@ -29,7 +38,7 @@ class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	 * sufficient to verify that setValuesWithMappingTemplate() correctly stores
 	 * the template's return value as the label for each key.
 	 *
-	 * @covers PFFormField::setValuesWithMappingTemplate
+	 * @covers \MediaWiki\Extension\PageForms\FormField::setValuesWithMappingTemplate
 	 */
 	public function testSetValuesWithMappingTemplateTranslatesKnownValues(): void {
 		$templateName = 'PFTestMappingTpl01';
@@ -52,7 +61,7 @@ class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	 * When the mapping template exists but returns an empty string for a value,
 	 * the value is used as its own label (identity fallback).
 	 *
-	 * @covers PFFormField::setValuesWithMappingTemplate
+	 * @covers \MediaWiki\Extension\PageForms\FormField::setValuesWithMappingTemplate
 	 */
 	public function testSetValuesWithMappingTemplateEmptyLabelFallsBackToValue(): void {
 		$templateName = 'PFTestMappingTplEmpty01';
@@ -75,7 +84,7 @@ class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	 * When the mapping template does not exist, every value must be mapped to
 	 * itself (identity fallback — no parse call is made).
 	 *
-	 * @covers PFFormField::setValuesWithMappingTemplate
+	 * @covers \MediaWiki\Extension\PageForms\FormField::setValuesWithMappingTemplate
 	 */
 	public function testSetValuesWithMappingTemplateNonexistentTemplateUsesIdentity(): void {
 		$templateName = 'PFTestMappingTplNonexistent01';
@@ -95,11 +104,11 @@ class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	 * must translate a storage key to its display label.
 	 *
 	 * This is the integration counterpart to the pure-unit tests in
-	 * PFFormFieldTest — it proves the full mapping pipeline works end-to-end
+	 * FormFieldTest — it proves the full mapping pipeline works end-to-end
 	 * with a real template in the wiki.
 	 *
-	 * @covers PFFormField::setValuesWithMappingTemplate
-	 * @covers PFFormField::valueStringToLabels
+	 * @covers \MediaWiki\Extension\PageForms\FormField::setValuesWithMappingTemplate
+	 * @covers \MediaWiki\Extension\PageForms\FormField::valueStringToLabels
 	 */
 	public function testSetValuesWithMappingTemplateRoundTripValueToLabel(): void {
 		$templateName = 'PFTestMappingTplRoundTrip01';
@@ -119,8 +128,8 @@ class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	 * Full round-trip: labelToValue after setValuesWithMappingTemplate
 	 * must translate a display label back to its storage key.
 	 *
-	 * @covers PFFormField::setValuesWithMappingTemplate
-	 * @covers PFFormField::labelToValue
+	 * @covers \MediaWiki\Extension\PageForms\FormField::setValuesWithMappingTemplate
+	 * @covers \MediaWiki\Extension\PageForms\FormField::labelToValue
 	 */
 	public function testSetValuesWithMappingTemplateRoundTripLabelToValue(): void {
 		$templateName = 'PFTestMappingTplRoundTripRev01';
@@ -144,8 +153,8 @@ class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	 * This proves that bypassing the HTML round-trip (reading 'DE' from wikitext
 	 * instead of the label from HTML) will NOT corrupt the save path.
 	 *
-	 * @covers PFFormField::setValuesWithMappingTemplate
-	 * @covers PFFormField::labelToValue
+	 * @covers \MediaWiki\Extension\PageForms\FormField::setValuesWithMappingTemplate
+	 * @covers \MediaWiki\Extension\PageForms\FormField::labelToValue
 	 */
 	public function testSetValuesWithMappingTemplateRawKeyPassesThroughLabelToValue(): void {
 		$templateName = 'PFTestMappingTplRawKey01';
@@ -168,7 +177,7 @@ class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @covers PFFormField::setValuesWithMappingProperty
+	 * @covers \MediaWiki\Extension\PageForms\FormField::setValuesWithMappingProperty
 	 */
 	public function testSetValuesWithMappingPropertyMapsLabel(): void {
 		if ( !class_exists( '\SMW\Store' ) ) {
@@ -188,7 +197,7 @@ class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * @covers PFFormField::setValuesWithMappingProperty
+	 * @covers \MediaWiki\Extension\PageForms\FormField::setValuesWithMappingProperty
 	 */
 	public function testSetValuesWithMappingPropertyNullStoreReturnsEarly(): void {
 		$field = $this->makeFieldForMappingProperty( 'MappingProp', [ 'PageA' => 'PageA' ] );
@@ -203,21 +212,21 @@ class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Build a PFFormField configured for setValuesWithMappingTemplate.
+	 * Build a FormField configured for setValuesWithMappingTemplate.
 	 *
 	 * @param string $templateName Name of the mapping template (without Template: prefix)
 	 * @param string[] $values Numerically-indexed list of storage values
-	 * @return PFFormField
+	 * @return FormField
 	 */
-	private function makeFieldForMappingTemplate( string $templateName, array $values ): PFFormField {
-		$templateField = $this->createMock( PFTemplateField::class );
+	private function makeFieldForMappingTemplate( string $templateName, array $values ): FormField {
+		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getPossibleValues' )->willReturn( null );
 		$templateField->method( 'getDelimiter' )->willReturn( '' );
 
-		$field = PFFormField::create( $templateField );
+		$field = FormField::create( $templateField );
 		$field->setFieldArg( 'mapping template', $templateName );
 
-		$ref = new ReflectionClass( PFFormField::class );
+		$ref = new ReflectionClass( FormField::class );
 		$prop = $ref->getProperty( 'mPossibleValues' );
 		$prop->setAccessible( true );
 		$prop->setValue( $field, $values );
@@ -226,21 +235,21 @@ class PFFormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * Build a PFFormField configured for setValuesWithMappingProperty.
+	 * Build a FormField configured for setValuesWithMappingProperty.
 	 *
 	 * @param string $propertyName Name of the mapping property
 	 * @param array $values Key→value map to set as mPossibleValues
-	 * @return PFFormField
+	 * @return FormField
 	 */
-	private function makeFieldForMappingProperty( string $propertyName, array $values ): PFFormField {
-		$templateField = $this->createMock( PFTemplateField::class );
+	private function makeFieldForMappingProperty( string $propertyName, array $values ): FormField {
+		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getPossibleValues' )->willReturn( null );
 		$templateField->method( 'getDelimiter' )->willReturn( '' );
 
-		$field = PFFormField::create( $templateField );
+		$field = FormField::create( $templateField );
 		$field->setFieldArg( 'mapping property', $propertyName );
 
-		$ref = new ReflectionClass( PFFormField::class );
+		$ref = new ReflectionClass( FormField::class );
 		$prop = $ref->getProperty( 'mPossibleValues' );
 		$prop->setAccessible( true );
 		$prop->setValue( $field, $values );

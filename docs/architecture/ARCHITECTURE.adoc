@@ -32,7 +32,7 @@ Domain Model
         ├─────────────────────────────┐
         ▼                             ▼
 Interactive Form             PF_AutoeditAPI
-(PFFormPrinter + JS)         (API / #autoedit)
+(FormPrinter + JS)           (API / #autoedit)
         │                             │
         └──────────────┬──────────────┘
                        ▼
@@ -46,13 +46,13 @@ Each stage is handled by specific components within the extension.
 
 At the *Domain Model* stage the pipeline forks into two paths:
 
-* *Interactive path* — `PFFormPrinter` renders the form as HTML, ResourceLoader
+* *Interactive path* — `FormPrinter` renders the form as HTML, ResourceLoader
   modules initialize client-side widgets, and the user submits the form via the
   browser.
 * *API path* — `PF_AutoeditAPI` (invoked directly via the MediaWiki API or
   through the `#autoedit` / `#autoeditrating` parser functions) applies field
   values programmatically, without any browser interaction. It reuses
-  `PFFormPrinter` internally to resolve default values and existing page
+  `FormPrinter` internally to resolve default values and existing page
   content, then proceeds directly to submission processing.
 
 == Core Domain Model
@@ -62,13 +62,13 @@ Form definitions are parsed into a set of PHP objects representing the structure
 The core domain model consists of the following classes.
 
 ----
-PFForm
-PFTemplateInForm
-PFFormField
-PFTemplateField
+Form
+TemplateInForm
+FormField
+TemplateField
 ----
 
-=== PFForm
+=== Form
 
 Represents the complete form definition.
 
@@ -78,7 +78,7 @@ Responsibilities:
 * managing templates used within the form
 * coordinating rendering
 
-=== PFTemplateInForm
+=== TemplateInForm
 
 Represents a template used within a form.
 
@@ -88,7 +88,7 @@ Responsibilities:
 * controlling template multiplicity
 * managing template-level configuration
 
-=== PFFormField
+=== FormField
 
 Represents a field defined in the form definition.
 
@@ -102,7 +102,7 @@ Responsibilities include:
 
 This class acts as the bridge between the form definition and the runtime input widget.
 
-=== PFTemplateField
+=== TemplateField
 
 Represents a field defined in the underlying template.
 
@@ -121,13 +121,13 @@ When a form page is accessed, the following processing steps occur.
 Form definition page
         │
         ▼
-PFForm parses form definition
+Form parses form definition
         │
         ▼
-PFTemplateInForm objects created
+TemplateInForm objects created
         │
         ▼
-PFFormField objects created
+FormField objects created
         │
         ▼
 Form rendering begins
@@ -140,7 +140,7 @@ The parsing stage extracts field configuration from the form markup and transfor
 Rendering of forms is handled primarily by:
 
 ----
-PFFormPrinter
+FormPrinter
 ----
 
 Responsibilities include:
@@ -169,7 +169,7 @@ Entry points:
 Behavior:
 
 * Accepts form name, target page, and field values as request parameters.
-* Internally invokes `PFFormPrinter` to load the form definition and resolve
+* Internally invokes `FormPrinter` to load the form definition and resolve
   default values from existing page content.
 * Bypasses the browser UI entirely — no HTML form is sent to the client.
 * Applies the submitted field values, constructs wiki text, and saves the page

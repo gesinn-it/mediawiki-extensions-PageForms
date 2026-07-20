@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -60,7 +61,7 @@ class PFFormEditAction extends Action {
 			return true;
 		}
 
-		$form_names = PFFormLinker::getDefaultFormsForPage( $title );
+		$form_names = FormLinker::getDefaultFormsForPage( $title );
 		if ( count( $form_names ) == 0 ) {
 			return true;
 		}
@@ -356,7 +357,7 @@ class PFFormEditAction extends Action {
 	public static function displayForm( $action, $article ) {
 		$output = $action->getOutput();
 		$title = $article->getTitle();
-		$form_names = PFFormLinker::getDefaultFormsForPage( $title );
+		$form_names = FormLinker::getDefaultFormsForPage( $title );
 		if ( count( $form_names ) == 0 ) {
 			// If no form is set, display an interface to let the
 			// user choose out of all the forms defined on this wiki

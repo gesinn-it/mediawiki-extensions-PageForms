@@ -1,12 +1,19 @@
 <?php
 
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use PFUtils;
+use Title;
+
 /**
  * Represents a user-defined form.
  *
  * @author Yaron Koren
  * @ingroup PF
  */
-class PFForm {
+class Form {
 	private $mFormName;
 	private $mPageNameFormula;
 	private $mCreateTitle;
@@ -15,7 +22,7 @@ class PFForm {
 	private $mItems;
 
 	public static function create( $formName, $items ) {
-		$form = new PFForm();
+		$form = new Form();
 		$form->mFormName = ucfirst( str_replace( '_', ' ', $formName ?? '' ) );
 		$form->mAssociatedCategory = null;
 		$form->mItems = $items;

@@ -5,6 +5,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormPrinter;
+
 /**
  * This class represents the RegExp input.
  *
@@ -36,7 +38,7 @@ class PFRegExpInput extends PFFormInput {
 		// runs before any form input can be constructed; the null case can't
 		// happen in practice, but PFHooks::onPageSaveComplete() null-checks the
 		// same global, so Phan infers a nullable type for it across the codebase.
-		'@phan-var PFFormPrinter $wgPageFormsFormPrinter';
+		'@phan-var FormPrinter $wgPageFormsFormPrinter';
 
 		parent::__construct( $input_number, $cur_value, $input_name, $disabled, $other_args );
 

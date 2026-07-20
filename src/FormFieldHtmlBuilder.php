@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use Html;
-use PFFormField;
 use PFRegExpInput;
 use PFUtils;
 
@@ -28,19 +27,19 @@ class FormFieldHtmlBuilder {
 	/**
 	 * Returns the HTML for a single form field.
 	 *
-	 * @param PFFormField $form_field
+	 * @param FormField $form_field
 	 * @param string|null $cur_value
 	 * @param FormCounters|null $counters
 	 * @return string
 	 */
 	public function formFieldHTML(
-		PFFormField $form_field, ?string $cur_value, ?FormCounters $counters = null
+		FormField $form_field, ?string $cur_value, ?FormCounters $counters = null
 	): string {
 		global $wgPageFormsFieldNum;
 		$fieldNum = $counters !== null ? $counters->fieldNum : $wgPageFormsFieldNum;
 
 		// Also get the actual field, with all the semantic information
-		// (type is PFTemplateField, instead of PFFormField)
+		// (type is TemplateField, instead of FormField)
 		$template_field = $form_field->getTemplateField();
 		$class_name = null;
 		$text = '';
@@ -120,13 +119,13 @@ class FormFieldHtmlBuilder {
 	 *
 	 * @param mixed &$template
 	 * @param mixed &$tif
-	 * @param PFFormField &$form_field
+	 * @param FormField &$form_field
 	 * @param string|null &$cur_value
 	 */
 	public function createFormFieldTranslateTag(
 		&$template,
 		&$tif,
-		PFFormField &$form_field,
+		FormField &$form_field,
 		?string &$cur_value
 	): void {
 		if ( $cur_value === null || PFUtils::isTranslateEnabled()
@@ -160,10 +159,10 @@ class FormFieldHtmlBuilder {
 	/**
 	 * For translatable fields, appends a hidden input containing the translate tags.
 	 *
-	 * @param PFFormField $form_field
+	 * @param FormField $form_field
 	 * @param string &$text
 	 */
-	private function addTranslatableInput( PFFormField $form_field, string &$text ): void {
+	private function addTranslatableInput( FormField $form_field, string &$text ): void {
 		if ( PFUtils::isTranslateEnabled() || !$form_field->hasFieldArg( 'translatable' )
 			|| !$form_field->getFieldArg( 'translatable' ) ) {
 			return;

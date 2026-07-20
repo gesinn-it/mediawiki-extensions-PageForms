@@ -1,13 +1,17 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormField;
+use MediaWiki\Extension\PageForms\Template;
+use MediaWiki\Extension\PageForms\TemplateField;
+use MediaWiki\Extension\PageForms\TemplateInForm;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers PFFormField
+ * @covers \MediaWiki\Extension\PageForms\FormField
  *
  * @author gesinn-it-ilm
  */
-class PFFormFieldTest extends TestCase {
+class FormFieldTest extends TestCase {
 
 	private $mockTemplate;
 	private $mockTemplateInForm;
@@ -40,21 +44,21 @@ class PFFormFieldTest extends TestCase {
 		$this->f->mFieldArgs = [];
 
 		// Mocking the Template object
-		$this->mockTemplate = $this->createMock( PFTemplate::class );
+		$this->mockTemplate = $this->createMock( Template::class );
 
 		// Mocking TemplateInForm object
-		$this->mockTemplateInForm = $this->createMock( PFTemplateInForm::class );
+		$this->mockTemplateInForm = $this->createMock( TemplateInForm::class );
 
-		// Mock the PFTemplateField class
-		$this->mockTemplateField = $this->createMock( PFTemplateField::class );
+		// Mock the TemplateField class
+		$this->mockTemplateField = $this->createMock( TemplateField::class );
 	}
 
 	public function testCreateFormFieldWithEmptyValues() {
-		// Create the PFFormField object
-		$formField = PFFormField::create( $this->mockTemplateField );
+		// Create the FormField object
+		$formField = FormField::create( $this->mockTemplateField );
 
-		// Verify the object is an instance of PFFormField
-		$this->assertInstanceOf( PFFormField::class, $formField );
+		// Verify the object is an instance of FormField
+		$this->assertInstanceOf( FormField::class, $formField );
 		$this->assertSame( $this->mockTemplateField, $formField->template_field );
 
 		$this->assertNull( $formField->getInputType() );
@@ -75,16 +79,16 @@ class PFFormFieldTest extends TestCase {
 		$this->mockTemplateField->method( 'getDelimiter' )->willReturn( ';' );
 		$this->mockTemplateField->method( 'getDisplay' )->willReturn( 'MockedDisplay' );
 
-		// Create the PFFormField object
-		$formField = PFFormField::create( $this->mockTemplateField );
+		// Create the FormField object
+		$formField = FormField::create( $this->mockTemplateField );
 
-		// Verify the object is an instance of PFFormField
-		$this->assertInstanceOf( PFFormField::class, $formField );
+		// Verify the object is an instance of FormField
+		$this->assertInstanceOf( FormField::class, $formField );
 
 		// Assert that the template field is set correctly
 		$this->assertSame( $this->mockTemplateField, $formField->template_field );
 
-		// Assert that properties were set correctly based on the mocked PFTemplateField
+		// Assert that properties were set correctly based on the mocked TemplateField
 		$this->assertSame( 'MockedFieldName', $formField->template_field->getFieldName() );
 		$this->assertSame( $this->mockTemplateField, $formField->getTemplateField() );
 		$this->assertSame( 'MockedSemanticProperty', $formField->template_field->getSemanticProperty() );
@@ -93,19 +97,19 @@ class PFFormFieldTest extends TestCase {
 	}
 
 	public function testDelimiterHandling() {
-		// Mock the PFTemplateField class
-		$this->mockTemplateFieldOne = $this->createMock( PFTemplateField::class );
-		$this->mockTemplateFieldTwo = $this->createMock( PFTemplateField::class );
+		// Mock the TemplateField class
+		$this->mockTemplateFieldOne = $this->createMock( TemplateField::class );
+		$this->mockTemplateFieldTwo = $this->createMock( TemplateField::class );
 		$this->mockTemplateFieldOne->method( 'getDelimiter' )->willReturn( ',' );
 		$this->mockTemplateFieldTwo->method( 'getDelimiter' )->willReturn( ';' );
 
-		$this->mockTemplateFieldThree = $this->createMock( PFTemplateField::class );
+		$this->mockTemplateFieldThree = $this->createMock( TemplateField::class );
 		$this->mockTemplateFieldThree->method( 'getDelimiter' )->willReturn( '' );
 
-		// Create the PFFormField objects
-		$fieldOne = PFFormField::create( $this->mockTemplateFieldOne );
-		$fieldTwo = PFFormField::create( $this->mockTemplateFieldTwo );
-		$fieldThree = PFFormField::create( $this->mockTemplateFieldThree );
+		// Create the FormField objects
+		$fieldOne = FormField::create( $this->mockTemplateFieldOne );
+		$fieldTwo = FormField::create( $this->mockTemplateFieldTwo );
+		$fieldThree = FormField::create( $this->mockTemplateFieldThree );
 
 		$this->assertEquals( ',', $fieldOne->template_field->getDelimiter() );
 		$this->assertEquals( ';', $fieldTwo->template_field->getDelimiter() );
@@ -127,7 +131,7 @@ class PFFormFieldTest extends TestCase {
 		$tagComponents = [ 'somePrefix', 'fieldName' ];
 
 		// Mock the template to return a field
-		$mockField = $this->createMock( PFTemplateField::class );
+		$mockField = $this->createMock( TemplateField::class );
 		$this->mockTemplate->method( 'getFieldNamed' )->willReturn( $mockField );
 
 		// Mock the template_in_form to return a template name
@@ -135,12 +139,12 @@ class PFFormFieldTest extends TestCase {
 		$this->mockTemplateInForm->method( 'strictParsing' )->willReturn( false );
 
 		// Call the method under test
-		$formField = PFFormField::newFromFormFieldTag(
+		$formField = FormField::newFromFormFieldTag(
 			$tagComponents, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
 		);
 
 		// Assert that the template field was set
-		$this->assertInstanceOf( PFTemplateField::class, $formField->template_field );
+		$this->assertInstanceOf( TemplateField::class, $formField->template_field );
 		$this->assertSame( $mockField, $formField->template_field );
 	}
 
@@ -157,12 +161,12 @@ class PFFormFieldTest extends TestCase {
 
 		// Call the method under test - with strict parsing enabled and no matching
 		// field found, newFromFormFieldTag() must return early with a fresh,
-		// empty PFTemplateField and mIsList = false (src/PF_FormField.php:232-239).
-		$formField = PFFormField::newFromFormFieldTag(
+		// empty TemplateField and mIsList = false (src/FormField.php:232-239).
+		$formField = FormField::newFromFormFieldTag(
 			$tagComponents, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
 		);
 
-		$this->assertInstanceOf( PFTemplateField::class, $formField->template_field );
+		$this->assertInstanceOf( TemplateField::class, $formField->template_field );
 		$this->assertNotSame( $this->mockTemplateField, $formField->template_field );
 		$this->assertNull( $formField->template_field->isList() );
 		$this->assertFalse( $formField->isList() );
@@ -172,7 +176,7 @@ class PFFormFieldTest extends TestCase {
 		$tag_components = [ '', 'test_field', 'mandatory' ];
 
 		// Call the method
-		$formField = PFFormField::newFromFormFieldTag(
+		$formField = FormField::newFromFormFieldTag(
 			$tag_components,
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
@@ -187,7 +191,7 @@ class PFFormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'hidden' ];
 
 		// Call the method
-		$formField = PFFormField::newFromFormFieldTag(
+		$formField = FormField::newFromFormFieldTag(
 			$tag_components,
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
@@ -202,7 +206,7 @@ class PFFormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'restricted' ];
 
 		// Call the method
-		$formField = PFFormField::newFromFormFieldTag(
+		$formField = FormField::newFromFormFieldTag(
 			$tag_components,
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
@@ -217,7 +221,7 @@ class PFFormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'autocapitalize=uppercase' ];
 
 		// Call the method
-		$formField = PFFormField::newFromFormFieldTag(
+		$formField = FormField::newFromFormFieldTag(
 			$tag_components,
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
@@ -232,7 +236,7 @@ class PFFormFieldTest extends TestCase {
 		$tag_components = [ '', 'test_field', 'property=TestProperty' ];
 
 		// Call the method
-		$formField = PFFormField::newFromFormFieldTag(
+		$formField = FormField::newFromFormFieldTag(
 			$tag_components,
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
@@ -255,7 +259,7 @@ class PFFormFieldTest extends TestCase {
 	 * otherwise mPossibleValues is still [] at that point and mapping is
 	 * skipped entirely. Simulate this with a mock whose getPossibleValues()
 	 * only returns values once setSemanticProperty() has been called, exactly
-	 * like the real PFTemplateField.
+	 * like the real TemplateField.
 	 */
 	public function testPropertyOverrideValuesAreAvailableForMappingTemplate() {
 		if ( !defined( 'SMW_VERSION' ) ) {
@@ -284,7 +288,7 @@ class PFFormFieldTest extends TestCase {
 		$this->mockTemplateInForm->method( 'strictParsing' )->willReturn( false );
 		$this->mockTemplateInForm->method( 'allowsMultiple' )->willReturn( false );
 
-		$formField = PFFormField::newFromFormFieldTag(
+		$formField = FormField::newFromFormFieldTag(
 			$tagComponents,
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
@@ -308,7 +312,7 @@ class PFFormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'unique' ];
 
 		// Call the method
-		$formField = PFFormField::newFromFormFieldTag(
+		$formField = FormField::newFromFormFieldTag(
 			$tag_components,
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
@@ -323,7 +327,7 @@ class PFFormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'label=TestField' ];
 
 		// Call the method
-		$formField = PFFormField::newFromFormFieldTag(
+		$formField = FormField::newFromFormFieldTag(
 			$tag_components,
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
@@ -338,7 +342,7 @@ class PFFormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'mapping template' ];
 
 		// Call the method
-		$formField = PFFormField::newFromFormFieldTag(
+		$formField = FormField::newFromFormFieldTag(
 			$tag_components,
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
@@ -353,7 +357,7 @@ class PFFormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'mapping property' ];
 
 		// Call the method
-		$formField = PFFormField::newFromFormFieldTag(
+		$formField = FormField::newFromFormFieldTag(
 			$tag_components,
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
@@ -365,8 +369,8 @@ class PFFormFieldTest extends TestCase {
 	}
 
 	public function testSetMappedValuesTemplate() {
-		// Create the PFFormField object
-		$formField = PFFormField::create( $this->mockTemplateField );
+		// Create the FormField object
+		$formField = FormField::create( $this->mockTemplateField );
 
 		// Set the mapping type to 'template'
 		$formField->setFieldArg( 'mapping template', 'TestTemplate' );
@@ -383,8 +387,8 @@ class PFFormFieldTest extends TestCase {
 	}
 
 	public function testSetMappedValuesProperty() {
-		// Create the PFFormField object
-		$formField = PFFormField::create( $this->mockTemplateField );
+		// Create the FormField object
+		$formField = FormField::create( $this->mockTemplateField );
 
 		// Set the mapping type to 'property'
 		$formField->setFieldArg( 'mapping property', 'TestProp' );
@@ -401,8 +405,8 @@ class PFFormFieldTest extends TestCase {
 	}
 
 	public function testValueStringToLabels() {
-		// Create the PFFormField object
-		$formField = PFFormField::create( $this->mockTemplateField );
+		// Create the FormField object
+		$formField = FormField::create( $this->mockTemplateField );
 		$formField->setPossibleValues( [ 'val1' => 'Label 1', 'val2' => 'Label 2' ] );
 
 		// Empty string
@@ -442,8 +446,8 @@ class PFFormFieldTest extends TestCase {
 		global $wgPageFormsFieldNum;
 		$wgPageFormsFieldNum = 0;
 
-		// Create the PFFormField object
-		$field = PFFormField::create( $this->mockTemplateField );
+		// Create the FormField object
+		$field = FormField::create( $this->mockTemplateField );
 
 		// Mock values for $field
 		$field->setHoldsTemplate( true );
@@ -480,8 +484,8 @@ class PFFormFieldTest extends TestCase {
 		// Mock TemplateField
 		$this->mockTemplateField->method( 'getFieldName' )->willReturn( 'TestField' );
 
-		// Create the PFFormField object
-		$field = PFFormField::create( $this->mockTemplateField );
+		// Create the FormField object
+		$field = FormField::create( $this->mockTemplateField );
 		$field->setFieldArg( 'delimiter', ',' );
 		$field->setFieldArg( 'translatable', true );
 
@@ -505,8 +509,8 @@ class PFFormFieldTest extends TestCase {
 		// Mock TemplateField
 		$this->mockTemplateField->method( 'getFieldName' )->willReturn( 'TestField' );
 
-		// Create the PFFormField object
-		$field = PFFormField::create( $this->mockTemplateField );
+		// Create the FormField object
+		$field = FormField::create( $this->mockTemplateField );
 		$field->setFieldArg( 'delimiter', ',' );
 		$field->setFieldArg( 'translatable', true );
 
@@ -527,8 +531,8 @@ class PFFormFieldTest extends TestCase {
 		// Mock TemplateField
 		$this->mockTemplateField->method( 'getFieldName' )->willReturn( 'TestField' );
 
-		// Create the PFFormField object
-		$field = PFFormField::create( $this->mockTemplateField );
+		// Create the FormField object
+		$field = FormField::create( $this->mockTemplateField );
 		$field->setFieldArg( 'delimiter', ',' );
 		$field->setFieldArg( 'translatable', true );
 
@@ -551,8 +555,8 @@ class PFFormFieldTest extends TestCase {
 		$this->mockTemplateField->method( 'getLabel' )->willReturn( 'Mock Label' );
 		$this->mockTemplateField->method( 'getFieldName' )->willReturn( 'MockFieldName' );
 
-		// Create the PFFormField object
-		$field = PFFormField::create( $this->mockTemplateField );
+		// Create the FormField object
+		$field = FormField::create( $this->mockTemplateField );
 
 		// Set up the field arguments
 		$field->setDescriptionArg( 'Description', 'This is a field description.' );
@@ -612,8 +616,8 @@ class PFFormFieldTest extends TestCase {
 		$this->mockTemplateField->method( 'getLabel' )->willReturn( 'Mock Label' );
 		$this->mockTemplateField->method( 'getFieldName' )->willReturn( 'MockFieldName' );
 
-		// Create the PFFormField object
-		$field = PFFormField::create( $this->mockTemplateField );
+		// Create the FormField object
+		$field = FormField::create( $this->mockTemplateField );
 
 		// Set up the mock description and tooltip mode
 		$fieldDesc = 'This is a field description.';
@@ -653,19 +657,19 @@ class PFFormFieldTest extends TestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Build a PFFormField with a pre-set mPossibleValues map for testing.
+	 * Build a FormField with a pre-set mPossibleValues map for testing.
 	 *
 	 * @param array $possibleValues ['storageKey' => 'displayLabel', ...]
-	 * @return PFFormField
+	 * @return FormField
 	 */
-	private function makeFieldWithPossibleValues( array $possibleValues ): PFFormField {
-		$templateField = $this->createMock( PFTemplateField::class );
+	private function makeFieldWithPossibleValues( array $possibleValues ): FormField {
+		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getPossibleValues' )->willReturn( null );
 		$templateField->method( 'getDelimiter' )->willReturn( '' );
 
-		$field = PFFormField::create( $templateField );
+		$field = FormField::create( $templateField );
 
-		$ref = new ReflectionClass( PFFormField::class );
+		$ref = new ReflectionClass( FormField::class );
 		$prop = $ref->getProperty( 'mPossibleValues' );
 		$prop->setAccessible( true );
 		$prop->setValue( $field, $possibleValues );
@@ -678,7 +682,7 @@ class PFFormFieldTest extends TestCase {
 	/**
 	 * A stored key that exists in the mapping must be translated to its label.
 	 *
-	 * @covers PFFormField::valueStringToLabels
+	 * @covers \MediaWiki\Extension\PageForms\FormField::valueStringToLabels
 	 */
 	public function testValueStringToLabelsTranslatesKnownKey(): void {
 		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany', 'FR' => 'France' ] );
@@ -689,7 +693,7 @@ class PFFormFieldTest extends TestCase {
 	 * A stored key that is NOT in the mapping must pass through unchanged
 	 * (identity fallback).
 	 *
-	 * @covers PFFormField::valueStringToLabels
+	 * @covers \MediaWiki\Extension\PageForms\FormField::valueStringToLabels
 	 */
 	public function testValueStringToLabelsUnknownKeyPassesThrough(): void {
 		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
@@ -699,7 +703,7 @@ class PFFormFieldTest extends TestCase {
 	/**
 	 * An empty string must be returned unchanged without touching the mapping.
 	 *
-	 * @covers PFFormField::valueStringToLabels
+	 * @covers \MediaWiki\Extension\PageForms\FormField::valueStringToLabels
 	 */
 	public function testValueStringToLabelsEmptyStringReturnsEmpty(): void {
 		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
@@ -709,7 +713,7 @@ class PFFormFieldTest extends TestCase {
 	/**
 	 * A null value must be returned unchanged (null-safe path).
 	 *
-	 * @covers PFFormField::valueStringToLabels
+	 * @covers \MediaWiki\Extension\PageForms\FormField::valueStringToLabels
 	 */
 	public function testValueStringToLabelsNullReturnsNull(): void {
 		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
@@ -720,7 +724,7 @@ class PFFormFieldTest extends TestCase {
 	 * A delimited list of keys must be translated key-by-key and returned as a
 	 * delimiter-joined string.
 	 *
-	 * @covers PFFormField::valueStringToLabels
+	 * @covers \MediaWiki\Extension\PageForms\FormField::valueStringToLabels
 	 */
 	public function testValueStringToLabelsDelimitedListTranslatesEachKey(): void {
 		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany', 'FR' => 'France' ] );
@@ -731,7 +735,7 @@ class PFFormFieldTest extends TestCase {
 	/**
 	 * A delimited list where one key is unknown must leave that entry as-is.
 	 *
-	 * @covers PFFormField::valueStringToLabels
+	 * @covers \MediaWiki\Extension\PageForms\FormField::valueStringToLabels
 	 */
 	public function testValueStringToLabelsDelimitedListUnknownKeyPassesThrough(): void {
 		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
@@ -742,7 +746,7 @@ class PFFormFieldTest extends TestCase {
 	/**
 	 * A single-element delimited list must return a scalar string, not an array.
 	 *
-	 * @covers PFFormField::valueStringToLabels
+	 * @covers \MediaWiki\Extension\PageForms\FormField::valueStringToLabels
 	 */
 	public function testValueStringToLabelsSingleElementReturnsScalar(): void {
 		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
@@ -755,13 +759,13 @@ class PFFormFieldTest extends TestCase {
 	 * When mPossibleValues is null (unmapped field), the raw value is returned
 	 * unchanged regardless of content.
 	 *
-	 * @covers PFFormField::valueStringToLabels
+	 * @covers \MediaWiki\Extension\PageForms\FormField::valueStringToLabels
 	 */
 	public function testValueStringToLabelsNullPossibleValuesReturnsRawValue(): void {
-		$templateField = $this->createMock( PFTemplateField::class );
+		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getPossibleValues' )->willReturn( null );
 		$templateField->method( 'getDelimiter' )->willReturn( '' );
-		$field = PFFormField::create( $templateField );
+		$field = FormField::create( $templateField );
 		// mPossibleValues stays null — no mapping configured
 		$this->assertSame( 'DE', $field->valueStringToLabels( 'DE', null ) );
 	}
@@ -772,7 +776,7 @@ class PFFormFieldTest extends TestCase {
 	 * A display label that exists in the mapping must be translated back to its
 	 * storage key.
 	 *
-	 * @covers PFFormField::labelToValue
+	 * @covers \MediaWiki\Extension\PageForms\FormField::labelToValue
 	 */
 	public function testLabelToValueTranslatesKnownLabel(): void {
 		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany', 'FR' => 'France' ] );
@@ -783,7 +787,7 @@ class PFFormFieldTest extends TestCase {
 	 * A label that is NOT in the mapping must pass through unchanged
 	 * (identity fallback — used for raw storage keys arriving via autoedit).
 	 *
-	 * @covers PFFormField::labelToValue
+	 * @covers \MediaWiki\Extension\PageForms\FormField::labelToValue
 	 */
 	public function testLabelToValueUnknownLabelPassesThrough(): void {
 		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );
@@ -795,7 +799,7 @@ class PFFormFieldTest extends TestCase {
 	 * This is the critical autoedit preload case: the page contains 'DE',
 	 * autoedit passes it through, labelToValue must not corrupt it.
 	 *
-	 * @covers PFFormField::labelToValue
+	 * @covers \MediaWiki\Extension\PageForms\FormField::labelToValue
 	 */
 	public function testLabelToValueRawKeyPassesThroughUnchanged(): void {
 		$field = $this->makeFieldWithPossibleValues( [ 'DE' => 'Germany' ] );

@@ -1,4 +1,5 @@
 <?php
+use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -174,7 +175,7 @@ class PFFormLink {
 		if ( $className == 'PFFormRedLink' &&
 			$inCreatePage && $inTargetName != '' ) {
 			$targetTitle = Title::newFromText( $inTargetName );
-			PFFormLinker::createPageWithForm( $targetTitle, $inFormName, $inQueryArr );
+			FormLinker::createPageWithForm( $targetTitle, $inFormName, $inQueryArr );
 		}
 
 		if ( $className == 'PFQueryFormLink' ) {

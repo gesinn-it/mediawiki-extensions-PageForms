@@ -1,17 +1,26 @@
 <?php
 
-use MediaWiki\MediaWikiServices;
+declare( strict_types=1 );
 
-require_once __DIR__ . '/../src/PFTemplateTestInjectionProbe.php';
+namespace MediaWiki\Extension\PageForms\Tests\Integration;
+
+use IDBAccessObject;
+use MediaWiki\Extension\PageForms\Template;
+use MediaWiki\MediaWikiServices;
+use MediaWikiIntegrationTestCase;
+use TemplateTestInjectionProbe;
+use Title;
+
+require_once __DIR__ . '/TemplateTestInjectionProbe.php';
 
 /**
- * Integration tests for PFTemplate::loadTemplateParams().
+ * Integration tests for Template::loadTemplateParams().
  *
- * @covers \PFTemplate
+ * @covers \MediaWiki\Extension\PageForms\Template
  *
  * @group Database
  */
-class PFTemplateTest extends MediaWikiIntegrationTestCase {
+class TemplateTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * A valid serialized array payload is unserialized as-is.
@@ -22,7 +31,7 @@ class PFTemplateTest extends MediaWikiIntegrationTestCase {
 			serialize( [ 'Field1' => [ 'mandatory' => true ] ] )
 		);
 
-		$template = PFTemplate::newFromName( $title->getText() );
+		$template = Template::newFromName( $title->getText() );
 
 		$this->assertSame( [ 'Field1' => [ 'mandatory' => true ] ], $template->getTemplateParams() );
 	}
@@ -39,7 +48,7 @@ class PFTemplateTest extends MediaWikiIntegrationTestCase {
 			'this is not a serialized value'
 		);
 
-		$template = PFTemplate::newFromName( $title->getText() );
+		$template = Template::newFromName( $title->getText() );
 
 		$this->assertNull( $template->getTemplateParams() );
 	}
@@ -54,12 +63,12 @@ class PFTemplateTest extends MediaWikiIntegrationTestCase {
 	public function testLoadTemplateParamsWithObjectInjectionPayloadIsNotInstantiated() {
 		$title = $this->insertTemplatePageWithParamsProp(
 			'PFTestTemplateObjectInjectionParams01',
-			serialize( new PFTemplateTestInjectionProbe() )
+			serialize( new TemplateTestInjectionProbe() )
 		);
 
-		$template = PFTemplate::newFromName( $title->getText() );
+		$template = Template::newFromName( $title->getText() );
 
-		$this->assertNotInstanceOf( PFTemplateTestInjectionProbe::class, $template->getTemplateParams() );
+		$this->assertNotInstanceOf( TemplateTestInjectionProbe::class, $template->getTemplateParams() );
 	}
 
 	private function insertTemplatePageWithParamsProp( string $pageName, string $serializedParams ): Title {

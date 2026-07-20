@@ -3,6 +3,7 @@
 declare( strict_types=1 );
 
 use MediaWiki\Extension\PageForms\MultipleTemplateHtmlBuilder;
+use MediaWiki\Extension\PageForms\TemplateInForm;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -169,23 +170,23 @@ class MultipleTemplateHtmlBuilderTest extends TestCase {
 	// Helpers
 	// -----------------------------------------------------------------------
 
-	private function makeTif( ?int $min, ?int $max, ?string $displayedFields ): PFTemplateInForm {
-		$tif = $this->createMock( PFTemplateInForm::class );
+	private function makeTif( ?int $min, ?int $max, ?string $displayedFields ): TemplateInForm {
+		$tif = $this->createMock( TemplateInForm::class );
 		$tif->method( 'getMinInstancesAllowed' )->willReturn( $min );
 		$tif->method( 'getMaxInstancesAllowed' )->willReturn( $max );
 		$tif->method( 'getDisplayedFieldsWhenMinimized' )->willReturn( $displayedFields );
 		return $tif;
 	}
 
-	private function makeTifForInstance( string $templateName, int $instanceNum ): PFTemplateInForm {
-		$tif = $this->createMock( PFTemplateInForm::class );
+	private function makeTifForInstance( string $templateName, int $instanceNum ): TemplateInForm {
+		$tif = $this->createMock( TemplateInForm::class );
 		$tif->method( 'getTemplateName' )->willReturn( $templateName );
 		$tif->method( 'getInstanceNum' )->willReturn( $instanceNum );
 		return $tif;
 	}
 
-	private function makeTifForEnd( string $addButtonText ): PFTemplateInForm {
-		$tif = $this->createMock( PFTemplateInForm::class );
+	private function makeTifForEnd( string $addButtonText ): TemplateInForm {
+		$tif = $this->createMock( TemplateInForm::class );
 		$tif->method( 'getAddButtonText' )->willReturn( $addButtonText );
 		return $tif;
 	}

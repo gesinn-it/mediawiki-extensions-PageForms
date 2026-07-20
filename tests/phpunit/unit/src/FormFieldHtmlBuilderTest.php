@@ -2,7 +2,9 @@
 
 declare( strict_types=1 );
 
+use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
+use MediaWiki\Extension\PageForms\TemplateField;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/StubFormInput.php';
@@ -116,7 +118,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		$wgPageFormsFieldNum = 1;
 
 		// getInputType() === null is the genuine "no input type set" default
-		// (PFFormField::create() sets mInputType = null). A hook incidentally
+		// (FormField::create() sets mInputType = null). A hook incidentally
 		// registered under the '' key must not be picked up for it, and
 		// array_key_exists( null, ... ) must never be reached (PHP 8.1+ deprecation).
 		$formField = $this->makeVisibleFormField( null, '', 'input_n' );
@@ -308,10 +310,10 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		string $inputName,
 		string $curValue,
 		array $fieldArgs = []
-	): PFFormField {
-		$templateField = $this->createMock( PFTemplateField::class );
+	): FormField {
+		$templateField = $this->createMock( TemplateField::class );
 
-		$formField = $this->createMock( PFFormField::class );
+		$formField = $this->createMock( FormField::class );
 		$formField->method( 'getTemplateField' )->willReturn( $templateField );
 		$formField->method( 'isHidden' )->willReturn( true );
 		$formField->method( 'getInputName' )->willReturn( $inputName );
@@ -328,13 +330,13 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		?string $inputType,
 		string $propertyType,
 		string $inputName
-	): PFFormField {
-		$templateField = $this->createMock( PFTemplateField::class );
+	): FormField {
+		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getPropertyType' )->willReturn( $propertyType );
 		$templateField->method( 'isList' )->willReturn( false );
 		$templateField->method( 'getRegex' )->willReturn( null );
 
-		$formField = $this->createMock( PFFormField::class );
+		$formField = $this->createMock( FormField::class );
 		$formField->method( 'getTemplateField' )->willReturn( $templateField );
 		$formField->method( 'isHidden' )->willReturn( false );
 		$formField->method( 'getInputType' )->willReturn( $inputType );
@@ -347,13 +349,13 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		return $formField;
 	}
 
-	private function makeListFormField( string $inputName ): PFFormField {
-		$templateField = $this->createMock( PFTemplateField::class );
+	private function makeListFormField( string $inputName ): FormField {
+		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getPropertyType' )->willReturn( '' );
 		$templateField->method( 'isList' )->willReturn( false );
 		$templateField->method( 'getRegex' )->willReturn( null );
 
-		$formField = $this->createMock( PFFormField::class );
+		$formField = $this->createMock( FormField::class );
 		$formField->method( 'getTemplateField' )->willReturn( $templateField );
 		$formField->method( 'isHidden' )->willReturn( false );
 		$formField->method( 'getInputType' )->willReturn( '' );
@@ -366,15 +368,15 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		return $formField;
 	}
 
-	private function makeNonTranslatableFormField(): PFFormField {
-		$formField = $this->createMock( PFFormField::class );
+	private function makeNonTranslatableFormField(): FormField {
+		$formField = $this->createMock( FormField::class );
 		$formField->method( 'hasFieldArg' )->willReturn( false );
 		$formField->method( 'getFieldArg' )->willReturn( null );
 		return $formField;
 	}
 
-	private function makeTranslatableFormField(): PFFormField {
-		$formField = $this->createMock( PFFormField::class );
+	private function makeTranslatableFormField(): FormField {
+		$formField = $this->createMock( FormField::class );
 		$formField->method( 'hasFieldArg' )->willReturnCallback(
 			static fn ( $key ) => $key === 'translatable'
 		);
@@ -385,12 +387,12 @@ class FormFieldHtmlBuilderTest extends TestCase {
 	}
 
 	/**
-	 * Returns a translatable PFFormField mock that accepts setFieldArg() calls
+	 * Returns a translatable FormField mock that accepts setFieldArg() calls
 	 * and exposes the stored value via getFieldArg().
 	 */
-	private function makeCapturingTranslatableFormField(): PFFormField {
+	private function makeCapturingTranslatableFormField(): FormField {
 		$stored = [];
-		$formField = $this->createMock( PFFormField::class );
+		$formField = $this->createMock( FormField::class );
 		$formField->method( 'hasFieldArg' )->willReturnCallback(
 			static fn ( $key ) => $key === 'translatable' || array_key_exists( $key, $stored )
 		);
@@ -414,13 +416,13 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		string $inputType,
 		string $inputName,
 		string $regex
-	): PFFormField {
-		$templateField = $this->createMock( PFTemplateField::class );
+	): FormField {
+		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getPropertyType' )->willReturn( '' );
 		$templateField->method( 'isList' )->willReturn( false );
 		$templateField->method( 'getRegex' )->willReturn( $regex );
 
-		$formField = $this->createMock( PFFormField::class );
+		$formField = $this->createMock( FormField::class );
 		$formField->method( 'getTemplateField' )->willReturn( $templateField );
 		$formField->method( 'isHidden' )->willReturn( false );
 		$formField->method( 'getInputType' )->willReturn( $inputType );
@@ -441,15 +443,15 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		string $inputName,
 		string $curValue,
 		string $translateTag
-	): PFFormField {
-		$templateField = $this->createMock( PFTemplateField::class );
+	): FormField {
+		$templateField = $this->createMock( TemplateField::class );
 
 		$fieldArgs = [
 			'translatable' => true,
 			'translate_number_tag' => $translateTag,
 		];
 
-		$formField = $this->createMock( PFFormField::class );
+		$formField = $this->createMock( FormField::class );
 		$formField->method( 'getTemplateField' )->willReturn( $templateField );
 		$formField->method( 'isHidden' )->willReturn( true );
 		$formField->method( 'getInputName' )->willReturn( $inputName );

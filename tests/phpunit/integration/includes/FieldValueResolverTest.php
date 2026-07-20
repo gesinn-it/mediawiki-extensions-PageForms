@@ -5,7 +5,10 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
 use MediaWiki\Extension\PageForms\FieldValueResolver;
+use MediaWiki\Extension\PageForms\FormField;
+use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWikiIntegrationTestCase;
+use ReflectionProperty;
 
 /**
  * @covers \MediaWiki\Extension\PageForms\FieldValueResolver
@@ -224,13 +227,13 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testResolveNowForDatPropertyTypeWithEmptyInputType(): void {
-		$templateField = new \PFTemplateField();
-		$propTypeRef = new \ReflectionProperty( \PFTemplateField::class, 'mPropertyType' );
+		$templateField = new TemplateField();
+		$propTypeRef = new ReflectionProperty( TemplateField::class, 'mPropertyType' );
 		$propTypeRef->setAccessible( true );
 		$propTypeRef->setValue( $templateField, '_dat' );
 
-		$formField = \PFFormField::create( $templateField );
-		$defaultRef = new \ReflectionProperty( \PFFormField::class, 'mDefaultValue' );
+		$formField = FormField::create( $templateField );
+		$defaultRef = new ReflectionProperty( FormField::class, 'mDefaultValue' );
 		$defaultRef->setAccessible( true );
 		$defaultRef->setValue( $formField, 'now' );
 
@@ -268,13 +271,13 @@ class FieldValueResolverTest extends MediaWikiIntegrationTestCase {
 	// ------------------------------------------------------------------ helpers
 
 	/**
-	 * Creates a minimal PFFormField with a given default value.
+	 * Creates a minimal FormField with a given default value.
 	 * mDefaultValue is private; use reflection to set it as the only setter
 	 * is buried inside the form-definition parser.
 	 */
-	private function makeFormFieldWithDefault( string $defaultValue ): \PFFormField {
-		$formField = \PFFormField::create( new \PFTemplateField() );
-		$ref = new \ReflectionProperty( \PFFormField::class, 'mDefaultValue' );
+	private function makeFormFieldWithDefault( string $defaultValue ): FormField {
+		$formField = FormField::create( new TemplateField() );
+		$ref = new ReflectionProperty( FormField::class, 'mDefaultValue' );
 		$ref->setAccessible( true );
 		$ref->setValue( $formField, $defaultValue );
 		return $formField;

@@ -1,22 +1,30 @@
 <?php
-/**
- *
- * @ingroup PF
- */
 
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use Html;
 use MediaWiki\MediaWikiServices;
+use Parser;
+use ParserOptions;
+use PFUtils;
+use PFValuesUtils;
+use RequestContext;
+use Title;
+use User;
 
 /**
- * This class is distinct from PFTemplateField in that it represents a template
- * field defined in a form definition - it contains an PFTemplateField object
+ * This class is distinct from TemplateField in that it represents a template
+ * field defined in a form definition - it contains an TemplateField object
  * within it (the $template_field variable), along with the other properties
  * for that field that are set within the form.
  * @ingroup PF
  */
-class PFFormField {
+class FormField {
 
 	/**
-	 * @var PFTemplateField
+	 * @var TemplateField
 	 */
 	public $template_field;
 	private $mAutocapitalize;
@@ -43,19 +51,19 @@ class PFFormField {
 	 * somewhat of a hack - these two fields are for a field in a specific
 	 * representation of a form, not the form definition; ideally these
 	 * should be contained in a third 'field' class, called something like
-	 * PFFormInstanceField, which holds these fields plus an instance of
-	 * PFFormField. Too much work?
+	 * FormInstanceField, which holds these fields plus an instance of
+	 * FormField. Too much work?
 	 */
 	private $mInputName;
 	private $mIsDisabled;
 
 	/**
-	 * @param PFTemplateField $template_field
+	 * @param TemplateField $template_field
 	 *
 	 * @return self
 	 */
-	public static function create( PFTemplateField $template_field ) {
-		$f = new PFFormField();
+	public static function create( TemplateField $template_field ) {
+		$f = new FormField();
 		$f->template_field = $template_field;
 		$f->mInputType = null;
 		$f->mIsMandatory = false;
@@ -70,14 +78,14 @@ class PFFormField {
 	}
 
 	/**
-	 * @return PFTemplateField
+	 * @return TemplateField
 	 */
 	public function getTemplateField() {
 		return $this->template_field;
 	}
 
 	/**
-	 * @param PFTemplateField $templateField
+	 * @param TemplateField $templateField
 	 */
 	public function setTemplateField( $templateField ) {
 		$this->template_field = $templateField;
@@ -216,7 +224,7 @@ class PFFormField {
 		$parser->clearState();
 		$parser->setOutputType( Parser::OT_HTML );
 
-		$f = new PFFormField();
+		$f = new FormField();
 		$f->mFieldArgs = [];
 
 		$field_name = trim( $tag_components[1] );
@@ -233,11 +241,11 @@ class PFFormField {
 			$f->template_field = $template_field;
 		} else {
 			if ( $template_in_form->strictParsing() ) {
-				$f->template_field = new PFTemplateField();
+				$f->template_field = new TemplateField();
 				$f->mIsList = false;
 				return $f;
 			}
-			$f->template_field = PFTemplateField::create( $field_name, null );
+			$f->template_field = TemplateField::create( $field_name, null );
 		}
 
 		$embeddedTemplate = $f->template_field->getHoldsTemplate();
@@ -452,10 +460,10 @@ class PFFormField {
 			// overwrite whatever is set in the template field -
 			// this is somewhat of a hack, since parameters set in
 			// the form definition are meant to go into the
-			// PFFormField object, not the PFTemplateField object
+			// FormField object, not the TemplateField object
 			// it contains;
 			// it seemed like too much work, though, to create an
-			// PFFormField::setSemanticProperty() function just for
+			// FormField::setSemanticProperty() function just for
 			// this call.
 			if ( $semantic_property !== null ) {
 				$f->template_field->setSemanticProperty( $semantic_property );
@@ -644,7 +652,7 @@ class PFFormField {
 							$cur_values[$key] = $this->autocapitalize( $val );
 						}
 					}
-					return PFFormUtils::getStringFromPassedInArray( $cur_values, $delimiter );
+					return FormUtils::getStringFromPassedInArray( $cur_values, $delimiter );
 				} else {
 					$field_query_val = $this->autocapitalize( trim( $field_query_val ) );
 					if ( $map_field && $this->mPossibleValues !== null ) {
@@ -667,7 +675,7 @@ class PFFormField {
 			}
 			if ( !$form_submitted && $field_query_val != '' ) {
 				if ( is_array( $field_query_val ) ) {
-					$str = PFFormUtils::getStringFromPassedInArray( $field_query_val, $delimiter );
+					$str = FormUtils::getStringFromPassedInArray( $field_query_val, $delimiter );
 				} else {
 					$str = $field_query_val;
 				}
@@ -685,7 +693,7 @@ class PFFormField {
 				// Set to the default value specified in the form, if it's there.
 				return $this->mDefaultValue;
 			} elseif ( $this->mPreloadPage ) {
-				return PFFormUtils::getPreloadedText( $this->mPreloadPage );
+				return FormUtils::getPreloadedText( $this->mPreloadPage );
 			}
 		}
 
@@ -810,8 +818,8 @@ class PFFormField {
 		// locate where the multiple-templates HTML, stored in
 		// $multipleTemplateString, should be inserted.
 		if ( $this->mHoldsTemplate ) {
-			$text .= PFFormPrinter::makePlaceholderInFormHTML(
-				PFFormPrinter::placeholderFormat( $template_name, $field_name )
+			$text .= FormPrinter::makePlaceholderInFormHTML(
+				FormPrinter::placeholderFormat( $template_name, $field_name )
 			);
 		}
 
@@ -1068,7 +1076,7 @@ class PFFormField {
 			$this->getArgumentsForInputCallSMW( $other_args );
 		}
 
-		// Now merge in the default values set by PFFormPrinter, if
+		// Now merge in the default values set by FormPrinter, if
 		// there were any - put the default values first, so that if
 		// there's a conflict they'll be overridden.
 		if ( $default_args != null ) {

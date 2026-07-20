@@ -1,15 +1,22 @@
 <?php
+
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use MediaWiki\MediaWikiServices;
+use PFUtils;
+use StringUtils;
+use Title;
+
 /**
- * Defines a class, PFTemplate, that represents a MediaWiki "infobox"
+ * Defines a class, Template, that represents a MediaWiki "infobox"
  * template that holds structured data, which may be stored by Semantic MediaWiki.
  *
  * @author Yaron Koren
  * @ingroup PF
  */
-
-use MediaWiki\MediaWikiServices;
-
-class PFTemplate {
+class Template {
 	private $mTemplateName;
 	private $mTemplateText;
 	private $mTemplateFields;
@@ -31,7 +38,7 @@ class PFTemplate {
 	}
 
 	public static function newFromName( $templateName ) {
-		$template = new PFTemplate( $templateName, [] );
+		$template = new Template( $templateName, [] );
 		$template->loadTemplateParams();
 		$template->loadTemplateFields();
 		return $template;
@@ -218,7 +225,7 @@ class PFTemplate {
 				$fieldName = trim( $fieldName );
 				if ( $fieldName !== '' && ( !in_array( $fieldName, $fieldNamesArray ) ) ) {
 					$cur_pos = stripos( $this->mTemplateText, $fieldName );
-					$this->mTemplateFields[$cur_pos] = PFTemplateField::create(
+					$this->mTemplateFields[$cur_pos] = TemplateField::create(
 						$fieldName, PFUtils::getContLang()->ucfirst( $fieldName )
 					);
 					$fieldNamesArray[] = $fieldName;
@@ -238,7 +245,7 @@ class PFTemplate {
 				if ( in_array( $fieldName, $fieldNamesArray ) ) {
 					continue;
 				}
-				$templateField = PFTemplateField::newFromParams( $fieldName, $fieldParams );
+				$templateField = TemplateField::newFromParams( $fieldName, $fieldParams );
 				$this->mTemplateFields[$fieldName] = $templateField;
 			}
 			return;
@@ -249,14 +256,14 @@ class PFTemplate {
 
 	/**
 	 * For a field name and its attached property name located in the
-	 * template text, create an PFTemplateField object out of it, and
+	 * template text, create an TemplateField object out of it, and
 	 * add it to $this->mTemplateFields.
 	 * @param string $fieldName
 	 * @param string $propertyName
 	 * @param bool $isList
 	 */
 	public function loadPropertySettingInTemplate( $fieldName, $propertyName, $isList ) {
-		$templateField = PFTemplateField::create(
+		$templateField = TemplateField::create(
 			$fieldName, PFUtils::getContLang()->ucfirst( $fieldName ), $propertyName,
 			$isList
 		);

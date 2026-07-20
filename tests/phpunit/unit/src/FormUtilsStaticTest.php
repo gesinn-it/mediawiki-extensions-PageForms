@@ -1,19 +1,20 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormUtils;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Unit tests for static utility methods extracted from PFFormPrinter into PFFormUtils.
+ * Unit tests for static utility methods extracted from FormPrinter into FormUtils.
  *
  * These tests are deliberately free of MediaWiki bootstrap so they run fast
  * as plain PHPUnit unit tests.
  *
  * @group PF
- * @covers PFFormUtils::getStringFromPassedInArray
- * @covers PFFormUtils::displayLoadingImage
- * @covers PFFormUtils::generateUUID
+ * @covers \MediaWiki\Extension\PageForms\FormUtils::getStringFromPassedInArray
+ * @covers \MediaWiki\Extension\PageForms\FormUtils::displayLoadingImage
+ * @covers \MediaWiki\Extension\PageForms\FormUtils::generateUUID
  */
-class PFFormUtilsStaticTest extends TestCase {
+class FormUtilsStaticTest extends TestCase {
 
 	// -----------------------------------------------------------------------
 	// getStringFromPassedInArray
@@ -24,7 +25,7 @@ class PFFormUtilsStaticTest extends TestCase {
 	 */
 	public function testGetStringFromPassedInArrayIsList() {
 		$value = [ 'is_list' => true, 'Alpha', 'Beta', 'Gamma' ];
-		$result = PFFormUtils::getStringFromPassedInArray( $value, ',' );
+		$result = FormUtils::getStringFromPassedInArray( $value, ',' );
 		$this->assertSame( 'Alpha, Beta, Gamma', $result );
 	}
 
@@ -33,20 +34,20 @@ class PFFormUtilsStaticTest extends TestCase {
 	 */
 	public function testGetStringFromPassedInArrayIsListEscapesHtml() {
 		$value = [ 'is_list' => true, '<b>bold</b>' ];
-		$result = PFFormUtils::getStringFromPassedInArray( $value, ',' );
+		$result = FormUtils::getStringFromPassedInArray( $value, ',' );
 		$this->assertSame( '&lt;b&gt;bold&lt;/b&gt;', $result );
 	}
 
 	/**
 	 * A single-element array (checkbox unchecked) and a two-element array
 	 * (checkbox checked) must map to different words — PFUtils::getWordForYesOrNo()
-	 * is called with false and true respectively (includes/PF_FormUtils.php:535-538).
+	 * is called with false and true respectively (src/FormUtils.php:535-538).
 	 * The actual words are locale-dependent, so we only assert they differ,
 	 * which still catches a regression that swaps the two boolean arguments.
 	 */
 	public function testGetStringFromPassedInArrayCheckboxUncheckedDiffersFromChecked() {
-		$unchecked = PFFormUtils::getStringFromPassedInArray( [ 'No' ], ',' );
-		$checked = PFFormUtils::getStringFromPassedInArray( [ 'No', 'Yes' ], ',' );
+		$unchecked = FormUtils::getStringFromPassedInArray( [ 'No' ], ',' );
+		$checked = FormUtils::getStringFromPassedInArray( [ 'No', 'Yes' ], ',' );
 
 		$this->assertIsString( $unchecked );
 		$this->assertNotSame( '', $unchecked );
@@ -60,7 +61,7 @@ class PFFormUtilsStaticTest extends TestCase {
 	 */
 	public function testGetStringFromPassedInArrayYearOnly() {
 		$value = [ 'year' => '2024', 'month' => '', 'day' => '' ];
-		$result = PFFormUtils::getStringFromPassedInArray( $value, ',' );
+		$result = FormUtils::getStringFromPassedInArray( $value, ',' );
 		$this->assertSame( '2024', $result );
 	}
 
@@ -70,7 +71,7 @@ class PFFormUtilsStaticTest extends TestCase {
 	public function testGetStringFromPassedInArrayYearMonth() {
 		$GLOBALS['wgAmericanDates'] = false;
 		$value = [ 'year' => '2024', 'month' => '3', 'day' => '' ];
-		$result = PFFormUtils::getStringFromPassedInArray( $value, ',' );
+		$result = FormUtils::getStringFromPassedInArray( $value, ',' );
 		// Month 3 → "March"
 		$this->assertStringContainsString( '2024', $result );
 		$this->assertStringContainsString( 'March', $result );
@@ -82,7 +83,7 @@ class PFFormUtilsStaticTest extends TestCase {
 	public function testGetStringFromPassedInArrayFullDateNonAmerican() {
 		$GLOBALS['wgAmericanDates'] = false;
 		$value = [ 'year' => '2024', 'month' => '3', 'day' => '5' ];
-		$result = PFFormUtils::getStringFromPassedInArray( $value, ',' );
+		$result = FormUtils::getStringFromPassedInArray( $value, ',' );
 		$this->assertSame( '2024/3/05', $result );
 	}
 
@@ -92,7 +93,7 @@ class PFFormUtilsStaticTest extends TestCase {
 	public function testGetStringFromPassedInArrayFullDateAmerican() {
 		$GLOBALS['wgAmericanDates'] = true;
 		$value = [ 'year' => '2024', 'month' => '3', 'day' => '5' ];
-		$result = PFFormUtils::getStringFromPassedInArray( $value, ',' );
+		$result = FormUtils::getStringFromPassedInArray( $value, ',' );
 		$this->assertSame( '3 5, 2024', $result );
 	}
 
@@ -105,7 +106,7 @@ class PFFormUtilsStaticTest extends TestCase {
 			'year' => '2024', 'month' => '3', 'day' => '5',
 			'hour' => '14', 'minute' => '30',
 		];
-		$result = PFFormUtils::getStringFromPassedInArray( $value, ',' );
+		$result = FormUtils::getStringFromPassedInArray( $value, ',' );
 		$this->assertStringContainsString( '14:30', $result );
 	}
 
@@ -114,7 +115,7 @@ class PFFormUtilsStaticTest extends TestCase {
 	 */
 	public function testGetStringFromPassedInArrayEmptyReturnsEmptyString() {
 		$value = [ 'year' => '', 'month' => '', 'day' => '' ];
-		$result = PFFormUtils::getStringFromPassedInArray( $value, ',' );
+		$result = FormUtils::getStringFromPassedInArray( $value, ',' );
 		$this->assertSame( '', $result );
 	}
 
@@ -128,7 +129,7 @@ class PFFormUtilsStaticTest extends TestCase {
 	 */
 	public function testDisplayLoadingImageReturnsHtml() {
 		$GLOBALS['wgPageFormsScriptPath'] = '/extensions/PageForms';
-		$result = PFFormUtils::displayLoadingImage();
+		$result = FormUtils::displayLoadingImage();
 		$this->assertStringContainsString( 'class="loadingImage"', $result );
 		$this->assertStringContainsString( 'loading.gif', $result );
 		$this->assertStringContainsString( 'loadingbg.png', $result );
@@ -143,7 +144,7 @@ class PFFormUtilsStaticTest extends TestCase {
 	 * generateUUID returns a string matching the UUID v4 pattern.
 	 */
 	public function testGenerateUUIDFormat() {
-		$uuid = PFFormUtils::generateUUID();
+		$uuid = FormUtils::generateUUID();
 		$pattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/';
 		// PHPUnit >= 9 (MW 1.43): assertMatchesRegularExpression
 		// PHPUnit 8  (MW 1.35):  assertRegExp
@@ -163,7 +164,7 @@ class PFFormUtilsStaticTest extends TestCase {
 	 * generateUUID returns a different value on each call.
 	 */
 	public function testGenerateUUIDIsUnique() {
-		$uuids = array_unique( array_map( static fn () => PFFormUtils::generateUUID(), range( 1, 20 ) ) );
+		$uuids = array_unique( array_map( static fn () => FormUtils::generateUUID(), range( 1, 20 ) ) );
 		$this->assertCount( 20, $uuids, 'generateUUID should return a distinct value on every call' );
 	}
 

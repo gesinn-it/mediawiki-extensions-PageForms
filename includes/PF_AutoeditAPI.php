@@ -6,6 +6,7 @@ declare( strict_types=1 );
  * @ingroup PageForms
  */
 
+use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\HtmlFormDataExtractor;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
@@ -261,7 +262,7 @@ class PFAutoeditAPI extends ApiBase {
 					)->parse() );
 				}
 
-				$formNames = PFFormLinker::getDefaultFormsForPage( $targetTitle );
+				$formNames = FormLinker::getDefaultFormsForPage( $targetTitle );
 				if ( count( $formNames ) === 0 ) {
 					throw new MWException( $this->msg( 'pf_autoedit_noformfound' )->parse() );
 				}
@@ -948,7 +949,7 @@ class PFAutoeditAPI extends ApiBase {
 		$targetName = $this->mOptions['target'];
 
 		// if the target page was not specified, try finding the page name formula
-		// (Why is this not done in PFFormPrinter::formHTML?)
+		// (Why is this not done in FormPrinter::formHTML?)
 		if ( $targetName === '' ) {
 			// Parse the form to see if it has a 'page name' value set.
 			if ( preg_match( '/{{{\s*info.*page name\s*=\s*(.*)}}}/msU', $formContent, $matches ) ) {
@@ -1123,7 +1124,7 @@ class PFAutoeditAPI extends ApiBase {
 	 * remove (-) modifier key (e.g. "Country+" or "Tags-").
 	 *
 	 * When modifier keys are present, the preload extraction must go through
-	 * formHTML() so that the val_modifier logic in PFFormField::getCurrentValue()
+	 * formHTML() so that the val_modifier logic in FormField::getCurrentValue()
 	 * can merge the page value with the submitted value before writing the page.
 	 */
 	private function hasModifierKeys(): bool {

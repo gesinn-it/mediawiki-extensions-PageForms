@@ -156,7 +156,7 @@ class FormDefParserTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * This is the single shared implementation used by both FormDefParser::preparePreloadData()
-	 * and PFFormPrinter::formHTML() (see issue #124) — regular {{{for template}}} / {{{end
+	 * and FormPrinter::formHTML() (see issue #124) — regular {{{for template}}} / {{{end
 	 * template}}} boundaries must split into separate sections.
 	 */
 	public function testSplitFormDefIntoSectionsSplitsOnTemplateBoundaries(): void {

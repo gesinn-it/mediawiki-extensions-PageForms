@@ -21,10 +21,10 @@ The input system connects several architectural layers within PageForms:
 Form definition
         │
         ▼
-PFFormField (field configuration)
+FormField (field configuration)
         │
         ▼
-PFFormPrinter (input resolution and rendering)
+FormPrinter (input resolution and rendering)
         │
         ▼
 HTML widget output
@@ -56,10 +56,10 @@ Key architectural elements:
 |===
 | Component | Responsibility
 
-| `PFFormField`
+| `FormField`
 | Stores field configuration from the form definition
 
-| `PFFormPrinter`
+| `FormPrinter`
 | Resolves and renders input types
 
 | `PFFormInput` subclasses
@@ -76,7 +76,7 @@ Key architectural elements:
 
 === Input type registration
 
-All input types are registered with `PFFormPrinter`.
+All input types are registered with `FormPrinter`.
 
 During initialization the printer registers built-in inputs using:
 
@@ -122,7 +122,7 @@ Internally the registry mapping becomes:
 The mapping between input names and classes is stored in:
 
 ----
-PFFormPrinter::mInputTypeClasses
+FormPrinter::mInputTypeClasses
 ----
 
 This allows PageForms to resolve input types dynamically.
@@ -135,13 +135,13 @@ When a form is rendered, the following process occurs:
 Form definition parsed
         │
         ▼
-PFFormField created
+FormField created
         │
         ▼
 input type stored as string
         │
         ▼
-PFFormPrinter resolves class
+FormPrinter resolves class
         │
         ▼
 Input implementation generates HTML
@@ -153,8 +153,8 @@ The input type name originates from the form definition:
 {{{field|Author|input type=combobox}}}
 ----
 
-The value `combobox` is stored in the `PFFormField` instance and later
-used by `PFFormPrinter` to determine the input class.
+The value `combobox` is stored in the `FormField` instance and later
+used by `FormPrinter` to determine the input class.
 
 == Automatic Input Selection
 
@@ -190,7 +190,7 @@ the field.
 The rendering call typically occurs via:
 
 ----
-PFFormPrinter::formFieldHTML()
+FormPrinter::formFieldHTML()
 ----
 
 The input implementation outputs the HTML widget used in the form.
@@ -211,7 +211,7 @@ The generated markup includes:
 * hidden fields required for submission
 
 Additional HTML may also be inserted by
-`PFFormField::additionalHTMLForInput()`.
+`FormField::additionalHTMLForInput()`.
 
 == Client-Side Widget Initialization
 
@@ -413,10 +413,10 @@ The PageForms input system follows a *plugin-based architecture*.
 Form definition
         │
         ▼
-PFFormField (configuration)
+FormField (configuration)
         │
         ▼
-PFFormPrinter (input registry)
+FormPrinter (input registry)
         │
         ▼
 Input class (PFFormInput subclass)

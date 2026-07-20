@@ -7,6 +7,15 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\Form;
+use MediaWiki\Extension\PageForms\FormCache;
+use MediaWiki\Extension\PageForms\FormField;
+use MediaWiki\Extension\PageForms\FormLinker;
+use MediaWiki\Extension\PageForms\FormPrinter;
+use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\Template;
+use MediaWiki\Extension\PageForms\TemplateField;
+use MediaWiki\Extension\PageForms\TemplateInForm;
 use MediaWiki\MediaWikiServices;
 
 class PFHooks {
@@ -20,6 +29,19 @@ class PFHooks {
 		}
 
 		define( 'PF_VERSION', ExtensionRegistry::getInstance()->getAllThings()['PageForms']['version'] );
+
+		// BC shims for classes moved to the MediaWiki\Extension\PageForms namespace
+		// during the includes/ -> src/ PSR-4 migration. Registered here so the old
+		// global names are resolvable before any hook fires. See docs/developer/psr4-migration.adoc.
+		class_alias( Form::class, 'PFForm' );
+		class_alias( FormCache::class, 'PFFormCache' );
+		class_alias( FormField::class, 'PFFormField' );
+		class_alias( FormLinker::class, 'PFFormLinker' );
+		class_alias( FormPrinter::class, 'PFFormPrinter' );
+		class_alias( FormUtils::class, 'PFFormUtils' );
+		class_alias( Template::class, 'PFTemplate' );
+		class_alias( TemplateField::class, 'PFTemplateField' );
+		class_alias( TemplateInForm::class, 'PFTemplateInForm' );
 
 		$GLOBALS['wgPageFormsIP'] = dirname( __DIR__ ) . '/../';
 
@@ -46,7 +68,7 @@ class PFHooks {
 		// This global variable is needed so that other
 		// extensions can hook into it to add their own
 		// input types.
-		$GLOBALS['wgPageFormsFormPrinter'] = new PFFormPrinter();
+		$GLOBALS['wgPageFormsFormPrinter'] = new FormPrinter();
 	}
 
 	/**
@@ -221,7 +243,7 @@ class PFHooks {
 			return false;
 		}
 
-		$defaultForms = PFFormLinker::getDefaultFormsForPage( $title );
+		$defaultForms = FormLinker::getDefaultFormsForPage( $title );
 		if ( count( $defaultForms ) > 0 ) {
 			return false;
 		}

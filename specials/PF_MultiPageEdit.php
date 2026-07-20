@@ -11,6 +11,8 @@
  * @author Yaron Koren
  */
 
+use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Revision\RevisionRecord;
 
 /**
@@ -75,7 +77,7 @@ class PFMultiPageEdit extends QueryPage {
 		$text = '';
 		$out->setPageTitle( $this->msg( 'pf_multipageedit_with-name', $this->mTemplate )->text() );
 
-		$template = PFTemplate::newFromName( $template_name );
+		$template = Template::newFromName( $template_name );
 		$templateCalls = [];
 
 		$templateFields = $template->getTemplateFields();
@@ -158,7 +160,7 @@ class PFMultiPageEdit extends QueryPage {
 
 		$GLOBALS['wgPageFormsGridParams'][$template_name] = $gridParams;
 
-		PFFormUtils::setGlobalVarsForSpreadsheet();
+		FormUtils::setGlobalVarsForSpreadsheet();
 
 		$text .= "<p><div id='selectLimit'></div></p>";
 

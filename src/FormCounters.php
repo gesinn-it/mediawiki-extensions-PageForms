@@ -7,9 +7,9 @@ namespace MediaWiki\Extension\PageForms;
 /**
  * Mutable counter pair for field number and tab index within a single form render.
  *
- * Passed by reference through PFFormPrinter::formHTML() and all builder classes so
+ * Passed by reference through FormPrinter::formHTML() and all builder classes so
  * that each builder can read and increment the counters without accessing PHP globals
- * directly. PFFormPrinter writes the values back into the legacy globals after each
+ * directly. FormPrinter writes the values back into the legacy globals after each
  * increment for backward compatibility with external code that reads them.
  */
 class FormCounters {

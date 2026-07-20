@@ -2,8 +2,19 @@
 
 declare( strict_types=1 );
 
+namespace MediaWiki\Extension\PageForms;
+
+use BagOStuff;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RenderedRevision;
+use ObjectCache;
+use Parser;
+use ParserOptions;
+use PFUtils;
+use RequestContext;
+use StringUtils;
+use Title;
+use WikiPage;
 
 /**
  * Form-definition caching subsystem for PageForms.
@@ -12,7 +23,7 @@ use MediaWiki\Revision\RenderedRevision;
  * in the MW object cache, and for loading preload-page text used to pre-fill
  * form fields.
  *
- * Extracted from PFFormUtils to give the caching concern a single, testable
+ * Extracted from FormUtils to give the caching concern a single, testable
  * home.  The hooks ArticlePurge and MultiContentSave are registered directly
  * against this class in extension.json.
  *
@@ -20,7 +31,7 @@ use MediaWiki\Revision\RenderedRevision;
  * @author Jeffrey Stuckman
  * @ingroup PF
  */
-class PFFormCache {
+class FormCache {
 
 	// -----------------------------------------------------------------------
 	// Preload

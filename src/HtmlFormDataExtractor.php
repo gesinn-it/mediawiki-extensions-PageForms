@@ -6,7 +6,7 @@ namespace MediaWiki\Extension\PageForms;
 use DOMDocument;
 
 /**
- * Parses the HTML fragment produced by PFFormPrinter::formHTML() and extracts
+ * Parses the HTML fragment produced by FormPrinter::formHTML() and extracts
  * the field values encoded in it as a nested array suitable for merging into
  * PFAutoeditAPI::$mOptions.
  *

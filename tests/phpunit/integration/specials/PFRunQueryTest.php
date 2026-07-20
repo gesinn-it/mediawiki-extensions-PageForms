@@ -97,7 +97,7 @@ class PFRunQueryTest extends SpecialPageTestBase {
 			}
 		);
 
-		// A field tag is required to trigger PFFormField::clearState(), which
+		// A field tag is required to trigger FormField::clearState(), which
 		// resets the global parser's ParserOutput and drops the module
 		// registered above — reproducing the conditions of issue #15.
 		$formTitle = Title::newFromText( 'ModuleForm', PF_NS_FORM );

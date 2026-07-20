@@ -1,4 +1,27 @@
 <?php
+
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use EditPage;
+use FatalError;
+use Html;
+use LogEventsList;
+use MediaWiki\MediaWikiServices;
+use MWException;
+use OutputPage;
+use Parser;
+use ParserOptions;
+use PFTextAreaInput;
+use PFUtils;
+use PFWikiPage;
+use RequestContext;
+use Sanitizer;
+use Title;
+use User;
+use WebRequest;
+
 /**
  * Handles the creation and running of a user-created form.
  *
@@ -11,21 +34,7 @@
  * @author LY Meng
  * @ingroup PF
  */
-
-use MediaWiki\Extension\PageForms\CalendarHtmlBuilder;
-use MediaWiki\Extension\PageForms\FieldValueResolver;
-use MediaWiki\Extension\PageForms\FormCounters;
-use MediaWiki\Extension\PageForms\FormDefParser;
-use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
-use MediaWiki\Extension\PageForms\FormPlaceholder;
-use MediaWiki\Extension\PageForms\FormSectionHtmlBuilder;
-use MediaWiki\Extension\PageForms\InputTypeRegistry;
-use MediaWiki\Extension\PageForms\MultipleTemplateHtmlBuilder;
-use MediaWiki\Extension\PageForms\SpreadsheetHtmlBuilder;
-use MediaWiki\Extension\PageForms\StandardInputHtmlBuilder;
-use MediaWiki\MediaWikiServices;
-
-class PFFormPrinter {
+class FormPrinter {
 
 	/**
 	 * This property stores mSemanticTypeHooks values
@@ -243,7 +252,7 @@ class PFFormPrinter {
 	/**
 	 * Creates the HTML for a single instance of a multiple-instance
 	 * template.
-	 * @param PFTemplateInForm $template_in_form
+	 * @param TemplateInForm $template_in_form
 	 * @param bool $form_is_disabled
 	 * @param string &$section
 	 * @return string
@@ -257,7 +266,7 @@ class PFFormPrinter {
 	/**
 	 * Creates the end of the HTML for a multiple-instance template -
 	 * including the sections necessary for adding additional instances.
-	 * @param PFTemplateInForm $template_in_form
+	 * @param TemplateInForm $template_in_form
 	 * @param bool $form_is_disabled
 	 * @param string $section
 	 * @return string
@@ -295,7 +304,7 @@ class PFFormPrinter {
 	 * This is a stripped-down version of formHTML() for the $source_is_page=true
 	 * path: it sets up a parser, normalises the form definition, walks the
 	 * {{{for template}}} / {{{field}}} / {{{end template}}} sections, calls
-	 * PFTemplateInForm::setFieldValuesFromPage() for each template found in
+	 * TemplateInForm::setFieldValuesFromPage() for each template found in
 	 * the page, and returns the collected values as a nested array.
 	 *
 	 * The returned keys use the same underscore-normalisation as
@@ -484,9 +493,9 @@ class PFFormPrinter {
 		// Add form bottom, if no custom "standard inputs" have been defined.
 		if ( !$this->standardInputsIncluded ) {
 			if ( $args['is_query'] ) {
-				$form_text .= PFFormUtils::queryFormBottom();
+				$form_text .= FormUtils::queryFormBottom();
 			} else {
-				$form_text .= PFFormUtils::formBottom( $args['form_submitted'], $args['form_is_disabled'] );
+				$form_text .= FormUtils::formBottom( $args['form_submitted'], $args['form_is_disabled'] );
 			}
 		}
 
@@ -514,7 +523,7 @@ class PFFormPrinter {
 		// formHTML() has no handle on the caller's OutputPage instance.
 		$parserOutput = $parser->getOutput();
 		// Restore modules that were registered during form-definition parsing
-		// but cleared by PFFormField::clearState() during field rendering.
+		// but cleared by FormField::clearState() during field rendering.
 		if ( $args['formDefParserModules'] ) {
 			$parserOutput->addModules( $args['formDefParserModules'] );
 		}
@@ -755,7 +764,7 @@ class PFFormPrinter {
 
 		// Start off with a loading spinner - this will be removed by
 		// the JavaScript once everything has finished loading.
-		$form_text = PFFormUtils::displayLoadingImage();
+		$form_text = FormUtils::displayLoadingImage();
 		if ( $is_query || $userCanEditPage ) {
 			$form_is_disabled = false;
 			// Show "Your IP address will be recorded" warning if
@@ -788,9 +797,9 @@ class PFFormPrinter {
 
 		$parser = $this->createFreshParser( $user );
 
-		$form_def = PFFormCache::getFormDefinition( $parser, $form_def, $form_id );
+		$form_def = FormCache::getFormDefinition( $parser, $form_def, $form_id );
 		// Snapshot RL modules registered by parser tag hooks during form-definition
-		// parsing. PFFormField calls $parser->clearState() during field rendering,
+		// parsing. FormField calls $parser->clearState() during field rendering,
 		// which resets $parser->mOutput and discards these modules. We save them
 		// here and merge them back into the final ParserOutput before returning.
 		$formDefParserModules = $parser->getOutput()->getModules();
@@ -880,8 +889,8 @@ class PFFormPrinter {
 					$template_name = str_replace( '_', ' ', $parser->recursiveTagParse( $tag_components[1] ) );
 					$is_new_template = ( $template_name != $previous_template_name );
 					if ( $is_new_template ) {
-						$template = PFTemplate::newFromName( $template_name );
-						$tif = PFTemplateInForm::newFromFormTag( $tag_components, $parser );
+						$template = Template::newFromName( $template_name );
+						$tif = TemplateInForm::newFromFormTag( $tag_components, $parser );
 					}
 					// Remove template tag.
 					$section = substr_replace( $section, '', $brackets_loc, $brackets_end_loc + 3 - $brackets_loc );
@@ -940,7 +949,7 @@ class PFFormPrinter {
 					if ( $source_is_page ) {
 						// Add any unhandled template fields
 						// in the page as hidden variables.
-						$form_text .= PFFormUtils::unhandledFieldsHTML( $tif );
+						$form_text .= FormUtils::unhandledFieldsHTML( $tif );
 					}
 					// Remove this tag from the $section variable.
 					$section = substr_replace( $section, '', $brackets_loc, $brackets_end_loc + 3 - $brackets_loc );
@@ -954,19 +963,19 @@ class PFFormPrinter {
 					// means we're handling the free text field.
 					// Make the template a dummy variable.
 					if ( $tif == null ) {
-						$template = new PFTemplate( null, [] );
+						$template = new Template( null, [] );
 						// Get free text from the query string, if it was set.
 						if ( $request->getCheck( 'free_text' ) ) {
 							$standard_input = $request->getArray( 'standard_input', [] );
 							$standard_input['#freetext#'] = $request->getVal( 'free_text' );
 							$request->setVal( 'standard_input', $standard_input );
 						}
-						$tif = PFTemplateInForm::create( 'standard_input', null, null, null, [] );
+						$tif = TemplateInForm::create( 'standard_input', null, null, null, [] );
 						$tif->setFieldValuesFromSubmit( $request );
 					}
 					// We get the field name both here
-					// and in the PFFormField constructor,
-					// because PFFormField isn't equipped
+					// and in the FormField constructor,
+					// because FormField isn't equipped
 					// to deal with the #freetext# hack,
 					// among others.
 					if ( count( $tag_components ) < 2 ) {
@@ -976,7 +985,7 @@ class PFFormPrinter {
 						);
 					}
 					$field_name = trim( $tag_components[1] );
-					$form_field = PFFormField::newFromFormFieldTag(
+					$form_field = FormField::newFromFormFieldTag(
 						$tag_components, $template, $tif, $form_is_disabled, $user
 					);
 					// For special displays, add in the
@@ -1432,12 +1441,12 @@ END;
 	/**
 	 * Create the HTML to display this field within a form.
 	 */
-	public function formFieldHTML( PFFormField $form_field, ?string $cur_value ): string {
+	public function formFieldHTML( FormField $form_field, ?string $cur_value ): string {
 		return $this->formFieldHtmlBuilder->formFieldHTML( $form_field, $cur_value, $this->counters );
 	}
 
 	private function createFormFieldTranslateTag(
-		&$template, &$tif, PFFormField &$form_field, ?string &$cur_value
+		&$template, &$tif, FormField &$form_field, ?string &$cur_value
 	): void {
 		$this->formFieldHtmlBuilder->createFormFieldTranslateTag( $template, $tif, $form_field, $cur_value );
 	}

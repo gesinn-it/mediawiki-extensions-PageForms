@@ -827,8 +827,8 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * the function used `global $wgRequest` which never saw the submitted
 	 * options, so template params were always lost in the autoedit save path.
 	 *
-	 * @covers \PFTemplateInForm::setFieldValuesFromSubmit
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\TemplateInForm::setFieldValuesFromSubmit
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHtmlWithFauxRequestProducesTemplateCallWithParams(): void {
 		global $wgPageFormsFormPrinter;
@@ -876,7 +876,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 *
 	 * Guards against false positives in the test above.
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHtmlWithoutSubmittedValueProducesBarTemplateCall(): void {
 		global $wgPageFormsFormPrinter;
@@ -961,7 +961,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// -------------------------------------------------------------------------
 	// Append (+) and Remove (-) modifiers — Gesinn Patch
 	//
-	// These tests cover the val_modifier code path in PFFormPrinter::formHTML()
+	// These tests cover the val_modifier code path in FormPrinter::formHTML()
 	// (the Gesinn Patch). PFFormFieldTest already verifies that getCurrentValue()
 	// returns the raw submitted value; here we verify that the concatenation or
 	// subtraction against the existing page value is performed correctly.
@@ -971,7 +971,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * The append modifier (field+=value) must concatenate the submitted value
 	 * onto the existing field value using the field's delimiter.
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHtmlWithAppendModifierAppendsToExistingFieldValue(): void {
 		global $wgPageFormsFormPrinter;
@@ -1018,7 +1018,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * The remove modifier (field-=value) must remove the specified value from
 	 * the existing field value list.
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHtmlWithRemoveModifierRemovesFromExistingFieldValue(): void {
 		global $wgPageFormsFormPrinter;

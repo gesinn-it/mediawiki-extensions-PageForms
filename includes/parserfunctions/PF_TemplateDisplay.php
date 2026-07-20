@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -21,7 +22,7 @@ class PFTemplateDisplay {
 		$tableFieldValues = [];
 
 		$templateTitle = $frame->title;
-		$template = PFTemplate::newFromName( $templateTitle->getText() );
+		$template = Template::newFromName( $templateTitle->getText() );
 		$templateParams = $template->getTemplateParams();
 		if ( $templateParams == null ) {
 			return '<div class="error">' .

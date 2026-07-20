@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCache;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -163,7 +164,7 @@ class PFAutocompleteAPI extends ApiBase {
 			return $this->computeAllValuesForProperty( $property_name, $substring, $basePropertyName, $baseValue );
 		}
 
-				$cache = PFFormCache::getFormCache();
+				$cache = FormCache::getFormCache();
 		// Remove trailing whitespace to avoid unnecessary database selects
 		$cacheKeyString = $property_name . '::' . rtrim( $substring ?? '' );
 		if ( $basePropertyName !== null ) {

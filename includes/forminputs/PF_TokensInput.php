@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -251,7 +252,7 @@ class PFTokensInput extends PFFormInput {
 
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$spanClass .= ' pfShowIfSelected';
-			PFFormUtils::setShowOnSelect( $other_args['show on select'], $spanID );
+			FormUtils::setShowOnSelect( $other_args['show on select'], $spanID );
 		}
 
 		$spanAttrs = [

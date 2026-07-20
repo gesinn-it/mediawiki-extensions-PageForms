@@ -3,6 +3,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormUtils;
+
 /**
  * @ingroup PFFormInput
  */
@@ -73,7 +75,7 @@ class PFListBoxInput extends PFMultiEnumInput {
 
 		if ( array_key_exists( 'show on select', $this->mOtherArgs ) ) {
 			$className .= ' pfShowIfSelected';
-			PFFormUtils::setShowOnSelect( $this->mOtherArgs['show on select'], $input_id );
+			FormUtils::setShowOnSelect( $this->mOtherArgs['show on select'], $input_id );
 		}
 
 		$selectAttrs = [

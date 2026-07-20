@@ -16,23 +16,23 @@ Page Forms provides the following hooks. Register them in your extension's `exte
 | Inject additional ResourceLoader modules into a form page.
 
 | `PageForms::BeforeFreeTextSubst`
-| `PF_FormPrinter::formHTML()`
+| `FormPrinter::formHTML()`
 | Inspect or modify the free text and assembled page wikitext just before substitution.
 
 | `PageForms::CreateFormField`
-| `PF_FormPrinter::formHTML()`
+| `FormPrinter::formHTML()`
 | Inspect or modify a form field and its current value just before the field HTML is rendered.
 
 | `PageForms::CreateTemplateText`
-| `PFTemplate::createText()`
-| Alter a `PFTemplate` object before its wikitext output is assembled.
+| `Template::createText()`
+| Alter a `Template` object before its wikitext output is assembled.
 
 | `PageForms::EditFormInitialText`
 | `PFAutoEditAPI`
 | Replace or modify the wikitext loaded into the form when an *existing* page is edited.
 
 | `PageForms::EditFormPreloadText`
-| `PFFormLinker`, `PFAutoeditAPI`
+| `FormLinker`, `PFAutoeditAPI`
 | Supply or modify preloaded wikitext when a *new* page is created via a form.
 
 | `PageForms::FormInputEnd`
@@ -40,7 +40,7 @@ Page Forms provides the following hooks. Register them in your extension's `exte
 | Append HTML to the body of a `#forminput` form before the outer `<form>` element is rendered.
 
 | `PageForms::FormPrinterSetup`
-| `PFFormPrinter::__construct()`
+| `FormPrinter::__construct()`
 | Register custom form input types with the form printer.
 
 | `PageForms::HTMLBeforeForm`
@@ -52,7 +52,7 @@ Page Forms provides the following hooks. Register them in your extension's `exte
 | Inspect or modify the redirect form HTML after it has been assembled.
 
 | `PageForms::RenderingEnd`
-| `PFFormPrinter::formHTML()`
+| `FormPrinter::formHTML()`
 | Inspect or modify the complete rendered form HTML string, including the closing `</form>` tag.
 
 | `PageForms::SetTargetName`
@@ -60,11 +60,11 @@ Page Forms provides the following hooks. Register them in your extension's `exte
 | Override the target page name used by the `pfautoedit` API.
 
 | `PageForms::TemplateFieldEnd`
-| `PFTemplate::createTextForField()`
+| `Template::createTextForField()`
 | Modify the suffix appended after each field's wikitext in a generated template.
 
 | `PageForms::TemplateFieldStart`
-| `PFTemplate::createTextForField()`
+| `Template::createTextForField()`
 | Modify the prefix prepended before each field's wikitext in a generated template.
 
 | `PageForms::TreeNodeDisplay`
@@ -72,7 +72,7 @@ Page Forms provides the following hooks. Register them in your extension's `exte
 | Was: alter a tree input node's display label. Removed in July 2020 when the tree widget was rewritten.
 
 | `PageForms::UserCanEditPage`
-| `PFFormPrinter::formHTML()`
+| `FormPrinter::formHTML()`
 | Override the permission check that determines whether the user may submit the form.
 
 | `PageForms::WritePageData`
@@ -123,7 +123,7 @@ Defined in `includes/PF_Utils.php`, method `PF_Utils::addFormRLModules()`.
 
 == PageForms::BeforeFreeTextSubst
 
-Called in `PF_FormPrinter` just before the free text value is substituted into the form HTML and assembled into the final page wikitext. Handlers can inspect or modify both the free text and the assembled page text at this point.
+Called in `FormPrinter` just before the free text value is substituted into the form HTML and assembled into the final page wikitext. Handlers can inspect or modify both the free text and the assembled page text at this point.
 
 The hook fires after the free text has been sourced (from the existing page, a form submission, or a preload page) and after `<onlyinclude>` tags have been stripped when the form uses `free text only include` mode, but _before_ `setFreeText()` and `createPageText()` are called.
 
@@ -189,7 +189,7 @@ class Hooks {
 
 === Notes
 
-* The hook is invoked from `PF_FormPrinter::formHTML()` in `includes/PF_FormPrinter.php`.
+* The hook is invoked from `FormPrinter::formHTML()` in `src/FormPrinter.php`.
 * Modifying `$freeText` here also affects the value rendered inside the form's free-text input field (substituted via the `!free_text!` placeholder), so changes are visible to the editor on the same request when the form is re-displayed.
 * If you need to build the page text yourself and bypass the default `createPageText()` assembly, set `$pageText` to a non-empty string; the extension still calls `createPageText()` immediately after the hook but the result is only used when `$pageText` remains empty.
 
@@ -199,7 +199,7 @@ Called once per form field just before the field's HTML is rendered, giving
 extensions the opportunity to inspect or modify both the field definition and
 its current value.
 
-The hook is fired from `PF_FormPrinter.php` inside the main form-rendering
+The hook is fired from `FormPrinter.php` inside the main form-rendering
 loop.  Because the value variable differs depending on whether the form was
 submitted or is being displayed for the first time, the hook is called in two
 slightly different ways (see the note on `$cur_value` below).
@@ -209,7 +209,7 @@ slightly different ways (see the note on `$cur_value` below).
 [source,php]
 ----
 public function onPageForms__CreateFormField(
-    PFFormField &$form_field,
+    FormField &$form_field,
     mixed       &$cur_value,
     bool         $form_submitted
 ): void
@@ -217,10 +217,10 @@ public function onPageForms__CreateFormField(
 
 === Parameters
 
-`$form_field` (`PFFormField`, passed by reference)::
+`$form_field` (`FormField`, passed by reference)::
 The field object representing the form field being rendered.  It carries the
 field's input type, label, argument map, possible values, list/mandatory/hidden
-flags, and a reference to the underlying `PFTemplateField`.  Modifications made
+flags, and a reference to the underlying `TemplateField`.  Modifications made
 to this object affect how the field is subsequently rendered.
 
 `$cur_value` (`string|array|null`, passed by reference)::
@@ -266,12 +266,12 @@ with a notice string when the form is displayed (not on submit):
 ----
 namespace MyExtension;
 
-use PFFormField;
+use MediaWiki\Extension\PageForms\FormField;
 
 class Hooks {
 
     public static function onPageFormsCreateFormField(
-        PFFormField &$form_field,
+        FormField &$form_field,
         &$cur_value,
         bool $form_submitted
     ): void {
@@ -291,7 +291,7 @@ class Hooks {
 === Source reference
 
 The hook is called in
-`includes/PF_FormPrinter.php` within the `formHTML()` method,
+`src/FormPrinter.php` within the `formHTML()` method,
 after mapping-template label substitution and before tab/field-number
 counters are incremented.  The relevant section contains an inline
 `@TODO` noting that it may be desirable to unify the two value
@@ -301,23 +301,23 @@ hook call in a future refactor.
 
 == PageForms::CreateTemplateText
 
-Called inside `PFTemplate::createText()` just before the template wikitext is assembled.
-The hook receives the `PFTemplate` object by reference, allowing a handler to alter the
+Called inside `Template::createText()` just before the template wikitext is assembled.
+The hook receives the `Template` object by reference, allowing a handler to alter the
 template's properties — format, category, connecting property, aggregation settings, or
 full-wikitext mode — before the output string is built.
 
-The hook fires during programmatic template creation via `PFTemplate::createText()`.
+The hook fires during programmatic template creation via `Template::createText()`.
 
 === Signature
 
 [source,php]
 ----
-public static function onPageFormsCreateTemplateText( PFTemplate &$template ): void
+public static function onPageFormsCreateTemplateText( Template &$template ): void
 ----
 
 === Parameters
 
-`$template` (`PFTemplate`, passed by reference)::
+`$template` (`Template`, passed by reference)::
 The template object that is about to produce its wikitext.
 Modify it through its public setter methods before returning.
 The following setters are available:
@@ -365,7 +365,7 @@ and assigns it to a default category:
 [source,php]
 ----
 class MyExtensionHooks {
-    public static function onPageFormsCreateTemplateText( PFTemplate &$template ): void {
+    public static function onPageFormsCreateTemplateText( Template &$template ): void {
         $template->setFormat( 'infobox' );
         $template->setCategoryName( 'Auto-generated templates' );
     }
@@ -374,7 +374,7 @@ class MyExtensionHooks {
 
 === Source
 
-Defined in `includes/PF_Template.php`, method `PFTemplate::createText()`.
+Defined in `src/Template.php`, method `Template::createText()`.
 
 
 == PageForms::EditFormInitialText
@@ -487,7 +487,7 @@ The `Title` object for the Page Forms form being used.
 
 The hook is run in two situations:
 
-* When a red link on a page triggers automatic page creation via `PFFormLinker::createPageWithForm()`.
+* When a red link on a page triggers automatic page creation via `FormLinker::createPageWithForm()`.
 * When the autoedit API (`PFAutoeditAPI`) processes a form submission for a page that does not yet exist.
 
 === Registration
@@ -565,14 +565,14 @@ MediaWikiServices::getInstance()->getHookContainer()->run(
 
 == PageForms::FormPrinterSetup
 
-Called at the end of `PFFormPrinter::__construct()`, after all built-in input types have been registered. Use this hook to register custom form input types with the form printer, making them available for use in Page Forms form definitions via the `input type=` parameter.
+Called at the end of `FormPrinter::__construct()`, after all built-in input types have been registered. Use this hook to register custom form input types with the form printer, making them available for use in Page Forms form definitions via the `input type=` parameter.
 
 === Parameters
 
-`&$formPrinter` (`PFFormPrinter`)::
-A reference to the `PFFormPrinter` instance being initialised. Use the methods on this object to register additional input types.
+`&$formPrinter` (`FormPrinter`)::
+A reference to the `FormPrinter` instance being initialised. Use the methods on this object to register additional input types.
 
-=== Key Methods on `PFFormPrinter`
+=== Key Methods on `FormPrinter`
 
 `registerInputType( string $inputTypeClass )`::
 The preferred registration method. Registers a custom input class (which must extend `PFFormInput`) and automatically populates the input-type hook table and the SMW semantic-type hook tables from the class's `getName()`, `getDefaultPropTypes()`, and `getDefaultPropTypeLists()` static methods.
@@ -592,11 +592,13 @@ Low-level method. Maps a SMW property type (e.g. `_str`, `_dat`) to an input cla
 
 namespace MyExtension;
 
+use MediaWiki\Extension\PageForms\FormPrinter;
+
 class Hooks {
     /**
-     * @param \PFFormPrinter $formPrinter
+     * @param FormPrinter $formPrinter
      */
-    public static function onFormPrinterSetup( \PFFormPrinter &$formPrinter ): void {
+    public static function onFormPrinterSetup( FormPrinter &$formPrinter ): void {
         // Register a custom input type class.
         // MyCustomInput must extend PFFormInput and implement getName(),
         // getDefaultPropTypes(), and getDefaultPropTypeLists().
@@ -607,7 +609,7 @@ class Hooks {
 
 === Notes
 
-* The hook fires once per MediaWiki request, during the construction of the global `PFFormPrinter` singleton.
+* The hook fires once per MediaWiki request, during the construction of the global `FormPrinter` singleton.
 * `registerInputType()` is preferred over the two low-level setters because it keeps all three lookup tables (`mInputTypeHooks`, `mSemanticTypeHooks` for single values, `mSemanticTypeHooks` for lists) in sync automatically.
 * Custom input classes must extend `PFFormInput` and implement the required abstract static methods (`getName()`, `getDefaultPropTypes()`, `getDefaultPropTypeLists()`, `getHTML()`).
 
@@ -752,7 +754,7 @@ The fully rendered HTML of the form, including the `<form>…</form>` wrapper an
 
 === Location
 
-Fired in `includes/PF_FormPrinter.php`, inside `PFFormPrinter::formHTML()`, immediately after the form closing tag is appended:
+Fired in `src/FormPrinter.php`, inside `FormPrinter::formHTML()`, immediately after the form closing tag is appended:
 
 [source,php]
 ----
@@ -822,8 +824,8 @@ $wgHooks['PageForms::SetTargetName'][] = function ( &$targetName, $hookQuery ) {
 
 == PageForms::TemplateFieldEnd
 
-Called by `PFTemplate::createTextForField()` in `/includes/PF_Template.php` after the field wikitext has been generated, immediately before the per-field suffix string is appended to the template output.
-This hook allows extensions (or local `LocalSettings.php` code) to inspect the current `PFTemplateField` object and override or replace the trailing delimiter/suffix text that follows each field value in the generated template.
+Called by `Template::createTextForField()` in `/src/Template.php` after the field wikitext has been generated, immediately before the per-field suffix string is appended to the template output.
+This hook allows extensions (or local `LocalSettings.php` code) to inspect the current `TemplateField` object and override or replace the trailing delimiter/suffix text that follows each field value in the generated template.
 
 === When it fires
 
@@ -836,7 +838,7 @@ The call sequence inside `createTextForField()` is:
 
 === Parameters
 
-`$field` (PFTemplateField, read-only)::
+`$field` (`\MediaWiki\Extension\PageForms\TemplateField`, read-only)::
 The field object being rendered.
 Use its getters (e.g. `getFieldName()`, `getSemanticProperty()`, `isList()`) to inspect the field and decide whether to modify the suffix.
 
@@ -853,7 +855,7 @@ The following example appends a pipe character and a newline after every field t
 [source,php]
 ----
 $wgHooks['PageForms::TemplateFieldEnd'][] = function (
-    PFTemplateField $field,
+    \MediaWiki\Extension\PageForms\TemplateField $field,
     string &$fieldEnd
 ): void {
     if ( $field->isList() ) {
@@ -864,7 +866,7 @@ $wgHooks['PageForms::TemplateFieldEnd'][] = function (
 
 === Source reference
 
-Defined in `includes/PF_Template.php`, method `PFTemplate::createTextForField()`:
+Defined in `src/Template.php`, method `Template::createTextForField()`:
 
 [source,php]
 ----
@@ -879,7 +881,7 @@ if ( $fieldEnd != '' ) {
 
 == PageForms::TemplateFieldStart
 
-Called once per template field when `PFTemplate::createText()` generates the wikitext for a template (e.g. via the _Create Template_ special page). The hook fires inside `PFTemplate::createTextForField()` and lets handlers modify the prefix string that is prepended to each field's wikitext output.
+Called once per template field when `Template::createText()` generates the wikitext for a template (e.g. via the _Create Template_ special page). The hook fires inside `Template::createTextForField()` and lets handlers modify the prefix string that is prepended to each field's wikitext output.
 
 If the resulting `$fieldStart` string is non-empty it is emitted immediately before the field's own wikitext, separated by a space:
 
@@ -891,7 +893,7 @@ The companion hook `PageForms::TemplateFieldEnd` provides the same control over 
 
 === Parameters
 
-`$field` (PFTemplateField)::
+`$field` (`\MediaWiki\Extension\PageForms\TemplateField`)::
 The field object being rendered. Provides read access to the field name, label, SMW property, list status, delimiter, display mode, and other field metadata. Passed by value — modifications are ignored.
 
 `&$fieldStart` (string)::
@@ -899,7 +901,7 @@ The prefix string to prepend before the field's wikitext. Passed by reference. I
 
 === Source location
 
-`includes/PF_Template.php`, method `PFTemplate::createTextForField()`.
+`src/Template.php`, method `Template::createTextForField()`.
 
 === Example usage
 
@@ -908,7 +910,7 @@ The following example prepends a custom wiki-table cell marker before every fiel
 [source,php]
 ----
 $wgHooks['PageForms::TemplateFieldStart'][] = function (
-    PFTemplateField $field,
+    \MediaWiki\Extension\PageForms\TemplateField $field,
     string &$fieldStart
 ): void {
     if ( $field->getSemanticProperty() !== '' ) {
@@ -920,7 +922,7 @@ $wgHooks['PageForms::TemplateFieldStart'][] = function (
 === See also
 
 * `PageForms::TemplateFieldEnd` — companion hook for the suffix appended after each field's wikitext
-* `PageForms::CreateTemplateText` — hook called once per template before field iteration begins, allowing modification of the entire `PFTemplate` object
+* `PageForms::CreateTemplateText` — hook called once per template before field iteration begins, allowing modification of the entire `Template` object
 
 == PageForms::TreeNodeDisplay
 
@@ -987,7 +989,7 @@ If `$userCanEditPage` is `false` when the hook finishes, Page Forms renders the 
 
 === Source
 
-Fired in `PFFormPrinter::formHTML()` (`includes/PF_FormPrinter.php`):
+Fired in `FormPrinter::formHTML()` (`src/FormPrinter.php`):
 
 [source,php]
 ----

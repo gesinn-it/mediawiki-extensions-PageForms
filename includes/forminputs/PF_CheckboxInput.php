@@ -3,6 +3,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormUtils;
+
 /**
  * @ingroup PFFormInput
  */
@@ -35,7 +37,7 @@ class PFCheckboxInput extends PFFormInput {
 		$inputID = "input_$wgPageFormsFieldNum";
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$className .= ' pfShowIfCheckedCheckbox';
-			PFFormUtils::setShowOnSelect( $other_args['show on select'], $inputID, true );
+			FormUtils::setShowOnSelect( $other_args['show on select'], $inputID, true );
 		}
 
 		// Can show up here either as an array or a string, depending on

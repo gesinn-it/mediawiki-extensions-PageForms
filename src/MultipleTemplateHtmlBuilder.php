@@ -17,10 +17,10 @@ class MultipleTemplateHtmlBuilder {
 
 	/**
 	 * Creates the opening HTML for a multiple-instance template wrapper.
-	 * @param \PFTemplateInForm $tif
+	 * @param TemplateInForm $tif
 	 * @return string
 	 */
-	public function multipleTemplateStartHTML( \PFTemplateInForm $tif ): string {
+	public function multipleTemplateStartHTML( TemplateInForm $tif ): string {
 		$text = "\t" . '<div class="multipleTemplateWrapper">' . "\n";
 		$attrs = [ 'class' => 'multipleTemplateList' ];
 		if ( $tif->getMinInstancesAllowed() !== null ) {
@@ -73,13 +73,13 @@ END;
 
 	/**
 	 * Creates the HTML for a single instance of a multiple-instance template.
-	 * @param \PFTemplateInForm $templateInForm
+	 * @param TemplateInForm $templateInForm
 	 * @param bool $formIsDisabled
 	 * @param string &$section
 	 * @return string
 	 */
 	public function multipleTemplateInstanceHTML(
-		\PFTemplateInForm $templateInForm,
+		TemplateInForm $templateInForm,
 		bool $formIsDisabled,
 		string &$section
 	): string {
@@ -120,13 +120,13 @@ END;
 	/**
 	 * Creates the end of the HTML for a multiple-instance template —
 	 * including the sections necessary for adding additional instances.
-	 * @param \PFTemplateInForm $templateInForm
+	 * @param TemplateInForm $templateInForm
 	 * @param bool $formIsDisabled
 	 * @param string $section
 	 * @return string
 	 */
 	public function multipleTemplateEndHTML(
-		\PFTemplateInForm $templateInForm,
+		TemplateInForm $templateInForm,
 		bool $formIsDisabled,
 		string $section,
 		?FormCounters $counters = null

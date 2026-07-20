@@ -2,7 +2,10 @@
 
 declare( strict_types=1 );
 
+use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\SpreadsheetHtmlBuilder;
+use MediaWiki\Extension\PageForms\TemplateField;
+use MediaWiki\Extension\PageForms\TemplateInForm;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -140,7 +143,7 @@ class SpreadsheetHtmlBuilderTest extends TestCase {
 	// -----------------------------------------------------------------------
 
 	public function testSpreadsheetHtmlReturnsNullWhenNoFields(): void {
-		$tif = $this->createMock( PFTemplateInForm::class );
+		$tif = $this->createMock( TemplateInForm::class );
 		$tif->method( 'getFields' )->willReturn( [] );
 
 		$out = $this->createMock( OutputPage::class );
@@ -254,8 +257,8 @@ class SpreadsheetHtmlBuilderTest extends TestCase {
 	// Helpers
 	// -----------------------------------------------------------------------
 
-	private function makeTifForTable( string $templateName, array $fields, array $gridValues ): PFTemplateInForm {
-		$tif = $this->createMock( PFTemplateInForm::class );
+	private function makeTifForTable( string $templateName, array $fields, array $gridValues ): TemplateInForm {
+		$tif = $this->createMock( TemplateInForm::class );
 		$tif->method( 'getTemplateName' )->willReturn( $templateName );
 		$tif->method( 'getFields' )->willReturn( $fields );
 		$tif->method( 'getGridValues' )->willReturn( $gridValues );
@@ -263,10 +266,10 @@ class SpreadsheetHtmlBuilderTest extends TestCase {
 	}
 
 	private function makeHiddenFormField( string $fieldName, string $inputName ): object {
-		$templateField = $this->createMock( PFTemplateField::class );
+		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getFieldName' )->willReturn( $fieldName );
 
-		$formField = $this->createMock( PFFormField::class );
+		$formField = $this->createMock( FormField::class );
 		$formField->template_field = $templateField;
 		$formField->method( 'holdsTemplate' )->willReturn( false );
 		$formField->method( 'isHidden' )->willReturn( true );
@@ -276,11 +279,11 @@ class SpreadsheetHtmlBuilderTest extends TestCase {
 	}
 
 	private function makeVisibleFormField( string $fieldName, string $labelText, string $inputName ): object {
-		$templateField = $this->createMock( PFTemplateField::class );
+		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getFieldName' )->willReturn( $fieldName );
 		$templateField->method( 'getLabel' )->willReturn( null );
 
-		$formField = $this->createMock( PFFormField::class );
+		$formField = $this->createMock( FormField::class );
 		$formField->template_field = $templateField;
 		$formField->method( 'holdsTemplate' )->willReturn( false );
 		$formField->method( 'isHidden' )->willReturn( false );
@@ -298,10 +301,10 @@ class SpreadsheetHtmlBuilderTest extends TestCase {
 		?string $defaultValue,
 		array $possibleValues
 	): object {
-		$templateField = $this->createMock( PFTemplateField::class );
+		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getFieldName' )->willReturn( $fieldName );
 
-		$formField = $this->createMock( PFFormField::class );
+		$formField = $this->createMock( FormField::class );
 		$formField->template_field = $templateField;
 		$formField->method( 'getInputType' )->willReturn( $inputType );
 		$formField->method( 'getFieldArgs' )->willReturn( [] );
@@ -317,8 +320,8 @@ class SpreadsheetHtmlBuilderTest extends TestCase {
 		array $fields,
 		array $gridValues,
 		?string $height = null
-	): PFTemplateInForm {
-		$tif = $this->createMock( PFTemplateInForm::class );
+	): TemplateInForm {
+		$tif = $this->createMock( TemplateInForm::class );
 		$tif->method( 'getTemplateName' )->willReturn( $templateName );
 		$tif->method( 'getFields' )->willReturn( $fields );
 		$tif->method( 'getGridValues' )->willReturn( $gridValues );

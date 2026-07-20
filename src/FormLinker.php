@@ -1,7 +1,17 @@
 <?php
 
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\MediaWikiServices;
+use PFCreatePageJob;
+use PFUtils;
+use PFValuesUtils;
+use RequestContext;
+use Title;
+use User;
 
 /**
  * Gets the form(s) used to edit a page, both for existing pages and for
@@ -10,7 +20,7 @@ use MediaWiki\MediaWikiServices;
  * @author Yaron Koren
  * @ingroup PF
  */
-class PFFormLinker {
+class FormLinker {
 
 	private static $formPerNamespace = [];
 
@@ -51,7 +61,7 @@ class PFFormLinker {
 	}
 
 	public static function createPageWithForm( $title, $formName, $inQueryArr ) {
-		/** @var PFFormPrinter $wgPageFormsFormPrinter */
+		/** @var FormPrinter $wgPageFormsFormPrinter */
 		global $wgPageFormsFormPrinter, $wgOut;
 
 		$wgOut->enableOOUI();
@@ -66,7 +76,6 @@ class PFFormLinker {
 		);
 
 		[ $formText, $pageText, $formPageTitle, $generatedPageName ] =
-			// @phan-suppress-next-line PhanNonClassMethodCall
 			$wgPageFormsFormPrinter->formHTML(
 				$formDefinition, false, false, null, $preloadContent,
 				'Some very long page name that will hopefully never get created ABCDEF123',

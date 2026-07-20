@@ -1,20 +1,29 @@
 <?php
 
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms\Tests\Integration;
+
+use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\MediaWikiServices;
+use MediaWikiIntegrationTestCase;
+use PFUtils;
+use ReflectionProperty;
+use Title;
 
 /**
- * @covers \PFFormLinker::setBrokenLink
- * @covers \PFFormLinker::getDefaultFormsForPage
- * @covers \PFFormLinker::getDefaultForm
- * @covers \PFFormLinker::getDefaultFormForNamespace
+ * @covers \MediaWiki\Extension\PageForms\FormLinker::setBrokenLink
+ * @covers \MediaWiki\Extension\PageForms\FormLinker::getDefaultFormsForPage
+ * @covers \MediaWiki\Extension\PageForms\FormLinker::getDefaultForm
+ * @covers \MediaWiki\Extension\PageForms\FormLinker::getDefaultFormForNamespace
  * @group Database
  */
-class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
+class FormLinkerTest extends MediaWikiIntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
 		// Reset static namespace form cache before each test
-		$reflProp = new ReflectionProperty( PFFormLinker::class, 'formPerNamespace' );
+		$reflProp = new ReflectionProperty( FormLinker::class, 'formPerNamespace' );
 		$reflProp->setAccessible( true );
 		$reflProp->setValue( null, [] );
 	}
@@ -24,21 +33,21 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 	// -------------------------------------------------------------------------
 
 	public function testGetDefaultFormReturnsNullForNullTitle(): void {
-		$this->assertNull( PFFormLinker::getDefaultForm( null ) );
+		$this->assertNull( FormLinker::getDefaultForm( null ) );
 	}
 
 	public function testGetDefaultFormReturnsNullWhenNoPagePropSet(): void {
 		$title = Title::newFromText( 'PFTestFormLinkerNoDefaultFormPage01' );
 		$this->insertPage( $title, 'Plain content without a default form.' );
 
-		$this->assertNull( PFFormLinker::getDefaultForm( $title ) );
+		$this->assertNull( FormLinker::getDefaultForm( $title ) );
 	}
 
 	public function testGetDefaultFormReturnsPagePropValueWhenSetViaDefaultFormTag(): void {
 		$title = Title::newFromText( 'PFTestFormLinkerDefaultFormPage01' );
 		$this->insertPage( $title, '{{#default_form:PFTestFormLinkerForm01}}' );
 
-		$this->assertSame( 'PFTestFormLinkerForm01', PFFormLinker::getDefaultForm( $title ) );
+		$this->assertSame( 'PFTestFormLinkerForm01', FormLinker::getDefaultForm( $title ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -47,7 +56,7 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 
 	public function testGetDefaultFormForNamespaceReturnsNullWhenNoProjectPageDefaultFormSet(): void {
 		// NS_TALK has no project-namespace default-form page created in this test.
-		$this->assertNull( PFFormLinker::getDefaultFormForNamespace( NS_TALK ) );
+		$this->assertNull( FormLinker::getDefaultFormForNamespace( NS_TALK ) );
 	}
 
 	public function testGetDefaultFormForNamespaceReturnsConfiguredForm(): void {
@@ -55,7 +64,7 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
 		$this->insertPage( $nsPageTitle, '{{#default_form:PFTestFormLinkerNSForm01}}' );
 
-		$this->assertSame( 'PFTestFormLinkerNSForm01', PFFormLinker::getDefaultFormForNamespace( NS_HELP ) );
+		$this->assertSame( 'PFTestFormLinkerNSForm01', FormLinker::getDefaultFormForNamespace( NS_HELP ) );
 	}
 
 	public function testGetDefaultFormForNamespaceReturnsSameValueOnRepeatedCalls(): void {
@@ -63,8 +72,8 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
 		$this->insertPage( $nsPageTitle, '{{#default_form:PFTestFormLinkerNSForm02}}' );
 
-		$first = PFFormLinker::getDefaultFormForNamespace( NS_CATEGORY );
-		$second = PFFormLinker::getDefaultFormForNamespace( NS_CATEGORY );
+		$first = FormLinker::getDefaultFormForNamespace( NS_CATEGORY );
+		$second = FormLinker::getDefaultFormForNamespace( NS_CATEGORY );
 
 		$this->assertSame( 'PFTestFormLinkerNSForm02', $first );
 		$this->assertSame( $first, $second );
@@ -92,7 +101,7 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 			"{{#default_form:PFTestFormLinkerOwnForm01}}\n[[Category:$catName]]"
 		);
 
-		$this->assertSame( [ 'PFTestFormLinkerOwnForm01' ], PFFormLinker::getDefaultFormsForPage( $title ) );
+		$this->assertSame( [ 'PFTestFormLinkerOwnForm01' ], FormLinker::getDefaultFormsForPage( $title ) );
 	}
 
 	public function testGetDefaultFormsForPageDedupesSharedCategoryDefaultForm(): void {
@@ -105,7 +114,7 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$title = Title::newFromText( 'PFTestFormLinkerPageInTwoCats01' );
 		$this->insertPage( $title, "[[Category:$catA]]\n[[Category:$catB]]" );
 
-		$this->assertSame( [ $sharedForm ], PFFormLinker::getDefaultFormsForPage( $title ) );
+		$this->assertSame( [ $sharedForm ], FormLinker::getDefaultFormsForPage( $title ) );
 	}
 
 	public function testGetDefaultFormsForPageReturnsEmptyForSubpageWithOnlyNamespaceDefaultForm(): void {
@@ -119,18 +128,18 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$this->insertPage( $subpageTitle, 'Subpage content.' );
 
 		$this->assertTrue( $subpageTitle->isSubpage() );
-		$this->assertSame( [], PFFormLinker::getDefaultFormsForPage( $subpageTitle ) );
+		$this->assertSame( [], FormLinker::getDefaultFormsForPage( $subpageTitle ) );
 	}
 
 	// -------------------------------------------------------------------------
 	// Note: createPageWithForm() is deliberately not covered here. It calls
 	// formHTML() with is_query=false, which runs formHTML()'s permission-check
-	// branch (PF_FormPrinter.php's getPermissionErrors()/getUserEffectiveGroups()
+	// branch (src/FormPrinter.php's getPermissionErrors()/getUserEffectiveGroups()
 	// path). That branch was observed to leave stale state that makes unrelated
-	// PFFormPrinterTest cases (data sets #5/#6, which depend on the *current*
+	// FormPrinterTest cases (data sets #5/#6, which depend on the *current*
 	// test user's effective groups) fail when run in the same PHPUnit process
 	// afterwards. Detailed formHTML()/page-text rendering behaviour for this
-	// call path is already covered by PF_FormPrinterTest and PFAutoeditAPITest,
+	// call path is already covered by FormPrinterTest and PFAutoeditAPITest,
 	// so the risk of a brittle, order-dependent test here outweighs the
 	// coverage gained.
 	// -------------------------------------------------------------------------
@@ -143,7 +152,7 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$text = 'text';
 		$ret = null;
 
-		PFFormLinker::setBrokenLink( $linkRenderer, $target, true, $text, $attribs, $ret );
+		FormLinker::setBrokenLink( $linkRenderer, $target, true, $text, $attribs, $ret );
 
 		$this->assertStringNotContainsString( 'formedit', $attribs['href'] );
 	}
@@ -156,7 +165,7 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$text = 'text';
 		$ret = null;
 
-		PFFormLinker::setBrokenLink( $linkRenderer, $target, false, $text, $attribs, $ret );
+		FormLinker::setBrokenLink( $linkRenderer, $target, false, $text, $attribs, $ret );
 
 		$this->assertStringNotContainsString( 'formedit', $attribs['href'] );
 	}
@@ -171,7 +180,7 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$text = 'text';
 		$ret = null;
 
-		PFFormLinker::setBrokenLink( $linkRenderer, $target, false, $text, $attribs, $ret );
+		FormLinker::setBrokenLink( $linkRenderer, $target, false, $text, $attribs, $ret );
 
 		$this->assertStringContainsString( 'action=formedit', $attribs['href'] );
 		$this->assertStringContainsString( 'redlink=1', $attribs['href'] );
@@ -188,7 +197,7 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$text = 'text';
 		$ret = null;
 
-		PFFormLinker::setBrokenLink( $linkRenderer, $target, false, $text, $attribs, $ret );
+		FormLinker::setBrokenLink( $linkRenderer, $target, false, $text, $attribs, $ret );
 
 		$this->assertStringNotContainsString( 'formedit', $attribs['href'] );
 	}
@@ -204,7 +213,7 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$text = 'text';
 		$ret = null;
 
-		PFFormLinker::setBrokenLink( $linkRenderer, $target, false, $text, $attribs, $ret );
+		FormLinker::setBrokenLink( $linkRenderer, $target, false, $text, $attribs, $ret );
 
 		$this->assertStringNotContainsString( 'formedit', $attribs['href'] );
 	}
@@ -228,7 +237,7 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$categoryTitle = Title::makeTitleSafe( NS_CATEGORY, 'PFFormLinkerTestCategoryWithDefaultForm01' );
 		$this->insertPage( $categoryTitle, '{{#default_form:PFFormLinkerTestForm01}}' );
 
-		$forms = PFFormLinker::getDefaultFormsForPage( $categoryTitle );
+		$forms = FormLinker::getDefaultFormsForPage( $categoryTitle );
 
 		$this->assertSame( [], $forms );
 	}
@@ -237,7 +246,7 @@ class PFFormLinkerTest extends MediaWikiIntegrationTestCase {
 		$categoryTitle = Title::makeTitleSafe( NS_CATEGORY, 'PFFormLinkerTestCategoryWithEmptyDefaultForm01' );
 		$this->insertPage( $categoryTitle, '{{#default_form:}}' );
 
-		$forms = PFFormLinker::getDefaultFormsForPage( $categoryTitle );
+		$forms = FormLinker::getDefaultFormsForPage( $categoryTitle );
 
 		$this->assertSame( [], $forms );
 	}

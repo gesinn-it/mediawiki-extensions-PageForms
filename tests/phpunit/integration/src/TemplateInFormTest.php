@@ -1,12 +1,22 @@
 <?php
 
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms\Tests\Integration;
+
+use MediaWiki\Extension\PageForms\FormField;
+use MediaWiki\Extension\PageForms\TemplateInForm;
+use MediaWikiIntegrationTestCase;
+use Title;
+use WebRequest;
+
 /**
- * @covers PFTemplateInForm
+ * @covers \MediaWiki\Extension\PageForms\TemplateInForm
  * @group Database
  *
  * @author gesinn-it-ilm
  */
-class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
+class TemplateInFormTest extends MediaWikiIntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -18,12 +28,12 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 
 	public function testCreateWithFormFields() {
 		// Mock form fields
-		$mockField1 = $this->createMock( PFFormField::class );
-		$mockField2 = $this->createMock( PFFormField::class );
+		$mockField1 = $this->createMock( FormField::class );
+		$mockField2 = $this->createMock( FormField::class );
 		$formFields = [ $mockField1, $mockField2 ];
 
 		// Call the create method
-		$template = PFTemplateInForm::create(
+		$template = TemplateInForm::create(
 			'TemplateName',
 			'Template Label',
 			true,
@@ -32,7 +42,7 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 		);
 
 		// Assertions
-		$this->assertInstanceOf( PFTemplateInForm::class, $template );
+		$this->assertInstanceOf( TemplateInForm::class, $template );
 		$this->assertEquals( 'TemplateName', $template->getTemplateName() );
 		$this->assertEquals( 'Template Label', $template->getLabel() );
 		$this->assertTrue( $template->allowsMultiple() );
@@ -43,17 +53,17 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testCreateWithoutFormFields() {
-		// PFTemplateInForm::create() with no $formFields argument loads the fields
-		// from the real Template: page via PFTemplate::newFromName(). Create an
+		// TemplateInForm::create() with no $formFields argument loads the fields
+		// from the real Template: page via Template::newFromName(). Create an
 		// actual template page with two non-semantic placeholder fields.
 		$this->insertPage(
 			Title::newFromText( 'PFTestTemplateInFormCreate', NS_TEMPLATE ),
 			'{{{field1}}} {{{field2}}}'
 		);
 
-		$templateInForm = PFTemplateInForm::create( 'PFTestTemplateInFormCreate' );
+		$templateInForm = TemplateInForm::create( 'PFTestTemplateInFormCreate' );
 
-		$this->assertInstanceOf( PFTemplateInForm::class, $templateInForm );
+		$this->assertInstanceOf( TemplateInForm::class, $templateInForm );
 		$this->assertEquals( 'PFTestTemplateInFormCreate', $templateInForm->getTemplateName() );
 		$this->assertCount( 2, $templateInForm->getFields() );
 		$this->assertSame( 'field1', $templateInForm->getFields()[0]->getTemplateField()->getFieldName() );
@@ -70,7 +80,7 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 			return null;
 		} );
 
-		$template = new PFTemplateInForm();
+		$template = new TemplateInForm();
 		$template->setTemplateName( 'My Template' );
 		$template->setAllowsMultiple( false );
 
@@ -95,7 +105,7 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 			return null;
 		} );
 
-		$template = new PFTemplateInForm();
+		$template = new TemplateInForm();
 		$template->setTemplateName( 'My Template' );
 		$template->setAllowsMultiple( true );
 		$template->setInstanceNum( 1 );
@@ -113,7 +123,7 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 		$mockRequest = $this->createMock( WebRequest::class );
 		$mockRequest->method( 'getArray' )->willReturn( null );
 
-		$template = new PFTemplateInForm();
+		$template = new TemplateInForm();
 		$template->setTemplateName( 'Nonexistent Template' );
 
 		$template->setFieldValuesFromSubmit( $mockRequest );
@@ -125,7 +135,7 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 		$str = "This is some text <pre>unparsed content</pre> more text.";
 		$replacements = [];
 
-		$result = PFTemplateInForm::removeUnparsedText( $str, $replacements );
+		$result = TemplateInForm::removeUnparsedText( $str, $replacements );
 
 		// Assert the content within <pre> is replaced with a placeholder.
 		$this->assertEquals( "This is some text \1" . "0" . "\2 more text.", $result );
@@ -138,7 +148,7 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 		$str = "Text <pre>first</pre> middle <nowiki>second</nowiki> end.";
 		$replacements = [];
 
-		$result = PFTemplateInForm::removeUnparsedText( $str, $replacements );
+		$result = TemplateInForm::removeUnparsedText( $str, $replacements );
 
 		// Assert the placeholders are correctly inserted.
 		$this->assertEquals( "Text \1" . "0" . "\2 middle \1" . "1" . "\2 end.", $result );
@@ -154,7 +164,7 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 		$str = "Nested <pre><ref>ignored</ref></pre> content.";
 		$replacements = [];
 
-		$result = PFTemplateInForm::removeUnparsedText( $str, $replacements );
+		$result = TemplateInForm::removeUnparsedText( $str, $replacements );
 
 		// Assert the placeholder replaces the entire <pre> tag with its content.
 		$this->assertEquals( "Nested \1" . "0" . "\2 content.", $result );
@@ -167,7 +177,7 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 		$str = "This is <pre>unclosed text.";
 		$replacements = [];
 
-		$result = PFTemplateInForm::removeUnparsedText( $str, $replacements );
+		$result = TemplateInForm::removeUnparsedText( $str, $replacements );
 
 		// Assert the string remains unchanged since the tag is unclosed.
 		$this->assertEquals( $str, $result );
@@ -178,7 +188,7 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 
 	public function testSetFieldValuesFromPageSimpleTemplate() {
 		$existingContent = "{{TemplateName|field1=value1|field2=value2}}";
-		$template = new PFTemplateInForm();
+		$template = new TemplateInForm();
 
 		$template->setPregMatchTemplateStr( 'TemplateName' );
 		$template->setSearchTemplateStr( 'TemplateName' );
@@ -196,7 +206,7 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 
 	public function testSetFieldValuesFromPageNestedBrackets() {
 		$existingContent = "{{TemplateName|field1=[[Link|Display]]|field2=value2}}";
-		$template = new PFTemplateInForm();
+		$template = new TemplateInForm();
 
 		$template->setPregMatchTemplateStr( 'TemplateName' );
 		$template->setSearchTemplateStr( 'TemplateName' );
@@ -214,7 +224,7 @@ class PFTemplateInFormTest extends MediaWikiIntegrationTestCase {
 
 	public function testSetPageRelatedInfo() {
 		// Create a mock or instance of the class
-		$template = new PFTemplateInForm();
+		$template = new TemplateInForm();
 		$template->setTemplateName( 'Example_Template' );
 		$template->setInstanceNum( 1 );
 

@@ -1,16 +1,17 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\HtmlFormDataExtractor;
 use MediaWiki\MediaWikiServices;
 use OOUI\BlankTheme;
 
 /**
- * @covers \PFFormPrinter
+ * @covers \MediaWiki\Extension\PageForms\FormPrinter
  * @group Database
  *
  * @author Himeshi De Silva
  */
-class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
+class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * Set up the environment
@@ -19,7 +20,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 		\OOUI\Theme::setSingleton( new BlankTheme() );
 
 		// Make sure the form is not in "disabled" state. Unfortunately setting up the global state
-		// environment in a proper way to have PFFormPrinter work on a mock title object is very
+		// environment in a proper way to have FormPrinter work on a mock title object is very
 		// difficult. Therefore we just override the permission check by using a hook.
 		MediaWikiServices::getInstance()->getHookContainer()->register(
 			'PageForms::UserCanEditPage',
@@ -27,6 +28,17 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 				$userCanEditPage = true;
 				return true;
 			} );
+
+		// $wgPageFormsFormPrinter is a global singleton (constructed once by
+		// PFHooks::initialize()) that captures a ParserFactory reference at
+		// construction time. If an earlier test in the same process calls
+		// resetServices() (e.g. PFAutoeditAPITest, to invalidate a cached
+		// PermissionManager result), that reference goes stale and
+		// preparePreloadData() throws ContainerDisabledException. Rebuild the
+		// singleton here so every test in this class starts from a FormPrinter
+		// bound to the current service container.
+		global $wgPageFormsFormPrinter;
+		$wgPageFormsFormPrinter = new FormPrinter();
 
 		parent::setUp();
 	}
@@ -186,7 +198,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * PFAutoeditAPI::doAction():
 	 *   formHTML() → HtmlFormDataExtractor::extract() → $data['Tpl']['field']
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHTMLWithSourceIsPagePreloadsTextFieldValueFromExistingPageContent(): void {
 		global $wgPageFormsFormPrinter, $wgOut;
@@ -228,7 +240,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * preparePreloadData() must return the same field values as the
 	 * formHTML() + HtmlFormDataExtractor::extract() round-trip.
 	 *
-	 * @covers \PFFormPrinter::preparePreloadData
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::preparePreloadData
 	 */
 	public function testPreparePreloadDataReturnsFieldValuesFromExistingPageContent(): void {
 		global $wgPageFormsFormPrinter;
@@ -253,7 +265,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * not call the template defined in the form, but must still return the
 	 * page content as pf_free_text.
 	 *
-	 * @covers \PFFormPrinter::preparePreloadData
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::preparePreloadData
 	 */
 	public function testPreparePreloadDataReturnsFreeTextWhenTemplateAbsentFromPage(): void {
 		global $wgPageFormsFormPrinter;
@@ -277,7 +289,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * This ensures that autoedit SAVE does not silently delete the free text
 	 * section of an existing page.
 	 *
-	 * @covers \PFFormPrinter::preparePreloadData
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::preparePreloadData
 	 */
 	public function testPreparePreloadDataIncludesFreeTextAfterTemplateContent(): void {
 		global $wgPageFormsFormPrinter;
@@ -304,7 +316,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * formHTML() must return a ParserOutput as its 5th element with no
 	 * unexpected modules when the form contains no parser-tag hooks.
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHTMLReturnsParserOutputWithNoSpuriousModules(): void {
 		global $wgPageFormsFormPrinter, $wgOut;
@@ -340,7 +352,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * The caller (e.g. PFAutoeditAPI) uses addParserOutputMetadata() to forward
 	 * these to the real OutputPage.
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHTMLReturnsParserOutputWithParserTagModules(): void {
 		global $wgPageFormsFormPrinter, $wgOut;
@@ -491,7 +503,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 			. "{{{end template}}}\n"
 			. "{{{standard input|save}}}";
 
-		// FauxRequest is pre-parsed: PFTemplateInForm::setFieldValuesFromSubmit reads
+		// FauxRequest is pre-parsed: TemplateInForm::setFieldValuesFromSubmit reads
 		// $request->getArray($templateName), so fields go under the template name key.
 		$fauxRequest = new \FauxRequest(
 			[
@@ -752,27 +764,27 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testShowDeletionLogReturnsFalseWithoutPageTitle(): void {
-		$formPrinter = new PFFormPrinter();
+		$formPrinter = new FormPrinter();
 		$result = $formPrinter->showDeletionLog( RequestContext::getMain()->getOutput() );
 		$this->assertFalse( $result );
 	}
 
 	public function testShowDeletionLogReturnsTrueWithPageTitle(): void {
-		$formPrinter = new PFFormPrinter();
+		$formPrinter = new FormPrinter();
 		$formPrinter->mPageTitle = Title::makeTitle( NS_MAIN, 'TestShowDeletionLogPage' );
 		$result = $formPrinter->showDeletionLog( RequestContext::getMain()->getOutput() );
 		$this->assertTrue( $result );
 	}
 
 	public function testPlaceholderFormat(): void {
-		$result = PFFormPrinter::placeholderFormat( 'MyTemplate', 'MyField' );
+		$result = FormPrinter::placeholderFormat( 'MyTemplate', 'MyField' );
 		$this->assertStringContainsString( 'MyTemplate', $result );
 		$this->assertStringContainsString( 'MyField', $result );
 	}
 
 	public function testMakePlaceholderInFormHTML(): void {
-		$placeholder = PFFormPrinter::placeholderFormat( 'T', 'F' );
-		$html = PFFormPrinter::makePlaceholderInFormHTML( $placeholder );
+		$placeholder = FormPrinter::placeholderFormat( 'T', 'F' );
+		$html = FormPrinter::makePlaceholderInFormHTML( $placeholder );
 		$this->assertNotEmpty( $html );
 		// The HTML marker must embed the placeholder string somewhere
 		$this->assertStringContainsString( 'T', $html );
@@ -786,7 +798,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * A bare {{{for template}}} tag (no template name) must throw an MWException
 	 * with an actionable error message so form authors can diagnose the mistake.
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHTMLForTemplateTagWithoutNameThrowsMWException(): void {
 		global $wgPageFormsFormPrinter, $wgOut;
@@ -810,7 +822,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * A bare {{{field}}} tag (no field name) must throw an MWException with an
 	 * actionable error message so form authors can diagnose the mistake.
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHTMLFieldTagWithoutNameThrowsMWException(): void {
 		global $wgPageFormsFormPrinter, $wgOut;
@@ -835,7 +847,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * A bare {{{standard input}}} tag (no input name) must throw an MWException
 	 * with an actionable error message so form authors can diagnose the mistake.
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHTMLStandardInputTagWithoutNameThrowsMWException(): void {
 		global $wgPageFormsFormPrinter, $wgOut;
@@ -869,7 +881,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * and that array was passed directly to FormFieldHtmlBuilder::formFieldHTML()
 	 * which declares $cur_value as ?string — triggering a TypeError.
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHTMLListFieldWithMappingTemplateAndMultipleValuesDoesNotThrow(): void {
 		global $wgPageFormsFormPrinter, $wgOut;
@@ -910,7 +922,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * This covers the getUseDisplayTitle() branch of the same valueStringToLabels() call
 	 * that the mapping template test covers.
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHTMLListFieldWithUseDisplayTitleAndMultipleValuesDoesNotThrow(): void {
 		global $wgPageFormsFormPrinter, $wgOut, $wgPageFormsUseDisplayTitle;
@@ -960,7 +972,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * has no existing template call for that field — getValuesFromPage()
 	 * only contains keys explicitly present on the page, defaulting to [].
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHTMLWithAppendModifierOnFieldAbsentFromPageDoesNotThrow(): void {
 		global $wgPageFormsFormPrinter, $wgOut;
@@ -999,7 +1011,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * of the bracketed string and drops the tag from the output entirely
 	 * with no error raised.
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHTMLWithUnclosedTagThrowsMWException(): void {
 		global $wgPageFormsFormPrinter, $wgOut;
@@ -1025,7 +1037,7 @@ class PFFormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * getFormTagComponents('') returns [], and the loop must advance past
 	 * the tag instead of retrying the same position indefinitely.
 	 *
-	 * @covers \PFFormPrinter::formHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHTMLWithEmptyTagDoesNotHang(): void {
 		global $wgPageFormsFormPrinter, $wgOut;

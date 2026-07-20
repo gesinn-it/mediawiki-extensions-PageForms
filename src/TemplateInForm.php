@@ -1,10 +1,20 @@
 <?php
+
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use MWException;
+use Parser;
+use PFUtils;
+use WebRequest;
+
 /**
  * Represents a template in a user-defined form.
  * @author Yaron Koren
  * @ingroup PF
  */
-class PFTemplateInForm {
+class TemplateInForm {
 	private $mTemplateName;
 	private $mLabel;
 	private $mIntro;
@@ -52,13 +62,13 @@ class PFTemplateInForm {
 	public static function create(
 		$name, $label = null, $allowMultiple = null, $maxAllowed = null, $formFields = null
 	) {
-		$tif = new PFTemplateInForm();
+		$tif = new TemplateInForm();
 		$tif->mTemplateName = str_replace( '_', ' ', $name );
 		if ( $formFields === null ) {
-			$template = PFTemplate::newFromName( $tif->mTemplateName );
+			$template = Template::newFromName( $tif->mTemplateName );
 			$fields = $template->getTemplateFields();
 			foreach ( $fields as $field ) {
-				$tif->mFields[] = PFFormField::create( $field );
+				$tif->mFields[] = FormField::create( $field );
 			}
 		} else {
 			$tif->mFields = $formFields;
@@ -82,7 +92,7 @@ class PFTemplateInForm {
 			$parser->clearState();
 		}
 
-		$tif = new PFTemplateInForm();
+		$tif = new TemplateInForm();
 		$tif->mTemplateName = str_replace( '_', ' ', trim( $parser->recursiveTagParse( $tag_components[1] ) ) );
 
 		$tif->mAddButtonText = wfMessage( 'pf_formedit_addanother' )->text();
@@ -90,7 +100,7 @@ class PFTemplateInForm {
 		if ( array_key_exists( $tif->mTemplateName, $wgPageFormsEmbeddedTemplates ) ) {
 			[ $tif->mEmbedInTemplate, $tif->mEmbedInField ] =
 				$wgPageFormsEmbeddedTemplates[$tif->mTemplateName];
-			$tif->mPlaceholder = PFFormPrinter::placeholderFormat( $tif->mEmbedInTemplate, $tif->mEmbedInField );
+			$tif->mPlaceholder = FormPrinter::placeholderFormat( $tif->mEmbedInTemplate, $tif->mEmbedInField );
 		}
 
 		// Cycle through the other components.
@@ -122,7 +132,7 @@ class PFTemplateInForm {
 					if ( count( $matches ) > 2 ) {
 						$tif->mEmbedInTemplate = $matches[1];
 						$tif->mEmbedInField = $matches[2];
-						$tif->mPlaceholder = PFFormPrinter::placeholderFormat(
+						$tif->mPlaceholder = FormPrinter::placeholderFormat(
 							$tif->mEmbedInTemplate, $tif->mEmbedInField
 						);
 					}
@@ -391,7 +401,7 @@ class PFTemplateInForm {
 			# First search if there are keys \d+a? (keys are made of an integer plus optional letter a),
 			# return them if the main loop modify existing templates
 			for ( $i = 0; $i < $this->mNumInstancesFromSubmit; $i++ ) {
-				$intkey = preg_filter( '/^(\d+)a?$/', '$1', $valuesFromSubmitKeys[$i] );
+				$intkey = preg_filter( '/^(\d+)a?$/', '$1', (string)$valuesFromSubmitKeys[$i] );
 				if ( $intkey !== null ) {
 					$intkey = (int)$intkey;
 				}

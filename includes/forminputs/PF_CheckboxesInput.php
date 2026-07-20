@@ -3,6 +3,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormUtils;
+
 /**
  * @ingroup PFFormInput
  */
@@ -115,7 +117,7 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$outerSpanClass .= ' pfShowIfChecked';
-			PFFormUtils::setShowOnSelect( $other_args['show on select'], $outerSpanID );
+			FormUtils::setShowOnSelect( $other_args['show on select'], $outerSpanID );
 		}
 
 		$text .= Html::hidden( $input_name . '[is_list]', 1 );

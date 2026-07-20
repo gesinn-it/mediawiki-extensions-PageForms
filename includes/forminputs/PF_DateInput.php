@@ -3,6 +3,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormUtils;
+
 /**
  * @ingroup PFFormInput
  */
@@ -20,7 +22,7 @@ class PFDateInput extends PFFormInput {
 		global $wgPageFormsTabIndex, $wgAmericanDates;
 
 		$optionsText = '';
-		$month_names = PFFormUtils::getMonthNames();
+		$month_names = FormUtils::getMonthNames();
 		// Add a "null" value at the beginning.
 		array_unshift( $month_names, null );
 		foreach ( $month_names as $i => $name ) {
@@ -102,7 +104,7 @@ class PFDateInput extends PFFormInput {
 		// outside source.)
 		if ( $date_array['error_count'] > 0 && $wgLanguageCode != 'en' ) {
 			$date = strtolower( $date );
-			$monthNames = PFFormUtils::getMonthNames();
+			$monthNames = FormUtils::getMonthNames();
 			$englishMonthNames = [ 'January', 'February',
 				'March', 'April', 'May', 'June', 'July',
 				'August', 'September', 'October', 'November',
