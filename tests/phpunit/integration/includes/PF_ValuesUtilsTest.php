@@ -131,6 +131,45 @@ class PFValuesUtilsTest extends TestCase {
 	}
 
 	/**
+	 * Regression test for issue #175: on a wiki with a non-English content
+	 * language, getSMWPropertyValues() must prefix page-type values with the
+	 * canonical (English) namespace name, not the localized one. Wikitext
+	 * always stores internal links using the canonical prefix (e.g.
+	 * "Category:"), regardless of content language, so using the localized
+	 * name (e.g. "Kategorie:" on a German wiki) here would make the returned
+	 * value unable to match the value actually stored on the page, breaking
+	 * the DisplayTitle mapping done by addDisplayTitlesForPageValues().
+	 *
+	 * @covers \PFValuesUtils::getSMWPropertyValues
+	 */
+	public function testGetSMWPropertyValuesUsesCanonicalNamespaceNameOnNonEnglishWiki(): void {
+		if ( !class_exists( '\SMW\DIWikiPage' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+
+		global $wgLanguageCode;
+		$oldLanguageCode = $wgLanguageCode;
+		$wgLanguageCode = 'de';
+		MediaWiki\MediaWikiServices::getInstance()->resetServiceForTesting( 'ContentLanguage' );
+
+		try {
+			$item = $this->createMock( \SMW\DIWikiPage::class );
+			$item->method( 'getDBKey' )->willReturn( 'Product_Aspect_Dimensions' );
+			$item->method( 'getNamespace' )->willReturn( NS_CATEGORY );
+
+			$store = $this->createMock( \SMW\Store::class );
+			$store->method( 'getPropertyValues' )->willReturn( [ $item ] );
+
+			$result = PFValuesUtils::getSMWPropertyValues( $store, null, 'AvailableProductAspectCategory' );
+
+			$this->assertSame( [ 'Category:Product Aspect Dimensions' ], $result );
+		} finally {
+			$wgLanguageCode = $oldLanguageCode;
+			MediaWiki\MediaWikiServices::getInstance()->resetServiceForTesting( 'ContentLanguage' );
+		}
+	}
+
+	/**
 	 * @covers \PFValuesUtils::resolveDisplayTitle
 	 */
 	public function testResolveDisplayTitleReturnsFallbackForNull(): void {

@@ -38,7 +38,13 @@ class PFValuesUtils {
 			} elseif ( $value instanceof \SMW\DIWikiPage ) {
 				$realValue = str_replace( '_', ' ', $value->getDBKey() );
 				if ( $value->getNamespace() != 0 ) {
-					$realValue = PFUtils::getNsText( $value->getNamespace() ) . ":$realValue";
+					// Use the canonical (English) namespace name, matching how
+					// MediaWiki serializes internal links in wikitext, regardless
+					// of content language. The localized name (e.g. "Kategorie" on
+					// a German wiki) would not match the "Category:"-prefixed value
+					// actually stored on the page, breaking display-title mapping.
+					$nsText = PFUtils::getCanonicalName( $value->getNamespace() );
+					$realValue = $nsText . ":$realValue";
 				}
 				$values[] = $realValue;
 			} else {
