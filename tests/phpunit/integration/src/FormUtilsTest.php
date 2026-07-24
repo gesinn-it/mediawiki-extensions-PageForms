@@ -319,7 +319,7 @@ class FormUtilsTest extends TestCase {
 		$originalTitle = RequestContext::getMain()->getTitle();
 		$originalUser = RequestContext::getMain()->getUser();
 		try {
-			$user = MediaWiki\User\User::newSystemUser( 'PFTestFormUtilsWatchCreationsUser01', [ 'steal' => true ] );
+			$user = User::newSystemUser( 'PFTestFormUtilsWatchCreationsUser01', [ 'steal' => true ] );
 			MediaWikiServices::getInstance()->getUserOptionsManager()->setOption( $user, 'watchdefault', 0 );
 			MediaWikiServices::getInstance()->getUserOptionsManager()->setOption( $user, 'watchcreations', 1 );
 			RequestContext::getMain()->setUser( $user );
@@ -345,7 +345,7 @@ class FormUtilsTest extends TestCase {
 		$originalTitle = RequestContext::getMain()->getTitle();
 		$originalUser = RequestContext::getMain()->getUser();
 		try {
-			$user = MediaWiki\User\User::newSystemUser( 'PFTestFormUtilsAlreadyWatchedUser01', [ 'steal' => true ] );
+			$user = User::newSystemUser( 'PFTestFormUtilsAlreadyWatchedUser01', [ 'steal' => true ] );
 			$title = Title::newFromText( 'PFTestFormUtilsAlreadyWatchedPage01' );
 			MediaWikiServices::getInstance()->getUserOptionsManager()->setOption( $user, 'watchdefault', 0 );
 			MediaWikiServices::getInstance()->getUserOptionsManager()->setOption( $user, 'watchcreations', 0 );
@@ -485,7 +485,7 @@ class FormUtilsTest extends TestCase {
 		$originalUser = RequestContext::getMain()->getUser();
 		$originalTitle = RequestContext::getMain()->getTitle();
 		try {
-			$user = MediaWiki\User\User::newSystemUser( 'PFTestFormUtilsFormBottomUser01', [ 'steal' => true ] );
+			$user = User::newSystemUser( 'PFTestFormUtilsFormBottomUser01', [ 'steal' => true ] );
 			RequestContext::getMain()->setUser( $user );
 			RequestContext::getMain()->setTitle( Title::newFromText( 'PFTestFormUtilsFormBottomPage01' ) );
 
@@ -637,7 +637,15 @@ class FormUtilsTest extends TestCase {
 
 		try {
 			$result = FormUtils::getStringForCurrentTime( true, true );
-			$this->assertMatchesRegularExpression( '/^\d{4}-\d{1,2}-\d{1,2} \d{2}:\d{2}:\d{2} .+$/', $result );
+			$pattern = '/^\d{4}-\d{1,2}-\d{1,2} \d{2}:\d{2}:\d{2} .+$/';
+			// PHPUnit >= 9 (MW 1.43): assertMatchesRegularExpression; PHPUnit 8 (MW 1.39): assertRegExp.
+			if ( method_exists( $this, 'assertMatchesRegularExpression' ) ) {
+				$this->assertMatchesRegularExpression( $pattern, $result );
+			} else {
+				// @codeCoverageIgnoreStart
+				$this->assertRegExp( $pattern, $result );
+				// @codeCoverageIgnoreEnd
+			}
 		} finally {
 			$wgAmericanDates = $originalAmericanDates;
 			$wgLocaltimezone = $originalLocaltimezone;
@@ -659,7 +667,15 @@ class FormUtilsTest extends TestCase {
 
 		try {
 			$result = FormUtils::getStringForCurrentTime( true, false );
-			$this->assertMatchesRegularExpression( '/^\d{4}-\d{1,2}-\d{1,2} \d{2}:\d{2}:\d{2} (AM|PM)$/', $result );
+			$pattern = '/^\d{4}-\d{1,2}-\d{1,2} \d{2}:\d{2}:\d{2} (AM|PM)$/';
+			// PHPUnit >= 9 (MW 1.43): assertMatchesRegularExpression; PHPUnit 8 (MW 1.39): assertRegExp.
+			if ( method_exists( $this, 'assertMatchesRegularExpression' ) ) {
+				$this->assertMatchesRegularExpression( $pattern, $result );
+			} else {
+				// @codeCoverageIgnoreStart
+				$this->assertRegExp( $pattern, $result );
+				// @codeCoverageIgnoreEnd
+			}
 		} finally {
 			$wgAmericanDates = $originalAmericanDates;
 			$wgLocaltimezone = $originalLocaltimezone;
