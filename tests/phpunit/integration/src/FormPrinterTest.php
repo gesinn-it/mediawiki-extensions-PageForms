@@ -1574,7 +1574,9 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
 	public function testMultipleTemplateInstanceTableHTMLDelegates(): void {
 		global $wgPageFormsFormPrinter;
-		$result = $wgPageFormsFormPrinter->multipleTemplateInstanceTableHTML( false, '<p>PFTestInstanceTableContent01</p>' );
+		$result = $wgPageFormsFormPrinter->multipleTemplateInstanceTableHTML(
+			false, '<p>PFTestInstanceTableContent01</p>'
+		);
 		$this->assertStringContainsString( 'PFTestInstanceTableContent01', $result );
 	}
 

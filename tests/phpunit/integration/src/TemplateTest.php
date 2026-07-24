@@ -227,8 +227,12 @@ WIKITEXT
 	 */
 	public function testCreateTextStandardFormatNonemptySecondFieldAddsRowSeparator() {
 		$fields = [
-			TemplateField::create( 'PFTestTemplateUnitFirst01', 'PFTestTemplateUnitFirst01', null, false, null, 'nonempty' ),
-			TemplateField::create( 'PFTestTemplateUnitSecond01', 'PFTestTemplateUnitSecond01', null, false, null, 'nonempty' ),
+			TemplateField::create(
+				'PFTestTemplateUnitFirst01', 'PFTestTemplateUnitFirst01', null, false, null, 'nonempty'
+			),
+			TemplateField::create(
+				'PFTestTemplateUnitSecond01', 'PFTestTemplateUnitSecond01', null, false, null, 'nonempty'
+			),
 		];
 		$template = new Template( 'PFTestTemplateUnitStandardNonempty01', $fields );
 
@@ -282,7 +286,8 @@ WIKITEXT
 	 */
 	public function testCreateTextHiddenFieldWithListPropertyUsesSetList() {
 		$field = TemplateField::create(
-			'PFTestTemplateUnitHiddenList01', 'PFTestTemplateUnitHiddenList01', 'PFTestTemplateUnitHasHidden01', true, null, 'hidden'
+			'PFTestTemplateUnitHiddenList01', 'PFTestTemplateUnitHiddenList01', 'PFTestTemplateUnitHasHidden01',
+			true, null, 'hidden'
 		);
 		$template = new Template( 'PFTestTemplateUnitHiddenSet01', [ $field ] );
 
@@ -294,8 +299,8 @@ WIKITEXT
 
 	public function testCreateTextHiddenFieldWithNonListPropertyUsesSet() {
 		$field = TemplateField::create(
-			'PFTestTemplateUnitHiddenSingle01', 'PFTestTemplateUnitHiddenSingle01', 'PFTestTemplateUnitHasHiddenSingle01', false,
-			null, 'hidden'
+			'PFTestTemplateUnitHiddenSingle01', 'PFTestTemplateUnitHiddenSingle01',
+			'PFTestTemplateUnitHasHiddenSingle01', false, null, 'hidden'
 		);
 		$template = new Template( 'PFTestTemplateUnitHiddenSetSingle01', [ $field ] );
 
@@ -312,8 +317,8 @@ WIKITEXT
 	 */
 	public function testCreateTextNonemptyFieldWithPropertyClosesIfWrapper() {
 		$field = TemplateField::create(
-			'PFTestTemplateUnitNonemptyProp01', 'PFTestTemplateUnitNonemptyProp01', 'PFTestTemplateUnitHasNonemptyProp01',
-			false, null, 'nonempty'
+			'PFTestTemplateUnitNonemptyProp01', 'PFTestTemplateUnitNonemptyProp01',
+			'PFTestTemplateUnitHasNonemptyProp01', false, null, 'nonempty'
 		);
 		$template = new Template( 'PFTestTemplateUnitNonemptyPropTpl01', [ $field ] );
 
@@ -330,8 +335,8 @@ WIKITEXT
 	 */
 	public function testCreateTextConnectingPropertyNonemptyFieldUsesSeparator() {
 		$field = TemplateField::create(
-			'PFTestTemplateUnitConnNonempty01', 'PFTestTemplateUnitConnNonempty01', 'PFTestTemplateUnitHasConnNonempty01',
-			false, null, 'nonempty'
+			'PFTestTemplateUnitConnNonempty01', 'PFTestTemplateUnitConnNonempty01',
+			'PFTestTemplateUnitHasConnNonempty01', false, null, 'nonempty'
 		);
 		$template = new Template( 'PFTestTemplateUnitConnNonemptyTpl01', [ $field ] );
 		$template->setConnectingProperty( 'PFTestTemplateUnitHasConnMarker01' );

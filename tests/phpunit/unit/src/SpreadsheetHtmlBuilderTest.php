@@ -568,7 +568,11 @@ class SpreadsheetHtmlBuilderTest extends TestCase {
 		$this->assertSame( 'Id', $params['valueField'] );
 		$this->assertSame( 'Name', $params['textField'] );
 		$this->assertSame(
-			[ [ 'Name' => '', 'Id' => '' ], [ 'Name' => 'Alpha', 'Id' => 'Alpha' ], [ 'Name' => 'Beta', 'Id' => 'Beta' ] ],
+			[
+				[ 'Name' => '', 'Id' => '' ],
+				[ 'Name' => 'Alpha', 'Id' => 'Alpha' ],
+				[ 'Name' => 'Beta', 'Id' => 'Beta' ],
+			],
 			$params['items']
 		);
 	}
