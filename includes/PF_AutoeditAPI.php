@@ -10,7 +10,6 @@ use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\HtmlFormDataExtractor;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
-use Wikimedia\Rdbms\IDBAccessObject;
 
 /**
  * @ingroup PageForms
@@ -952,7 +951,11 @@ class PFAutoeditAPI extends ApiBase {
 		// (Why is this not done in FormPrinter::formHTML?)
 		if ( $targetName === '' ) {
 			// Parse the form to see if it has a 'page name' value set.
-			if ( preg_match( '/{{{\s*info.*page name\s*=\s*(.*)}}}/msU', $formContent, $matches ) ) {
+			// The (?!}) lookahead ensures the closing "}}}" matched is the
+			// tag's actual end, not an early match against extra closing
+			// braces from a "{num}"-style formula immediately before it
+			// (e.g. "page name=Thing_{num}}}}" has 4 closing braces).
+			if ( preg_match( '/{{{\s*info.*page name\s*=\s*(.*)}}}(?!})/msU', $formContent, $matches ) ) {
 				$pageNameElements = PFUtils::getFormTagComponents( trim( $matches[1] ) );
 				$targetNameFormula = $pageNameElements[0];
 			} else {

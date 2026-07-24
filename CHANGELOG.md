@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- `includes/PF_AutoeditAPI.php`: `generateTargetName()` referenced `Wikimedia\Rdbms\IDBAccessObject::READ_LATEST` via a `use` import, but that interface is only namespaced under `Wikimedia\Rdbms` on newer MediaWiki versions; on MW 1.39 it is still the global `IDBAccessObject`. Submitting a form to create a new page whose page-name formula contains a `{num}`/`<unique number>` tag fataled with `Class "Wikimedia\Rdbms\IDBAccessObject" not found` while probing for a free page title. Removed the `use` import so the class resolves against PHP's global namespace, which both MW 1.39 and newer versions expose
+- `includes/PF_AutoeditAPI.php`: `doAction()`'s `{{{info|page name=...}}}` extraction regex (`/{{{\s*info.*page name\s*=\s*(.*)}}}/msU`) matched the first `}}}` it found, truncating the page-name formula by one character whenever a `{num}`-style tag sat directly against the info tag's closing braces (e.g. `page name=Thing_{num}}}}`, four closing braces in a row) — the formula was cut to `Thing_{num` instead of `Thing_{num}`. Added a `(?!})` lookahead so the match only succeeds against the tag's actual closing `}}}`, not an early one immediately followed by another `}`
+
 ## [2.1.4] - 2026-07-23
 
 ### Added

@@ -530,6 +530,73 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// generateTargetName – "{num}" collision retry loop
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Invokes the protected generateTargetName() via reflection.
+	 */
+	private function callGenerateTargetName( PFAutoeditAPI $module, string $targetNameFormula ): string {
+		$ref = new ReflectionClass( PFAutoeditAPI::class );
+		$generateTargetName = $ref->getMethod( 'generateTargetName' );
+		$generateTargetName->setAccessible( true );
+		return $generateTargetName->invoke( $module, $targetNameFormula );
+	}
+
+	/**
+	 * When the page name generated from a "{num}" formula already exists,
+	 * generateTargetName() must probe
+	 * $targetTitle->getArticleID( IDBAccessObject::READ_LATEST ) in a loop
+	 * and keep incrementing the number until it finds a free page name.
+	 *
+	 * Regression test for: "Class Wikimedia\Rdbms\IDBAccessObject not found"
+	 * on MediaWiki versions where IDBAccessObject is not namespaced under
+	 * Wikimedia\Rdbms (e.g. MW 1.39). This is the only test that reaches the
+	 * loop body (i.e. an actual collision) rather than just the loop
+	 * condition on a free name.
+	 *
+	 * @covers \PFAutoeditAPI::generateTargetName
+	 */
+	public function testGenerateTargetNameSkipsExistingPagesWithNumFormula(): void {
+		$this->insertPage( 'PFTestGenTargetNameCollision_1', 'existing page' );
+		$this->insertPage( 'PFTestGenTargetNameCollision_2', 'existing page' );
+
+		[ $module ] = $this->newModule();
+		$targetName = $this->callGenerateTargetName( $module, 'PFTestGenTargetNameCollision_{num;start=1}' );
+
+		$this->assertSame( 'PFTestGenTargetNameCollision 3', $targetName );
+	}
+
+	/**
+	 * A "{num;random}" formula must produce a title made up entirely of
+	 * digits (the random-number branch), rather than falling through to the
+	 * "start=" or plain-numbering branches.
+	 *
+	 * @covers \PFAutoeditAPI::generateTargetName
+	 */
+	public function testGenerateTargetNameWithRandomFormulaProducesNumericSuffix(): void {
+		[ $module ] = $this->newModule();
+		$targetName = $this->callGenerateTargetName( $module, 'PFTestGenTargetNameRandom_{num;random}' );
+
+		$this->assertRegex( '/^PFTestGenTargetNameRandom \d+$/', $targetName );
+	}
+
+	/**
+	 * When the "{num}" substitution still leaves a syntactically invalid
+	 * title (e.g. via forbidden characters coming from the formula itself),
+	 * generateTargetName() must throw rather than pass an invalid title on
+	 * to the caller.
+	 *
+	 * @covers \PFAutoeditAPI::generateTargetName
+	 */
+	public function testGenerateTargetNameThrowsOnInvalidGeneratedTitle(): void {
+		[ $module ] = $this->newModule();
+
+		$this->expectException( MWException::class );
+		$this->callGenerateTargetName( $module, 'PFTestGenTargetNameInvalid[{num}' );
+	}
+
+	// -------------------------------------------------------------------------
 	// finalizeResults – 'ok text' / 'error text' copy-paste bug
 	// -------------------------------------------------------------------------
 
