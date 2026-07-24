@@ -2,6 +2,7 @@
 
 use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\Extension\PageForms\TemplateInForm;
+use MediaWiki\MediaWikiServices;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -239,6 +240,7 @@ class FormUtilsTest extends TestCase {
 	 * only pays the wfMessage() lookup cost once per request.
 	 *
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::setGlobalVarsForSpreadsheet
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::resetGlobalVarsForSpreadsheetGuard
 	 */
 	public function testSetGlobalVarsForSpreadsheetSkipsRecomputationOnSecondCall() {
 		global $wgPageFormsContLangYes;
@@ -262,5 +264,406 @@ class FormUtilsTest extends TestCase {
 		$this->assertNotSame( '', $firstValue, 'First call must have computed a real value' );
 
 		FormUtils::resetGlobalVarsForSpreadsheetGuard();
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::summaryInputHTML
+	 */
+	public function testSummaryInputHTMLDisabledWithClassAttribute() {
+		global $wgPageFormsTabIndex;
+		$wgPageFormsTabIndex = 1;
+
+		$output = FormUtils::summaryInputHTML( true, "Summary", [ 'class' => 'pf-test-summary-class' ] );
+
+		$this->assertStringContainsString( 'disabled=\'disabled\'', $output );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::minorEditInputHTML
+	 */
+	public function testMinorEditInputHTMLDefaultLabelCheckedDisabledWithClass() {
+		global $wgPageFormsTabIndex;
+		$wgPageFormsTabIndex = 1;
+
+		$output = FormUtils::minorEditInputHTML(
+			true, true, true, null, [ 'class' => 'pf-test-minoredit-class' ]
+		);
+
+		$this->assertStringContainsString( '<input type=\'checkbox\'', $output );
+		$this->assertStringContainsString( 'checked=\'checked\'', $output );
+		$this->assertStringContainsString( 'disabled=\'disabled\'', $output );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::watchInputHTML
+	 */
+	public function testWatchInputHTMLDefaultLabelDisabledWithClass() {
+		global $wgPageFormsTabIndex;
+		$wgPageFormsTabIndex = 1;
+
+		$output = FormUtils::watchInputHTML(
+			true, true, false, null, [ 'class' => 'pf-test-watch-class' ]
+		);
+
+		$this->assertStringContainsString( '<input type=\'checkbox\'', $output );
+		$this->assertStringContainsString( 'disabled=\'disabled\'', $output );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::watchInputHTML
+	 */
+	public function testWatchInputHTMLWatchCreationsForNonExistentPage() {
+		global $wgPageFormsTabIndex;
+		$wgPageFormsTabIndex = 1;
+
+		$originalTitle = RequestContext::getMain()->getTitle();
+		$originalUser = RequestContext::getMain()->getUser();
+		try {
+			$user = MediaWiki\User\User::newSystemUser( 'PFTestFormUtilsWatchCreationsUser01', [ 'steal' => true ] );
+			MediaWikiServices::getInstance()->getUserOptionsManager()->setOption( $user, 'watchdefault', 0 );
+			MediaWikiServices::getInstance()->getUserOptionsManager()->setOption( $user, 'watchcreations', 1 );
+			RequestContext::getMain()->setUser( $user );
+			RequestContext::getMain()->setTitle( Title::newFromText( 'PFTestFormUtilsWatchCreationsPage01' ) );
+
+			$output = FormUtils::watchInputHTML( false, false, false );
+
+			$this->assertStringContainsString( 'checked=\'checked\'', $output );
+		} finally {
+			RequestContext::getMain()->setTitle( $originalTitle );
+			RequestContext::getMain()->setUser( $originalUser );
+		}
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::watchInputHTML
+	 * @group Database
+	 */
+	public function testWatchInputHTMLAlreadyWatchedPage() {
+		global $wgPageFormsTabIndex;
+		$wgPageFormsTabIndex = 1;
+
+		$originalTitle = RequestContext::getMain()->getTitle();
+		$originalUser = RequestContext::getMain()->getUser();
+		try {
+			$user = MediaWiki\User\User::newSystemUser( 'PFTestFormUtilsAlreadyWatchedUser01', [ 'steal' => true ] );
+			$title = Title::newFromText( 'PFTestFormUtilsAlreadyWatchedPage01' );
+			MediaWikiServices::getInstance()->getUserOptionsManager()->setOption( $user, 'watchdefault', 0 );
+			MediaWikiServices::getInstance()->getUserOptionsManager()->setOption( $user, 'watchcreations', 0 );
+			MediaWikiServices::getInstance()->getWatchlistManager()->addWatch( $user, $title );
+			RequestContext::getMain()->setUser( $user );
+			RequestContext::getMain()->setTitle( $title );
+
+			$output = FormUtils::watchInputHTML( false, false, false );
+
+			$this->assertStringContainsString( 'checked=\'checked\'', $output );
+		} finally {
+			RequestContext::getMain()->setTitle( $originalTitle );
+			RequestContext::getMain()->setUser( $originalUser );
+		}
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::saveButtonHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::buttonHTML
+	 */
+	public function testSaveButtonHTMLDisabledWithClassAttribute() {
+		global $wgPageFormsTabIndex;
+		$wgPageFormsTabIndex = 1;
+
+		$output = FormUtils::saveButtonHTML( true, "Save", [ 'class' => 'pf-test-save-class' ] );
+
+		$this->assertStringContainsString( 'disabled=\'disabled\'', $output );
+		$this->assertStringContainsString( 'pf-test-save-class', $output );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::saveAndContinueButtonHTML
+	 */
+	public function testSaveAndContinueButtonHTMLDefaultLabel() {
+		global $wgPageFormsTabIndex;
+		$wgPageFormsTabIndex = 1;
+
+		$output = FormUtils::saveAndContinueButtonHTML( false );
+
+		$this->assertStringContainsString( '<button', $output );
+		$this->assertStringContainsString( 'id=\'wpSaveAndContinue\'', $output );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::showPreviewButtonHTML
+	 */
+	public function testShowPreviewButtonHTMLDisabled() {
+		global $wgPageFormsTabIndex;
+		$wgPageFormsTabIndex = 1;
+
+		$output = FormUtils::showPreviewButtonHTML( true );
+
+		$this->assertStringContainsString( 'disabled=\'disabled\'', $output );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::showChangesButtonHTML
+	 */
+	public function testShowChangesButtonHTMLDisabled() {
+		global $wgPageFormsTabIndex;
+		$wgPageFormsTabIndex = 1;
+
+		$output = FormUtils::showChangesButtonHTML( true );
+
+		$this->assertStringContainsString( 'disabled=\'disabled\'', $output );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::cancelLinkHTML
+	 */
+	public function testCancelLinkHTMLOnFormEditWithReturnTo() {
+		$originalTitle = RequestContext::getMain()->getTitle();
+		$originalRequest = RequestContext::getMain()->getRequest();
+		try {
+			RequestContext::getMain()->setTitle( Title::newFromText( 'Special:FormEdit' ) );
+			RequestContext::getMain()->setRequest(
+				new FauxRequest( [ 'returnto' => 'PFTestFormUtilsCancelReturnToPage01' ] )
+			);
+
+			$output = FormUtils::cancelLinkHTML( false );
+
+			$this->assertStringContainsString( 'PFTestFormUtilsCancelReturnToPage01', $output );
+		} finally {
+			RequestContext::getMain()->setTitle( $originalTitle );
+			RequestContext::getMain()->setRequest( $originalRequest );
+		}
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::cancelLinkHTML
+	 */
+	public function testCancelLinkHTMLOnRegularPageWithClassAttribute() {
+		$originalTitle = RequestContext::getMain()->getTitle();
+		try {
+			RequestContext::getMain()->setTitle( Title::newFromText( 'PFTestFormUtilsCancelRegularPage01' ) );
+
+			$output = FormUtils::cancelLinkHTML( false, "Cancel", [ 'class' => 'pf-test-cancel-class' ] );
+
+			$this->assertStringContainsString( '<a', $output );
+		} finally {
+			RequestContext::getMain()->setTitle( $originalTitle );
+		}
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::runQueryButtonHTML
+	 */
+	public function testRunQueryButtonHTMLDefaultLabel() {
+		global $wgPageFormsTabIndex;
+		$wgPageFormsTabIndex = 1;
+
+		$output = (string)FormUtils::runQueryButtonHTML();
+
+		$this->assertStringContainsString( 'wpRunQuery', $output );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::queryFormBottom
+	 */
+	public function testQueryFormBottom() {
+		global $wgPageFormsTabIndex;
+		$wgPageFormsTabIndex = 1;
+
+		$output = (string)FormUtils::queryFormBottom();
+
+		$this->assertStringContainsString( 'wpRunQuery', $output );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::formBottom
+	 * @group Database
+	 */
+	public function testFormBottomWithRegisteredUser() {
+		global $wgPageFormsTabIndex;
+		$wgPageFormsTabIndex = 1;
+
+		$originalUser = RequestContext::getMain()->getUser();
+		$originalTitle = RequestContext::getMain()->getTitle();
+		try {
+			$user = MediaWiki\User\User::newSystemUser( 'PFTestFormUtilsFormBottomUser01', [ 'steal' => true ] );
+			RequestContext::getMain()->setUser( $user );
+			RequestContext::getMain()->setTitle( Title::newFromText( 'PFTestFormUtilsFormBottomPage01' ) );
+
+			$output = FormUtils::formBottom( false, false );
+
+			$this->assertStringContainsString( 'editOptions', $output );
+			$this->assertStringContainsString( 'wpMinoredit', $output );
+			$this->assertStringContainsString( 'wpWatchthis', $output );
+		} finally {
+			RequestContext::getMain()->setUser( $originalUser );
+			RequestContext::getMain()->setTitle( $originalTitle );
+		}
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::getPreloadedText
+	 */
+	public function testGetPreloadedTextForwardsToFormCache() {
+		$this->assertSame( '', FormUtils::getPreloadedText( '' ) );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::getFormDefinition
+	 */
+	public function testGetFormDefinitionForwardsToFormCache() {
+		$parser = MediaWikiServices::getInstance()->getParserFactory()->create();
+		$result = FormUtils::getFormDefinition( $parser, null, null );
+		$this->assertSame( '', $result );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::purgeCache
+	 */
+	public function testPurgeCacheForwardsToFormCache() {
+		$title = Title::newFromText( 'PFTestFormUtilsPurgeCachePage01', NS_MAIN );
+		$wikiPage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
+
+		$result = FormUtils::purgeCache( $wikiPage );
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::purgeCacheOnSave
+	 */
+	public function testPurgeCacheOnSaveForwardsToFormCache() {
+		$revisionRecord = $this->createMock( MediaWiki\Revision\RevisionRecord::class );
+		$revisionRecord->method( 'getPageId' )->willReturn( 0 );
+
+		$renderedRevision = $this->createMock( MediaWiki\Revision\RenderedRevision::class );
+		$renderedRevision->method( 'getRevision' )->willReturn( $revisionRecord );
+
+		$result = FormUtils::purgeCacheOnSave( $renderedRevision );
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::getFormCache
+	 */
+	public function testGetFormCacheForwardsToFormCache() {
+		$cache = FormUtils::getFormCache();
+		$this->assertInstanceOf( BagOStuff::class, $cache );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::getCacheKey
+	 */
+	public function testGetCacheKeyForwardsToFormCache() {
+		$key = FormUtils::getCacheKey( 42 );
+		$this->assertIsString( $key );
+		$this->assertStringContainsString( '42', $key );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::setShowOnSelect
+	 */
+	public function testSetShowOnSelectAppendsToExistingInputID() {
+		global $wgPageFormsShowOnSelect;
+		$wgPageFormsShowOnSelect = [];
+
+		FormUtils::setShowOnSelect( [ 'div1' => [ 'val1' ] ], 'pf_test_show_on_select_input01' );
+		FormUtils::setShowOnSelect( [ 'div2' => [ 'val2' ] ], 'pf_test_show_on_select_input01' );
+
+		$this->assertCount( 2, $wgPageFormsShowOnSelect['pf_test_show_on_select_input01'] );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::getStringFromPassedInArray
+	 */
+	public function testGetStringFromPassedInArrayWithFullDateTimeComponents() {
+		global $wgAmericanDates;
+		$originalAmericanDates = $wgAmericanDates;
+		$wgAmericanDates = false;
+
+		try {
+			$result = FormUtils::getStringFromPassedInArray( [
+				'month' => '5',
+				'day' => '17',
+				'year' => '2024',
+				'hour' => '13',
+				'minute' => '45',
+				'second' => '30',
+				'ampm24h' => 'PM',
+				'timezone' => 'UTC',
+			], ',' );
+
+			$this->assertStringContainsString( '2024/5/17', $result );
+			$this->assertStringContainsString( '13:45', $result );
+			$this->assertStringContainsString( ':30', $result );
+			$this->assertStringContainsString( 'PM', $result );
+			$this->assertStringContainsString( 'UTC', $result );
+		} finally {
+			$wgAmericanDates = $originalAmericanDates;
+		}
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::getStringForCurrentTime
+	 */
+	public function testGetStringForCurrentTimeDateOnly() {
+		global $wgAmericanDates, $wgLocaltimezone;
+		$originalAmericanDates = $wgAmericanDates;
+		$originalLocaltimezone = $wgLocaltimezone;
+		$wgAmericanDates = true;
+		$wgLocaltimezone = 'UTC';
+
+		try {
+			$result = FormUtils::getStringForCurrentTime( false, false );
+			$this->assertIsString( $result );
+			$this->assertNotSame( '', $result );
+		} finally {
+			$wgAmericanDates = $originalAmericanDates;
+			$wgLocaltimezone = $originalLocaltimezone;
+		}
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::getStringForCurrentTime
+	 */
+	public function testGetStringForCurrentTimeWithTimeAnd24HourFormat() {
+		global $wgAmericanDates, $wgLocaltimezone, $wgPageForms24HourTime;
+		$originalAmericanDates = $wgAmericanDates;
+		$originalLocaltimezone = $wgLocaltimezone;
+		$original24Hour = $wgPageForms24HourTime;
+		$wgAmericanDates = false;
+		$wgLocaltimezone = null;
+		$wgPageForms24HourTime = true;
+
+		try {
+			$result = FormUtils::getStringForCurrentTime( true, true );
+			$this->assertMatchesRegularExpression( '/^\d{4}-\d{1,2}-\d{1,2} \d{2}:\d{2}:\d{2} .+$/', $result );
+		} finally {
+			$wgAmericanDates = $originalAmericanDates;
+			$wgLocaltimezone = $originalLocaltimezone;
+			$wgPageForms24HourTime = $original24Hour;
+		}
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::getStringForCurrentTime
+	 */
+	public function testGetStringForCurrentTimeWithTimeAnd12HourFormat() {
+		global $wgAmericanDates, $wgLocaltimezone, $wgPageForms24HourTime;
+		$originalAmericanDates = $wgAmericanDates;
+		$originalLocaltimezone = $wgLocaltimezone;
+		$original24Hour = $wgPageForms24HourTime;
+		$wgAmericanDates = false;
+		$wgLocaltimezone = null;
+		$wgPageForms24HourTime = false;
+
+		try {
+			$result = FormUtils::getStringForCurrentTime( true, false );
+			$this->assertMatchesRegularExpression( '/^\d{4}-\d{1,2}-\d{1,2} \d{2}:\d{2}:\d{2} (AM|PM)$/', $result );
+		} finally {
+			$wgAmericanDates = $originalAmericanDates;
+			$wgLocaltimezone = $originalLocaltimezone;
+			$wgPageForms24HourTime = $original24Hour;
+		}
 	}
 }

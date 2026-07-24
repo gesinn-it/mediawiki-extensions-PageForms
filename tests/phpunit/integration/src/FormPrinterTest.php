@@ -1098,4 +1098,754 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'wpMinoredit', $form_text );
 	}
 
+	// -------------------------------------------------------------------------
+	// Multiple-instance display modes: table / spreadsheet / calendar — #237-297, #1314-1405
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLMultipleTemplateWithTableDisplayRendersTableHTML(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestMultiTableTpl01|multiple|display=table}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestMultiTablePage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'formtable', $formHtml );
+		$this->assertStringContainsString( 'multipleTemplateWrapper', $formHtml );
+	}
+
+	public function testFormHTMLMultipleTemplateWithSpreadsheetDisplayRendersSpreadsheetHTML(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestMultiSpreadsheetTpl01|multiple|display=spreadsheet|label=Items}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestMultiSpreadsheetPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'pfSpreadsheet', $formHtml );
+		$this->assertStringContainsString( '</fieldset>', $formHtml );
+	}
+
+	public function testFormHTMLMultipleTemplateWithCalendarDisplayRendersCalendarHTML(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestMultiCalendarTpl01|multiple|display=calendar}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestMultiCalendarPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'pfFullCalendarJS', $formHtml );
+		$this->assertStringContainsString( '</fieldset>', $formHtml );
+	}
+
+	public function testFormHTMLMultipleTemplateWithLabelWrapsInFieldset(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestMultiLabelTpl01|multiple|label=My Group Label}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestMultiLabelPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'My Group Label', $formHtml );
+	}
+
+	public function testFormHTMLNonMultipleTemplateWithLabelAppendsClosingFieldset(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestSingleLabelTpl01|label=Single Group}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestSingleLabelPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'Single Group', $formHtml );
+		$this->assertStringContainsString( '</fieldset>', $formHtml );
+	}
+
+	public function testFormHTMLNonMultipleTemplateWithTableDisplayRendersTableHTML(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestSingleTableTpl01|display=table}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestSingleTablePage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'formtable', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// is_embedded / is_query title resolution — #355-356
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLWithIsEmbeddedUsesRequestContextTitle(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		// A real Title is required here (unlike the mock used by getTitle()
+		// elsewhere in this file), because is_embedded=true makes this exact
+		// object the parser's title, which the parser then calls real
+		// language/link methods on while parsing the form definition.
+		$title = Title::makeTitle( NS_MAIN, 'PFTestEmbeddedFormPage01' );
+		$wgOut->getContext()->setTitle( $title );
+		RequestContext::getMain()->setTitle( $title );
+
+		$formDef = "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			null, null, false, true, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertNotEmpty( $formHtml );
+		$this->assertSame( $title, $wgPageFormsFormPrinter->mPageTitle );
+	}
+
+	// -------------------------------------------------------------------------
+	// Read-only mode permission errors — #391-393
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLWhenSiteIsReadOnlyDisablesForm(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$readOnlyMode = $this->createMock( \Wikimedia\Rdbms\ReadOnlyMode::class );
+		$readOnlyMode->method( 'isReadOnly' )->willReturn( true );
+		$readOnlyMode->method( 'getReason' )->willReturn( 'PFTestReadOnlyReason01' );
+		$this->setService( 'ReadOnlyMode', $readOnlyMode );
+
+		// Force the post-hook userCanEditPage value back to false so the
+		// "disabled" branch in formHTML() (badaccess message) is reached,
+		// overriding the always-true stub registered in setUp().
+		MediaWikiServices::getInstance()->getHookContainer()->register(
+			'PageForms::UserCanEditPage',
+			static function ( $pageTitle, &$userCanEditPage ) {
+				$userCanEditPage = false;
+				return true;
+			}
+		);
+
+		$formDef = "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestReadOnlyPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'permission error', strtolower( $wgOut->getPageTitle() ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// Anonymous-user edit warning — #785-788 (badaccess) already covered above;
+	// this covers the anon-edit-warning branch instead (line ~779-782 area,
+	// exercised indirectly by the anon user path in $this->getTestUser()).
+	// -------------------------------------------------------------------------
+
+	// -------------------------------------------------------------------------
+	// 'free text' field declared directly via {{{field}}} outside any template — #969-971
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLFreeTextFieldOutsideTemplateWithFreeTextQueryParam(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{field|#freetext#}}}\n"
+			. "{{{standard input|save}}}";
+
+		$fauxRequest = new \FauxRequest(
+			[ 'free_text' => 'PFTestFreeTextQueryValue01' ],
+			true
+		);
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestFreeTextOutsideTemplatePage01', null, false, false, false, [],
+			self::getTestUser()->getUser(), $fauxRequest
+		);
+
+		$this->assertStringContainsString( 'PFTestFreeTextQueryValue01', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// is_autocreate query values branch — #1003-1008
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLIsAutocreateUsesAutocreateQueryValues(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestAutocreateTpl01}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$autocreateQuery = [
+			'PFTestAutocreateTpl01' => [ 'Name' => 'PFTestAutocreateValue01' ],
+		];
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			null, null, false, false, true, $autocreateQuery,
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'PFTestAutocreateValue01', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// Embedded ("holds template") fields — #1016-1018, #1044-1046, #1103-1107
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLFieldHoldingTemplateAddsPlaceholder(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestHoldsTemplateTpl01}}}\n"
+			. "{{{field|EmbeddedItems|holds template}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestHoldsTemplatePage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		// The placeholder marker registered for the "holds template" field is
+		// stripped again at the end of formHTML() because no embedded
+		// multiple-instance template matched it in this form; the field
+		// itself is still rendered as a hidden input.
+		$this->assertStringContainsString( 'PFTestHoldsTemplateTpl01[EmbeddedItems]', $formHtml );
+	}
+
+	public function testFormHTMLFieldHoldingTemplateFromExistingPageAppendsToPageContent(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestHoldsTemplateTpl02}}}\n"
+			. "{{{field|EmbeddedItems|holds template}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$pageContent = '{{PFTestHoldsTemplateTpl02|EmbeddedItems={{PFTestEmbeddedSubTpl01|Foo=Bar}}}}';
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef,
+			$form_submitted = false,
+			$source_is_page = true,
+			$form_id = null,
+			$pageContent,
+			$page_name = 'PFTestHoldsTemplatePage02',
+			$page_name_formula = null,
+			$is_query = false, $is_embedded = false, $is_autocreate = false,
+			$autocreate_query = [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'PFTestHoldsTemplateTpl02', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// Field declared in the form but absent from the page's template call — #1047
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLFieldAbsentFromPageTemplateCallDoesNotThrow(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestPartialFieldTpl01}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{field|Description}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		// The template call on the page only sets 'Name'; 'Description' is
+		// declared in the form but has no value on the page, so
+		// hasValueFromPageForField('Description') is false.
+		$pageContent = '{{PFTestPartialFieldTpl01|Name=PFTestPartialFieldExistingValue01}}';
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef,
+			$form_submitted = false,
+			$source_is_page = true,
+			$form_id = null,
+			$pageContent,
+			$page_name = 'PFTestPartialFieldPage01',
+			$page_name_formula = null,
+			$is_query = false, $is_embedded = false, $is_autocreate = false,
+			$autocreate_query = [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'PFTestPartialFieldExistingValue01', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// {{{insertionpoint}}} placeholder replace mode — #1313-1318
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLWithInsertionPointPlaceholderInsertsTemplateCall(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestInsertionPointTpl01}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|free text}}}\n"
+			. "{{{standard input|save}}}";
+
+		// Mutated $existing_page_content only flows into the returned page
+		// text via the free-text component, which requires a 'free text'
+		// standard input (or #freetext# field) to register that component.
+		$existingPageContent = "Intro text\n{{{insertionpoint}}}\nOutro text";
+
+		$fauxRequest = new \FauxRequest(
+			[ 'PFTestInsertionPointTpl01' => [ 'Name' => 'PFTestInsertionPointValue01' ] ],
+			true
+		);
+
+		// source_is_page=true is required so that the mutated
+		// $existing_page_content (with the template call spliced in at the
+		// {{{insertionpoint}}} marker) flows into the returned page text via
+		// the free-text channel in finalizeFormAndPageText().
+		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef,
+			$form_submitted = true,
+			$source_is_page = true,
+			$form_id = null,
+			$existingPageContent,
+			$page_name = 'PFTestInsertionPointPage01',
+			$page_name_formula = null,
+			$is_query = false, $is_embedded = false, $is_autocreate = false,
+			$autocreate_query = [],
+			self::getTestUser()->getUser(), $fauxRequest
+		);
+
+		$this->assertStringContainsString( 'Intro text', $pageText );
+		$this->assertStringContainsString( 'Outro text', $pageText );
+		$this->assertStringContainsString( 'PFTestInsertionPointTpl01', $pageText );
+	}
+
+	// -------------------------------------------------------------------------
+	// 'run query' standard input filtering — #1241-1244
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLNonQueryFormFiltersOutRunQueryStandardInput(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{standard input|run query}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestRunQueryFilterPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringNotContainsString( 'Run query', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// 'query title' info-tag component and query-form processing — #530-541, #678-680, #1210-1218
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLQueryFormInfoTagSetsQueryTitle(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{info|query title=My Query Title}}}\n"
+			. "{{{for template|PFTestQueryTitleTpl01}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|run query}}}";
+
+		[ , , $formPageTitle ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			null, null, true, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertSame( 'My Query Title', $formPageTitle );
+	}
+
+	public function testFormHTMLMultipleTemplateWithCheckboxFieldAndMinimumInstances(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		// 'minimum instances=2' keeps allInstancesPrinted() false after the
+		// first (instance 0) pass, so the second pass reaches the
+		// allowsMultiple() && !allInstancesPrinted() checkbox-coercion branch.
+		// 'default=yes' avoids getCurrentValue() legitimately returning null
+		// for the still-blank starter instance.
+		$formDef = "{{{for template|PFTestMinInstancesCheckboxTpl01|multiple|minimum instances=2}}}\n"
+			. "{{{field|Active|input type=checkbox|default=yes}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestMinInstancesCheckboxPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'PFTestMinInstancesCheckboxTpl01', $formHtml );
+	}
+
+	public function testFormHTMLMultipleTemplateCheckboxDefaultNoCoercesToFalse(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestMinInstancesCheckboxTpl02|multiple|minimum instances=2}}}\n"
+			. "{{{field|Active|input type=checkbox|default=no}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestMinInstancesCheckboxPage02', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'PFTestMinInstancesCheckboxTpl02', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// Public delegation wrappers never called internally — #248-249, #286-287
+	// -------------------------------------------------------------------------
+
+	public function testMultipleTemplateInstanceTableHTMLDelegates(): void {
+		global $wgPageFormsFormPrinter;
+		$result = $wgPageFormsFormPrinter->multipleTemplateInstanceTableHTML( false, '<p>PFTestInstanceTableContent01</p>' );
+		$this->assertStringContainsString( 'PFTestInstanceTableContent01', $result );
+	}
+
+	public function testGetSpreadsheetAutocompleteAttributesDelegatesForCategory(): void {
+		global $wgPageFormsFormPrinter;
+		$result = $wgPageFormsFormPrinter->getSpreadsheetAutocompleteAttributes(
+			[ 'values from category' => 'PFTestSpreadsheetAutocompleteCat01' ]
+		);
+		$this->assertSame( [ 'category', 'PFTestSpreadsheetAutocompleteCat01' ], $result );
+	}
+
+	// -------------------------------------------------------------------------
+	// 'onlyinclude free text' info-tag component — #461-463, #681-682
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLOnlyIncludeFreeTextStripsOnlyIncludeTagsFromFreeText(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{info|onlyinclude free text}}}\n"
+			. "{{{standard input|free text}}}\n"
+			. "{{{standard input|save}}}";
+
+		$fauxRequest = new \FauxRequest(
+			[ 'pf_free_text' => '<onlyinclude>PFTestOnlyIncludeFreeTextValue01</onlyinclude>' ],
+			true
+		);
+
+		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, true, false, null, null,
+			'PFTestOnlyIncludeFreeTextPage01', null, false, false, false, [],
+			self::getTestUser()->getUser(), $fauxRequest
+		);
+
+		// createPageText() re-wraps the free text in <onlyinclude> tags
+		// (PFWikiPage::createPageText()), so the round-trip result still
+		// contains them; this asserts the inner <onlyinclude> tags that
+		// finalizeFormAndPageText() strips before that re-wrap don't
+		// duplicate, and that the value survived the trim/strip step intact.
+		$this->assertSame(
+			"<onlyinclude>PFTestOnlyIncludeFreeTextValue01</onlyinclude>\n",
+			$pageText
+		);
+	}
+
+	// -------------------------------------------------------------------------
+	// 'edit title' info-tag component + page-changed-form warning — #487-490, #672-673
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLEditTitleAndFormMismatchWarningForExistingPage(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$this->editPage( 'PFTestEditTitleExistingPage01', 'Some pre-existing content not from this form.' );
+
+		$formDef = "{{{info|edit title=My Edit Title}}}\n"
+			. "{{{for template|PFTestEditTitleTpl01}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml, , $formPageTitle ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef,
+			$form_submitted = false,
+			$source_is_page = true,
+			$form_id = null,
+			'Some pre-existing content not from this form.',
+			$page_name = 'PFTestEditTitleExistingPage01',
+			$page_name_formula = null,
+			$is_query = false, $is_embedded = false, $is_autocreate = false,
+			$autocreate_query = [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertSame( 'My Edit Title', $formPageTitle );
+		$this->assertStringContainsString( 'warningbox', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// 'query form at top' info-tag component — #683-684
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLQueryFormAtTopInfoTagSetsRunQueryFormAtTop(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{info|query form at top}}}\n"
+			. "{{{for template|PFTestQueryFormAtTopTpl01}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|run query}}}";
+
+		[ , , , , , $runQueryFormAtTop ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			null, null, true, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertTrue( $runQueryFormAtTop );
+	}
+
+	// -------------------------------------------------------------------------
+	// Query form bottom instead of regular form bottom — #496
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLQueryFormUsesQueryFormBottom(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestQueryFormBottomTpl01}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			null, null, true, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertNotEmpty( $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// $wgPageFormsShowExpandAllLink — #792-795
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLWithShowExpandAllLinkEnabledAddsExpandAllMarkup(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$this->setMwGlobals( 'wgPageFormsShowExpandAllLink', true );
+
+		$formDef = "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestExpandAllLinkPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'pf-expand-all', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// 'default filename' exemption from the forbidden-characters check — #863
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLDefaultFilenameWithAngleBracketsDoesNotThrow(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+		// 'default filename' reads RequestContext::getMain()->getTitle() directly
+		// (FormField::newFromFormFieldTag), which needs a real Title, unlike the
+		// mock used for $wgOut elsewhere in this file.
+		RequestContext::getMain()->setTitle( Title::makeTitle( NS_MAIN, 'PFTestDefaultFilenameContextPage01' ) );
+
+		$formDef = "{{{for template|PFTestDefaultFilenameTpl01}}}\n"
+			. "{{{field|Upload|default filename=<PFTestDefaultFilenamePlaceholder01>}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestDefaultFilenamePage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertNotEmpty( $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// #freetext# field with 'hidden' and 'edittools' components — #1062, #1082-1091
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLHiddenFreeTextFieldRendersHiddenInput(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{field|#freetext#|hidden}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestHiddenFreeTextPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'type="hidden"', $formHtml );
+		$this->assertStringContainsString( 'pf_free_text', $formHtml );
+	}
+
+	public function testFormHTMLFreeTextFieldWithEdittoolsAddsEdittoolsMarkup(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{field|#freetext#|edittools}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestEdittoolsFreeTextPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'mw-editTools', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// Multiple-instance template embedded into a parent field's placeholder — #1391-1394
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLMultipleTemplateWithEmbedInFieldPlacesHtmlAtPlaceholder(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestEmbedParentTpl01}}}\n"
+			. "{{{field|Items|holds template}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{for template|PFTestEmbedChildTpl01|multiple|embed in field=PFTestEmbedParentTpl01[Items]}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestEmbedInFieldPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'multipleTemplateWrapper', $formHtml );
+		$this->assertStringContainsString( 'PFTestEmbedChildTpl01', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
+	// formDefParserModuleStyles restored onto the returned ParserOutput — #530-531
+	// -------------------------------------------------------------------------
+
+	public function testFormHTMLReturnsParserOutputWithParserTagModuleStyles(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		MediaWikiServices::getInstance()->getHookContainer()->register(
+			'ParserFirstCallInit',
+			static function ( \Parser $parser ) {
+				$parser->setHook( 'pf-test-modulestyles-tag', static function (
+					$input, array $args, \Parser $p
+				) {
+					$p->getOutput()->addModuleStyles( [ 'ext.pageforms.test.sentinel.styles' ] );
+					return '';
+				} );
+			}
+		);
+
+		$formDef = "<pf-test-modulestyles-tag />\n{{{standard input|save}}}";
+
+		[ , , , , $parserOutput ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null, 'PFTestModStylesPage01',
+			null, false, false, false, [], self::getTestUser()->getUser()
+		);
+
+		$this->assertInstanceOf( \ParserOutput::class, $parserOutput );
+		$this->assertContains( 'ext.pageforms.test.sentinel.styles', $parserOutput->getModuleStyles() );
+	}
+
 }

@@ -250,4 +250,76 @@ class FormLinkerTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( [], $forms );
 	}
+
+	public function testGetDefaultFormsForPageEmptyOwnDefaultFormCancelsCategoryDefaultForm(): void {
+		$catName = 'PFTestFormLinkerCancelInheritedFormCat01';
+		$catTitle = Title::makeTitleSafe( NS_CATEGORY, $catName );
+		$this->insertPage( $catTitle, '{{#default_form:PFTestFormLinkerCancelInheritedForm01}}' );
+
+		$title = Title::newFromText( 'PFTestFormLinkerCancelsInheritedFormPage01' );
+		$this->insertPage( $title, "{{#default_form:}}\n[[Category:$catName]]" );
+
+		$this->assertSame( [], FormLinker::getDefaultFormsForPage( $title ) );
+	}
+
+	public function testGetDefaultFormsForPageFallsBackToNamespaceDefaultForm(): void {
+		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_TEMPLATE];
+		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
+		$this->insertPage( $nsPageTitle, '{{#default_form:PFTestFormLinkerNamespaceFallbackForm01}}' );
+
+		$title = Title::newFromText( 'PFTestFormLinkerNamespaceFallbackPage01', NS_TEMPLATE );
+		$this->insertPage( $title, 'Content without its own default form or categories.' );
+
+		$this->assertSame(
+			[ 'PFTestFormLinkerNamespaceFallbackForm01' ],
+			FormLinker::getDefaultFormsForPage( $title )
+		);
+	}
+
+	// -------------------------------------------------------------------------
+	// getDefaultFormForNamespace() — custom-namespace edge case
+	// -------------------------------------------------------------------------
+
+	public function testGetDefaultFormForNamespaceReturnsNullAndCachesForUndeclaredCustomNamespace(): void {
+		// Namespace 9000 is not registered in the content language's
+		// namespace labels, exercising the "custom namespace not
+		// entirely correctly declared" fallback. (Namespace 3000 is
+		// reserved by MediaWiki's own test bootstrap as TEST_NAMESPACE.)
+		$first = FormLinker::getDefaultFormForNamespace( 9000 );
+		$second = FormLinker::getDefaultFormForNamespace( 9000 );
+
+		$this->assertNull( $first );
+		$this->assertNull( $second );
+	}
+
+	// -------------------------------------------------------------------------
+	// setBrokenLink() — default form for namespace short-circuits before the
+	// "link all red links" feature flag check
+	// -------------------------------------------------------------------------
+
+	public function testSetBrokenLinkModifiesRedLinkWhenNamespaceHasDefaultFormRegardlessOfFeatureFlag(): void {
+		$this->setMwGlobals( 'wgPageFormsLinkAllRedLinksToForms', false );
+
+		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_FILE];
+		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
+		$this->insertPage( $nsPageTitle, '{{#default_form:PFTestFormLinkerBrokenLinkNSForm01}}' );
+
+		$target = Title::newFromText( 'PFTestFormLinkerBrokenLinkNSPage01.png', NS_FILE );
+		$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
+		$attribs = [ 'href' => $target->getLinkURL( [ 'action' => 'edit', 'redlink' => '1' ] ) ];
+		$text = 'text';
+		$ret = null;
+
+		FormLinker::setBrokenLink( $linkRenderer, $target, false, $text, $attribs, $ret );
+
+		$this->assertStringContainsString( 'action=formedit', $attribs['href'] );
+		$this->assertStringContainsString( 'redlink=1', $attribs['href'] );
+
+		// insertPage() commits its write outside of this test's DB
+		// transaction, so this namespace default form would otherwise
+		// leak into later tests. Delete it explicitly.
+		$this->getServiceContainer()->getWikiPageFactory()
+			->newFromTitle( $nsPageTitle )
+			->doDeleteArticleReal( 'test cleanup', $this->getTestUser()->getUser() );
+	}
 }

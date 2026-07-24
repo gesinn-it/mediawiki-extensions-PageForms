@@ -1,14 +1,23 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\TemplateField;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \MediaWiki\Extension\PageForms\TemplateField
+ * @group Database
  *
  * @author gesinn-it-ilm
  */
-class TemplateFieldTest extends TestCase {
+class TemplateFieldTest extends MediaWikiIntegrationTestCase {
+
+	protected function setUp(): void {
+		parent::setUp();
+		// Reset FormLinker's static namespace form cache before each test.
+		$reflProp = new ReflectionProperty( FormLinker::class, 'formPerNamespace' );
+		$reflProp->setAccessible( true );
+		$reflProp->setValue( null, [] );
+	}
 
 	public function testCreateWithRequiredFields() {
 		$name = "testField";
@@ -327,5 +336,182 @@ class TemplateFieldTest extends TestCase {
 		$field = TemplateField::create( 'Field', null );
 		$field->setSemanticProperty( '-InverseProp', $store );
 		$this->assertSame( [], $field->getPossibleValues() );
+	}
+
+	public function testSetTypeAndPossibleValuesAppliesLabelFormat() {
+		$store = $this->createMock( \SMW\Store::class );
+		$store->method( 'getPropertyValues' )
+			->willReturnCallback( function ( $page, \SMW\DIProperty $prop ) {
+				$label = $prop->getLabel();
+				if ( $label === 'Allows value' ) {
+					return array_map( fn ( $v ) => $this->makeDataItem( $v ), [ '10', '20' ] );
+				}
+				if ( $label === 'Has field label format' ) {
+					return array_map( fn ( $v ) => $this->makeDataItem( $v ), [ '-n' ] );
+				}
+				return [];
+			} );
+		$field = TemplateField::create( 'Field', null );
+		$field->setSemanticProperty( 'PFTemplateFieldEdgeCaseNumericProp01', $store );
+		$this->assertNotNull( $field->getValueLabels() );
+		$this->assertSame( [ '10', '20' ], $field->getPossibleValues() );
+	}
+
+	public function testNewFromParamsSetsSemanticProperty() {
+		$field = TemplateField::newFromParams( 'Field', [ 'property' => 'PFTemplateFieldEdgeCaseProp01' ] );
+		$this->assertSame( 'PFTemplateFieldEdgeCaseProp01', $field->getSemanticProperty() );
+	}
+
+	public function testDefaultHierarchyStructureIsNull() {
+		$field = TemplateField::create( 'Field', null );
+		$this->assertNull( $field->getHierarchyStructure() );
+	}
+
+	public function testSetAndGetHierarchyStructure() {
+		$field = TemplateField::create( 'Field', null );
+		$structure = [ 'Root' => [ 'Child1', 'Child2' ] ];
+		$field->setHierarchyStructure( $structure );
+		$this->assertSame( $structure, $field->getHierarchyStructure() );
+	}
+
+	public function testSetNamespaceSetsNSTextAndNamespaceId() {
+		$field = TemplateField::create( 'Field', null );
+		$field->setNamespace( NS_USER );
+		$this->assertSame( 'User', $field->getNSText() );
+		$this->assertSame( NS_USER, $field->getNamespace() );
+	}
+
+	public function testSetFieldTypeFileSetsFileNamespace() {
+		$field = TemplateField::create( 'Field', null );
+		$field->setFieldType( 'File' );
+		$this->assertSame( 'File', $field->getFieldType() );
+		$this->assertSame( 'File', $field->getNSText() );
+		$this->assertSame( NS_FILE, $field->getNamespace() );
+	}
+
+	// --- getForm() ---
+
+	public function testGetFormReturnsAlreadySetFormWithoutLookup() {
+		$field = TemplateField::create( 'Field', null );
+		$reflProp = new ReflectionProperty( TemplateField::class, 'mForm' );
+		$reflProp->setAccessible( true );
+		$reflProp->setValue( $field, 'PFTemplateFieldEdgeCasePreSetForm01' );
+
+		$this->assertSame( 'PFTemplateFieldEdgeCasePreSetForm01', $field->getForm() );
+	}
+
+	public function testGetFormReturnsNullWhenNoNamespaceOrCategoryDefaultForm() {
+		$field = TemplateField::create( 'Field', null );
+		$field->setNamespace( NS_TALK );
+		$this->assertNull( $field->getForm() );
+	}
+
+	public function testGetFormReturnsNamespaceDefaultForm() {
+		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_USER];
+		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
+		$this->insertPage( $nsPageTitle, '{{#default_form:PFTemplateFieldEdgeCaseNSForm01}}' );
+
+		$field = TemplateField::create( 'Field', null );
+		$field->setNamespace( NS_USER );
+
+		$this->assertSame( 'PFTemplateFieldEdgeCaseNSForm01', $field->getForm() );
+
+		// insertPage() commits outside this test's DB transaction, so this
+		// namespace default form would otherwise leak into later tests.
+		$this->getServiceContainer()->getWikiPageFactory()
+			->newFromTitle( $nsPageTitle )
+			->doDeleteArticleReal( 'test cleanup', $this->getTestUser()->getUser() );
+	}
+
+	public function testGetFormReturnsCategoryDefaultFormWhenNoNamespaceDefaultForm() {
+		$catName = 'PFTemplateFieldEdgeCaseCategory01';
+		$catTitle = Title::makeTitleSafe( NS_CATEGORY, $catName );
+		$this->insertPage( $catTitle, '{{#default_form:PFTemplateFieldEdgeCaseCatForm01}}' );
+
+		$field = TemplateField::create( 'Field', null );
+		$field->setNamespace( NS_TALK );
+		$reflProp = new ReflectionProperty( TemplateField::class, 'mCategory' );
+		$reflProp->setAccessible( true );
+		$reflProp->setValue( $field, $catName );
+
+		$this->assertSame( 'PFTemplateFieldEdgeCaseCatForm01', $field->getForm() );
+	}
+
+	public function testGetFormReturnsNullWhenCategoryHasNoDefaultForm() {
+		$catName = 'PFTemplateFieldEdgeCaseEmptyCategory01';
+		$this->insertPage( Title::makeTitleSafe( NS_CATEGORY, $catName ), 'Plain category page.' );
+
+		$field = TemplateField::create( 'Field', null );
+		$field->setNamespace( NS_TALK );
+		$reflProp = new ReflectionProperty( TemplateField::class, 'mCategory' );
+		$reflProp->setAccessible( true );
+		$reflProp->setValue( $field, $catName );
+
+		$this->assertNull( $field->getForm() );
+	}
+
+	// --- createText() ---
+
+	public function testCreateTextNonListNoPropertyDefaultNamespace() {
+		$field = TemplateField::create( 'PFTemplateFieldEdgeCaseField01', null );
+		$this->assertSame( '{{{PFTemplateFieldEdgeCaseField01|}}}', $field->createText() );
+	}
+
+	public function testCreateTextNonListWithPropertyDefaultNamespace() {
+		$field = TemplateField::create( 'PFTemplateFieldEdgeCaseField02', null, 'PFTemplateFieldEdgeCaseProp02' );
+		$this->assertSame(
+			'[[PFTemplateFieldEdgeCaseProp02::{{{PFTemplateFieldEdgeCaseField02|}}}]]',
+			$field->createText()
+		);
+	}
+
+	public function testCreateTextNonListWithPropertyAndNamespace() {
+		$field = TemplateField::create( 'PFTemplateFieldEdgeCaseField03', null, 'PFTemplateFieldEdgeCaseProp03' );
+		$field->setNamespace( NS_FILE );
+		$fieldParam = '{{{PFTemplateFieldEdgeCaseField03|}}}';
+		$fieldString = NS_FILE . ':' . $fieldParam;
+		$expected = "[[$fieldString]] {{#set:PFTemplateFieldEdgeCaseProp03=$fieldString}}";
+		$this->assertSame( $expected, $field->createText() );
+	}
+
+	public function testCreateTextNonListWithNamespaceNoProperty() {
+		$field = TemplateField::create( 'PFTemplateFieldEdgeCaseField04', null );
+		$field->setNamespace( NS_FILE );
+		$fieldParam = '{{{PFTemplateFieldEdgeCaseField04|}}}';
+		$this->assertSame( NS_FILE . ':' . $fieldParam, $field->createText() );
+	}
+
+	public function testCreateTextListWithPropertyDefaultNamespaceAndCommaDelimiter() {
+		$field = TemplateField::create(
+			'PFTemplateFieldEdgeCaseField05', null, 'PFTemplateFieldEdgeCaseProp05', true
+		);
+		$expected = '{{#arraymap:{{{PFTemplateFieldEdgeCaseField05|}}}|,|x|[[PFTemplateFieldEdgeCaseProp05::x]]}}'
+			. "\n";
+		$this->assertSame( $expected, $field->createText() );
+	}
+
+	public function testCreateTextListWithPropertyAndNonCommaDelimiter() {
+		$field = TemplateField::create(
+			'PFTemplateFieldEdgeCaseField06', null, 'PFTemplateFieldEdgeCaseProp06', true, ';'
+		);
+		$expected = '{{#arraymap:{{{PFTemplateFieldEdgeCaseField06|}}}|;|x|[[PFTemplateFieldEdgeCaseProp06::x]]|;\s}}'
+			. "\n";
+		$this->assertSame( $expected, $field->createText() );
+	}
+
+	public function testCreateTextListWithPropertyAndNamespace() {
+		$field = TemplateField::create(
+			'PFTemplateFieldEdgeCaseField07', null, 'PFTemplateFieldEdgeCaseProp07', true
+		);
+		$field->setNamespace( NS_FILE );
+		$expected = '{{#arraymap:{{{PFTemplateFieldEdgeCaseField07|}}}|,|x|[[' . NS_FILE
+			. ':x]] {{#set:PFTemplateFieldEdgeCaseProp07=x}} }}' . "\n";
+		$this->assertSame( $expected, $field->createText() );
+	}
+
+	public function testCreateTextListChoosesAlternateVarWhenXInProperty() {
+		$field = TemplateField::create( 'PFTemplateFieldEdgeCaseField08', null, 'x_prop', true );
+		$expected = '{{#arraymap:{{{PFTemplateFieldEdgeCaseField08|}}}|,|y|[[x_prop::y]]}}' . "\n";
+		$this->assertSame( $expected, $field->createText() );
 	}
 }
