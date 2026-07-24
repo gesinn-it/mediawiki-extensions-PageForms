@@ -6,9 +6,11 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.1.5] - 2026-07-24
+
 ### Fixed
-- `includes/PF_AutoeditAPI.php`: `generateTargetName()` referenced `Wikimedia\Rdbms\IDBAccessObject::READ_LATEST` via a `use` import, but that interface is only namespaced under `Wikimedia\Rdbms` on newer MediaWiki versions; on MW 1.39 it is still the global `IDBAccessObject`. Submitting a form to create a new page whose page-name formula contains a `{num}`/`<unique number>` tag fataled with `Class "Wikimedia\Rdbms\IDBAccessObject" not found` while probing for a free page title. Removed the `use` import so the class resolves against PHP's global namespace, which both MW 1.39 and newer versions expose
-- `includes/PF_AutoeditAPI.php`: `doAction()`'s `{{{info|page name=...}}}` extraction regex (`/{{{\s*info.*page name\s*=\s*(.*)}}}/msU`) matched the first `}}}` it found, truncating the page-name formula by one character whenever a `{num}`-style tag sat directly against the info tag's closing braces (e.g. `page name=Thing_{num}}}}`, four closing braces in a row) — the formula was cut to `Thing_{num` instead of `Thing_{num}`. Added a `(?!})` lookahead so the match only succeeds against the tag's actual closing `}}}`, not an early one immediately followed by another `}`
+- `includes/PF_AutoeditAPI.php`: `generateTargetName()` referenced `Wikimedia\Rdbms\IDBAccessObject::READ_LATEST` via a `use` import, but that interface is only namespaced under `Wikimedia\Rdbms` on newer MediaWiki versions; on MW 1.39 it is still the global `IDBAccessObject`. Submitting a form to create a new page whose page-name formula contains a `{num}`/`<unique number>` tag fataled with `Class "Wikimedia\Rdbms\IDBAccessObject" not found` while probing for a free page title. Removed the `use` import so the class resolves against PHP's global namespace, which both MW 1.39 and newer versions expose [`3aec8381`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/3aec8381)
+- `includes/PF_AutoeditAPI.php`: `doAction()`'s `{{{info|page name=...}}}` extraction regex (`/{{{\s*info.*page name\s*=\s*(.*)}}}/msU`) matched the first `}}}` it found, truncating the page-name formula by one character whenever a `{num}`-style tag sat directly against the info tag's closing braces (e.g. `page name=Thing_{num}}}}`, four closing braces in a row) — the formula was cut to `Thing_{num` instead of `Thing_{num}`. Added a `(?!})` lookahead so the match only succeeds against the tag's actual closing `}}}`, not an early one immediately followed by another `}` [`3aec8381`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/3aec8381)
 
 ## [2.1.4] - 2026-07-23
 
@@ -207,7 +209,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.4...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.5...HEAD
+[2.1.5]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.4...2.1.5
 [2.1.4]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.3...2.1.4
 [2.1.3]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.2...2.1.3
 [2.1.2]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.1...2.1.2
