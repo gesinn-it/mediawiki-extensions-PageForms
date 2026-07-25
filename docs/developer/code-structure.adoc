@@ -9,10 +9,11 @@ The sections below describe the top-level directories and their purpose.
 == Directory layout
 
 `includes/`::
-Core PHP classes: the form printer (`PF_FormPrinter.php`), form field model
-(`PF_FormField.php`), template model (`PF_Template.php`), utilities
-(`PF_Utils.php`, `PF_ValuesUtils.php`), the autoedit API
-(`PF_AutoeditAPI.php`), and the autocomplete API (`PF_AutocompleteAPI.php`).
+Core PHP classes: utilities (`PF_Utils.php`, `PF_ValuesUtils.php`), the
+autoedit API (`PF_AutoeditAPI.php`), and the autocomplete API
+(`PF_AutocompleteAPI.php`). The form printer, form field model, and template
+model have moved to `src/` (`FormPrinter.php`, `FormField.php`,
+`Template.php`); see the `src/` entry below.
 
 `includes/forminputs/`::
 One class per input type (e.g. `PF_TextInput.php`, `PF_DateInput.php`,
