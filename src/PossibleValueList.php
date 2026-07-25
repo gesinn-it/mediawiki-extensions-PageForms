@@ -50,7 +50,11 @@ class PossibleValueList {
 
 	/**
 	 * Finds the possible value that $rawValue (as stored in the page, or
-	 * typed by the user) refers to - either directly, or via its label.
+	 * typed by the user) refers to - either directly, via its label, or (for
+	 * page-type values) via a legacy localized namespace prefix that a form
+	 * save could have persisted before the fix for #175, e.g. "Kategorie:Foo"
+	 * on a German wiki referring to the same page as the canonically-prefixed
+	 * "Category:Foo" possible value (see #178).
 	 * Returns null if $rawValue is null, or does not match any known
 	 * possible value - mirroring array_search()'s tolerance of a null
 	 * needle, since callers pass field values that are not always
@@ -71,6 +75,16 @@ class PossibleValueList {
 			if ( $rawValue === $possibleValue->getLabel() ) {
 				$labelMatchCount++;
 				$labelMatch = $possibleValue;
+			}
+		}
+
+		$rawPageValue = PageValue::newFromText( $rawValue );
+		if ( $rawPageValue !== null ) {
+			foreach ( $this->values as $possibleValue ) {
+				$possibleValuePage = PageValue::newFromText( $possibleValue->getValue() );
+				if ( $possibleValuePage !== null && $rawPageValue->equals( $possibleValuePage ) ) {
+					return $possibleValue;
+				}
 			}
 		}
 
