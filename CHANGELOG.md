@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Changed
+- `PFListBoxInput` (`includes/forminputs/PF_ListBoxInput.php`) was the only remaining selection-based form input still matching a field's current value against `possible_values` with a raw array operation, missing the shared matching logic introduced for its sibling widgets. Migrated `getHtmlText()` to build a `MediaWiki\Extension\PageForms\PossibleValueList` from `possible_values` and iterate over it, mirroring `PFCheckboxesInput::getHTML()`. Purely structural — rendering output is unchanged ([#179](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/179))
+
 ## [2.1.6] - 2026-07-25
 
 ### Changed

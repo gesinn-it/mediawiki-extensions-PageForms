@@ -4,6 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\PossibleValueList;
 
 /**
  * @ingroup PFFormInput
@@ -55,8 +56,10 @@ class PFListBoxInput extends PFMultiEnumInput {
 		if ( $possible_values == null ) {
 			$possible_values = [];
 		}
+		$possibleValueList = new PossibleValueList( $possible_values );
 		$optionsText = '';
-		foreach ( $possible_values as $possible_value ) {
+		foreach ( $possibleValueList->all() as $possibleValue ) {
+			$possible_value = $possibleValue->getValue();
 			if (
 				array_key_exists( 'value_labels', $this->mOtherArgs ) &&
 				is_array( $this->mOtherArgs['value_labels'] ) &&
