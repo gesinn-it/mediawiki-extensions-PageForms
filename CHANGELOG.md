@@ -6,6 +6,8 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.1.6] - 2026-07-25
+
 ### Changed
 - `PFTokensInput`, `PFCheckboxesInput`, `PFDropdownInput`, `PFRadioButtonInput`, and `PFComboBoxInput` (`includes/forminputs/`) each independently re-implemented the comparison between a field's current stored value and its `possible_values` list, with subtly different semantics per widget (loose vs. strict equality, canonical-value-map handling, label-to-value resolution). Introduced `MediaWiki\Extension\PageForms\PossibleValue`/`PossibleValueList` (`src/`) to centralize this matching logic; all five widgets now consume it instead of duplicating ad-hoc array lookups. Purely structural — rendering output is unchanged ([#176](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/176))
 - `PFUtils::getCanonicalName()`/`getNsText()` namespace helpers and the inline canonical-page-string concatenation in `PFValuesUtils::getSMWPropertyValues()` had no shared owner for "this is a page-type (`_wpg`) value" — comparisons and canonical-string construction were duplicated ad hoc at each call site. Introduced `MediaWiki\Extension\PageForms\PageValue` (`src/`), constructed from a `Title`, an `SMW\DIWikiPage`, or a raw stored string, exposing `getCanonicalString()` and a namespace-tolerant `equals()`. `PFValuesUtils::getSMWPropertyValues()` and `standardizeNamespace()` are now thin call sites into it. Purely structural — output is unchanged ([#177](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/177))
@@ -216,7 +218,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.5...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.6...HEAD
+[2.1.6]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.5...2.1.6
 [2.1.5]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.4...2.1.5
 [2.1.4]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.3...2.1.4
 [2.1.3]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.2...2.1.3
