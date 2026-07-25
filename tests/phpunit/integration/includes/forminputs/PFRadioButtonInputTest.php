@@ -54,11 +54,11 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 	public function testGetHtmlChecksCurrentValueAndLeavesOtherUnchecked(): void {
 		$html = $this->getHtml( 'PFRbOptB', [ 'PFRbOptA', 'PFRbOptB' ] );
 
-		$this->assertMatchesRegularExpression(
+		$this->assertRegex(
 			'/checked="" type="radio" value="PFRbOptB"/',
 			$html
 		);
-		$this->assertDoesNotMatchRegularExpression(
+		$this->assertNotRegex(
 			'/checked="" type="radio" value="PFRbOptA"/',
 			$html
 		);
@@ -67,7 +67,7 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 	public function testGetHtmlInvalidCurrentValueFallsBackToNone(): void {
 		$html = $this->getHtml( 'PFRbUnknown', [ 'PFRbOptA', 'PFRbOptB' ] );
 
-		$this->assertMatchesRegularExpression(
+		$this->assertRegex(
 			'/checked="" type="radio" value=""/',
 			$html
 		);
@@ -103,5 +103,31 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertStringContainsString( PFUtils::getWordForYesOrNo( true ), $html );
 		$this->assertStringContainsString( PFUtils::getWordForYesOrNo( false ), $html );
+	}
+
+	/**
+	 * Cross-version assertRegExp: uses assertMatchesRegularExpression (PHPUnit ≥ 9)
+	 * when available, otherwise falls back to assertRegExp (PHPUnit 8, MW 1.39).
+	 */
+	private function assertRegex( string $pattern, string $string, string $message = '' ): void {
+		if ( method_exists( $this, 'assertMatchesRegularExpression' ) ) {
+			$this->assertMatchesRegularExpression( $pattern, $string, $message );
+		} else {
+			// @phan-suppress-next-line PhanUndeclaredMethod
+			$this->assertRegExp( $pattern, $string, $message );
+		}
+	}
+
+	/**
+	 * Cross-version assertNotRegExp: uses assertDoesNotMatchRegularExpression (PHPUnit ≥ 9)
+	 * when available, otherwise falls back to assertNotRegExp (PHPUnit 8, MW 1.39).
+	 */
+	private function assertNotRegex( string $pattern, string $string, string $message = '' ): void {
+		if ( method_exists( $this, 'assertDoesNotMatchRegularExpression' ) ) {
+			$this->assertDoesNotMatchRegularExpression( $pattern, $string, $message );
+		} else {
+			// @phan-suppress-next-line PhanUndeclaredMethod
+			$this->assertNotRegExp( $pattern, $string, $message );
+		}
 	}
 }
