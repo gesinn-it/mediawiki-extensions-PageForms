@@ -4,6 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\PossibleValueList;
 
 /**
  * @ingroup PFFormInput
@@ -51,8 +52,10 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 		if ( $possible_values == null ) {
 			$possible_values = [];
 		}
+		$possibleValueList = new PossibleValueList( $possible_values );
 		$text = '';
-		foreach ( $possible_values as $key => $possible_value ) {
+		foreach ( $possibleValueList->all() as $key => $possibleValue ) {
+			$possible_value = $possibleValue->getValue();
 			$cur_input_name = $input_name . '[' . $key . ']';
 
 			if (

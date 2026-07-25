@@ -4,6 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\PossibleValueList;
 
 /**
  * @ingroup PFFormInput
@@ -69,7 +70,14 @@ class PFDropdownInput extends PFEnumInput {
 				$possible_values = [];
 			}
 		}
-		foreach ( $possible_values as $possible_value ) {
+		// Dropdown historically ignores possible_values' array keys (unlike
+		// PFTokensInput/PFComboBoxInput, it never supports a canonical
+		// value => displayLabel map) - build the list from values only, so
+		// PossibleValueList's key-as-canonical-value handling doesn't change
+		// behavior here.
+		$possibleValueList = new PossibleValueList( array_values( $possible_values ) );
+		foreach ( $possibleValueList->all() as $possibleValue ) {
+			$possible_value = $possibleValue->getValue();
 			$optionAttrs = [ 'value' => $possible_value ];
 			if ( $possible_value == $cur_value ) {
 				$optionAttrs['selected'] = "selected";

@@ -4,6 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\PossibleValueList;
 
 /**
  * @ingroup PFFormInput
@@ -44,7 +45,8 @@ class PFRadioButtonInput extends PFEnumInput {
 		// If $cur_value is an invalid value (not null, and not one
 		// of the allowed options), set it to blank, so it can show
 		// up as "None" (if "None" is one of the options).
-		if ( $cur_value !== null && !in_array( $cur_value, $possible_values ) ) {
+		$possibleValueList = new PossibleValueList( $possible_values );
+		if ( $cur_value !== null && !$possibleValueList->contains( $cur_value ) ) {
 			$cur_value = '';
 		}
 

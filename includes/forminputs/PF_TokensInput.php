@@ -4,6 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\PossibleValueList;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -174,33 +175,17 @@ class PFTokensInput extends PFFormInput {
 			}
 		}
 
-		$possible_values_by_id = [];
-		$possible_value_id_by_label = [];
-		$possible_value_label_counts = [];
-		foreach ( $possible_values as $possible_key => $possible_value ) {
-			$optionValue = is_int( $possible_key ) ? $possible_value : $possible_key;
-			$possible_values_by_id[$optionValue] = true;
-			if ( !array_key_exists( $possible_value, $possible_value_label_counts ) ) {
-				$possible_value_label_counts[$possible_value] = 0;
-			}
-			$possible_value_label_counts[$possible_value]++;
-			if ( !array_key_exists( $possible_value, $possible_value_id_by_label ) ) {
-				$possible_value_id_by_label[$possible_value] = $optionValue;
-			}
-		}
+		$possibleValueList = new PossibleValueList( $possible_values );
 
 		foreach ( $cur_values as $key => $current_value ) {
-			if ( array_key_exists( $current_value, $possible_values_by_id ) ) {
-				continue;
-			}
-			if ( array_key_exists( $current_value, $possible_value_id_by_label ) &&
-				$possible_value_label_counts[$current_value] === 1 ) {
-				$cur_values[$key] = $possible_value_id_by_label[$current_value];
+			$match = $possibleValueList->find( $current_value );
+			if ( $match !== null ) {
+				$cur_values[$key] = $match->getValue();
 			}
 		}
 
-		foreach ( $possible_values as $possible_key => $possible_value ) {
-			$optionValue = is_int( $possible_key ) ? $possible_value : $possible_key;
+		foreach ( $possibleValueList->all() as $possibleValue ) {
+			$optionValue = $possibleValue->getValue();
 			if (
 				array_key_exists( 'value_labels', $other_args ) &&
 				is_array( $other_args['value_labels'] ) &&
@@ -210,11 +195,11 @@ class PFTokensInput extends PFFormInput {
 			} elseif (
 				array_key_exists( 'value_labels', $other_args ) &&
 				is_array( $other_args['value_labels'] ) &&
-				array_key_exists( $possible_value, $other_args['value_labels'] )
+				array_key_exists( $possibleValue->getLabel(), $other_args['value_labels'] )
 			) {
-				$optionLabel = $other_args['value_labels'][$possible_value];
+				$optionLabel = $other_args['value_labels'][$possibleValue->getLabel()];
 			} else {
-				$optionLabel = $possible_value;
+				$optionLabel = $possibleValue->getLabel();
 			}
 			$optionAttrs = [ 'value' => $optionValue ];
 			if ( in_array( $optionValue, $cur_values, true ) ) {
@@ -223,7 +208,7 @@ class PFTokensInput extends PFFormInput {
 			$optionsText .= Html::element( 'option', $optionAttrs, $optionLabel );
 		}
 		foreach ( $cur_values as $current_value ) {
-			if ( !array_key_exists( $current_value, $possible_values_by_id ) && $current_value !== '' ) {
+			if ( !$possibleValueList->contains( $current_value ) && $current_value !== '' ) {
 				$optionAttrs = [ 'value' => $current_value ];
 				$optionAttrs['selected'] = 'selected';
 				$optionLabel = $current_value;

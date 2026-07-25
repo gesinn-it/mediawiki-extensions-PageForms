@@ -4,6 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\PossibleValueList;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -144,13 +145,13 @@ class PFComboBoxInput extends PFFormInput {
 		// The canonical-value override applies whenever $possible_values is a
 		// [canonicalTitle => displayTitle] map (string keys). For plain string-type
 		// properties the array is numerically indexed, so is_string(array_key_first())
-		// is false and the override is skipped — preventing array_search() from
+		// is false and the override is skipped — preventing PossibleValueList from
 		// returning a numeric index and corrupting the saved value on re-edit.
 		if ( $cur_value !== '' && $possible_values !== []
 			&& is_string( array_key_first( $possible_values ) ) ) {
-			$canonicalValue = array_search( $cur_value, $possible_values );
-			if ( $canonicalValue !== false ) {
-				$optionAttrs['value'] = (string)$canonicalValue;
+			$match = ( new PossibleValueList( $possible_values ) )->find( $cur_value );
+			if ( $match !== null ) {
+				$optionAttrs['value'] = $match->getValue();
 			}
 		}
 		$innerDropdown .= Html::element( 'option', $optionAttrs, $cur_value );

@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Changed
+- `PFTokensInput`, `PFCheckboxesInput`, `PFDropdownInput`, `PFRadioButtonInput`, and `PFComboBoxInput` (`includes/forminputs/`) each independently re-implemented the comparison between a field's current stored value and its `possible_values` list, with subtly different semantics per widget (loose vs. strict equality, canonical-value-map handling, label-to-value resolution). Introduced `MediaWiki\Extension\PageForms\PossibleValue`/`PossibleValueList` (`src/`) to centralize this matching logic; all five widgets now consume it instead of duplicating ad-hoc array lookups. Purely structural — rendering output is unchanged ([#176](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/176))
+
 ## [2.1.5] - 2026-07-24
 
 ### Fixed
