@@ -51,13 +51,6 @@ class PFTokensInput extends PFFormInput {
 
 		$other_args['is_list'] = true;
 
-		// Normalize value_labels: when coming from a form field definition it
-		// arrives as a JSON string; when set by PF_FormField it is already an
-		// array. Decode once so the is_array() check below always works.
-		if ( array_key_exists( 'value_labels', $other_args ) && is_string( $other_args['value_labels'] ) ) {
-			$other_args['value_labels'] = json_decode( $other_args['value_labels'], true ) ?? [];
-		}
-
 		if ( array_key_exists( 'values from external data', $other_args ) ) {
 			$autocompleteSettings = 'external data';
 			$remoteDataType = null;
@@ -175,7 +168,7 @@ class PFTokensInput extends PFFormInput {
 			}
 		}
 
-		$possibleValueList = new PossibleValueList( $possible_values );
+		$possibleValueList = new PossibleValueList( $possible_values, $other_args['value_labels'] ?? null );
 
 		foreach ( $cur_values as $key => $current_value ) {
 			$match = $possibleValueList->find( $current_value );
@@ -186,21 +179,7 @@ class PFTokensInput extends PFFormInput {
 
 		foreach ( $possibleValueList->all() as $possibleValue ) {
 			$optionValue = $possibleValue->getValue();
-			if (
-				array_key_exists( 'value_labels', $other_args ) &&
-				is_array( $other_args['value_labels'] ) &&
-				array_key_exists( $optionValue, $other_args['value_labels'] )
-			) {
-				$optionLabel = $other_args['value_labels'][$optionValue];
-			} elseif (
-				array_key_exists( 'value_labels', $other_args ) &&
-				is_array( $other_args['value_labels'] ) &&
-				array_key_exists( $possibleValue->getLabel(), $other_args['value_labels'] )
-			) {
-				$optionLabel = $other_args['value_labels'][$possibleValue->getLabel()];
-			} else {
-				$optionLabel = $possibleValue->getLabel();
-			}
+			$optionLabel = $possibleValue->getLabel();
 			$optionAttrs = [ 'value' => $optionValue ];
 			if ( in_array( $optionValue, $cur_values, true ) ) {
 				$optionAttrs['selected'] = 'selected';

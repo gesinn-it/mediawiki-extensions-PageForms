@@ -15,9 +15,12 @@ class PossibleValue {
 
 	private string $label;
 
-	public function __construct( string $value, string $label ) {
+	private bool $labelIsOverride;
+
+	public function __construct( string $value, string $label, bool $labelIsOverride = false ) {
 		$this->value = $value;
 		$this->label = $label;
+		$this->labelIsOverride = $labelIsOverride;
 	}
 
 	public function getValue(): string {
@@ -26,6 +29,14 @@ class PossibleValue {
 
 	public function getLabel(): string {
 		return $this->label;
+	}
+
+	/**
+	 * Whether getLabel() returns a 'value_labels' override rather than the
+	 * label derived from the raw 'possible_values' argument.
+	 */
+	public function labelIsOverride(): bool {
+		return $this->labelIsOverride;
 	}
 
 	/**

@@ -78,4 +78,29 @@ class PFDropdownInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'createboxInput', $html );
 		$this->assertStringNotContainsString( 'mandatoryFieldSpan', $html );
 	}
+
+	public function testGetHtmlWithValueLabelsRendersCustomLabelText(): void {
+		$html = $this->getHtml(
+			'',
+			[ 'PFDDOptA', 'PFDDOptB' ],
+			false,
+			false,
+			[ 'value_labels' => [ 'PFDDOptA' => 'Custom Label A', 'PFDDOptB' => 'Custom Label B' ] ]
+		);
+
+		$this->assertStringContainsString( '<option value="PFDDOptA">Custom Label A</option>', $html );
+		$this->assertStringContainsString( '<option value="PFDDOptB">Custom Label B</option>', $html );
+	}
+
+	public function testGetHtmlWithValueLabelsAsJsonStringIsDecoded(): void {
+		$html = $this->getHtml(
+			'',
+			[ 'PFDDOptA' ],
+			false,
+			false,
+			[ 'value_labels' => json_encode( [ 'PFDDOptA' => 'Custom Label A' ] ) ]
+		);
+
+		$this->assertStringContainsString( '<option value="PFDDOptA">Custom Label A</option>', $html );
+	}
 }

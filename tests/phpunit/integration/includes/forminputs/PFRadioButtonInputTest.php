@@ -86,6 +86,31 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( '&nbsp;Custom Label B', $html );
 	}
 
+	public function testGetHtmlWithValueLabelsAsJsonStringIsDecoded(): void {
+		$html = $this->getHtml(
+			'',
+			[ 'PFRbOptA' ],
+			false,
+			false,
+			[ 'value_labels' => json_encode( [ 'PFRbOptA' => 'Custom Label A' ] ) ]
+		);
+
+		$this->assertStringContainsString( '&nbsp;Custom Label A', $html );
+	}
+
+	public function testGetHtmlNoneOptionIgnoresValueLabelsOverride(): void {
+		$html = $this->getHtml(
+			'',
+			[ 'PFRbOptA' ],
+			false,
+			false,
+			[ 'value_labels' => [ '' => 'Should Not Be Used For None' ] ]
+		);
+
+		$this->assertStringContainsString( wfMessage( 'pf_formedit_none' )->text(), $html );
+		$this->assertStringNotContainsString( 'Should Not Be Used For None', $html );
+	}
+
 	public function testGetHtmlDisabledAddsDisabledAttribute(): void {
 		$html = $this->getHtml( '', [ 'PFRbOptA' ], false, true );
 

@@ -164,6 +164,75 @@ class PFTokensInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertNotContains( 'Values From Category 3 (DisplayTitle)', array_column( $options, 'value' ) );
 	}
 
+	public function testValueLabelsOverrideKeyedByCanonicalValue(): void {
+		$html = $this->getHtml(
+			'',
+			[ 'PFTokAlpha', 'PFTokBeta' ],
+			false,
+			false,
+			[ 'value_labels' => [ 'PFTokAlpha' => 'Custom Label Alpha' ] ]
+		);
+
+		$options = $this->extractOptions( $html );
+		$alphaOption = $this->findOptionByValue( $options, 'PFTokAlpha' );
+
+		$this->assertNotNull( $alphaOption );
+		$this->assertSame( 'Custom Label Alpha', $alphaOption['label'] );
+	}
+
+	/**
+	 * Regression coverage for the value_labels fallback lookup keyed by the
+	 * possible value's *original* (pre-override) label, exercised only when
+	 * possible_values is a canonicalValue => displayLabel map. This is
+	 * distinct from the by-canonical-value lookup covered above.
+	 */
+	public function testValueLabelsOverrideKeyedByOriginalLabelFallsBackWhenNotKeyedByValue(): void {
+		$html = PFTokensInput::getHTML(
+			'',
+			'TestTemplate[Tokens]',
+			false,
+			false,
+			[
+				'values from external data' => null,
+				'possible_values' => [
+					'Values From Category 3' => 'Values From Category 3 (DisplayTitle)'
+				],
+				'value_labels' => [ 'Values From Category 3 (DisplayTitle)' => 'Custom Override Label' ]
+			]
+		);
+
+		$options = $this->extractOptions( $html );
+		$option = $this->findOptionByValue( $options, 'Values From Category 3' );
+
+		$this->assertNotNull( $option );
+		$this->assertSame( 'Custom Override Label', $option['label'] );
+	}
+
+	public function testValueLabelsAsJsonStringIsDecoded(): void {
+		$html = $this->getHtml(
+			'',
+			[ 'PFTokAlpha' ],
+			false,
+			false,
+			[ 'value_labels' => json_encode( [ 'PFTokAlpha' => 'Custom Label Alpha' ] ) ]
+		);
+
+		$options = $this->extractOptions( $html );
+		$alphaOption = $this->findOptionByValue( $options, 'PFTokAlpha' );
+
+		$this->assertNotNull( $alphaOption );
+		$this->assertSame( 'Custom Label Alpha', $alphaOption['label'] );
+	}
+
+	private function findOptionByValue( array $options, string $value ): ?array {
+		foreach ( $options as $option ) {
+			if ( $option['value'] === $value ) {
+				return $option;
+			}
+		}
+		return null;
+	}
+
 	private function extractOptions( string $html ): array {
 		$dom = new DOMDocument();
 		libxml_use_internal_errors( true );

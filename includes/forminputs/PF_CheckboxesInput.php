@@ -41,32 +41,16 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 		}
 		$cur_values = PFValuesUtils::getValuesArray( $cur_value, $delimiter );
 
-		// Normalize value_labels: when coming from a form field definition it
-		// arrives as a JSON string; when set by PF_FormField it is already an
-		// array. Decode once so the is_array() check below always works.
-		if ( array_key_exists( 'value_labels', $other_args ) && is_string( $other_args['value_labels'] ) ) {
-			$other_args['value_labels'] = json_decode( $other_args['value_labels'], true ) ?? [];
-		}
-
 		$possible_values = $other_args['possible_values'];
 		if ( $possible_values == null ) {
 			$possible_values = [];
 		}
-		$possibleValueList = new PossibleValueList( $possible_values );
+		$possibleValueList = new PossibleValueList( $possible_values, $other_args['value_labels'] ?? null );
 		$text = '';
 		foreach ( $possibleValueList->all() as $key => $possibleValue ) {
 			$possible_value = $possibleValue->getValue();
 			$cur_input_name = $input_name . '[' . $key . ']';
-
-			if (
-				array_key_exists( 'value_labels', $other_args ) &&
-				is_array( $other_args['value_labels'] ) &&
-				array_key_exists( $possible_value, $other_args['value_labels'] )
-			) {
-				$label = $other_args['value_labels'][$possible_value];
-			} else {
-				$label = $possible_value;
-			}
+			$label = $possibleValue->getLabel();
 
 			$checkbox_attrs = [
 				'name' => $cur_input_name,

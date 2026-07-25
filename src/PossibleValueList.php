@@ -16,6 +16,13 @@ namespace MediaWiki\Extension\PageForms;
  * normalizes both into a list of PossibleValue objects and centralizes the
  * value/label lookups that were previously duplicated across the five input
  * widget classes.
+ *
+ * It also centralizes resolution of the 'value_labels' field argument, an
+ * optional override mapping that takes precedence over the label derived
+ * from 'possible_values' - e.g. a per-field custom label, or (via
+ * "mapping using translate") an interface-message-translated label. A
+ * possible value's label is overridden when 'value_labels' contains an
+ * entry keyed by either its canonical value or its original label.
  */
 class PossibleValueList {
 
@@ -25,11 +32,29 @@ class PossibleValueList {
 	/**
 	 * @param array $possibleValues Raw 'possible_values' field argument -
 	 *  either a plain list of values, or a canonicalValue => displayLabel map.
+	 * @param array|string|null $valueLabels Raw 'value_labels' field
+	 *  argument - either a canonicalValue|label => overrideLabel map, a JSON
+	 *  string encoding one (as it arrives from a form field definition), or
+	 *  null/absent if there is no override.
 	 */
-	public function __construct( array $possibleValues ) {
+	public function __construct( array $possibleValues, $valueLabels = null ) {
+		if ( is_string( $valueLabels ) ) {
+			$valueLabels = json_decode( $valueLabels, true ) ?? [];
+		} elseif ( !is_array( $valueLabels ) ) {
+			$valueLabels = [];
+		}
+
 		foreach ( $possibleValues as $key => $value ) {
 			$canonicalValue = is_string( $key ) ? $key : (string)$value;
-			$this->values[] = new PossibleValue( $canonicalValue, (string)$value );
+			$originalLabel = (string)$value;
+
+			if ( array_key_exists( $canonicalValue, $valueLabels ) ) {
+				$this->values[] = new PossibleValue( $canonicalValue, (string)$valueLabels[$canonicalValue], true );
+			} elseif ( array_key_exists( $originalLabel, $valueLabels ) ) {
+				$this->values[] = new PossibleValue( $canonicalValue, (string)$valueLabels[$originalLabel], true );
+			} else {
+				$this->values[] = new PossibleValue( $canonicalValue, $originalLabel );
+			}
 		}
 	}
 

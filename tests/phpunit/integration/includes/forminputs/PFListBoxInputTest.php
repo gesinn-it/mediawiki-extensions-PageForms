@@ -106,6 +106,18 @@ class PFListBoxInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringNotContainsString( '>PFLBOptA<', $html );
 	}
 
+	public function testGetHtmlWithValueLabelsAsJsonStringIsDecoded(): void {
+		$html = $this->getHtml(
+			'',
+			[ 'PFLBOptA' ],
+			false,
+			false,
+			[ 'value_labels' => json_encode( [ 'PFLBOptA' => 'PFLBLabelA' ] ) ]
+		);
+
+		$this->assertStringContainsString( '<option value="PFLBOptA">PFLBLabelA</option>', $html );
+	}
+
 	public function testGetHtmlSizeParameterAddsHtmlAttribute(): void {
 		$html = $this->getHtml( '', [ 'PFLBOptA' ], false, false, [ 'size' => 25 ] );
 

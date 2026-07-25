@@ -96,6 +96,18 @@ class PFCheckboxesInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringNotContainsString( '&nbsp;PFCbOptA', $html );
 	}
 
+	public function testGetHtmlWithValueLabelsAsJsonStringIsDecoded(): void {
+		$html = $this->getHtml(
+			'',
+			[ 'PFCbOptA' ],
+			false,
+			false,
+			[ 'value_labels' => json_encode( [ 'PFCbOptA' => 'Custom Label A' ] ) ]
+		);
+
+		$this->assertStringContainsString( '&nbsp;Custom Label A', $html );
+	}
+
 	public function testGetHtmlMandatoryAddsMandatoryFieldSpanClass(): void {
 		$html = $this->getHtml( '', [ 'PFCbOptA' ], true );
 

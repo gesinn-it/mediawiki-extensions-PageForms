@@ -144,4 +144,46 @@ class PossibleValueListTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertNull( $list->find( 'Foo' ) );
 	}
+
+	public function testValueLabelsOverrideKeyedByCanonicalValueTakesPrecedence(): void {
+		$list = new PossibleValueList( [ 'Foo', 'Bar' ], [ 'Foo' => 'Custom Foo Label' ] );
+
+		$match = $list->find( 'Foo' );
+
+		$this->assertNotNull( $match );
+		$this->assertSame( 'Custom Foo Label', $match->getLabel() );
+		$this->assertTrue( $match->labelIsOverride() );
+	}
+
+	public function testValueLabelsOverrideKeyedByOriginalLabelIsUsedWhenNotKeyedByValue(): void {
+		$list = new PossibleValueList(
+			[ 'Category:Foo' => 'Foo (DisplayTitle)' ],
+			[ 'Foo (DisplayTitle)' => 'Custom Override Label' ]
+		);
+
+		$match = $list->find( 'Category:Foo' );
+
+		$this->assertNotNull( $match );
+		$this->assertSame( 'Custom Override Label', $match->getLabel() );
+		$this->assertTrue( $match->labelIsOverride() );
+	}
+
+	public function testValueLabelsAsJsonStringIsDecoded(): void {
+		$list = new PossibleValueList( [ 'Foo' ], json_encode( [ 'Foo' => 'Custom Foo Label' ] ) );
+
+		$match = $list->find( 'Foo' );
+
+		$this->assertNotNull( $match );
+		$this->assertSame( 'Custom Foo Label', $match->getLabel() );
+	}
+
+	public function testNoValueLabelsOverrideLeavesLabelUnchanged(): void {
+		$list = new PossibleValueList( [ 'Foo' ] );
+
+		$match = $list->find( 'Foo' );
+
+		$this->assertNotNull( $match );
+		$this->assertSame( 'Foo', $match->getLabel() );
+		$this->assertFalse( $match->labelIsOverride() );
+	}
 }

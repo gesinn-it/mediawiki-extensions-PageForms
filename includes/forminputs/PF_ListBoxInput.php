@@ -45,30 +45,15 @@ class PFListBoxInput extends PFMultiEnumInput {
 		}
 		$cur_values = PFValuesUtils::getValuesArray( $this->mCurrentValue, $delimiter );
 
-		// Normalize value_labels: when coming from a form field definition it
-		// arrives as a JSON string; when set by PF_FormField it is already an
-		// array. Decode once so the is_array() check below always works.
-		if ( array_key_exists( 'value_labels', $this->mOtherArgs ) && is_string( $this->mOtherArgs['value_labels'] ) ) {
-			$this->mOtherArgs['value_labels'] = json_decode( $this->mOtherArgs['value_labels'], true ) ?? [];
-		}
-
 		$possible_values = $this->mOtherArgs['possible_values'];
 		if ( $possible_values == null ) {
 			$possible_values = [];
 		}
-		$possibleValueList = new PossibleValueList( $possible_values );
+		$possibleValueList = new PossibleValueList( $possible_values, $this->mOtherArgs['value_labels'] ?? null );
 		$optionsText = '';
 		foreach ( $possibleValueList->all() as $possibleValue ) {
 			$possible_value = $possibleValue->getValue();
-			if (
-				array_key_exists( 'value_labels', $this->mOtherArgs ) &&
-				is_array( $this->mOtherArgs['value_labels'] ) &&
-				array_key_exists( $possible_value, $this->mOtherArgs['value_labels'] )
-			) {
-				$optionLabel = $this->mOtherArgs['value_labels'][$possible_value];
-			} else {
-				$optionLabel = $possible_value;
-			}
+			$optionLabel = $possibleValue->getLabel();
 			$optionAttrs = [ 'value' => $possible_value ];
 			if ( in_array( $possible_value, $cur_values ) ) {
 				$optionAttrs['selected'] = 'selected';

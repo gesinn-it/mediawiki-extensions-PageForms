@@ -50,13 +50,6 @@ class PFDropdownInput extends PFEnumInput {
 		if ( !$is_mandatory || $cur_value === '' ) {
 			$innerDropdown .= "	<option value=\"\"></option>\n";
 		}
-		// Normalize value_labels: when coming from a form field definition it
-		// arrives as a JSON string; when set by PF_FormField it is already an
-		// array. Decode once so the is_array() check below always works.
-		if ( array_key_exists( 'value_labels', $other_args ) && is_string( $other_args['value_labels'] ) ) {
-			$other_args['value_labels'] = json_decode( $other_args['value_labels'], true ) ?? [];
-		}
-
 		$possible_values = $other_args['possible_values'];
 		if ( $possible_values == null ) {
 			// If it's a Boolean property, display 'Yes' and 'No'
@@ -75,23 +68,15 @@ class PFDropdownInput extends PFEnumInput {
 		// value => displayLabel map) - build the list from values only, so
 		// PossibleValueList's key-as-canonical-value handling doesn't change
 		// behavior here.
-		$possibleValueList = new PossibleValueList( array_values( $possible_values ) );
+		$valueLabels = $other_args['value_labels'] ?? null;
+		$possibleValueList = new PossibleValueList( array_values( $possible_values ), $valueLabels );
 		foreach ( $possibleValueList->all() as $possibleValue ) {
 			$possible_value = $possibleValue->getValue();
 			$optionAttrs = [ 'value' => $possible_value ];
 			if ( $possible_value == $cur_value ) {
 				$optionAttrs['selected'] = "selected";
 			}
-			if (
-				array_key_exists( 'value_labels', $other_args ) &&
-				is_array( $other_args['value_labels'] ) &&
-				array_key_exists( $possible_value, $other_args['value_labels'] )
-			) {
-				$label = $other_args['value_labels'][$possible_value];
-			} else {
-				$label = $possible_value;
-			}
-			$innerDropdown .= Html::element( 'option', $optionAttrs, $label );
+			$innerDropdown .= Html::element( 'option', $optionAttrs, $possibleValue->getLabel() );
 		}
 		$selectAttrs = [
 			'id' => $input_id,
