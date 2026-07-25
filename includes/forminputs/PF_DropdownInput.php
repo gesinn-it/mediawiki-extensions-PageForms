@@ -91,10 +91,7 @@ class PFDropdownInput extends PFEnumInput {
 			$selectAttrs['origname'] = $other_args['origName'];
 		}
 		$text = Html::rawElement( 'select', $selectAttrs, $innerDropdown );
-		$spanClass = 'inputSpan';
-		if ( $is_mandatory ) {
-			$spanClass .= ' mandatoryFieldSpan';
-		}
+		$spanClass = self::buildSpanClass( 'inputSpan', $is_mandatory );
 		$text = Html::rawElement( 'span', [ 'class' => $spanClass ], $text );
 		return $text;
 	}

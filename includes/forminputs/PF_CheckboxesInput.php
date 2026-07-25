@@ -79,10 +79,7 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 		}
 
 		$outerSpanID = "span_$wgPageFormsFieldNum";
-		$outerSpanClass = 'checkboxesSpan';
-		if ( $is_mandatory ) {
-			$outerSpanClass .= ' mandatoryFieldSpan';
-		}
+		$outerSpanClass = self::buildSpanClass( 'checkboxesSpan', $is_mandatory );
 
 		// @HACK! The current "select all/none" JS code doesn't work
 		// when this input is part of a multiple-instance template, so

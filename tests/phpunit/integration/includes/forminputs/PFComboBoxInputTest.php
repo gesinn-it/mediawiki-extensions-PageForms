@@ -80,4 +80,17 @@ class PFComboBoxInputTest extends MediaWikiIntegrationTestCase {
 			'Option value must be the canonical key from the display-title map'
 		);
 	}
+
+	public function testGetHtmlMandatoryAddsMandatoryFieldSpanClassToWrapper(): void {
+		$html = PFComboBoxInput::getHTML( '', 'TestField', true, false, [ 'possible_values' => [] ] );
+
+		$this->assertStringContainsString( 'class="comboboxSpan mandatoryFieldSpan"', $html );
+	}
+
+	public function testGetHtmlNonMandatoryOmitsMandatoryFieldSpanClassFromWrapper(): void {
+		$html = PFComboBoxInput::getHTML( '', 'TestField', false, false, [ 'possible_values' => [] ] );
+
+		$this->assertStringContainsString( 'class="comboboxSpan"', $html );
+		$this->assertStringNotContainsString( 'mandatoryFieldSpan', $html );
+	}
 }

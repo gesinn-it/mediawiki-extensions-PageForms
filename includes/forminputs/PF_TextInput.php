@@ -265,9 +265,7 @@ class PFTextInput extends PFFormInput {
 		if ( $inputType !== '' ) {
 			$spanClass .= " {$inputType}Input";
 		}
-		if ( $is_mandatory ) {
-			$spanClass .= ' mandatoryFieldSpan';
-		}
+		$spanClass = self::buildSpanClass( $spanClass, $is_mandatory );
 		if ( array_key_exists( 'unique', $other_args ) ) {
 			$spanClass .= ' uniqueFieldSpan';
 		}

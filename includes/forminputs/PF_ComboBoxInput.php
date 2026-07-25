@@ -171,10 +171,7 @@ class PFComboBoxInput extends PFFormInput {
 		}
 
 		$spanID = 'span_' . $wgPageFormsFieldNum;
-		$spanClass = 'comboboxSpan';
-		if ( $is_mandatory ) {
-			$spanClass .= ' mandatoryFieldSpan';
-		}
+		$spanClass = self::buildSpanClass( 'comboboxSpan', $is_mandatory );
 
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$spanClass .= ' pfShowIfSelected';

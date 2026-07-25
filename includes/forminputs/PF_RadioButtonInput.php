@@ -96,9 +96,7 @@ class PFRadioButtonInput extends PFEnumInput {
 		if ( array_key_exists( 'class', $other_args ) ) {
 			$spanClass .= ' ' . $other_args['class'];
 		}
-		if ( $is_mandatory ) {
-			$spanClass .= ' mandatoryFieldSpan';
-		}
+		$spanClass = self::buildSpanClass( $spanClass, $is_mandatory );
 
 		$spanID = "span_$wgPageFormsFieldNum";
 

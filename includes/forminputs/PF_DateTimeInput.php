@@ -125,10 +125,7 @@ class PFDateTimeInput extends PFDateInput {
 				$timezone . '" size="3"/ ' . $disabled_text . '>' . "\n";
 		}
 
-		$spanClass = $this->getInputClass();
-		if ( $is_mandatory ) {
-			$spanClass .= ' mandatoryFieldSpan';
-		}
+		$spanClass = self::buildSpanClass( $this->getInputClass(), $is_mandatory );
 
 		// ==== GESINN PATCH BEGIN ====
 		// Added support for the 'class' parameter on PF_DateTimeInput:

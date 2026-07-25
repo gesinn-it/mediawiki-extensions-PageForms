@@ -112,7 +112,7 @@ class PFOpenLayersInput extends PFFormInput {
 		$coordsInputAttrs = [
 			'type' => 'text',
 			'tabindex' => $wgPageFormsTabIndex++,
-			'class' => $className,
+			'class' => self::buildSpanClass( $className, $is_mandatory ),
 			'name' => $input_name,
 			'value' => self::parseCoordinatesString( $cur_value ),
 			'size' => 40
@@ -120,10 +120,6 @@ class PFOpenLayersInput extends PFFormInput {
 
 		// ==== GESINN PATCH BEGIN ====
 		// handle restricted and mandatory params
-		if ( $is_mandatory ) {
-			$coordsInputAttrs['class'] .= ' mandatoryFieldSpan';
-		}
-
 		if ( $is_disabled ) {
 			$className .= ' pfCoordsInputDisabled';
 			$coordsInputAttrs['disabled'] = 'disabled';

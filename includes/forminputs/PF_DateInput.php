@@ -197,10 +197,7 @@ class PFDateInput extends PFFormInput {
 
 	public function getHTML( $date, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
 		$text = self::getMainHTML( $date, $input_name, $is_mandatory, $is_disabled, $other_args );
-		$spanClass = $this->getInputClass();
-		if ( $is_mandatory ) {
-			$spanClass .= ' mandatoryFieldSpan';
-		}
+		$spanClass = self::buildSpanClass( $this->getInputClass(), $is_mandatory );
 
 		// ==== GESINN PATCH BEGIN ====
 		// Added support for the 'class' parameter on PF_DateInput:

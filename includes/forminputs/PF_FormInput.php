@@ -334,6 +334,25 @@ abstract class PFFormInput {
 	}
 
 	/**
+	 * Builds a CSS class string for an input's wrapping element, appending
+	 * 'mandatoryFieldSpan' when the field is mandatory.
+	 *
+	 * Centralizes a pattern duplicated across most form input classes:
+	 * a base class, optionally followed by a mandatory-field marker class.
+	 *
+	 * @param string $baseClass The base CSS class (or classes) to start from.
+	 * @param bool $isMandatory Whether to append 'mandatoryFieldSpan'.
+	 * @return string
+	 */
+	protected static function buildSpanClass( $baseClass, $isMandatory ) {
+		$class = $baseClass;
+		if ( $isMandatory ) {
+			$class .= ' mandatoryFieldSpan';
+		}
+		return $class;
+	}
+
+	/**
 	 * Add the necessary JavaScript for this input.
 	 */
 	public function addJavaScript() {

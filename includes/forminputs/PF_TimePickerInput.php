@@ -105,9 +105,8 @@ class PFTimePickerInput extends PFFormInput {
 
 		// wrap in span (e.g. used for mandatory inputs)
 		if ( !array_key_exists( 'part of dtp', $this->mOtherArgs ) ) {
-			$html = '<span class="inputSpan' .
-				( array_key_exists( 'mandatory', $this->mOtherArgs ) ? ' mandatoryFieldSpan' : '' ) .
-				'">' . $html . '</span>';
+			$spanClass = self::buildSpanClass( 'inputSpan', array_key_exists( 'mandatory', $this->mOtherArgs ) );
+			$html = Html::rawElement( 'span', [ 'class' => $spanClass ], $html );
 		}
 
 		return $html;

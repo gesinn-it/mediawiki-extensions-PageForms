@@ -110,6 +110,15 @@ class PFDateTimeInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'PFDTCustomClass01', $html );
 	}
 
+	public function testGetHtmlMandatoryWithClassOverridePreservesSpanClassOrder(): void {
+		$html = $this->getHtml( '', true, false, [ 'class' => 'PFDTCustomClass01' ] );
+
+		$this->assertStringContainsString(
+			'class="dateTimeInput mandatoryFieldSpan PFDTCustomClass01"',
+			$html
+		);
+	}
+
 	public function testGetHtmlIncludeTimezoneAddsTimezoneInput(): void {
 		$html = $this->getHtml( '2024-01-15 09:00:00', false, false, [ 'include timezone' => true ] );
 

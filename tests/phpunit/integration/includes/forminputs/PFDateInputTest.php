@@ -84,4 +84,13 @@ class PFDateInputTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertStringContainsString( 'disabled', $html );
 	}
+
+	public function testGetHtmlMandatoryWithClassOverridePreservesSpanClassOrder(): void {
+		$html = $this->getHtml( '', true, false, [ 'class' => 'customDateClass' ] );
+
+		$this->assertStringContainsString(
+			'class="dateInput mandatoryFieldSpan customDateClass"',
+			$html
+		);
+	}
 }

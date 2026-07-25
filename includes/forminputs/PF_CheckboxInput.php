@@ -29,9 +29,7 @@ class PFCheckboxInput extends PFFormInput {
 			$className .= ' ' . $other_args['class'];
 		}
 
-		if ( $is_mandatory ) {
-			$className .= ' mandatoryFieldSpan';
-		}
+		$className = self::buildSpanClass( $className, $is_mandatory );
 		 // ==== GESINN PATCH END ====
 
 		$inputID = "input_$wgPageFormsFieldNum";

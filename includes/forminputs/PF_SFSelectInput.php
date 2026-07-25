@@ -100,9 +100,7 @@ class PFSFSelectInput extends PFFormInput {
 		if ( !$isList ) {
 			$spanClass .= ' select-sfs-single';
 		}
-		if ( $is_mandatory ) {
-			$spanClass .= ' mandatoryFieldSpan';
-		}
+		$spanClass = self::buildSpanClass( $spanClass, $is_mandatory );
 
 		$ret = "<span class=\"$spanClass\"><select name='$inputName' id='$inputId'$extraAttr>";
 		$ret .= '<option></option>';

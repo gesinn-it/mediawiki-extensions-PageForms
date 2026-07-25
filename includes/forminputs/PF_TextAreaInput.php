@@ -291,9 +291,7 @@ class PFTextAreaInput extends PFFormInput {
 		if ( array_key_exists( 'isSection', $this->mOtherArgs ) ) {
 			$spanClass .= ' pageSection';
 		}
-		if ( $this->mIsMandatory ) {
-			$spanClass .= ' mandatoryFieldSpan';
-		}
+		$spanClass = self::buildSpanClass( $spanClass, $this->mIsMandatory );
 		if ( array_key_exists( 'unique', $this->mOtherArgs ) ) {
 			$spanClass .= ' uniqueFieldSpan';
 		}

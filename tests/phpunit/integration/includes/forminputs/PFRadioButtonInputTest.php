@@ -123,6 +123,30 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'mandatoryFieldSpan', $html );
 	}
 
+	public function testGetHtmlMandatoryWithClassOverridePreservesSpanClassOrder(): void {
+		$html = $this->getHtml( '', [ 'PFRbOptA' ], true, false, [ 'class' => 'customRbClass' ] );
+
+		$this->assertStringContainsString(
+			'class="radioButtonSpan customRbClass mandatoryFieldSpan"',
+			$html
+		);
+	}
+
+	public function testGetHtmlMandatoryWithClassOverrideAndShowOnSelectPreservesSpanClassOrder(): void {
+		$html = $this->getHtml(
+			'',
+			[ 'PFRbOptA' ],
+			true,
+			false,
+			[ 'class' => 'customRbClass', 'show on select' => [ 'PFRbOptA' => [ 'div#dummy' ] ] ]
+		);
+
+		$this->assertStringContainsString(
+			'class="radioButtonSpan customRbClass mandatoryFieldSpan pfShowIfChecked"',
+			$html
+		);
+	}
+
 	public function testGetHtmlBooleanPropertyWithoutPossibleValuesRendersYesNo(): void {
 		$html = PFRadioButtonInput::getHTML( '', 'TestField', false, false, [ 'property_type' => '_boo' ] );
 
