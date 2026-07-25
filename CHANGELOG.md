@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ### Changed
 - `PFTokensInput`, `PFCheckboxesInput`, `PFDropdownInput`, `PFRadioButtonInput`, and `PFComboBoxInput` (`includes/forminputs/`) each independently re-implemented the comparison between a field's current stored value and its `possible_values` list, with subtly different semantics per widget (loose vs. strict equality, canonical-value-map handling, label-to-value resolution). Introduced `MediaWiki\Extension\PageForms\PossibleValue`/`PossibleValueList` (`src/`) to centralize this matching logic; all five widgets now consume it instead of duplicating ad-hoc array lookups. Purely structural — rendering output is unchanged ([#176](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/176))
+- `PFUtils::getCanonicalName()`/`getNsText()` namespace helpers and the inline canonical-page-string concatenation in `PFValuesUtils::getSMWPropertyValues()` had no shared owner for "this is a page-type (`_wpg`) value" — comparisons and canonical-string construction were duplicated ad hoc at each call site. Introduced `MediaWiki\Extension\PageForms\PageValue` (`src/`), constructed from a `Title`, an `SMW\DIWikiPage`, or a raw stored string, exposing `getCanonicalString()` and a namespace-tolerant `equals()`. `PFValuesUtils::getSMWPropertyValues()` and `standardizeNamespace()` are now thin call sites into it. Purely structural — output is unchanged ([#177](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/177))
 
 ## [2.1.5] - 2026-07-24
 

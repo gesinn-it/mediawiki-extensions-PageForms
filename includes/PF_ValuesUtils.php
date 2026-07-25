@@ -6,6 +6,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\PageValue;
 use MediaWiki\MediaWikiServices;
 
 class PFValuesUtils {
@@ -36,17 +37,12 @@ class PFValuesUtils {
 			if ( $value instanceof SMWDIUri ) {
 				$values[] = $value->getURI();
 			} elseif ( $value instanceof \SMW\DIWikiPage ) {
-				$realValue = str_replace( '_', ' ', $value->getDBKey() );
-				if ( $value->getNamespace() != 0 ) {
-					// Use the canonical (English) namespace name, matching how
-					// MediaWiki serializes internal links in wikitext, regardless
-					// of content language. The localized name (e.g. "Kategorie" on
-					// a German wiki) would not match the "Category:"-prefixed value
-					// actually stored on the page, breaking display-title mapping.
-					$nsText = PFUtils::getCanonicalName( $value->getNamespace() );
-					$realValue = $nsText . ":$realValue";
-				}
-				$values[] = $realValue;
+				// Use the canonical (English) namespace name, matching how
+				// MediaWiki serializes internal links in wikitext, regardless
+				// of content language. The localized name (e.g. "Kategorie" on
+				// a German wiki) would not match the "Category:"-prefixed value
+				// actually stored on the page, breaking display-title mapping.
+				$values[] = PageValue::newFromDIWikiPage( $value )->getCanonicalString();
 			} else {
 				// getSortKey() seems to return the correct
 				// value for all the other data types.
@@ -1194,7 +1190,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 	 * @return string
 	 */
 	public static function standardizeNamespace( $namespaceStr ) {
-		$dummyTitle = Title::newFromText( "$namespaceStr:ABC" );
-		return $dummyTitle ? $dummyTitle->getNsText() : $namespaceStr;
+		$pageValue = PageValue::newFromText( "$namespaceStr:ABC" );
+		return $pageValue ? $pageValue->getNamespaceText() : $namespaceStr;
 	}
 }
