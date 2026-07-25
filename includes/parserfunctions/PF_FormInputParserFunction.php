@@ -33,6 +33,7 @@
  * |query string=namespace=User&preload=UserStub}}
  */
 
+use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
 use MediaWiki\MediaWikiServices;
 
 class PFFormInputParserFunction {
@@ -202,17 +203,7 @@ class PFFormInputParserFunction {
 
 		// Recreate the passed-in query string as a set of hidden
 		// variables.
-		if ( $inQueryArr !== [] ) {
-			// Query string has to be turned into hidden inputs.
-			$query_components = explode( '&', http_build_query( $inQueryArr, '', '&' ) );
-
-			foreach ( $query_components as $query_component ) {
-				$var_and_val = explode( '=', $query_component, 2 );
-				if ( count( $var_and_val ) == 2 ) {
-					$formContents .= Html::hidden( urldecode( $var_and_val[0] ), urldecode( $var_and_val[1] ) );
-				}
-			}
-		}
+		$formContents .= HiddenInputsBuilder::fromQueryArray( $inQueryArr );
 
 		$formInputAttrs['data-button-label'] = ( $inButtonStr != '' )
 			? $inButtonStr

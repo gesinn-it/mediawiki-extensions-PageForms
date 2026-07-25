@@ -76,4 +76,11 @@ class PFAutoEditRatingTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'name="Foo"', $result );
 		$this->assertStringContainsString( 'value="Bar"', $result );
 	}
+
+	public function testArbitraryKeyWithEmptyValueGetsRatingInputId(): void {
+		$result = $this->parse( '{{#autoedit_rating:Foo=}}' );
+
+		$this->assertStringContainsString( 'name="Foo"', $result );
+		$this->assertStringContainsString( 'id="ratingInput"', $result );
+	}
 }

@@ -5,6 +5,9 @@
  *
  * {{#autoedit_rating:form=|target=|rating field=|value=|star width=|num stars=|allow half stars=}}
  */
+
+use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
+
 class PFAutoEditRating {
 	public static function run( Parser $parser ) {
 		global $wgPageFormsAutoeditNamespaces;
@@ -92,19 +95,10 @@ class PFAutoEditRating {
 		}
 
 		// query string has to be turned into hidden inputs.
-		if ( $inQueryArr !== [] ) {
-			$query_components = explode( '&', http_build_query( $inQueryArr, '', '&' ) );
-			foreach ( $query_components as $query_component ) {
-				$var_and_val = explode( '=', $query_component, 2 );
-				if ( count( $var_and_val ) == 2 ) {
-					$formcontent .= Html::hidden(
-						urldecode( $var_and_val[0] ),
-						urldecode( $var_and_val[1] ),
-						$var_and_val[1] == '' ? [ 'id' => 'ratingInput' ] : []
-					);
-				}
-			}
-		}
+		$formcontent .= HiddenInputsBuilder::fromQueryArray(
+			$inQueryArr,
+			static fn ( string $name, string $value ) => $value === '' ? [ 'id' => 'ratingInput' ] : []
+		);
 
 		if ( $summary == null ) {
 			$summary = wfMessage( 'pf_autoedit_summary', "[[{$parser->getTitle()}]]" )->text();

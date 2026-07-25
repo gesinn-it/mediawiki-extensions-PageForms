@@ -1,5 +1,6 @@
 <?php
 use MediaWiki\Extension\PageForms\FormLinker;
+use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -208,16 +209,7 @@ class PFFormLink {
 			switch ( $inLinkType ) {
 				case 'button':
 				case 'post button':
-					$query_components = explode( '&', http_build_query( $inQueryArr, '', '&' ) );
-
-					foreach ( $query_components as $query_component ) {
-						$var_and_val = explode( '=', $query_component, 2 );
-						if ( count( $var_and_val ) == 2 ) {
-							$hidden_inputs .= Html::hidden(
-								urldecode( $var_and_val[0] ), urldecode( $var_and_val[1] )
-							);
-						}
-					}
+					$hidden_inputs .= HiddenInputsBuilder::fromQueryArray( $inQueryArr );
 					break;
 				case 'instant':
 					break;

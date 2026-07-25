@@ -16,6 +16,9 @@
  * 'reload' - causes the page to reload after the user clicks the button
  * or link.
  */
+
+use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
+
 class PFAutoEdit {
 	public static function run( Parser $parser ) {
 		global $wgPageFormsAutoeditNamespaces;
@@ -133,16 +136,7 @@ class PFAutoEdit {
 		}
 
 		// query string has to be turned into hidden inputs.
-		if ( $inQueryArr !== [] ) {
-			$query_components = explode( '&', http_build_query( $inQueryArr, '', '&' ) );
-
-			foreach ( $query_components as $query_component ) {
-				$var_and_val = explode( '=', $query_component, 2 );
-				if ( count( $var_and_val ) == 2 ) {
-					$formcontent .= Html::hidden( urldecode( $var_and_val[0] ), urldecode( $var_and_val[1] ) );
-				}
-			}
-		}
+		$formcontent .= HiddenInputsBuilder::fromQueryArray( $inQueryArr );
 
 		if ( $linkString == null ) {
 			return null;
