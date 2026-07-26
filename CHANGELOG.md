@@ -6,8 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.1.8] - 2026-07-26
+
 ### Fixed
-- `src/FormPrinter.php`: when substituting a form field's current value into a page-name formula (e.g. `<unique number>`), the substitution passed the field's current value into `str_ireplace()` unchanged. If the field's stored value round-tripped as a non-string scalar (`int`, `float`, or `bool`) rather than a string, `str_ireplace()` raised `TypeError: str_ireplace(): Argument #2 ($replace) must be of type array|string, int given` under this file's `strict_types=1`, breaking `Special:FormEdit` for any page whose page-name formula references such a field. The value is now explicitly cast to `string` before the substitution.
+- `src/FormPrinter.php`: when substituting a form field's current value into a page-name formula (e.g. `<unique number>`), the substitution passed the field's current value into `str_ireplace()` unchanged. If the field's stored value round-tripped as a non-string scalar (`int`, `float`, or `bool`) rather than a string, `str_ireplace()` raised `TypeError: str_ireplace(): Argument #2 ($replace) must be of type array|string, int given` under this file's `strict_types=1`, breaking `Special:FormEdit` for any page whose page-name formula references such a field. The value is now explicitly cast to `string` before the substitution [`c20ba5a6`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/c20ba5a6)
 
 ## [2.1.7] - 2026-07-25
 
@@ -230,7 +232,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.7...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.8...HEAD
+[2.1.8]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.7...2.1.8
 [2.1.7]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.6...2.1.7
 [2.1.6]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.5...2.1.6
 [2.1.5]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.4...2.1.5
