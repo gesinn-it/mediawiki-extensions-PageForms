@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- `src/FormPrinter.php`: when substituting a form field's current value into a page-name formula (e.g. `<unique number>`), the substitution passed the field's current value into `str_ireplace()` unchanged. If the field's stored value round-tripped as a non-string scalar (`int`, `float`, or `bool`) rather than a string, `str_ireplace()` raised `TypeError: str_ireplace(): Argument #2 ($replace) must be of type array|string, int given` under this file's `strict_types=1`, breaking `Special:FormEdit` for any page whose page-name formula references such a field. The value is now explicitly cast to `string` before the substitution.
+
 ## [2.1.7] - 2026-07-25
 
 ### Changed
