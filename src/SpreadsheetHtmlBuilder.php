@@ -40,7 +40,7 @@ class SpreadsheetHtmlBuilder {
 					$attribs['class'] = $formField->getFieldArg( 'class' );
 				}
 				$html .= '</table>' . "\n";
-				$html .= Html::hidden( $formField->getInputName(), $curValue, $attribs );
+				$html .= Html::hidden( $formField->getInputName() ?? '', $curValue, $attribs );
 				$html .= $formField->additionalHTMLForInput( $curValue, $fieldName, $tif->getTemplateName() );
 				$html .= '<table class="formtable">' . "\n";
 				continue;
@@ -51,7 +51,7 @@ class SpreadsheetHtmlBuilder {
 				if ( $formField->hasFieldArg( 'class' ) ) {
 					$attribs['class'] = $formField->getFieldArg( 'class' );
 				}
-				$html .= Html::hidden( $formField->getInputName(), $curValue, $attribs );
+				$html .= Html::hidden( $formField->getInputName() ?? '', $curValue, $attribs );
 				continue;
 			}
 

@@ -36,14 +36,6 @@ class FormField {
 	private $mUseDisplayTitle;
 	private $mIsList;
 	/**
-	 * Set instead of eagerly fetching mPossibleValues when 'remote
-	 * autocompletion' is active and the source exceeds
-	 * $wgPageFormsMaxLocalAutocompleteValues (see #187). Resolved on demand
-	 * by resolveDeferredPossibleValues() once the field's current value is
-	 * known.
-	 */
-	private ?string $mDeferredAutocompleteType = null;
-	/**
 	 * The following fields are not set by the form-creation page
 	 * (though they could be).
 	 */
@@ -56,14 +48,13 @@ class FormField {
 	private $mLabel;
 	private $mLabelMsg;
 	/**
-	 * somewhat of a hack - these two fields are for a field in a specific
-	 * representation of a form, not the form definition; ideally these
-	 * should be contained in a third 'field' class, called something like
-	 * FormInstanceField, which holds these fields plus an instance of
-	 * FormField. Too much work?
+	 * Holds the state specific to this field's use within one instance of
+	 * the form being rendered - its input name, disabled status, and the
+	 * deferred 'remote autocompletion' possible-values resolution (see
+	 * #187) - as opposed to the static form-definition configuration held
+	 * directly on this class. See FormInstanceField for details.
 	 */
-	private $mInputName;
-	private $mIsDisabled;
+	private FormInstanceField $mInstanceField;
 
 	/**
 	 * @param TemplateField $template_field
@@ -82,7 +73,15 @@ class FormField {
 		$f->mUseDisplayTitle = false;
 		$f->mFieldArgs = [];
 		$f->mDescriptionArgs = [];
+		$f->mInstanceField = new FormInstanceField( $f );
 		return $f;
+	}
+
+	/**
+	 * @return FormInstanceField
+	 */
+	public function getInstanceField(): FormInstanceField {
+		return $this->mInstanceField;
 	}
 
 	/**
@@ -194,7 +193,7 @@ class FormField {
 	 *
 	 * @return bool
 	 */
-	private function hasOwnPossibleValues(): bool {
+	public function hasOwnPossibleValues(): bool {
 		return $this->mPossibleValues !== null;
 	}
 
@@ -242,21 +241,23 @@ class FormField {
 
 	/**
 	 * Whether the eager 'values from ...' fetch was skipped for this field
-	 * (see canDeferAutocompleteFetch()), leaving mPossibleValues empty until
-	 * resolveDeferredPossibleValues() is called with the field's current value.
+	 * (see canDeferAutocompleteFetch()), leaving the instance field's
+	 * possible-values empty until resolveDeferredPossibleValues() is called
+	 * with the field's current value.
 	 *
 	 * @return bool
 	 */
 	public function hasDeferredPossibleValues(): bool {
-		return $this->mDeferredAutocompleteType !== null;
+		return $this->mInstanceField->hasDeferredPossibleValues();
 	}
 
 	/**
-	 * Resolves mPossibleValues for a field whose eager fetch was deferred
-	 * (see #187), using only the field's current value(s) - the minimum
-	 * needed to render it correctly - rather than the source's full,
-	 * possibly very large, value list. Live browsing/searching of the rest
-	 * of the source is handled client-side via PF_AutocompleteAPI.
+	 * Resolves the instance field's possible values for a field whose eager
+	 * fetch was deferred (see #187), using only the field's current
+	 * value(s) - the minimum needed to render it correctly - rather than
+	 * the source's full, possibly very large, value list. Live
+	 * browsing/searching of the rest of the source is handled client-side
+	 * via PF_AutocompleteAPI.
 	 *
 	 * A no-op when nothing was deferred, or when there is no current value
 	 * to resolve.
@@ -264,27 +265,7 @@ class FormField {
 	 * @param string|null $curValue
 	 */
 	public function resolveDeferredPossibleValues( ?string $curValue ): void {
-		if ( $this->mDeferredAutocompleteType === null ) {
-			return;
-		}
-
-		$this->mPossibleValues = [];
-		if ( $curValue === null || $curValue === '' ) {
-			return;
-		}
-
-		$delimiter = $this->mFieldArgs['delimiter'] ?? ',';
-		$rawValues = $this->mIsList ? explode( $delimiter, $curValue ) : [ $curValue ];
-		$rawValues = array_values( array_unique( array_filter(
-			array_map( 'trim', $rawValues ),
-			static fn ( $v ) => $v !== ''
-		) ) );
-
-		if ( $rawValues === [] ) {
-			return;
-		}
-
-		$this->mPossibleValues = PFValuesUtils::addDisplayTitlesForPageValues( $rawValues );
+		$this->mInstanceField->resolveDeferredPossibleValues( $curValue );
 	}
 
 	public function getUseDisplayTitle() {
@@ -292,11 +273,11 @@ class FormField {
 	}
 
 	public function getInputName() {
-		return $this->mInputName;
+		return $this->mInstanceField->getInputName();
 	}
 
 	public function setInputName( $val ) {
-		$this->mInputName = $val;
+		$this->mInstanceField->setInputName( $val );
 	}
 
 	public function getLabel() {
@@ -308,11 +289,11 @@ class FormField {
 	}
 
 	public function isDisabled() {
-		return $this->mIsDisabled;
+		return $this->mInstanceField->isDisabled();
 	}
 
 	public function setIsDisabled( $val ) {
-		$this->mIsDisabled = $val;
+		$this->mInstanceField->setIsDisabled( $val );
 	}
 
 	public function setDescriptionArg( $key, $value ) {
@@ -342,6 +323,7 @@ class FormField {
 
 		$f = new FormField();
 		$f->mFieldArgs = [];
+		$f->mInstanceField = new FormInstanceField( $f );
 
 		$field_name = trim( $tag_components[1] );
 		$template_name = $template_in_form->getTemplateName();
@@ -548,8 +530,7 @@ class FormField {
 			if ( $f->canDeferAutocompleteFetch(
 				'property', $valuesFromPropertyName, $template_in_form->getDisplay()
 			) ) {
-				$f->mDeferredAutocompleteType = 'property';
-				$f->mPossibleValues = [];
+				$f->mInstanceField->deferPossibleValues( 'property' );
 			} else {
 				$f->mPossibleValues = PFValuesUtils::getAllValuesForProperty( $valuesFromPropertyName );
 				$f->mUseDisplayTitle = is_string( array_key_first( $f->mPossibleValues ) );
@@ -561,8 +542,7 @@ class FormField {
 			if ( in_array( $valuesSourceType, [ 'category', 'namespace', 'concept' ], true ) &&
 				$f->canDeferAutocompleteFetch( $valuesSourceType, $valuesSource, $template_in_form->getDisplay() )
 			) {
-				$f->mDeferredAutocompleteType = $valuesSourceType;
-				$f->mPossibleValues = [];
+				$f->mInstanceField->deferPossibleValues( $valuesSourceType );
 			} else {
 				$f->mPossibleValues = PFValuesUtils::getAutocompleteValues( $valuesSource, $valuesSourceType );
 				if ( in_array( $valuesSourceType, [ 'category', 'namespace', 'concept' ], true ) ) {
@@ -621,7 +601,7 @@ class FormField {
 		// A deferred field intentionally has an empty (but non-null)
 		// mPossibleValues at this point (see above) - it must not be
 		// overwritten by the template field's unrelated list.
-		if ( $f->mPossibleValues === null && $f->mDeferredAutocompleteType === null ) {
+		if ( $f->mPossibleValues === null && !$f->mInstanceField->hasDeferredPossibleValues() ) {
 			$f->mPossibleValues = $f->template_field->getPossibleValues();
 		}
 
@@ -660,17 +640,17 @@ class FormField {
 
 		// Disable this field if either the whole form is disabled, or
 		// it's a restricted field and user doesn't have sysop privileges.
-		$f->mIsDisabled = ( $form_is_disabled || $f->mIsRestricted );
+		$f->mInstanceField->setIsDisabled( $form_is_disabled || $f->mIsRestricted );
 
 		if ( $template_name === null || $template_name === '' ) {
-			$f->mInputName = $field_name;
+			$f->mInstanceField->setInputName( $field_name );
 		} elseif ( $template_in_form->allowsMultiple() ) {
 			// 'num' will get replaced by an actual index, either in PHP
 			// or in Javascript, later on
-			$f->mInputName = $template_name . '[num][' . $field_name . ']';
+			$f->mInstanceField->setInputName( $template_name . '[num][' . $field_name . ']' );
 			$f->setFieldArg( 'origName', $fullFieldName );
 		} else {
-			$f->mInputName = $fullFieldName;
+			$f->mInstanceField->setInputName( $fullFieldName );
 		}
 
 		return $f;
@@ -971,15 +951,15 @@ class FormField {
 		// If this field is disabled, add a hidden field holding
 		// the value of this field, because disabled inputs for some
 		// reason don't submit their value.
-		if ( $this->mIsDisabled ) {
+		if ( $this->isDisabled() ) {
 			if ( $field_name == 'free text' || $field_name == '#freetext#' ) {
 				$text .= Html::hidden( 'pf_free_text', '!free_text!' );
 			} else {
 				if ( is_array( $cur_value ) ) {
 					$delimiter = $this->mFieldArgs['delimiter'];
-					$text .= Html::hidden( $this->mInputName, implode( $delimiter, $cur_value ) );
+					$text .= Html::hidden( $this->getInputName() ?? '', implode( $delimiter, $cur_value ) );
 				} else {
-					$text .= Html::hidden( $this->mInputName, $cur_value );
+					$text .= Html::hidden( $this->getInputName() ?? '', $cur_value );
 				}
 			}
 		}
@@ -1180,61 +1160,6 @@ class FormField {
 	 * @return array
 	 */
 	public function getArgumentsForInputCall( ?array $default_args = null ) {
-		// MW 1.43 compat: same typed-property guard as in newFromFormTag() above –
-		// see comment there for the full explanation.
-		$parser = PFUtils::getParser();
-		if ( !$parser->getOptions() ) {
-			$parser->setOptions( ParserOptions::newFromAnon() );
-		}
-		$parser->clearState();
-		$parser->setOutputType( Parser::OT_HTML );
-
-		// start with the arguments array already defined
-		$other_args = $this->mFieldArgs;
-		// a value defined for the form field should always supersede
-		// the coresponding value for the template field
-		if ( $this->hasOwnPossibleValues() ) {
-			$other_args['possible_values'] = $this->mPossibleValues;
-		} else {
-			$other_args['possible_values'] = $this->template_field->getPossibleValues();
-			if ( $this->hasFieldArg( 'mapping using translate' ) ) {
-				$other_args['value_labels'] = [];
-				foreach ( $other_args['possible_values'] as $key ) {
-					$other_args['value_labels'][$key] = $parser->recursiveTagParse(
-						'{{int:' . $this->getFieldArg( 'mapping using translate' ) . $key . '}}'
-					);
-				}
-			} else {
-				$other_args['value_labels'] = $this->template_field->getValueLabels();
-			}
-		}
-		$other_args['is_list'] = ( $this->mIsList || $this->template_field->isList() );
-		if ( $this->template_field->isMandatory() ) {
-			$other_args['mandatory'] = true;
-		}
-		if ( $this->template_field->isUnique() ) {
-			$other_args['unique'] = true;
-		}
-
-		// Now add some extension-specific arguments to the input call.
-		if ( defined( 'SMW_VERSION' ) ) {
-			$this->getArgumentsForInputCallSMW( $other_args );
-		}
-
-		// Now merge in the default values set by FormPrinter, if
-		// there were any - put the default values first, so that if
-		// there's a conflict they'll be overridden.
-		if ( $default_args != null ) {
-			$other_args = array_merge( $default_args, $other_args );
-		}
-
-		foreach ( $other_args as $argname => $argvalue ) {
-			if ( is_string( $argvalue ) ) {
-				$other_args[$argname] =
-					$parser->recursiveTagParse( $argvalue );
-			}
-		}
-
-		return $other_args;
+		return $this->mInstanceField->getArgumentsForInputCall( $default_args );
 	}
 }

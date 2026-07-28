@@ -56,7 +56,7 @@ class FormFieldHtmlBuilder {
 			if ( $form_field->hasFieldArg( 'class' ) ) {
 				$attribs['class'] = $form_field->getFieldArg( 'class' );
 			}
-			$text = Html::hidden( $form_field->getInputName(), $cur_value, $attribs );
+			$text = Html::hidden( $form_field->getInputName() ?? '', $cur_value, $attribs );
 			$other_args = [];
 		} elseif ( $input_type !== null && $input_type !== '' &&
 				array_key_exists( $input_type, $this->inputTypeHooks ) &&
@@ -100,7 +100,7 @@ class FormFieldHtmlBuilder {
 			}
 
 			$form_input = new $class_name(
-				(string)$fieldNum, $cur_value, $form_field->getInputName(),
+				(string)$fieldNum, $cur_value, $form_field->getInputName() ?? '',
 				$form_field->isDisabled(), $other_args
 			);
 
@@ -174,7 +174,7 @@ class FormFieldHtmlBuilder {
 		}
 
 		if ( $form_field->hasFieldArg( 'translate_number_tag' ) ) {
-			$inputName = $form_field->getInputName();
+			$inputName = $form_field->getInputName() ?? '';
 			$pattern = '/\[([^\\]\\]]+)\]$/';
 			if ( preg_match( $pattern, $inputName, $matches ) ) {
 				$inputName = preg_replace( $pattern, '[${1}_translate_number_tag]', $inputName );

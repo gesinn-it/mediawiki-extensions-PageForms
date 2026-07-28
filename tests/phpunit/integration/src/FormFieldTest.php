@@ -1,6 +1,7 @@
 <?php
 
 use MediaWiki\Extension\PageForms\FormField;
+use MediaWiki\Extension\PageForms\FormInstanceField;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWiki\Extension\PageForms\TemplateInForm;
@@ -1849,11 +1850,12 @@ class FormFieldTest extends TestCase {
 			$field->setFieldArg( $key, $value );
 		}
 
-		$ref = new ReflectionClass( FormField::class );
-		$typeProp = $ref->getProperty( 'mDeferredAutocompleteType' );
+		$instanceFieldRef = new ReflectionClass( FormInstanceField::class );
+		$typeProp = $instanceFieldRef->getProperty( 'mDeferredAutocompleteType' );
 		$typeProp->setAccessible( true );
-		$typeProp->setValue( $field, $type );
+		$typeProp->setValue( $field->getInstanceField(), $type );
 		if ( $isList ) {
+			$ref = new ReflectionClass( FormField::class );
 			$isListProp = $ref->getProperty( 'mIsList' );
 			$isListProp->setAccessible( true );
 			$isListProp->setValue( $field, true );
