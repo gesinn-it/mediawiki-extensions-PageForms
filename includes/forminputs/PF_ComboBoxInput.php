@@ -154,6 +154,7 @@ class PFComboBoxInput extends PFFormInput {
 			$match = $possibleValueList->find( $cur_value );
 			if ( $match !== null ) {
 				$optionAttrs['value'] = $match->getValue();
+				$optionLabel = $match->getLabel();
 			} else {
 				// $cur_value sorted outside the truncated 'values from ...' fetch
 				// window and was not found - fall back to a resolved clean label

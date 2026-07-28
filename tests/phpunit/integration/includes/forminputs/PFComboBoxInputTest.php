@@ -82,6 +82,29 @@ class PFComboBoxInputTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
+	 * Regression test: when possible_values is a [canonicalTitle =>
+	 * displayTitle] map and the current value is the canonical title (as
+	 * stored on the page), the rendered option's label must be the resolved
+	 * display title, not the raw canonical value. PossibleValueList::find()
+	 * matching by canonical value must not leave the label untouched.
+	 */
+	public function testGetHtmlUsesDisplayTitleAsLabelForMatchedCanonicalValue(): void {
+		$curValue = 'Person:Rizzo the Rat';
+		$possibleValues = [ 'Person:Rizzo the Rat' => 'Rizzo the Rat' ];
+
+		$html = PFComboBoxInput::getHTML( $curValue, 'Field[Name]', false, false, [
+			'possible_values' => $possibleValues,
+			'values from concept' => 'Active Contacts',
+		] );
+
+		$this->assertStringContainsString(
+			'value="Person:Rizzo the Rat">Rizzo the Rat<',
+			$html,
+			'Selected option must carry the canonical value but the display-title label'
+		);
+	}
+
+	/**
 	 * Regression coverage for issue #185: when the current value is a
 	 * page-type value that falls outside a truncated 'values from ...' fetch
 	 * (so PossibleValueList::find() cannot match it), the fallback option's
