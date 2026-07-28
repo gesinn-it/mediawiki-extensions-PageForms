@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- `PFTokensInput` (`includes/forminputs/PF_TokensInput.php`) and `PFComboBoxInput` (`includes/forminputs/PF_ComboBoxInput.php`): the possible-values list for `values from category`/`values from namespace`/`values from concept`/`values from property` fields is fetched with a `$wgPageFormsMaxAutocompleteValues` cap. When a field's current/preselected value sorted alphabetically past that cutoff, `PossibleValueList::find()` correctly found no match, but the fallback option's label used the raw stored value verbatim - including its namespace prefix (e.g. `Category:Foo` instead of a clean DisplayTitle or bare title). Added `PossibleValueList::resolveMissingLabel()` (`src/PossibleValueList.php`), which resolves such a raw value's DisplayTitle via the existing `PFValuesUtils::addDisplayTitlesForPageValues()`, falling back to the bare canonical title when no DisplayTitle is set; both widgets now call it for their unmatched-value fallback label instead of using the raw value directly ([#185](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/185))
+
 ## [2.1.8] - 2026-07-26
 
 ### Fixed

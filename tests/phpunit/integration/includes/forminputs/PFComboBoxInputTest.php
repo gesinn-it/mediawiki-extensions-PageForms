@@ -81,6 +81,34 @@ class PFComboBoxInputTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
+	/**
+	 * Regression coverage for issue #185: when the current value is a
+	 * page-type value that falls outside a truncated 'values from ...' fetch
+	 * (so PossibleValueList::find() cannot match it), the fallback option's
+	 * label must be the page's DisplayTitle rather than the raw
+	 * namespace-prefixed value.
+	 */
+	public function testGetHtmlUsesDisplayTitleForUnmatchedPageTypeCurrentValue(): void {
+		$this->overrideConfigValue( 'RestrictDisplayTitle', false );
+
+		$title = Title::makeTitle( NS_CATEGORY, 'PFComboDisplayTitleFallback' );
+		$page = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
+		$this->editPage( $page, '{{DISPLAYTITLE:Fallback Display Title}}' );
+		DeferredUpdates::doUpdates();
+
+		$curValue = 'Category:PFComboDisplayTitleFallback';
+		$possibleValues = [ 'CanonicalPageA' => 'Another Page' ];
+
+		$html = PFComboBoxInput::getHTML( $curValue, 'Field[Name]', false, false, [
+			'possible_values' => $possibleValues,
+			'values from category' => 'SomeCategory',
+		] );
+
+		$this->assertStringContainsString( 'value="' . $curValue . '"', $html );
+		$this->assertStringContainsString( 'Fallback Display Title', $html );
+		$this->assertStringNotContainsString( '>' . $curValue . '<', $html );
+	}
+
 	public function testGetHtmlMandatoryAddsMandatoryFieldSpanClassToWrapper(): void {
 		$html = PFComboBoxInput::getHTML( '', 'TestField', true, false, [ 'possible_values' => [] ] );
 

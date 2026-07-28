@@ -4,6 +4,8 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use PFValuesUtils;
+
 /**
  * The set of possible values for a selection-based form input (dropdown,
  * radiobutton, checkboxes, tokens, combobox), built once from the raw
@@ -121,5 +123,23 @@ class PossibleValueList {
 
 	public function contains( ?string $rawValue ): bool {
 		return $this->find( $rawValue ) !== null;
+	}
+
+	/**
+	 * Resolves a clean display label for a raw value that find() did not
+	 * match - typically the field's current/preselected value when it falls
+	 * outside a truncated 'values from ...' fetch (see #185). For a
+	 * page-type value this is the page's DisplayTitle if set, otherwise the
+	 * bare canonical title; for anything else (e.g. a plain string value)
+	 * $rawValue is already the label.
+	 */
+	public function resolveMissingLabel( string $rawValue ): string {
+		$pageValue = PageValue::newFromText( $rawValue );
+		if ( $pageValue === null ) {
+			return $rawValue;
+		}
+
+		$displayTitles = PFValuesUtils::addDisplayTitlesForPageValues( [ $rawValue ] );
+		return $displayTitles[$rawValue] ?? $pageValue->getCanonicalString();
 	}
 }

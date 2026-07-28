@@ -142,19 +142,26 @@ class PFComboBoxInput extends PFFormInput {
 		// skip the init AJAX call. Without this the JS would only have the display
 		// title and would need to query the API just to learn the canonical title.
 		$optionAttrs = [ 'selected' => true ];
+		$optionLabel = $cur_value;
 		// The canonical-value override applies whenever $possible_values is a
 		// [canonicalTitle => displayTitle] map (string keys). For plain string-type
 		// properties the array is numerically indexed, so is_string(array_key_first())
 		// is false and the override is skipped — preventing PossibleValueList from
 		// returning a numeric index and corrupting the saved value on re-edit.
-		if ( $cur_value !== '' && $possible_values !== []
+		if ( $cur_value !== null && $cur_value !== '' && $possible_values !== []
 			&& is_string( array_key_first( $possible_values ) ) ) {
-			$match = ( new PossibleValueList( $possible_values ) )->find( $cur_value );
+			$possibleValueList = new PossibleValueList( $possible_values );
+			$match = $possibleValueList->find( $cur_value );
 			if ( $match !== null ) {
 				$optionAttrs['value'] = $match->getValue();
+			} else {
+				// $cur_value sorted outside the truncated 'values from ...' fetch
+				// window and was not found - fall back to a resolved clean label
+				// (DisplayTitle or bare title) instead of the raw stored value.
+				$optionLabel = $possibleValueList->resolveMissingLabel( $cur_value );
 			}
 		}
-		$innerDropdown .= Html::element( 'option', $optionAttrs, $cur_value );
+		$innerDropdown .= Html::element( 'option', $optionAttrs, $optionLabel );
 
 		$inputText = Html::rawElement( 'select', $inputAttrs, $innerDropdown );
 

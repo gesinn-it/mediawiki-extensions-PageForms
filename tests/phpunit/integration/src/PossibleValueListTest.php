@@ -10,6 +10,7 @@ use MediaWikiIntegrationTestCase;
 
 /**
  * @group PF
+ * @group Database
  * @covers \MediaWiki\Extension\PageForms\PossibleValueList
  * @covers \MediaWiki\Extension\PageForms\PossibleValue
  */
@@ -185,5 +186,48 @@ class PossibleValueListTest extends MediaWikiIntegrationTestCase {
 		$this->assertNotNull( $match );
 		$this->assertSame( 'Foo', $match->getLabel() );
 		$this->assertFalse( $match->labelIsOverride() );
+	}
+
+	/**
+	 * Regression coverage for issue #185: a non-page-type raw value (e.g. a
+	 * plain string property value) has nothing to resolve - it is already
+	 * its own label.
+	 */
+	public function testResolveMissingLabelReturnsRawValueForNonPageValue(): void {
+		$list = new PossibleValueList( [ 'Foo', 'Bar' ] );
+
+		$this->assertSame( 'Some Plain Text', $list->resolveMissingLabel( 'Some Plain Text' ) );
+	}
+
+	/**
+	 * Regression coverage for issue #185: a page-type raw value with no
+	 * DisplayTitle set falls back to its bare canonical title, not the
+	 * namespace-prefixed raw string as originally typed/stored.
+	 */
+	public function testResolveMissingLabelFallsBackToCanonicalTitleWithoutDisplayTitle(): void {
+		$list = new PossibleValueList( [] );
+
+		$label = $list->resolveMissingLabel( 'Category:PFResolveMissingLabelNoTitle' );
+
+		$this->assertSame( 'Category:PFResolveMissingLabelNoTitle', $label );
+	}
+
+	/**
+	 * Regression coverage for issue #185: when the target page has a
+	 * DisplayTitle set, resolveMissingLabel() must return it instead of the
+	 * raw namespace-prefixed value.
+	 */
+	public function testResolveMissingLabelUsesDisplayTitleWhenSet(): void {
+		$this->overrideConfigValue( 'RestrictDisplayTitle', false );
+
+		$title = \Title::makeTitle( NS_CATEGORY, 'PFResolveMissingLabelWithTitle' );
+		$page = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
+		$this->editPage( $page, '{{DISPLAYTITLE:Resolved Display Title}}' );
+		\DeferredUpdates::doUpdates();
+
+		$list = new PossibleValueList( [] );
+		$label = $list->resolveMissingLabel( 'Category:PFResolveMissingLabelWithTitle' );
+
+		$this->assertSame( 'Resolved Display Title', $label );
 	}
 }

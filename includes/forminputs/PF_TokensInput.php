@@ -190,7 +190,7 @@ class PFTokensInput extends PFFormInput {
 			if ( !$possibleValueList->contains( $current_value ) && $current_value !== '' ) {
 				$optionAttrs = [ 'value' => $current_value ];
 				$optionAttrs['selected'] = 'selected';
-				$optionLabel = $current_value;
+				$optionLabel = $possibleValueList->resolveMissingLabel( $current_value );
 				$optionsText .= Html::element( 'option', $optionAttrs, $optionLabel );
 			}
 		}

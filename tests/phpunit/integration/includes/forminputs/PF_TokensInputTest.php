@@ -68,6 +68,33 @@ class PFTokensInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( '<option value="PFTokUnknown" selected="">PFTokUnknown</option>', $html );
 	}
 
+	/**
+	 * Regression coverage for issue #185: when the current value is a
+	 * page-type value that falls outside a truncated 'values from ...' fetch
+	 * (so it is not in possible_values), the fallback option's label must be
+	 * the page's DisplayTitle rather than the raw namespace-prefixed value.
+	 */
+	public function testGetHtmlUsesDisplayTitleForUnknownPageTypeCurrentValue(): void {
+		$this->overrideConfigValue( 'RestrictDisplayTitle', false );
+
+		$title = Title::makeTitle( NS_CATEGORY, 'PFTokDisplayTitleFallback' );
+		$page = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
+		$this->editPage( $page, '{{DISPLAYTITLE:Fallback Display Title}}' );
+		DeferredUpdates::doUpdates();
+
+		$html = $this->getHtml(
+			'PFTokKnown,Category:PFTokDisplayTitleFallback',
+			[ 'PFTokKnown' ]
+		);
+
+		$options = $this->extractOptions( $html );
+		$option = $this->findOptionByValue( $options, 'Category:PFTokDisplayTitleFallback' );
+
+		$this->assertNotNull( $option );
+		$this->assertSame( 'Fallback Display Title', $option['label'] );
+		$this->assertTrue( $option['selected'] );
+	}
+
 	public function testGetHtmlMandatoryAddsMandatoryFieldSpan(): void {
 		$html = $this->getHtml( '', [], true );
 
