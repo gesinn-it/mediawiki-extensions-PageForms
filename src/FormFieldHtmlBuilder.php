@@ -38,6 +38,11 @@ class FormFieldHtmlBuilder {
 		global $wgPageFormsFieldNum;
 		$fieldNum = $counters !== null ? $counters->fieldNum : $wgPageFormsFieldNum;
 
+		// If the eager 'values from ...' fetch was deferred (see #187), this
+		// is the earliest point the field's current value is known - resolve
+		// just that value now, rather than the source's full value list.
+		$form_field->resolveDeferredPossibleValues( $cur_value );
+
 		// Also get the actual field, with all the semantic information
 		// (type is TemplateField, instead of FormField)
 		$template_field = $form_field->getTemplateField();

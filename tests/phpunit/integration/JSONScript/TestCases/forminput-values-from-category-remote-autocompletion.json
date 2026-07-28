@@ -1,0 +1,108 @@
+{
+	"description": "remote autocompletion skips the eager full-source fetch for values from category/property, resolving only the current value (#187)",
+	"setup": [
+		{
+			"page": "PFTestVFRACatMemberA01",
+			"contents": "[[Category:PFTestVFRACat01]]"
+		},
+		{
+			"page": "PFTestVFRACatMemberB01",
+			"contents": "[[Category:PFTestVFRACat01]]"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestVFRATpl01",
+			"contents": "{{{PFTestVFRAField|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFRAForm01",
+			"contents": "{{{for template|PFTestVFRATpl01}}}\n{{{field|PFTestVFRAField|input type=tokens|values from category=PFTestVFRACat01|remote autocompletion}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestVFRASubjPage01",
+			"contents": "{{PFTestVFRATpl01|PFTestVFRAField=PFTestVFRACatMemberA01}}"
+		},
+		{
+			"namespace": "SMW_NS_PROPERTY",
+			"page": "PFTestVFRAProp01",
+			"contents": "[[Has type::Text]]"
+		},
+		{
+			"page": "PFTestVFRAPropPageA01",
+			"contents": "[[PFTestVFRAProp01::AlphaVFRA]]"
+		},
+		{
+			"page": "PFTestVFRAPropPageB01",
+			"contents": "[[PFTestVFRAProp01::BetaVFRA]]"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestVFRAPropTpl01",
+			"contents": "{{{PFTestVFRAPropField|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFRAPropForm01",
+			"contents": "{{{for template|PFTestVFRAPropTpl01}}}\n{{{field|PFTestVFRAPropField|input type=tokens|values from property=PFTestVFRAProp01|remote autocompletion}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestVFRAPropSubjPage01",
+			"contents": "{{PFTestVFRAPropTpl01|PFTestVFRAPropField=AlphaVFRA}}"
+		}
+	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
+	"tests": [
+		{
+			"type": "special",
+			"about": "Tokens with values from category and remote autocompletion above threshold renders only the current value's option, not the full category",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFRAForm01/PFTestVFRASubjPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<option value=\"PFTestVFRACatMemberA01\" selected=\"\">PFTestVFRACatMemberA01</option>"
+				],
+				"not-contain": [
+					"<option value=\"PFTestVFRACatMemberB01\""
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "Tokens with values from property and remote autocompletion above threshold renders only the current value's option, not the full property source",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFRAPropForm01/PFTestVFRAPropSubjPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<option value=\"AlphaVFRA\" selected=\"\">AlphaVFRA</option>"
+				],
+				"not-contain": [
+					"<option value=\"BetaVFRA\""
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en",
+		"wgPageFormsMaxLocalAutocompleteValues": 0,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true,
+			"SMW_NS_PROPERTY": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

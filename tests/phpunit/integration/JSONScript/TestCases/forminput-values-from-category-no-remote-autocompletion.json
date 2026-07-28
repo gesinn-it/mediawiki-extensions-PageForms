@@ -1,0 +1,61 @@
+{
+	"description": "without remote autocompletion, values from category still loads the full source list even above the local threshold (#187 companion test)",
+	"setup": [
+		{
+			"page": "PFTestVFNRACatMemberA01",
+			"contents": "[[Category:PFTestVFNRACat01]]"
+		},
+		{
+			"page": "PFTestVFNRACatMemberB01",
+			"contents": "[[Category:PFTestVFNRACat01]]"
+		},
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestVFNRATpl01",
+			"contents": "{{{PFTestVFNRAField|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestVFNRAForm01",
+			"contents": "{{{for template|PFTestVFNRATpl01}}}\n{{{field|PFTestVFNRAField|input type=tokens|values from category=PFTestVFNRACat01}}}\n{{{end template}}}"
+		},
+		{
+			"page": "PFTestVFNRASubjPage01",
+			"contents": "{{PFTestVFNRATpl01|PFTestVFNRAField=PFTestVFNRACatMemberA01}}"
+		}
+	],
+	"beforeTest": {
+		"job-run": [
+			"smw.update"
+		]
+	},
+	"tests": [
+		{
+			"type": "special",
+			"about": "Tokens with values from category (no remote autocompletion) above threshold still renders every category member's option",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestVFNRAForm01/PFTestVFNRASubjPage01",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"<option value=\"PFTestVFNRACatMemberA01\" selected=\"\">PFTestVFNRACatMemberA01</option>",
+					"<option value=\"PFTestVFNRACatMemberB01\">PFTestVFNRACatMemberB01</option>"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en",
+		"wgPageFormsMaxLocalAutocompleteValues": 0,
+		"smwgNamespacesWithSemanticLinks": {
+			"NS_MAIN": true
+		}
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

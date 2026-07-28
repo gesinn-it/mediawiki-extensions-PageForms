@@ -1824,4 +1824,244 @@ class FormFieldTest extends TestCase {
 			$prop->setValue( $parser, $originalOptions );
 		}
 	}
+
+	// -------------------------------------------------------------------------
+	// resolveDeferredPossibleValues() / hasDeferredPossibleValues() - #187
+	//
+	// A FormField whose eager 'values from ...' fetch was deferred (because
+	// 'remote autocompletion' was set and the source exceeded the local
+	// threshold) is simulated here via Reflection on mDeferredAutocompleteType,
+	// isolating this logic from the real SMW count query.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Build a FormField with mDeferredAutocompleteType pre-set, simulating
+	 * what newFromFormFieldTag() does when it defers the eager fetch for a
+	 * 'remote autocompletion' field above the local threshold.
+	 */
+	private function makeFieldWithDeferredAutocomplete(
+		string $type, array $fieldArgs = [], bool $isList = false
+	): FormField {
+		$templateField = $this->createMock( TemplateField::class );
+		$field = FormField::create( $templateField );
+
+		foreach ( $fieldArgs as $key => $value ) {
+			$field->setFieldArg( $key, $value );
+		}
+
+		$ref = new ReflectionClass( FormField::class );
+		$typeProp = $ref->getProperty( 'mDeferredAutocompleteType' );
+		$typeProp->setAccessible( true );
+		$typeProp->setValue( $field, $type );
+		if ( $isList ) {
+			$isListProp = $ref->getProperty( 'mIsList' );
+			$isListProp->setAccessible( true );
+			$isListProp->setValue( $field, true );
+		}
+
+		return $field;
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormField::hasDeferredPossibleValues
+	 */
+	public function testHasDeferredPossibleValuesFalseByDefault(): void {
+		$field = FormField::create( $this->mockTemplateField );
+		$this->assertFalse( $field->hasDeferredPossibleValues() );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\FormField::hasDeferredPossibleValues
+	 */
+	public function testHasDeferredPossibleValuesTrueWhenDeferred(): void {
+		$field = $this->makeFieldWithDeferredAutocomplete( 'category' );
+		$this->assertTrue( $field->hasDeferredPossibleValues() );
+	}
+
+	/**
+	 * A null current value must leave mPossibleValues empty - there is
+	 * nothing to resolve, and no page value to fall back to.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormField::resolveDeferredPossibleValues
+	 */
+	public function testResolveDeferredPossibleValuesNullCurrentValueStaysEmpty(): void {
+		$field = $this->makeFieldWithDeferredAutocomplete( 'category' );
+		$field->resolveDeferredPossibleValues( null );
+		$this->assertSame( [], $field->getPossibleValues() );
+	}
+
+	/**
+	 * An empty-string current value must leave mPossibleValues empty.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormField::resolveDeferredPossibleValues
+	 */
+	public function testResolveDeferredPossibleValuesEmptyStringStaysEmpty(): void {
+		$field = $this->makeFieldWithDeferredAutocomplete( 'category' );
+		$field->resolveDeferredPossibleValues( '' );
+		$this->assertSame( [], $field->getPossibleValues() );
+	}
+
+	/**
+	 * A non-empty current value for a single-value (non-list) field must
+	 * resolve to a single-entry possible-values map, keyed by the raw value -
+	 * not the full source. addDisplayTitlesForPageValues() falls back to the
+	 * title itself when no DisplayTitle is set, which is the case here
+	 * (page does not exist).
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormField::resolveDeferredPossibleValues
+	 */
+	public function testResolveDeferredPossibleValuesResolvesSingleCurrentValue(): void {
+		$field = $this->makeFieldWithDeferredAutocomplete( 'category' );
+		$field->resolveDeferredPossibleValues( 'PFTestFormFieldDeferredMember01' );
+
+		$this->assertSame(
+			[ 'PFTestFormFieldDeferredMember01' => 'PFTestFormFieldDeferredMember01' ],
+			$field->getPossibleValues()
+		);
+	}
+
+	/**
+	 * A list field's delimiter-joined current value must be split, and each
+	 * raw value resolved individually - not just the joined string as a
+	 * whole.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormField::resolveDeferredPossibleValues
+	 */
+	public function testResolveDeferredPossibleValuesSplitsListCurrentValueByDelimiter(): void {
+		$field = $this->makeFieldWithDeferredAutocomplete( 'category', [ 'delimiter' => ',' ], true );
+		$field->resolveDeferredPossibleValues( 'PFTestFormFieldDeferredMemberA01,PFTestFormFieldDeferredMemberB01' );
+
+		$this->assertSame(
+			[
+				'PFTestFormFieldDeferredMemberA01' => 'PFTestFormFieldDeferredMemberA01',
+				'PFTestFormFieldDeferredMemberB01' => 'PFTestFormFieldDeferredMemberB01',
+			],
+			$field->getPossibleValues()
+		);
+	}
+
+	/**
+	 * Duplicate and blank entries in a delimited list must not produce
+	 * duplicate or empty-key entries in the resolved map.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormField::resolveDeferredPossibleValues
+	 */
+	public function testResolveDeferredPossibleValuesDedupesAndSkipsBlankListEntries(): void {
+		$field = $this->makeFieldWithDeferredAutocomplete( 'category', [ 'delimiter' => ',' ], true );
+		$field->resolveDeferredPossibleValues( 'PFTestFormFieldDeferredMemberC01,,PFTestFormFieldDeferredMemberC01' );
+
+		$this->assertSame(
+			[ 'PFTestFormFieldDeferredMemberC01' => 'PFTestFormFieldDeferredMemberC01' ],
+			$field->getPossibleValues()
+		);
+	}
+
+	/**
+	 * A no-op call (nothing was deferred) must leave mPossibleValues
+	 * untouched, not overwrite it with an empty array.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormField::resolveDeferredPossibleValues
+	 */
+	public function testResolveDeferredPossibleValuesNoOpWhenNothingDeferred(): void {
+		$field = $this->makeFieldWithPossibleValues( [ 'val1' => 'val1', 'val2' => 'val2' ] );
+		$field->resolveDeferredPossibleValues( 'val1' );
+
+		$this->assertSame( [ 'val1' => 'val1', 'val2' => 'val2' ], $field->getPossibleValues() );
+	}
+
+	// -------------------------------------------------------------------------
+	// newFromFormFieldTag() - 'remote autocompletion' eager-fetch deferral (#187)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Without SMW installed, getSourceCount() (via
+	 * PFValuesUtils::exceedsLocalAutocompleteThreshold()) returns null, which
+	 * is conservatively treated as "exceeds threshold" - so a
+	 * 'remote autocompletion' field must defer, leaving mPossibleValues
+	 * empty right after parsing, rather than eagerly fetching the source.
+	 */
+	public function testRemoteAutocompletionDefersCategoryFetchWhenSmwAbsent(): void {
+		if ( defined( 'SMW_VERSION' ) ) {
+			$this->markTestSkipped( 'SMW is installed; this test requires SMW to be absent.' );
+		}
+
+		$tag_components = [
+			'', '', 'values from category=PFTestFormFieldRemoteCat01', 'remote autocompletion'
+		];
+
+		$formField = FormField::newFromFormFieldTag(
+			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
+		);
+
+		$this->assertTrue( $formField->hasDeferredPossibleValues() );
+		$this->assertSame( [], $formField->getPossibleValues() );
+	}
+
+	/**
+	 * Without 'remote autocompletion' set, behavior must be unchanged even
+	 * when SMW/the count check would otherwise allow deferral - the eager
+	 * fetch always runs, and mPossibleValues is populated from the (empty,
+	 * in this SMW-absent test environment) category fetch, not deferred.
+	 */
+	public function testWithoutRemoteAutocompletionFetchIsNotDeferred(): void {
+		if ( defined( 'SMW_VERSION' ) ) {
+			$this->markTestSkipped( 'SMW is installed; this test requires SMW to be absent.' );
+		}
+
+		$tag_components = [ '', '', 'values from category=PFTestFormFieldRemoteCat02' ];
+
+		$formField = FormField::newFromFormFieldTag(
+			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
+		);
+
+		$this->assertFalse( $formField->hasDeferredPossibleValues() );
+	}
+
+	/**
+	 * A field combining 'remote autocompletion' with 'mapping property' must
+	 * not defer - mapping needs the complete source to translate raw values
+	 * to labels, so the full eager fetch must still run.
+	 */
+	public function testRemoteAutocompletionWithMappingPropertyDoesNotDefer(): void {
+		if ( defined( 'SMW_VERSION' ) ) {
+			$this->markTestSkipped( 'SMW is installed; this test requires SMW to be absent.' );
+		}
+
+		$tag_components = [
+			'', '', 'values from category=PFTestFormFieldRemoteCat03', 'remote autocompletion',
+			'mapping property=PFTestFormFieldRemoteMapProp01'
+		];
+
+		$formField = FormField::newFromFormFieldTag(
+			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
+		);
+
+		$this->assertFalse( $formField->hasDeferredPossibleValues() );
+	}
+
+	/**
+	 * A field with 'remote autocompletion' inside a 'display=spreadsheet'
+	 * template must not defer: SpreadsheetHtmlBuilder::spreadsheetHTML()
+	 * reads possible_values directly and never calls
+	 * resolveDeferredPossibleValues() (it has one current value per grid
+	 * row, not a single value), so deferring here would leave the
+	 * spreadsheet's dropdown column permanently empty.
+	 */
+	public function testRemoteAutocompletionInSpreadsheetDisplayDoesNotDefer(): void {
+		if ( defined( 'SMW_VERSION' ) ) {
+			$this->markTestSkipped( 'SMW is installed; this test requires SMW to be absent.' );
+		}
+
+		$this->mockTemplateInForm->method( 'getDisplay' )->willReturn( 'spreadsheet' );
+
+		$tag_components = [
+			'', '', 'values from category=PFTestFormFieldRemoteCat04', 'remote autocompletion'
+		];
+
+		$formField = FormField::newFromFormFieldTag(
+			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
+		);
+
+		$this->assertFalse( $formField->hasDeferredPossibleValues() );
+	}
 }

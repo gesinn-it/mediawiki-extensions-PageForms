@@ -36,6 +36,14 @@ class FormField {
 	private $mUseDisplayTitle;
 	private $mIsList;
 	/**
+	 * Set instead of eagerly fetching mPossibleValues when 'remote
+	 * autocompletion' is active and the source exceeds
+	 * $wgPageFormsMaxLocalAutocompleteValues (see #187). Resolved on demand
+	 * by resolveDeferredPossibleValues() once the field's current value is
+	 * known.
+	 */
+	private ?string $mDeferredAutocompleteType = null;
+	/**
 	 * The following fields are not set by the form-creation page
 	 * (though they could be).
 	 */
@@ -160,7 +168,7 @@ class FormField {
 	}
 
 	public function getPossibleValues() {
-		if ( $this->mPossibleValues != null ) {
+		if ( $this->hasOwnPossibleValues() ) {
 			return $this->mPossibleValues;
 		} else {
 			return $this->template_field->getPossibleValues();
@@ -169,6 +177,114 @@ class FormField {
 
 	public function setPossibleValues( $possibleValues ) {
 		$this->mPossibleValues = $possibleValues;
+	}
+
+	/**
+	 * Whether this FormField has its own possible-values list - including an
+	 * intentionally empty one, e.g. a deferred 'remote autocompletion' fetch
+	 * that resolved to no current value (see #187) - as opposed to never
+	 * having one set at all, in which case callers fall back to the
+	 * template field's list.
+	 *
+	 * A plain `!= null` check cannot make this distinction: PHP considers an
+	 * empty array loosely equal to null, so it would incorrectly treat "we
+	 * deliberately have zero possible values" the same as "none were ever
+	 * set", and fall back to the template field's (possibly much larger,
+	 * unrelated) list.
+	 *
+	 * @return bool
+	 */
+	private function hasOwnPossibleValues(): bool {
+		return $this->mPossibleValues !== null;
+	}
+
+	/**
+	 * Whether the full 'values from ...' fetch for $autocompleteType/
+	 * $autocompleteSource may be skipped in favor of resolving only the
+	 * field's current value later, via resolveDeferredPossibleValues() (see
+	 * #187). Requires the 'remote autocompletion' flag, a source that
+	 * exceeds the local-autocomplete threshold, and no mapping (mapping
+	 * needs the complete source to translate values) or dependent-field
+	 * configuration (whose source is filtered by a parent value, not fixed).
+	 *
+	 * Also excluded: 'display=spreadsheet' templates. Those are rendered by
+	 * SpreadsheetHtmlBuilder::spreadsheetHTML(), which reads possible_values
+	 * directly - bypassing FormFieldHtmlBuilder::formFieldHTML(), the only
+	 * place resolveDeferredPossibleValues() is called - and holds one
+	 * current value per grid row rather than a single value, which is
+	 * incompatible with this single-value resolution. ('display=table' is
+	 * fine: SpreadsheetHtmlBuilder::tableHTML() calls formFieldHTML() once
+	 * per row with that row's value.)
+	 *
+	 * @param string $autocompleteType
+	 * @param string $autocompleteSource
+	 * @param string|null $display The containing template's display mode
+	 *  (TemplateInForm::getDisplay()).
+	 * @return bool
+	 */
+	private function canDeferAutocompleteFetch(
+		string $autocompleteType, string $autocompleteSource, ?string $display
+	): bool {
+		if ( $display === 'spreadsheet' ) {
+			return false;
+		}
+		if ( !array_key_exists( 'remote autocompletion', $this->mFieldArgs ) ) {
+			return false;
+		}
+		if ( array_key_exists( 'mapping template', $this->mFieldArgs ) ||
+			array_key_exists( 'mapping property', $this->mFieldArgs ) ||
+			array_key_exists( 'values dependent on', $this->mFieldArgs )
+		) {
+			return false;
+		}
+		return PFValuesUtils::exceedsLocalAutocompleteThreshold( $autocompleteType, $autocompleteSource );
+	}
+
+	/**
+	 * Whether the eager 'values from ...' fetch was skipped for this field
+	 * (see canDeferAutocompleteFetch()), leaving mPossibleValues empty until
+	 * resolveDeferredPossibleValues() is called with the field's current value.
+	 *
+	 * @return bool
+	 */
+	public function hasDeferredPossibleValues(): bool {
+		return $this->mDeferredAutocompleteType !== null;
+	}
+
+	/**
+	 * Resolves mPossibleValues for a field whose eager fetch was deferred
+	 * (see #187), using only the field's current value(s) - the minimum
+	 * needed to render it correctly - rather than the source's full,
+	 * possibly very large, value list. Live browsing/searching of the rest
+	 * of the source is handled client-side via PF_AutocompleteAPI.
+	 *
+	 * A no-op when nothing was deferred, or when there is no current value
+	 * to resolve.
+	 *
+	 * @param string|null $curValue
+	 */
+	public function resolveDeferredPossibleValues( ?string $curValue ): void {
+		if ( $this->mDeferredAutocompleteType === null ) {
+			return;
+		}
+
+		$this->mPossibleValues = [];
+		if ( $curValue === null || $curValue === '' ) {
+			return;
+		}
+
+		$delimiter = $this->mFieldArgs['delimiter'] ?? ',';
+		$rawValues = $this->mIsList ? explode( $delimiter, $curValue ) : [ $curValue ];
+		$rawValues = array_values( array_unique( array_filter(
+			array_map( 'trim', $rawValues ),
+			static fn ( $v ) => $v !== ''
+		) ) );
+
+		if ( $rawValues === [] ) {
+			return;
+		}
+
+		$this->mPossibleValues = PFValuesUtils::addDisplayTitlesForPageValues( $rawValues );
 	}
 
 	public function getUseDisplayTitle() {
@@ -265,6 +381,7 @@ class FormField {
 		$show_on_select = [];
 		$fullFieldName = $template_name . '[' . $field_name . ']';
 		$values = $valuesSourceType = $valuesSource = null;
+		$valuesFromPropertyName = null;
 
 		// We set "values from ..." params if there are corresponding
 		// values set in #template_params - this is a bit of a @hack,
@@ -358,9 +475,10 @@ class FormField {
 					// 'delimiter' has also been set.
 					$values = $parser->recursiveTagParse( $sub_components[1] );
 				} elseif ( $sub_components[0] == 'values from property' ) {
-					$propertyName = $sub_components[1];
-					$f->mPossibleValues = PFValuesUtils::getAllValuesForProperty( $propertyName );
-					$f->mUseDisplayTitle = is_string( array_key_first( $f->mPossibleValues ) );
+					// The actual fetch is deferred to after the full component
+					// loop has run (see below), so that a 'remote autocompletion'
+					// component appearing later in the tag is already known.
+					$valuesFromPropertyName = $sub_components[1];
 				} elseif ( $sub_components[0] == 'values from wikidata' ) {
 					$valuesSourceType = 'wikidata';
 					$valuesSource = urlencode( $sub_components[1] );
@@ -421,12 +539,36 @@ class FormField {
 			}
 		}
 		// end for
-		if ( $valuesSourceType !== null && ( $valuesSourceType !== 'wikidata' || ( $f->mInputType !== 'combobox' &&
-				$f->mInputType !== 'tokens' ) ) ) {
-			$f->mPossibleValues = PFValuesUtils::getAutocompleteValues( $valuesSource, $valuesSourceType );
-			if ( in_array( $valuesSourceType, [ 'category', 'namespace', 'concept' ] ) ) {
-				global $wgPageFormsUseDisplayTitle;
-				$f->mUseDisplayTitle = $wgPageFormsUseDisplayTitle;
+
+		// 'values from property' fetches are deferred to here (rather than
+		// handled inline in the component loop above) so that a 'remote
+		// autocompletion' component appearing later in the tag is already
+		// known by the time we decide whether to defer the fetch.
+		if ( $valuesFromPropertyName !== null ) {
+			if ( $f->canDeferAutocompleteFetch(
+				'property', $valuesFromPropertyName, $template_in_form->getDisplay()
+			) ) {
+				$f->mDeferredAutocompleteType = 'property';
+				$f->mPossibleValues = [];
+			} else {
+				$f->mPossibleValues = PFValuesUtils::getAllValuesForProperty( $valuesFromPropertyName );
+				$f->mUseDisplayTitle = is_string( array_key_first( $f->mPossibleValues ) );
+			}
+		}
+
+		if ( $valuesSourceType !== null && $valuesSource !== null && ( $valuesSourceType !== 'wikidata' || (
+				$f->mInputType !== 'combobox' && $f->mInputType !== 'tokens' ) ) ) {
+			if ( in_array( $valuesSourceType, [ 'category', 'namespace', 'concept' ], true ) &&
+				$f->canDeferAutocompleteFetch( $valuesSourceType, $valuesSource, $template_in_form->getDisplay() )
+			) {
+				$f->mDeferredAutocompleteType = $valuesSourceType;
+				$f->mPossibleValues = [];
+			} else {
+				$f->mPossibleValues = PFValuesUtils::getAutocompleteValues( $valuesSource, $valuesSourceType );
+				if ( in_array( $valuesSourceType, [ 'category', 'namespace', 'concept' ], true ) ) {
+					global $wgPageFormsUseDisplayTitle;
+					$f->mUseDisplayTitle = $wgPageFormsUseDisplayTitle;
+				}
 			}
 		}
 
@@ -476,7 +618,10 @@ class FormField {
 			}
 		}
 
-		if ( $f->mPossibleValues == null ) {
+		// A deferred field intentionally has an empty (but non-null)
+		// mPossibleValues at this point (see above) - it must not be
+		// overwritten by the template field's unrelated list.
+		if ( $f->mPossibleValues === null && $f->mDeferredAutocompleteType === null ) {
 			$f->mPossibleValues = $f->template_field->getPossibleValues();
 		}
 
@@ -1048,7 +1193,7 @@ class FormField {
 		$other_args = $this->mFieldArgs;
 		// a value defined for the form field should always supersede
 		// the coresponding value for the template field
-		if ( $this->mPossibleValues != null ) {
+		if ( $this->hasOwnPossibleValues() ) {
 			$other_args['possible_values'] = $this->mPossibleValues;
 		} else {
 			$other_args['possible_values'] = $this->template_field->getPossibleValues();

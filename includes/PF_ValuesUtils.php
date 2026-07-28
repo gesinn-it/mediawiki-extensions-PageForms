@@ -887,7 +887,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 	 * @param string $autocompletionSource
 	 * @return int|null
 	 */
-	private static function getSourceCount( string $autocompleteFieldType, string $autocompletionSource ): ?int {
+	public static function getSourceCount( string $autocompleteFieldType, string $autocompletionSource ): ?int {
 		$store = PFUtils::getSMWStore();
 		if ( $store === null ) {
 			return null;
@@ -906,6 +906,29 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		} catch ( \Exception ) {
 			return null;
 		}
+	}
+
+	/**
+	 * Whether a wiki-sourced 'values from ...' source has more members than
+	 * $wgPageFormsMaxLocalAutocompleteValues, based on the cheap MODE_COUNT
+	 * query in getSourceCount(). Used to decide whether 'remote
+	 * autocompletion' should skip the full eager fetch of the source's
+	 * values (see #187).
+	 *
+	 * When SMW is unavailable or the count cannot be determined, this
+	 * conservatively returns true (i.e. treat the source as large/remote),
+	 * matching getSourceCount()'s "null means always remote" contract.
+	 *
+	 * @param string $autocompleteFieldType 'category'|'namespace'|'concept'|'property'
+	 * @param string $autocompletionSource
+	 * @return bool
+	 */
+	public static function exceedsLocalAutocompleteThreshold(
+		string $autocompleteFieldType, string $autocompletionSource
+	): bool {
+		global $wgPageFormsMaxLocalAutocompleteValues;
+		$count = self::getSourceCount( $autocompleteFieldType, $autocompletionSource );
+		return $count === null || $count > $wgPageFormsMaxLocalAutocompleteValues;
 	}
 
 	public static function getRemoteDataTypeAndPossiblySetAutocompleteValues(

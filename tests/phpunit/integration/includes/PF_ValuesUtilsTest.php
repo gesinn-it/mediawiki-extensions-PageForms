@@ -267,6 +267,25 @@ class PFValuesUtilsTest extends TestCase {
 	}
 
 	/**
+	 * When SMW is not installed (or the count cannot be determined),
+	 * getSourceCount() returns null, and exceedsLocalAutocompleteThreshold()
+	 * must conservatively report the source as exceeding the threshold, so
+	 * that 'remote autocompletion' callers stay remote rather than risking
+	 * an unbounded local fetch (see #187).
+	 *
+	 * @covers \PFValuesUtils::exceedsLocalAutocompleteThreshold
+	 */
+	public function testExceedsLocalAutocompleteThresholdReturnsTrueWhenSmwAbsent(): void {
+		if ( class_exists( '\SMW\StoreFactory' ) ) {
+			$this->markTestSkipped( 'SMW is installed; this test requires SMW to be absent.' );
+		}
+
+		$this->assertTrue(
+			PFValuesUtils::exceedsLocalAutocompleteThreshold( 'category', 'PFTestValuesUtilsLargeCat01' )
+		);
+	}
+
+	/**
 	 * @covers \PFValuesUtils::getAutocompletionTypeAndSource
 	 * @dataProvider provideGetAutocompletionTypeAndSource
 	 */
