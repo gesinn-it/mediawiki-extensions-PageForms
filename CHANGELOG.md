@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Changed
+- Pin `js-yaml` to 4.3.0 and `brace-expansion` (under `minimatch@^10`, pulled in transitively via `nyc`/`eslint-config-wikimedia`) to 5.0.8 via npm `overrides`, closing 2 open Dependabot alerts. Both are devDependencies only (eslint/nyc tooling); no runtime code affected
 - `FormField` (`src/FormField.php`) mixed parsed form-definition configuration with request-time render state: `mInputName`/`mIsDisabled` (both computed once, from form-definition context, when the field is created) and the #187 deferred `remote autocompletion` possible-values resolution (genuinely resolved later, once the field's current value is known) lived directly on the class alongside its static configuration, with no type-level distinction between the two - exactly the ambiguity the class's own doc comment already flagged. Introduced `MediaWiki\Extension\PageForms\FormInstanceField` (`src/FormInstanceField.php`) to own that instance-specific state, including `hasDeferredPossibleValues()`, `resolveDeferredPossibleValues()`, and `getArgumentsForInputCall()`; `FormField` now holds one `FormInstanceField` per field and delegates its existing public methods to it, so callers (`FormFieldHtmlBuilder`, `SpreadsheetHtmlBuilder`, `CalendarHtmlBuilder`, `FormPrinter`, `TemplateInForm`) needed no signature changes. Purely structural - rendered output is unchanged ([#188](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/188))
 
 ### Fixed
