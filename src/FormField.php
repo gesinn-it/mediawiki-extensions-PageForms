@@ -903,7 +903,11 @@ class FormField {
 		if ( $value === false ) {
 			return $label;
 		} else {
-			return $value;
+			// array_search() returns the array key, which PHP auto-casts to int
+			// for numeric-looking keys (e.g. a 'mapping template' field whose
+			// possible values are '1', '2', ... - see setValuesWithMappingTemplate()).
+			// Callers (e.g. valueStringToLabels()) expect a string.
+			return (string)$value;
 		}
 	}
 

@@ -864,6 +864,23 @@ class FormFieldTest extends TestCase {
 		$this->assertSame( 'DE', $field->labelToValue( 'DE' ) );
 	}
 
+	/**
+	 * A 'mapping template' field's possible values are keyed by the raw
+	 * (often numeric-looking, e.g. '1'..'5') values set via setValuesWithMappingTemplate();
+	 * PHP auto-casts such string keys to int. array_search() then returns that
+	 * int key, which labelToValue() must convert back to a string - a bare int
+	 * crashes valueStringToLabels()'s trim() call (see the Skill Rating field
+	 * regression: reproduced via Person:Miss Piggy's rating fields).
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormField::labelToValue
+	 */
+	public function testLabelToValueWithNumericKeyReturnsString(): void {
+		$field = $this->makeFieldWithPossibleValues( [ 1 => '1 (Basiswissen)', 5 => '5 (Experte)' ] );
+		$result = $field->labelToValue( '5 (Experte)' );
+		$this->assertSame( '5', $result );
+		$this->assertIsString( $result );
+	}
+
 	// -------------------------------------------------------------------------
 	// Simple setters / getters not otherwise exercised.
 	// -------------------------------------------------------------------------
