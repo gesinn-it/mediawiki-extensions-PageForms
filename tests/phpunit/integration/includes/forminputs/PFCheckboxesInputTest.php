@@ -108,6 +108,35 @@ class PFCheckboxesInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( '&nbsp;Custom Label A', $html );
 	}
 
+	/**
+	 * Regression coverage for issue #186: when a checked value falls outside a
+	 * truncated 'values from ...' fetch window (so PossibleValueList doesn't
+	 * contain it), it must not be silently dropped from the rendered markup -
+	 * an extra checked checkbox is rendered for it (mirroring PFTokensInput's
+	 * #185 fallback), using resolveMissingLabel() for its label.
+	 */
+	public function testGetHtmlUnmatchedCurrentValueRendersExtraCheckedCheckbox(): void {
+		$html = $this->getHtml( 'PFCbOptA,PFCbUnknown', [ 'PFCbOptA', 'PFCbOptB' ] );
+
+		$this->assertStringContainsString( "value='PFCbUnknown' checked='checked'", $html );
+		$this->assertStringContainsString( '&nbsp;PFCbUnknown', $html );
+	}
+
+	public function testGetHtmlUnmatchedPageTypeCurrentValueUsesDisplayTitle(): void {
+		$this->overrideConfigValue( 'RestrictDisplayTitle', false );
+
+		$title = Title::makeTitle( NS_CATEGORY, 'PFCheckboxesDisplayTitleFallback' );
+		$page = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
+		$this->editPage( $page, '{{DISPLAYTITLE:Fallback Display Title}}' );
+		DeferredUpdates::doUpdates();
+
+		$curValue = 'Category:PFCheckboxesDisplayTitleFallback';
+		$html = $this->getHtml( $curValue, [ 'PFCbOptA' ] );
+
+		$this->assertStringContainsString( "value='" . $curValue . "' checked='checked'", $html );
+		$this->assertStringContainsString( '&nbsp;Fallback Display Title', $html );
+	}
+
 	public function testGetHtmlMandatoryAddsMandatoryFieldSpanClass(): void {
 		$html = $this->getHtml( '', [ 'PFCbOptA' ], true );
 

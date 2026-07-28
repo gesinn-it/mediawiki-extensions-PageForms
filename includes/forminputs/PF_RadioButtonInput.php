@@ -42,12 +42,14 @@ class PFRadioButtonInput extends PFEnumInput {
 			array_unshift( $possible_values, '' );
 		}
 
-		// If $cur_value is an invalid value (not null, and not one
-		// of the allowed options), set it to blank, so it can show
-		// up as "None" (if "None" is one of the options).
 		$possibleValueList = new PossibleValueList( $possible_values, $other_args['value_labels'] ?? null );
-		if ( $cur_value !== null && !$possibleValueList->contains( $cur_value ) ) {
-			$cur_value = '';
+
+		// If $cur_value sorted outside a truncated 'values from ...' fetch
+		// window and is not among the allowed options, add it as an extra
+		// option instead of discarding it - clearing it here would risk
+		// silently persisting an empty value if the form is saved unchanged.
+		if ( $cur_value !== null && $cur_value !== '' && !$possibleValueList->contains( $cur_value ) ) {
+			$possible_values[] = $cur_value;
 		}
 
 		$text = "\n";
@@ -81,6 +83,9 @@ class PFRadioButtonInput extends PFEnumInput {
 				$possibleValue = $possibleValueList->find( $value );
 				if ( $possibleValue !== null && $possibleValue->labelIsOverride() ) {
 					$label = htmlspecialchars( $possibleValue->getLabel() );
+				} elseif ( $possibleValue === null ) {
+					// $value is the unmatched current value appended above.
+					$label = htmlspecialchars( $possibleValueList->resolveMissingLabel( $value ) );
 				} else {
 					$label = $value;
 				}

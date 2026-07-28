@@ -64,13 +64,42 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
-	public function testGetHtmlInvalidCurrentValueFallsBackToNone(): void {
+	/**
+	 * Regression coverage for issue #186: an unmatched current value must not be
+	 * silently discarded (which risks persisting an empty value on re-save) - an
+	 * extra radio option is rendered for it instead, checked, using the raw value
+	 * as its label (mirroring PFTokensInput/PFComboBoxInput's #185 fallback).
+	 */
+	public function testGetHtmlUnmatchedCurrentValueRendersExtraCheckedOption(): void {
 		$html = $this->getHtml( 'PFRbUnknown', [ 'PFRbOptA', 'PFRbOptB' ] );
 
 		$this->assertRegex(
+			'/checked="" type="radio" value="PFRbUnknown"/',
+			$html
+		);
+		$this->assertNotRegex(
 			'/checked="" type="radio" value=""/',
 			$html
 		);
+		$this->assertStringContainsString( '&nbsp;PFRbUnknown', $html );
+	}
+
+	public function testGetHtmlUnmatchedPageTypeCurrentValueUsesDisplayTitle(): void {
+		$this->overrideConfigValue( 'RestrictDisplayTitle', false );
+
+		$title = Title::makeTitle( NS_CATEGORY, 'PFRadioDisplayTitleFallback' );
+		$page = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
+		$this->editPage( $page, '{{DISPLAYTITLE:Fallback Display Title}}' );
+		DeferredUpdates::doUpdates();
+
+		$curValue = 'Category:PFRadioDisplayTitleFallback';
+		$html = $this->getHtml( $curValue, [ 'PFRbOptA' ] );
+
+		$this->assertRegex(
+			'/checked="" type="radio" value="' . preg_quote( $curValue, '/' ) . '"/',
+			$html
+		);
+		$this->assertStringContainsString( '&nbsp;Fallback Display Title', $html );
 	}
 
 	public function testGetHtmlWithValueLabelsRendersCustomLabelText(): void {

@@ -78,6 +78,14 @@ class PFDropdownInput extends PFEnumInput {
 			}
 			$innerDropdown .= Html::element( 'option', $optionAttrs, $possibleValue->getLabel() );
 		}
+		// $cur_value sorted outside a truncated 'values from ...' fetch window
+		// and was not found - append an extra selected option for it instead of
+		// silently showing the blank/first option (see #186).
+		if ( $cur_value !== '' && !$possibleValueList->contains( $cur_value ) ) {
+			$optionAttrs = [ 'value' => $cur_value, 'selected' => 'selected' ];
+			$optionLabel = $possibleValueList->resolveMissingLabel( $cur_value );
+			$innerDropdown .= Html::element( 'option', $optionAttrs, $optionLabel );
+		}
 		$selectAttrs = [
 			'id' => $input_id,
 			'tabindex' => $wgPageFormsTabIndex,

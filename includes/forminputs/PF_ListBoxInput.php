@@ -61,6 +61,18 @@ class PFListBoxInput extends PFMultiEnumInput {
 			$optionsText .= Html::element( 'option', $optionAttrs, $optionLabel );
 		}
 
+		// A selected value that sorted outside a truncated 'values from ...'
+		// fetch window is not covered by the loop above - append an extra
+		// selected option for it instead of silently dropping it (see #186).
+		foreach ( $cur_values as $current_value ) {
+			if ( $current_value === '' || $possibleValueList->contains( $current_value ) ) {
+				continue;
+			}
+			$optionAttrs = [ 'value' => $current_value, 'selected' => 'selected' ];
+			$optionLabel = $possibleValueList->resolveMissingLabel( $current_value );
+			$optionsText .= Html::element( 'option', $optionAttrs, $optionLabel );
+		}
+
 		if ( array_key_exists( 'show on select', $this->mOtherArgs ) ) {
 			$className .= ' pfShowIfSelected';
 			FormUtils::setShowOnSelect( $this->mOtherArgs['show on select'], $input_id );

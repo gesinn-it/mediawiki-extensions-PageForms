@@ -78,6 +78,43 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 			$wgPageFormsFieldNum++;
 		}
 
+		// A checked value that sorted outside a truncated 'values from ...'
+		// fetch window is not covered by the loop above - render an extra
+		// checked checkbox for it instead of silently dropping it. Continue
+		// the index from the main loop so its input_name[N] keys, used as
+		// array indices on submission, don't collide with the possible
+		// values' own keys.
+		$extraKey = $possibleValueList->count();
+		foreach ( $cur_values as $current_value ) {
+			if ( $current_value === '' || $possibleValueList->contains( $current_value ) ) {
+				continue;
+			}
+			$cur_input_name = $input_name . '[' . $extraKey . ']';
+			$extraKey++;
+			$label = htmlspecialchars( $possibleValueList->resolveMissingLabel( $current_value ) );
+
+			$checkbox_attrs = [
+				'name' => $cur_input_name,
+				'value' => $current_value,
+				'id' => $input_id,
+				'tabIndex' => $wgPageFormsTabIndex,
+				'label' => 'checkbox',
+				'checked' => 'checked',
+				'selected' => true
+			];
+			if ( $is_disabled ) {
+				$checkbox_attrs['disabled'] = 'disabled';
+			}
+			$checkbox_input = new OOUI\CheckboxInputWidget( $checkbox_attrs ) . "<t />";
+
+			$text .= "\t" . Html::rawElement( 'label',
+				[ 'class' => $labelClass ],
+				$checkbox_input . '&nbsp;' . $label
+			) . " ";
+			$wgPageFormsTabIndex++;
+			$wgPageFormsFieldNum++;
+		}
+
 		$outerSpanID = "span_$wgPageFormsFieldNum";
 		$outerSpanClass = self::buildSpanClass( 'checkboxesSpan', $is_mandatory );
 

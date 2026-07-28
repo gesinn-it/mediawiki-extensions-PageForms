@@ -79,6 +79,39 @@ class PFDropdownInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringNotContainsString( 'mandatoryFieldSpan', $html );
 	}
 
+	/**
+	 * Regression coverage for issue #186: when the current value falls outside
+	 * a truncated 'values from ...' fetch window (so PossibleValueList doesn't
+	 * contain it), the dropdown must not silently show the blank/first option
+	 * instead - an extra selected option is appended for it (mirroring
+	 * PFComboBoxInput/PFTokensInput's #185 fallback).
+	 */
+	public function testGetHtmlUnmatchedCurrentValueRendersExtraSelectedOption(): void {
+		$html = $this->getHtml( 'PFDDUnknown', [ 'PFDDOptA', 'PFDDOptB' ] );
+
+		$this->assertStringContainsString(
+			'<option value="PFDDUnknown" selected="">PFDDUnknown</option>',
+			$html
+		);
+	}
+
+	public function testGetHtmlUnmatchedPageTypeCurrentValueUsesDisplayTitle(): void {
+		$this->overrideConfigValue( 'RestrictDisplayTitle', false );
+
+		$title = Title::makeTitle( NS_CATEGORY, 'PFDropdownDisplayTitleFallback' );
+		$page = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
+		$this->editPage( $page, '{{DISPLAYTITLE:Fallback Display Title}}' );
+		DeferredUpdates::doUpdates();
+
+		$curValue = 'Category:PFDropdownDisplayTitleFallback';
+		$html = $this->getHtml( $curValue, [ 'PFDDOptA' ] );
+
+		$this->assertStringContainsString(
+			'<option value="' . $curValue . '" selected="">Fallback Display Title</option>',
+			$html
+		);
+	}
+
 	public function testGetHtmlWithValueLabelsRendersCustomLabelText(): void {
 		$html = $this->getHtml(
 			'',

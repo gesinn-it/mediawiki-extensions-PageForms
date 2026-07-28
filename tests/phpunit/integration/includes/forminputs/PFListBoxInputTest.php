@@ -92,6 +92,39 @@ class PFListBoxInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringNotContainsString( '<option value="PFLBOptB" selected', $html );
 	}
 
+	/**
+	 * Regression coverage for issue #186: a selected value that falls outside
+	 * a truncated 'values from ...' fetch window (so PossibleValueList doesn't
+	 * contain it) must not be silently dropped - an extra selected option is
+	 * appended for it (mirroring PFTokensInput/PFComboBoxInput's #185
+	 * fallback).
+	 */
+	public function testGetHtmlUnmatchedCurrentValueRendersExtraSelectedOption(): void {
+		$html = $this->getHtml( 'PFLBOptA,PFLBUnknown', [ 'PFLBOptA', 'PFLBOptB' ] );
+
+		$this->assertStringContainsString(
+			'<option value="PFLBUnknown" selected="">PFLBUnknown</option>',
+			$html
+		);
+	}
+
+	public function testGetHtmlUnmatchedPageTypeCurrentValueUsesDisplayTitle(): void {
+		$this->overrideConfigValue( 'RestrictDisplayTitle', false );
+
+		$title = Title::makeTitle( NS_CATEGORY, 'PFListBoxDisplayTitleFallback' );
+		$page = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
+		$this->editPage( $page, '{{DISPLAYTITLE:Fallback Display Title}}' );
+		DeferredUpdates::doUpdates();
+
+		$curValue = 'Category:PFListBoxDisplayTitleFallback';
+		$html = $this->getHtml( $curValue, [ 'PFLBOptA' ] );
+
+		$this->assertStringContainsString(
+			'<option value="' . $curValue . '" selected="">Fallback Display Title</option>',
+			$html
+		);
+	}
+
 	public function testGetHtmlUsesValueLabelsForOptionDisplay(): void {
 		$html = $this->getHtml(
 			'',
