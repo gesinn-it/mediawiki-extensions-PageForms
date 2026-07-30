@@ -6,6 +6,8 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.1.10] - 2026-07-30
+
 ### Fixed
 - Fixed a `default=` field value containing a parser function that reads the page name (e.g. `{{#explode:{{PAGENAME}}| |0}}`) resolving to "Badtitle/Parser" instead of the real page name [`d69918aa`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/d69918aa) ([#189](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/189))
 - Fixed a `tokens`/`combobox` field with `values from property=...` wrongly switching to remote autocompletion (requiring the user to type before seeing any suggestions) whenever the property was annotated on many pages, even if it only had a handful of distinct values — the local-autocomplete threshold was comparing against the number of annotations instead of distinct values [`772152f9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/772152f9) ([#190](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/190))
@@ -249,7 +251,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.9...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.10...HEAD
+[2.1.10]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.9...2.1.10
 [2.1.9]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.8...2.1.9
 [2.1.8]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.7...2.1.8
 [2.1.7]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.6...2.1.7
