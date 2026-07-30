@@ -277,9 +277,11 @@ class FormPrinter {
 		);
 	}
 
-	public function tableHTML( $tif, $instanceNum ) {
+	public function tableHTML( $tif, $instanceNum, Parser $parser ) {
 		return $this->spreadsheetHtmlBuilder->tableHTML(
-			$tif, $instanceNum, [ $this, 'formFieldHTML' ], $this->counters
+			$tif, $instanceNum,
+			fn ( $formField, $curValue ) => $this->formFieldHTML( $formField, $curValue, $parser ),
+			$this->counters
 		);
 	}
 
@@ -986,7 +988,7 @@ class FormPrinter {
 					}
 					$field_name = trim( $tag_components[1] );
 					$form_field = FormField::newFromFormFieldTag(
-						$tag_components, $template, $tif, $form_is_disabled, $user
+						$tag_components, $template, $tif, $form_is_disabled, $user, $parser
 					);
 					// For special displays, add in the
 					// form fields, so we know the data
@@ -1188,7 +1190,7 @@ END;
 							$cur_value = null;
 						}
 
-						$new_text = $this->formFieldHTML( $form_field, $cur_value );
+						$new_text = $this->formFieldHTML( $form_field, $cur_value, $parser );
 						$new_text .= $form_field->additionalHTMLForInput(
 							$cur_value, $field_name, $tif->getTemplateName()
 						);
@@ -1355,7 +1357,7 @@ END;
 					}
 				} else {
 					if ( $tif->getDisplay() == 'table' ) {
-						$section = $this->tableHTML( $tif, $tif->getInstanceNum() );
+						$section = $this->tableHTML( $tif, $tif->getInstanceNum(), $parser );
 					}
 					if ( $tif->getInstanceNum() == 0 ) {
 						$multipleTemplateHTML .= $this->multipleTemplateStartHTML( $tif );
@@ -1400,7 +1402,7 @@ END;
 					$tif->incrementInstanceNum();
 				}
 			} elseif ( $tif && $tif->getDisplay() == 'table' ) {
-				$form_text .= $this->tableHTML( $tif, 0 );
+				$form_text .= $this->tableHTML( $tif, 0, $parser );
 			} elseif ( $tif && !$tif->allowsMultiple() && $tif->getLabel() != null ) {
 				$form_text .= $section . "\n</fieldset>";
 			} else {
@@ -1441,8 +1443,8 @@ END;
 	/**
 	 * Create the HTML to display this field within a form.
 	 */
-	public function formFieldHTML( FormField $form_field, ?string $cur_value ): string {
-		return $this->formFieldHtmlBuilder->formFieldHTML( $form_field, $cur_value, $this->counters );
+	public function formFieldHTML( FormField $form_field, ?string $cur_value, Parser $parser ): string {
+		return $this->formFieldHtmlBuilder->formFieldHTML( $form_field, $cur_value, $parser, $this->counters );
 	}
 
 	private function createFormFieldTranslateTag(

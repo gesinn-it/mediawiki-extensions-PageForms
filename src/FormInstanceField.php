@@ -6,7 +6,6 @@ namespace MediaWiki\Extension\PageForms;
 
 use Parser;
 use ParserOptions;
-use PFUtils;
 use PFValuesUtils;
 
 /**
@@ -129,16 +128,17 @@ class FormInstanceField {
 	 * array - create this array, using the attributes of the underlying
 	 * form field, the template field it corresponds to (if any), and this
 	 * instance's resolved possible-values.
+	 * @param Parser $parser Must already be titled by the caller (see issue #189) -
+	 *   wikitext evaluated below is resolved against $parser->getTitle().
 	 * @param array|null $default_args
 	 * @return array
 	 */
-	public function getArgumentsForInputCall( ?array $default_args = null ) {
+	public function getArgumentsForInputCall( Parser $parser, ?array $default_args = null ) {
 		$formField = $this->formField;
 		$templateField = $formField->getTemplateField();
 
 		// MW 1.43 compat: same typed-property guard as in FormField::newFromFormFieldTag() -
 		// see comment there for the full explanation.
-		$parser = PFUtils::getParser();
 		if ( !$parser->getOptions() ) {
 			$parser->setOptions( ParserOptions::newFromAnon() );
 		}

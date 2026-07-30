@@ -305,16 +305,17 @@ class FormField {
 		$template,
 		$template_in_form,
 		$form_is_disabled,
-		User $user
+		User $user,
+		Parser $parser
 	) {
 		global $wgPageFormsEmbeddedTemplates;
 
 		// MW 1.43 compat: Parser::$mStripState and $mOutputType are typed properties
 		// that are only initialised after clearState()/setOutputType() are called.
-		// getParser() returns the raw singleton which may not have been through
-		// clearState() yet; ensure options are set first (required by resetOutput()),
-		// then initialise both typed properties before calling recursiveTagParse().
-		$parser = PFUtils::getParser();
+		// $parser must already be titled by the caller (see FormPrinter::createFreshParser()) -
+		// wikitext evaluated below (e.g. a 'default=' value containing {{PAGENAME}}) is resolved
+		// against $parser->getTitle(), and an untitled parser resolves it against a "Badtitle"
+		// placeholder instead (see issue #189).
 		if ( !$parser->getOptions() ) {
 			$parser->setOptions( ParserOptions::newFromAnon() );
 		}
@@ -1160,10 +1161,11 @@ class FormField {
 	 * create HTML inputs, most arguments are contained in the "$other_args"
 	 * array - create this array, using the attributes of this form
 	 * field and the template field it corresponds to, if any.
+	 * @param Parser $parser
 	 * @param array|null $default_args
 	 * @return array
 	 */
-	public function getArgumentsForInputCall( ?array $default_args = null ) {
-		return $this->mInstanceField->getArgumentsForInputCall( $default_args );
+	public function getArgumentsForInputCall( Parser $parser, ?array $default_args = null ) {
+		return $this->mInstanceField->getArgumentsForInputCall( $parser, $default_args );
 	}
 }

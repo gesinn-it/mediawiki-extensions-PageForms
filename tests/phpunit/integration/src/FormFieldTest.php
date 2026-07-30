@@ -5,6 +5,7 @@ use MediaWiki\Extension\PageForms\FormInstanceField;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWiki\Extension\PageForms\TemplateInForm;
+use MediaWiki\MediaWikiServices;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -141,7 +142,7 @@ class FormFieldTest extends TestCase {
 
 		// Call the method under test
 		$formField = FormField::newFromFormFieldTag(
-			$tagComponents, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
+			$tagComponents, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser, $this->mockParser
 		);
 
 		// Assert that the template field was set
@@ -164,7 +165,7 @@ class FormFieldTest extends TestCase {
 		// field found, newFromFormFieldTag() must return early with a fresh,
 		// empty TemplateField and mIsList = false (src/FormField.php:232-239).
 		$formField = FormField::newFromFormFieldTag(
-			$tagComponents, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
+			$tagComponents, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser, $this->mockParser
 		);
 
 		$this->assertInstanceOf( TemplateField::class, $formField->template_field );
@@ -182,7 +183,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->isMandatory() );
@@ -197,7 +198,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->isHidden() );
@@ -212,7 +213,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->isRestricted() );
@@ -227,7 +228,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertEquals( 'uppercase', $formField->getAutocapitalize() );
@@ -242,7 +243,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertEquals(
@@ -294,7 +295,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		// Before the fix, mPossibleValues was still [] when the mapping-type
@@ -318,7 +319,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->getFieldArgs()['unique'] );
@@ -333,7 +334,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertEquals( 'TestField', $formField->getLabel() );
@@ -348,7 +349,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->getFieldArgs()['mapping template'] );
@@ -363,7 +364,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->getFieldArgs()['mapping property'] );
@@ -906,7 +907,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertSame( 'pf-formfield-test-label-msg', $formField->getLabelMsg() );
@@ -924,7 +925,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->getFieldArgs()['edittools'] );
@@ -948,7 +949,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->isHidden() );
@@ -973,7 +974,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->isHidden() );
@@ -988,7 +989,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertSame( 'PFTestFormFieldPreloadPage01', $formField->getFieldArgs()['preload'] );
@@ -1006,7 +1007,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertSame(
@@ -1026,7 +1027,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertArrayHasKey( 'optionA', $formField->getFieldArgs()['show on select'] );
@@ -1045,7 +1046,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertSame( 'Q1', $formField->getFieldArgs()['values from wikidata'] );
@@ -1059,7 +1060,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertSame(
@@ -1076,7 +1077,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertSame(
@@ -1093,7 +1094,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertSame(
@@ -1116,7 +1117,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertSame(
@@ -1133,7 +1134,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->getFieldArgs()['unique'] );
@@ -1150,7 +1151,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->getFieldArgs()['unique'] );
@@ -1167,7 +1168,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->getFieldArgs()['unique'] );
@@ -1188,7 +1189,7 @@ class FormFieldTest extends TestCase {
 				$this->mockTemplate,
 				$this->mockTemplateInForm,
 				false,
-				$this->mockUser
+				$this->mockUser, $this->mockParser
 			);
 
 			$this->assertSame(
@@ -1217,7 +1218,7 @@ class FormFieldTest extends TestCase {
 				$this->mockTemplate,
 				$this->mockTemplateInForm,
 				false,
-				$this->mockUser
+				$this->mockUser, $this->mockParser
 			);
 
 			$this->assertSame(
@@ -1239,7 +1240,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		// The (anonymous, real) test user is not in 'sysop' or 'bureaucrat',
@@ -1267,7 +1268,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertSame( ';', $formField->getFieldArgs()['delimiter'] );
@@ -1304,7 +1305,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertSame(
@@ -1325,7 +1326,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertSame( 'PFTestFormFieldTemplateName04[num][test_field]', $formField->getInputName() );
@@ -1407,7 +1408,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$this->assertSame( 'Some Value', $formField->autocapitalize( 'some value' ) );
@@ -1549,11 +1550,42 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		$result = $field->getCurrentValue( [], false, false, false );
 		$this->assertSame( 'PFTestFormFieldDefaultValue01', $result );
+	}
+
+	/**
+	 * Regression test for issue #189: a 'default=' value containing {{PAGENAME}}
+	 * (e.g. as used inside a parser function like {{#explode:{{PAGENAME}}| |0}})
+	 * must resolve against the real target page title, not a "Badtitle"
+	 * placeholder. This requires a real Parser (not the recursivePreprocess()
+	 * mock from setUp()), since only a real Parser actually evaluates {{PAGENAME}}
+	 * against its title.
+	 */
+	public function testDefaultValueWithPagenameResolvesRealTitle() {
+		$this->mockTemplateField->method( 'getFieldName' )->willReturn( 'PFTestFormFieldName06b' );
+
+		$realParser = MediaWikiServices::getInstance()->getParserFactory()->create();
+		$realParser->setOptions( ParserOptions::newFromAnon() );
+		$realParser->setTitle( Title::newFromText( 'PFTestFormFieldPagenamePage01' ) );
+
+		$tag_components = [
+			'', 'PFTestFormFieldName06b', 'default={{PAGENAME}}'
+		];
+		$field = FormField::newFromFormFieldTag(
+			$tag_components,
+			$this->mockTemplate,
+			$this->mockTemplateInForm,
+			false,
+			$this->mockUser,
+			$realParser
+		);
+
+		$result = $field->getCurrentValue( [], false, false, false );
+		$this->assertSame( 'PFTestFormFieldPagenamePage01', $result );
 	}
 
 	public function testGetCurrentValueReturnsPreloadedTextForNewPage() {
@@ -1565,7 +1597,7 @@ class FormFieldTest extends TestCase {
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
-			$this->mockUser
+			$this->mockUser, $this->mockParser
 		);
 
 		// The preload page does not exist, so FormUtils::getPreloadedText()
@@ -1736,7 +1768,7 @@ class FormFieldTest extends TestCase {
 
 		$field = FormField::create( $this->mockTemplateField );
 
-		$other_args = $field->getArgumentsForInputCall();
+		$other_args = $field->getArgumentsForInputCall( $this->mockParser );
 
 		$this->assertSame( [ 'val1', 'val2' ], $other_args['possible_values'] );
 		$this->assertSame( [ 'val1' => 'Label 1' ], $other_args['value_labels'] );
@@ -1756,7 +1788,7 @@ class FormFieldTest extends TestCase {
 		$field = FormField::create( $this->mockTemplateField );
 		$field->setFieldArg( 'mapping using translate', 'pf-formfield-test-mapping-' );
 
-		$other_args = $field->getArgumentsForInputCall();
+		$other_args = $field->getArgumentsForInputCall( PFUtils::getParser() );
 
 		// The message keys don't exist, so the real parser renders them as
 		// missing-message placeholders; what matters for coverage is that
@@ -1807,7 +1839,7 @@ class FormFieldTest extends TestCase {
 		$field = FormField::create( $this->mockTemplateField );
 		$field->setFieldArg( 'size', 30 );
 
-		$other_args = $field->getArgumentsForInputCall( [ 'size' => 10, 'extra_default' => 'x' ] );
+		$other_args = $field->getArgumentsForInputCall( $this->mockParser, [ 'size' => 10, 'extra_default' => 'x' ] );
 
 		// Field-level args override default args on conflict.
 		$this->assertSame( 30, $other_args['size'] );
@@ -1830,11 +1862,11 @@ class FormFieldTest extends TestCase {
 
 		try {
 			// Simulate the raw, not-yet-initialised singleton state that the
-			// MW 1.43 compat guard (src/FormField.php:1040-1042) handles.
+			// MW 1.43 compat guard (src/FormInstanceField.php) handles.
 			$prop->setValue( $parser, null );
 
 			$field = FormField::create( $this->mockTemplateField );
-			$other_args = $field->getArgumentsForInputCall();
+			$other_args = $field->getArgumentsForInputCall( $parser );
 
 			$this->assertNotNull( $parser->getOptions() );
 			$this->assertIsArray( $other_args );
@@ -2009,7 +2041,7 @@ class FormFieldTest extends TestCase {
 		];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
+			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser, $this->mockParser
 		);
 
 		$this->assertTrue( $formField->hasDeferredPossibleValues() );
@@ -2030,7 +2062,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'values from category=PFTestFormFieldRemoteCat02' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
+			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser, $this->mockParser
 		);
 
 		$this->assertFalse( $formField->hasDeferredPossibleValues() );
@@ -2052,7 +2084,7 @@ class FormFieldTest extends TestCase {
 		];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
+			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser, $this->mockParser
 		);
 
 		$this->assertFalse( $formField->hasDeferredPossibleValues() );
@@ -2078,7 +2110,7 @@ class FormFieldTest extends TestCase {
 		];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser
+			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser, $this->mockParser
 		);
 
 		$this->assertFalse( $formField->hasDeferredPossibleValues() );

@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use Html;
+use Parser;
 use PFRegExpInput;
 use PFUtils;
 
@@ -29,11 +30,12 @@ class FormFieldHtmlBuilder {
 	 *
 	 * @param FormField $form_field
 	 * @param string|null $cur_value
+	 * @param Parser $parser Must already be titled by the caller (see issue #189).
 	 * @param FormCounters|null $counters
 	 * @return string
 	 */
 	public function formFieldHTML(
-		FormField $form_field, ?string $cur_value, ?FormCounters $counters = null
+		FormField $form_field, ?string $cur_value, Parser $parser, ?FormCounters $counters = null
 	): string {
 		global $wgPageFormsFieldNum;
 		$fieldNum = $counters !== null ? $counters->fieldNum : $wgPageFormsFieldNum;
@@ -67,7 +69,7 @@ class FormFieldHtmlBuilder {
 			// some semantic-related arguments.
 			$hook_values = $this->inputTypeHooks[$input_type];
 			$class_name = $hook_values[0];
-			$other_args = $form_field->getArgumentsForInputCall( $hook_values[1] );
+			$other_args = $form_field->getArgumentsForInputCall( $parser, $hook_values[1] );
 		} else {
 			// The input type is not defined in the form.
 			$property_type = $template_field->getPropertyType();
@@ -77,11 +79,11 @@ class FormFieldHtmlBuilder {
 				isset( $this->semanticTypeHooks[$property_type][$is_list] ) ) {
 				$hook_values = $this->semanticTypeHooks[$property_type][$is_list];
 				$class_name = $hook_values[0];
-				$other_args = $form_field->getArgumentsForInputCall( $hook_values[1] );
+				$other_args = $form_field->getArgumentsForInputCall( $parser, $hook_values[1] );
 			} else {
 				// Anything else.
 				$class_name = 'PFTextInput';
-				$other_args = $form_field->getArgumentsForInputCall();
+				$other_args = $form_field->getArgumentsForInputCall( $parser );
 				// Set default size for list inputs.
 				if ( $form_field->isList() ) {
 					if ( !array_key_exists( 'size', $other_args ) ) {

@@ -34,9 +34,16 @@ class FormDefParser {
 	public function preparePreloadData( string $form_def, string $existing_page_content, ?int $form_id = null ): array {
 		$user = RequestContext::getMain()->getUser();
 
-		// Set up a fresh parser — same approach as formHTML().
+		// Set up a fresh parser — same approach as formHTML(). Title it from the
+		// current request so wikitext parsed below (e.g. a template-name tag
+		// containing {{PAGENAME}}) doesn't resolve against a "Badtitle" placeholder
+		// (see issue #189).
 		$parser = $this->parserFactory->create();
 		$parser->setOptions( ParserOptions::newFromUser( $user ) );
+		$contextTitle = RequestContext::getMain()->getTitle();
+		if ( $contextTitle !== null ) {
+			$parser->setTitle( $contextTitle );
+		}
 		$parser->clearState();
 
 		$form_def = FormCache::getFormDefinition( $parser, $form_def, $form_id );

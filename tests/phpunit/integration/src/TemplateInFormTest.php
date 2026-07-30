@@ -251,18 +251,22 @@ class TemplateInFormTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testNewFromFormTagDefaultParser(): void {
-		// $parser === null triggers the PFUtils::getParser()/clearState() path.
-		// The shared parser singleton needs ParserOptions before clearState()
-		// can call resetOutput() (same MW 1.43 compat requirement as FormField::
-		// newFromFormFieldTag()).
+		// $parser is a required argument (see issue #189: an untitled parser
+		// silently resolved wikitext like {{PAGENAME}} against a "Badtitle"
+		// placeholder). Callers must supply an already-titled Parser; using the
+		// shared singleton here exercises the same MW 1.43 compat requirement
+		// as FormField::newFromFormFieldTag() (ParserOptions before clearState()
+		// can call resetOutput()).
 		$parser = PFUtils::getParser();
 		if ( !$parser->getOptions() ) {
 			$parser->setOptions( ParserOptions::newFromAnon() );
 		}
+		$parser->clearState();
 		$parser->setOutputType( Parser::OT_HTML );
 
 		$template = TemplateInForm::newFromFormTag(
-			[ 'for template', 'PFTestTemplateInFormDefaultParser01' ]
+			[ 'for template', 'PFTestTemplateInFormDefaultParser01' ],
+			$parser
 		);
 
 		$this->assertInstanceOf( TemplateInForm::class, $template );

@@ -14,6 +14,15 @@ require_once __DIR__ . '/StubFormInput.php';
  */
 class FormFieldHtmlBuilderTest extends TestCase {
 
+	/**
+	 * $form_field in these tests is always a full FormField mock (see
+	 * makeVisibleFormField() etc. below), so getArgumentsForInputCall() never
+	 * really touches $parser - a bare mock satisfying the type is enough.
+	 */
+	private function makeParser(): Parser {
+		return $this->createMock( Parser::class );
+	}
+
 	// -----------------------------------------------------------------------
 	// formFieldHTML — hidden field
 	// -----------------------------------------------------------------------
@@ -25,7 +34,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		$formField = $this->makeHiddenFormField( 'input_foo', 'hello' );
 		$builder = new FormFieldHtmlBuilder( [], [] );
 
-		$html = $builder->formFieldHTML( $formField, 'hello' );
+		$html = $builder->formFieldHTML( $formField, 'hello', $this->makeParser() );
 
 		$this->assertStringContainsString( 'type="hidden"', $html );
 		$this->assertStringContainsString( 'name="input_foo"', $html );
@@ -39,7 +48,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		$formField = $this->makeHiddenFormField( 'input_bar', 'val', [ 'class' => 'myClass' ] );
 		$builder = new FormFieldHtmlBuilder( [], [] );
 
-		$html = $builder->formFieldHTML( $formField, 'val' );
+		$html = $builder->formFieldHTML( $formField, 'val', $this->makeParser() );
 
 		$this->assertStringContainsString( 'class="myClass"', $html );
 	}
@@ -56,7 +65,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		$inputTypeHooks = [ 'text' => [ StubFormInput::class, [] ] ];
 		$builder = new FormFieldHtmlBuilder( $inputTypeHooks, [] );
 
-		$html = $builder->formFieldHTML( $formField, 'myval' );
+		$html = $builder->formFieldHTML( $formField, 'myval', $this->makeParser() );
 
 		$this->assertSame( StubFormInput::STUB_HTML, $html );
 	}
@@ -75,7 +84,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		// FormFieldHtmlBuilder sets $other_args['size'] = 100 for list fields with
 		// no explicit size (src/FormFieldHtmlBuilder.php:76-85), which PFTextInput::getHtmlText()
 		// renders as a size="100" attribute.
-		$html = $builder->formFieldHTML( $formField, '' );
+		$html = $builder->formFieldHTML( $formField, '', $this->makeParser() );
 
 		$this->assertIsString( $html );
 		$this->assertStringContainsString( '<input', $html );
@@ -95,7 +104,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		$semanticTypeHooks = [ '_str' => [ false => [ StubFormInput::class, [] ] ] ];
 		$builder = new FormFieldHtmlBuilder( [], $semanticTypeHooks );
 
-		$html = $builder->formFieldHTML( $formField, 'smwval' );
+		$html = $builder->formFieldHTML( $formField, 'smwval', $this->makeParser() );
 
 		$this->assertSame( StubFormInput::STUB_HTML, $html );
 	}
@@ -108,7 +117,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		$formField = $this->makeVisibleFormField( '', '', 'input_f' );
 		$builder = new FormFieldHtmlBuilder( [], [] );
 
-		$html = $builder->formFieldHTML( $formField, '' );
+		$html = $builder->formFieldHTML( $formField, '', $this->makeParser() );
 
 		$this->assertStringContainsString( '<input', $html );
 	}
@@ -125,7 +134,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		$inputTypeHooks = [ '' => [ StubFormInput::class, [] ] ];
 		$builder = new FormFieldHtmlBuilder( $inputTypeHooks, [] );
 
-		$html = $builder->formFieldHTML( $formField, '' );
+		$html = $builder->formFieldHTML( $formField, '', $this->makeParser() );
 
 		$this->assertStringNotContainsString( StubFormInput::STUB_HTML, $html );
 		$this->assertStringContainsString( '<input', $html );
@@ -155,7 +164,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		$inputTypeHooks = [ 'text' => [ StubFormInput::class, [] ] ];
 		$builder = new FormFieldHtmlBuilder( $inputTypeHooks, [] );
 
-		$html = $builder->formFieldHTML( $formField, 'abc' );
+		$html = $builder->formFieldHTML( $formField, 'abc', $this->makeParser() );
 
 		// PFRegExpInput delegates getHtmlText() to its base input (StubFormInput), then
 		// injects a data-regexp attribute into the base input's rendered <input> tag.
@@ -256,7 +265,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		);
 		$builder = new FormFieldHtmlBuilder( [], [] );
 
-		$html = $builder->formFieldHTML( $formField, 'some value' );
+		$html = $builder->formFieldHTML( $formField, 'some value', $this->makeParser() );
 
 		$this->assertStringContainsString( 'MyTemplate[MyField_translate_number_tag]', $html );
 		$this->assertStringContainsString( htmlspecialchars( $tag ), $html );
@@ -275,7 +284,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		);
 		$builder = new FormFieldHtmlBuilder( [], [] );
 
-		$html = $builder->formFieldHTML( $formField, 'val' );
+		$html = $builder->formFieldHTML( $formField, 'val', $this->makeParser() );
 
 		$this->assertStringContainsString( 'plain_field_translate_number_tag', $html );
 		$this->assertStringContainsString( htmlspecialchars( $tag ), $html );
@@ -296,7 +305,7 @@ class FormFieldHtmlBuilderTest extends TestCase {
 		);
 		$builder = new FormFieldHtmlBuilder( [], [] );
 
-		$html = $builder->formFieldHTML( $formField, 'val' );
+		$html = $builder->formFieldHTML( $formField, 'val', $this->makeParser() );
 
 		$this->assertStringNotContainsString( "onmouseover='alert(1)", $html );
 		$this->assertStringContainsString( '&#039;', $html );
