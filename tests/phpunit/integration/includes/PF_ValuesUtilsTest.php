@@ -401,6 +401,106 @@ class PFValuesUtilsTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// getSourceCount / exceedsLocalAutocompleteThreshold — 'property' type
+	// (issue #190: a property count must reflect distinct *values*, not the
+	// number of pages/subjects annotated with it)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * A property annotated on many pages but with only a handful of distinct
+	 * values (the exact scenario reported in #190: 517 annotations, 5
+	 * distinct values) must be counted by its distinct-value count, not its
+	 * annotation count — otherwise it's wrongly pushed into remote
+	 * autocompletion even though the full value set would easily fit locally.
+	 *
+	 * @covers \PFValuesUtils::getSourceCount
+	 */
+	public function testGetSourceCountForPropertyCountsDistinctValuesNotAnnotations(): void {
+		if ( !class_exists( '\SMW\Store' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+
+		// Store already returns the deduplicated set (mirrors real SMW
+		// behavior for getPropertyValues( null, $property, ... )) — the
+		// point under test is that getSourceCount() doesn't separately
+		// re-count annotations via a SomeProperty MODE_COUNT query.
+		$store = $this->mockStoreReturning( [ 'Apple', 'Banana', 'Cherry', 'Date', 'Elderberry' ] );
+
+		$count = PFValuesUtils::getSourceCount( 'property', 'Foo', $store );
+
+		$this->assertSame( 5, $count );
+	}
+
+	/**
+	 * @covers \PFValuesUtils::getSourceCount
+	 */
+	public function testGetSourceCountForPropertyCapsAtLimitPlusOne(): void {
+		if ( !class_exists( '\SMW\Store' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+
+		$GLOBALS['wgPageFormsMaxLocalAutocompleteValues'] = 3;
+
+		// The RequestOptions passed to getPropertyValues() caps the fetch at
+		// limit+1; simulate the store honoring that cap.
+		$store = $this->mockStoreReturning( [ 'A', 'B', 'C', 'D' ] );
+		$store->expects( $this->once() )
+			->method( 'getPropertyValues' )
+			->with(
+				$this->anything(),
+				$this->anything(),
+				$this->callback( static fn ( $opts ) => $opts instanceof \SMW\RequestOptions && $opts->limit === 4 )
+			)
+			->willReturn( array_map( function ( $v ) {
+				$item = $this->createMock( \SMWDataItem::class );
+				$item->method( 'getSortKey' )->willReturn( $v );
+				return $item;
+			}, [ 'A', 'B', 'C', 'D' ] ) );
+
+		$count = PFValuesUtils::getSourceCount( 'property', 'Foo', $store );
+
+		$this->assertSame( 4, $count );
+	}
+
+	/**
+	 * A property with zero values (e.g. newly created, never annotated)
+	 * must count as 0, not be mistaken for "count unavailable → remote".
+	 *
+	 * @covers \PFValuesUtils::getSourceCount
+	 */
+	public function testGetSourceCountForPropertyReturnsZeroForUnusedProperty(): void {
+		if ( !class_exists( '\SMW\Store' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+
+		$store = $this->mockStoreReturning( [] );
+
+		$count = PFValuesUtils::getSourceCount( 'property', 'Foo', $store );
+
+		$this->assertSame( 0, $count );
+	}
+
+	/**
+	 * category/namespace/concept types must keep using the cheap MODE_COUNT
+	 * path (annotation-style counting is correct for those types — a
+	 * category's "member count" and "distinct value count" are the same
+	 * thing), i.e. the 'property' special-case must not affect other types.
+	 *
+	 * @covers \PFValuesUtils::getSourceCount
+	 */
+	public function testGetSourceCountForCategoryDoesNotUseDistinctValuePath(): void {
+		if ( !class_exists( '\SMW\Store' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+
+		$store = $this->createMock( \SMW\Store::class );
+		$store->expects( $this->never() )->method( 'getPropertyValues' );
+		$store->method( 'getQueryResult' )->willReturn( null );
+
+		PFValuesUtils::getSourceCount( 'category', 'SomeCategory', $store );
+	}
+
+	// -------------------------------------------------------------------------
 	// getAllValuesFromWikidata (SPARQL injection regression — live query.wikidata.org)
 	// -------------------------------------------------------------------------
 

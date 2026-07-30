@@ -801,7 +801,13 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 	 * Returns null when the type is unknown or required data (e.g. title) is
 	 * missing; callers treat null as "count unavailable → always remote".
 	 *
-	 * @param string $autocompleteFieldType 'category'|'namespace'|'property'|'concept'
+	 * Not used for the 'property' type: MODE_COUNT with a SomeProperty
+	 * description counts *subjects/annotations* that use the property, not
+	 * its distinct values, which is what the local-autocomplete threshold
+	 * decision actually needs (see #190). getSourceCount() handles 'property'
+	 * separately via getDistinctPropertyValueCount().
+	 *
+	 * @param string $autocompleteFieldType 'category'|'namespace'|'concept'
 	 * @param string $autocompletionSource The source name/value from the form field
 	 * @return \SMW\Query\Language\Description|null
 	 */
@@ -856,12 +862,6 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 				}
 				return new \SMW\Query\Language\Disjunction( $nsDescriptions );
 
-			case 'property':
-				return new \SMW\Query\Language\SomeProperty(
-					new \SMW\DIProperty( $autocompletionSource ),
-					new \SMW\Query\Language\ThingDescription()
-				);
-
 			case 'concept':
 				$conceptTitle = Title::makeTitleSafe( SMW_NS_CONCEPT, $autocompletionSource );
 				if ( $conceptTitle === null ) {
@@ -877,22 +877,88 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 	}
 
 	/**
-	 * Return a cheap count of autocomplete values for wiki-sourced types via
-	 * SMWQuery::MODE_COUNT (single DB row fetch, no titles loaded).
+	 * Count of a property's *distinct* values, capped at $limit (via
+	 * RequestOptions::$limit, applied as a DB-level LIMIT so this stays cheap
+	 * even for properties with many annotations).
+	 *
+	 * Unlike a MODE_COUNT query on a SomeProperty description, this counts
+	 * distinct values rather than the number of subjects/annotations using
+	 * the property — a property annotated on hundreds of pages can still
+	 * have only a handful of distinct values, and it's the latter that
+	 * determines whether the local-autocomplete threshold is exceeded (#190).
+	 *
+	 * A note on RequestOptions::$limit here, because SMW's own source is
+	 * misleading on this point: getPropertyValues( null, $property, ... )
+	 * (subject = null, "get all values for the given property") goes through
+	 * SemanticDataLookup::fetchSemanticDataFromTable(), which computes
+	 * $isSubject = ( $dataItem instanceof DIWikiPage || $dataItem === null )
+	 * — true here — and that method's DISTINCT handling explicitly skips
+	 * DISTINCT for the $isSubject branch ("Don't use DISTINCT for subject
+	 * related value match", #3531). Reading only that, $limit looks like it
+	 * would cap raw (non-deduplicated) rows, i.e. this cheap count could
+	 * undercount distinct values whenever duplicates sort before all
+	 * distinct values are seen.
+	 *
+	 * Verified experimentally instead of trusting that reading (SMW 7.1.0,
+	 * MW 1.43): seeded a property with 50 annotations of one value and 1 of
+	 * another, then called getPropertyValues( null, $property, RequestOptions
+	 * {limit: N} ) directly. limit=1 → ["V1"], limit=2 → ["V1","V2"], i.e.
+	 * deduplication happens before $limit is applied, regardless of
+	 * annotation order/skew — the DISTINCT-skip noted above evidently
+	 * doesn't apply to this code path in practice (dedup likely happens at a
+	 * different layer, e.g. inside getPropertyValues() itself). If this
+	 * shared helper starts returning wrong counts after an SMW upgrade,
+	 * re-verify this assumption first — don't assume the bug is elsewhere.
+	 *
+	 * @param string $propertyName
+	 * @param int $limit
+	 * @param \SMW\Store|null $store Injectable for testing; defaults to the live SMW store.
+	 * @return int|null Null when SMW is unavailable.
+	 */
+	private static function getDistinctPropertyValueCount( string $propertyName, int $limit, $store = null ): ?int {
+		$store ??= PFUtils::getSMWStore();
+		if ( $store === null ) {
+			return null;
+		}
+		$requestOptions = new \SMW\RequestOptions();
+		// +1 so a value set exactly at $limit isn't mistaken for "more than
+		// $limit"; callers only care whether the count exceeds $limit, not
+		// its exact size once it does.
+		$requestOptions->limit = $limit + 1;
+		return count( self::getSMWPropertyValues( $store, null, $propertyName, $requestOptions ) );
+	}
+
+	/**
+	 * Return a cheap count of autocomplete values for wiki-sourced types.
+	 *
+	 * For 'category'|'namespace'|'concept' this uses a MODE_COUNT query
+	 * (single DB row fetch, no titles loaded). For 'property' it counts
+	 * distinct property values instead (see getDistinctPropertyValueCount()),
+	 * since annotation count and distinct-value count can differ wildly.
 	 *
 	 * Returns null when SMW is unavailable or the count cannot be determined;
 	 * callers must treat null as "always remote".
 	 *
 	 * @param string $autocompleteFieldType
 	 * @param string $autocompletionSource
+	 * @param \SMW\Store|null $store Injectable for testing; defaults to the live SMW store.
 	 * @return int|null
 	 */
-	public static function getSourceCount( string $autocompleteFieldType, string $autocompletionSource ): ?int {
-		$store = PFUtils::getSMWStore();
+	public static function getSourceCount(
+		string $autocompleteFieldType, string $autocompletionSource, $store = null
+	): ?int {
+		global $wgPageFormsMaxLocalAutocompleteValues;
+
+		$store ??= PFUtils::getSMWStore();
 		if ( $store === null ) {
 			return null;
 		}
 		try {
+			if ( $autocompleteFieldType === 'property' ) {
+				return self::getDistinctPropertyValueCount(
+					$autocompletionSource, $wgPageFormsMaxLocalAutocompleteValues, $store
+				);
+			}
 			$desc = self::buildCountDescription( $autocompleteFieldType, $autocompletionSource );
 			if ( $desc === null ) {
 				return null;
