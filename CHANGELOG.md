@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- Fixed a `default=` field value containing a parser function that reads the page name (e.g. `{{#explode:{{PAGENAME}}| |0}}`) resolving to "Badtitle/Parser" instead of the real page name [`d69918aa`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/d69918aa) ([#189](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/189))
+
 ## [2.1.9] - 2026-07-28
 
 ### Changed
