@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ### Fixed
 - Fixed a `default=` field value containing a parser function that reads the page name (e.g. `{{#explode:{{PAGENAME}}| |0}}`) resolving to "Badtitle/Parser" instead of the real page name [`d69918aa`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/d69918aa) ([#189](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/189))
+- Fixed a `tokens`/`combobox` field with `values from property=...` wrongly switching to remote autocompletion (requiring the user to type before seeing any suggestions) whenever the property was annotated on many pages, even if it only had a handful of distinct values — the local-autocomplete threshold was comparing against the number of annotations instead of distinct values [`772152f9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/772152f9) ([#190](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/190))
 
 ## [2.1.9] - 2026-07-28
 
