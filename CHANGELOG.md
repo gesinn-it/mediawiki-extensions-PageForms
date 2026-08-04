@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- `composer.json`: the `phpunit`/`phpunit-coverage` scripts invoked the test runner via `../../tests/phpunit/phpunit.php`, a wrapper MediaWiki core removes starting with 1.44+, breaking test execution once the extension is tested against MW 1.46. Switched to invoking `vendor/bin/phpunit` directly (with a `generatePHPUnitConfig.php` fallback for the root `phpunit.xml`), matching the pattern already used in SemanticResultFormats and KnowledgeGraph
+
 ## [2.1.10] - 2026-07-30
 
 ### Fixed
