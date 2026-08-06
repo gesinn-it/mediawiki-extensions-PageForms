@@ -261,6 +261,73 @@ QUnit.test( 'hideDiv marks contained span/div elements as hiddenByPF', ( assert 
 		'contained span is flagged as hidden by PF for form-submission handling' );
 } );
 
+// MediaWiki's Sanitizer unconditionally maps '_' to the literal string
+// "&#95;" in every HTML attribute value found in raw HTML written directly
+// in wikitext (Sanitizer::fixTagAttributes()), to armor it against further
+// wiki processing. A 'show on select' target div's id="..."/data-origID="..."
+// is exactly such a raw wikitext attribute when a form definition includes
+// a literal wrapper div around a {{{field|...}}} tag - so the *config*
+// (wgPageFormsShowOnSelect, built from the un-mangled PHP value) and the
+// *live DOM attribute* can end up out of sync purely due to this Sanitizer
+// behavior, regardless of the id's naming convention. showDiv/hideDiv must
+// tolerate this by normalizing '&#95;' back to '_' when matching - not by
+// special-casing any particular id prefix.
+QUnit.test(
+	'showIfSelected finds the controlled div even when its id was Sanitizer-escaped (&#95; for _)',
+	( assert ) => {
+		const $container = $( `
+			<div>
+				<select id="input_1" class="pfShowIfSelected" data-input-type="dropdown">
+					<option value="">-</option>
+					<option value="yes">Yes</option>
+				</select>
+				<div id="controlled&amp;#95;div" style="display: none;">
+					<span>Controlled content</span>
+				</div>
+			</div>
+		` ).appendTo( document.body );
+		$container.find( 'select' ).val( 'yes' );
+		stubShowOnSelectConfig( {
+			wgPageFormsShowOnSelect: { input_1: [ [ [ 'yes' ], 'controlled_div' ] ] }
+		} );
+
+		$container.find( 'select' ).showIfSelected( false, true );
+
+		assert.true(
+			$( '[id="controlled&#95;div"]' ).hasClass( 'shownByPF' ),
+			'controlled div is found and marked as shown despite its Sanitizer-escaped id'
+		);
+	}
+);
+
+QUnit.test(
+	'showIfSelected (partOfMultiple) finds the controlled row via a Sanitizer-escaped data-origID',
+	( assert ) => {
+		const $instance = $( `
+			<div class="multipleTemplateInstance multipleTemplate">
+				<select id="input_1" data-origID="input_1" class="pfShowIfSelected" data-input-type="dropdown">
+					<option value="">-</option>
+					<option value="yes">Yes</option>
+				</select>
+				<div id="row-Foo&amp;#95;Bar" data-origID="row-Foo&amp;#95;Bar" style="display: none;">
+					<span>Controlled row content</span>
+				</div>
+			</div>
+		` ).appendTo( document.body );
+		$instance.find( 'select' ).val( 'yes' );
+		stubShowOnSelectConfig( {
+			wgPageFormsShowOnSelect: { input_1: [ [ [ 'yes' ], 'row-Foo_Bar' ] ] }
+		} );
+
+		$instance.find( 'select' ).showIfSelected( true, true );
+
+		assert.true(
+			$instance.find( '[data-origID="row-Foo&#95;Bar"]' ).hasClass( 'shownByPF' ),
+			'controlled row is found and marked as shown despite its Sanitizer-escaped data-origID'
+		);
+	}
+);
+
 function createCheckboxesWithControlledDiv( { checkedValues = [], showOnValue = 'yes' } = {} ) {
 	const $container = $( `
 		<div>

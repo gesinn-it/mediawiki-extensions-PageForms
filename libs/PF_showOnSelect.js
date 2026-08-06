@@ -150,14 +150,43 @@ mw.hook('pf.comboboxChange').add( ( $parentSpan ) => {
  * Functions for handling 'show on select'
  */
 
+// Find element(s) by their data-origID, tolerating MediaWiki's Sanitizer
+// having turned every underscore in the attribute into the literal string
+// "&#95;" - which it always does for a raw id="..." attribute written
+// directly in a form definition's wikitext (Sanitizer::fixTagAttributes()
+// unconditionally escapes '_' this way to protect attribute values from
+// further wiki processing; it has nothing to do with the specific id/class
+// naming pattern used, so this can't be worked around on the PHP side by
+// special-casing PageForms's own "row-..." ids).
+function findByOrigId( $scope, div_id ) {
+	return $scope.find('[data-origID]').filter( function() {
+		return $(this).attr('data-origID').replace( /&#95;/g, '_' ) === div_id;
+	});
+}
+
+// Same as above, but for a plain id="..." attribute (the non-multiple-
+// instance fallback). Tries the fast, exact match first - the id is only
+// mangled when it came from a raw id="..." a form author wrote directly in
+// the form definition's wikitext (see findByOrigId()), so most lookups hit
+// the cheap path.
+function findById( div_id ) {
+	const $exact = $( document.getElementById( div_id ) );
+	if ( $exact.length > 0 ) {
+		return $exact;
+	}
+	return $('[id]').filter( function() {
+		return $(this).attr('id').replace( /&#95;/g, '_' ) === div_id;
+	});
+}
+
 // Display a div that would otherwise be hidden by "show on select".
 function showDiv( div_id, $instanceWrapperDiv, initPage ) {
 	const speed = initPage ? 0 : 'fast';
 	let $elem;
 	if ( $instanceWrapperDiv !== null ) {
-		$elem = $('[data-origID="' + div_id + '"]', $instanceWrapperDiv);
+		$elem = findByOrigId( $instanceWrapperDiv, div_id );
 	} else {
-		$elem = $('#' + div_id);
+		$elem = findById( div_id );
 	}
 
 	$elem
@@ -224,9 +253,9 @@ function hideDiv( div_id, $instanceWrapperDiv, initPage ) {
 	}
 
 	if ( $instanceWrapperDiv !== null ) {
-		$elem = $instanceWrapperDiv.find('[data-origID=' + div_id + ']');
+		$elem = findByOrigId( $instanceWrapperDiv, div_id );
 	} else {
-		$elem = $('#' + div_id);
+		$elem = findById( div_id );
 	}
 
 	// The div this "show on select" entry points to may not exist in the
