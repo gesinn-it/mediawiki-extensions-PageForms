@@ -1,20 +1,19 @@
 <?php
 
 use MediaWiki\Extension\PageForms\FormUtils;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for static utility methods extracted from FormPrinter into FormUtils.
  *
- * These tests are deliberately free of MediaWiki bootstrap so they run fast
- * as plain PHPUnit unit tests.
+ * MediaWikiIntegrationTestCase is required because getMonthNames() calls
+ * wfMessage(), which needs MediaWikiServices (see 7a6b73e5).
  *
  * @group PF
  * @covers \MediaWiki\Extension\PageForms\FormUtils::getStringFromPassedInArray
  * @covers \MediaWiki\Extension\PageForms\FormUtils::displayLoadingImage
  * @covers \MediaWiki\Extension\PageForms\FormUtils::generateUUID
  */
-class FormUtilsStaticTest extends TestCase {
+class FormUtilsStaticTest extends MediaWikiIntegrationTestCase {
 
 	// -----------------------------------------------------------------------
 	// getStringFromPassedInArray
@@ -69,6 +68,9 @@ class FormUtilsStaticTest extends TestCase {
 	 * Year + month (non-American) returns "MonthName Year".
 	 */
 	public function testGetStringFromPassedInArrayYearMonth() {
+		// Month name comes from getMonthNames() via wfMessage()->inContentLanguage(),
+		// so pin the content language rather than relying on the wiki's configured one.
+		$this->setContentLang( 'en' );
 		$GLOBALS['wgAmericanDates'] = false;
 		$value = [ 'year' => '2024', 'month' => '3', 'day' => '' ];
 		$result = FormUtils::getStringFromPassedInArray( $value, ',' );

@@ -6,12 +6,11 @@ use MediaWiki\Extension\PageForms\CalendarHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWiki\Extension\PageForms\TemplateInForm;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @covers MediaWiki\Extension\PageForms\CalendarHtmlBuilder
  */
-class CalendarHtmlBuilderTest extends TestCase {
+class CalendarHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 
 	private CalendarHtmlBuilder $builder;
 

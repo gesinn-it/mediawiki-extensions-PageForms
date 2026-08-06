@@ -7,12 +7,11 @@ use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\SpreadsheetHtmlBuilder;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWiki\Extension\PageForms\TemplateInForm;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @covers MediaWiki\Extension\PageForms\SpreadsheetHtmlBuilder
  */
-class SpreadsheetHtmlBuilderTest extends TestCase {
+class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 
 	private SpreadsheetHtmlBuilder $builder;
 

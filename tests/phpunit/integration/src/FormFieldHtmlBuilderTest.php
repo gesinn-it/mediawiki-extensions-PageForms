@@ -5,14 +5,13 @@ declare( strict_types=1 );
 use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
 use MediaWiki\Extension\PageForms\TemplateField;
-use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/StubFormInput.php';
 
 /**
  * @covers MediaWiki\Extension\PageForms\FormFieldHtmlBuilder
  */
-class FormFieldHtmlBuilderTest extends TestCase {
+class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * $form_field in these tests is always a full FormField mock (see

@@ -4,12 +4,11 @@ declare( strict_types=1 );
 
 use MediaWiki\Extension\PageForms\MultipleTemplateHtmlBuilder;
 use MediaWiki\Extension\PageForms\TemplateInForm;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @covers MediaWiki\Extension\PageForms\MultipleTemplateHtmlBuilder
  */
-class MultipleTemplateHtmlBuilderTest extends TestCase {
+class MultipleTemplateHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 
 	private MultipleTemplateHtmlBuilder $builder;
 
