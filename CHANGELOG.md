@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ### Fixed
 - `composer.json`: the `phpunit`/`phpunit-coverage` scripts invoked the test runner via `../../tests/phpunit/phpunit.php`, a wrapper MediaWiki core removes starting with 1.44+, breaking test execution once the extension is tested against MW 1.46. Switched to invoking `vendor/bin/phpunit` directly (with a `generatePHPUnitConfig.php` fallback for the root `phpunit.xml`), matching the pattern already used in SemanticResultFormats and KnowledgeGraph
 - Fixed a disabled (read-only) `text`-type field bound to a Page-type value showing the raw stored page name (e.g. "Requirement:Beeef912-c494-48a3-9dc2-b9b2b97e5b9e") instead of its display title [`5b88b618`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/5b88b618)
+- Fixed `NoSuchServiceException` under `vendor/bin/phpunit` on MW 1.39 for `CalendarHtmlBuilderTest`, `FormFieldHtmlBuilderTest`, `FormUtilsStaticTest`, `MultipleTemplateHtmlBuilderTest`, and `SpreadsheetHtmlBuilderTest` — completing the move to `MediaWikiIntegrationTestCase` started in [`7a6b73e5`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/7a6b73e5) [`aacb65d6`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/aacb65d6)
 
 ## [2.1.10] - 2026-07-30
 
