@@ -32,6 +32,37 @@ class PFUtils {
 	}
 
 	/**
+	 * Ensures a Parser is safe to use for parsing/output-reading calls that
+	 * touch its typed properties ($mOutput, $mStripState, $mOutputType, ...),
+	 * initializing it via clearState() if it hasn't been already.
+	 *
+	 * The global Parser singleton returned by getParser() is not guaranteed
+	 * to have gone through clearState() yet at any given point in a request -
+	 * whether it has depends on what other code happened to touch it earlier,
+	 * which varies by call ordering (e.g. by SMW query result format). Before
+	 * MW 1.42, accessing an uninitialized typed property like $mOutput just
+	 * returned null; since MW 1.42 it throws a fatal error instead. A freshly
+	 * constructed Parser (e.g. via ParserFactory::create()) is in the same
+	 * uninitialized state and needs the same treatment.
+	 *
+	 * Idempotent: if the parser is already initialized (getOutput() is set),
+	 * calling this again does not reset its accumulated state.
+	 *
+	 * @param Parser $parser
+	 * @param User $user
+	 * @return Parser The same $parser instance, now safe to use
+	 */
+	public static function ensureParserInitialized( Parser $parser, User $user ): Parser {
+		if ( !$parser->getOptions() ) {
+			$parser->setOptions( ParserOptions::newFromUser( $user ) );
+		}
+		if ( !$parser->getOutput() ) {
+			$parser->clearState();
+		}
+		return $parser;
+	}
+
+	/**
 	 * Creates a link to a special page, using that page's top-level description as the link text.
 	 * @param LinkRenderer $linkRenderer
 	 * @param string $specialPageName

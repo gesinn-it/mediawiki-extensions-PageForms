@@ -96,11 +96,8 @@ class PFRunQuery extends IncludableSpecialPage {
 		if ( $form_submitted ) {
 			// @TODO - fix RunQuery's parsing so that this check
 			// isn't needed.
-			if ( PFUtils::getParser()->getOutput() == null ) {
-				$headItems = [];
-			} else {
-				$headItems = PFUtils::getParser()->getOutput()->getHeadItems();
-			}
+			$parser = PFUtils::ensureParserInitialized( PFUtils::getParser(), $user );
+			$headItems = $parser->getOutput()->getHeadItems();
 			foreach ( $headItems as $key => $item ) {
 				$out->addHeadItem( $key, "\t\t" . $item . "\n" );
 			}
@@ -108,7 +105,7 @@ class PFRunQuery extends IncludableSpecialPage {
 			// Parser::$mOptions was deprecated in MW 1.35; pass options
 			// directly as a local variable instead of accessing the property.
 			$parserOptions = ParserOptions::newFromUser( $user );
-			$resultsParserOutput = PFUtils::getParser()->parse(
+			$resultsParserOutput = $parser->parse(
 				$data_text, $this->getPageTitle(), $parserOptions, true, false
 			);
 			$resultsText = $resultsParserOutput->getText();
@@ -192,7 +189,12 @@ END;
 
 		// Now write everything to the screen.
 		$out->addHTML( $text );
-		PFUtils::addFormRLModules( $embedded ? PFUtils::getParser() : null );
+		// A form with no {{{field|...}}} tags (e.g. only a {{{standard input}}})
+		// never runs FormField::newFromFormFieldTag(), which is what otherwise
+		// initializes the global parser during field rendering - ensure it here
+		// too, since addFormRLModules() reads its ParserOutput.
+		$rlModulesParser = $embedded ? PFUtils::ensureParserInitialized( PFUtils::getParser(), $user ) : null;
+		PFUtils::addFormRLModules( $rlModulesParser );
 		if ( !$embedded ) {
 			// Use the ParserOutput returned by formHTML() rather than the global
 			// parser's, since FormField::clearState() resets the latter during

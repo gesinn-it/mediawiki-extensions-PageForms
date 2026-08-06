@@ -59,7 +59,11 @@ class PFSFSelectAPI extends ApiBase {
 		$parser = MediaWikiServices::getInstance()->getParserFactory()->create();
 		$parser->setTitle( Title::newFromText( 'NO TITLE' ) );
 		$parser->setOptions( new ParserOptions( $this->getUser() ) );
-		$parser->resetOutput();
+		// A freshly constructed Parser needs clearState(), not just
+		// resetOutput() - PFSFSelectField::replaceVariables() below calls
+		// preprocessToDom(), which accesses the typed $mStripState property
+		// that only clearState() initializes.
+		$parser->clearState();
 		return $parser;
 	}
 }

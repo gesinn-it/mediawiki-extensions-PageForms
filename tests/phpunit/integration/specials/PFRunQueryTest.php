@@ -78,6 +78,62 @@ class PFRunQueryTest extends SpecialPageTestBase {
 	}
 
 	/**
+	 * The global Parser's $mOutput is only populated once something has
+	 * called Parser::clearState() (directly, or via a first parse()). If
+	 * nothing did so yet this request, PFRunQuery::printPage() must not
+	 * assume it's already there before calling parse() with
+	 * $clearState = false, since MW 1.42+ made Parser::$mOutput a typed
+	 * property - accessing it uninitialized now throws instead of just
+	 * being deprecated.
+	 *
+	 * @see https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/191
+	 */
+	public function testSubmitFormQueryWithUninitializedGlobalParserDoesNotThrow() {
+		$formTitle = Title::newFromText( 'ValidForm', PF_NS_FORM );
+		$this->insertPage( $formTitle, 'Form content here' );
+
+		MediaWikiServices::getInstance()->resetServiceForTesting( 'Parser' );
+
+		$request = new FauxRequest( [
+			'form' => 'ValidForm',
+			'_run' => 'true',
+			'wpTextbox1' => 'Some content for query',
+		] );
+
+		[ $html ] = $this->executeSpecialPage( 'ValidForm', $request );
+
+		$this->assertStringContainsString( 'Some content for query', $html );
+	}
+
+	/**
+	 * An embedded form with no {{{field|...}}} tags never runs
+	 * FormField::newFromFormFieldTag(), which is what otherwise initializes
+	 * the global parser during field rendering. printPage() must not assume
+	 * the global parser is already initialized before reading its
+	 * ParserOutput via addFormRLModules() - same root cause as issue #191,
+	 * different trigger.
+	 *
+	 * @see https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/191
+	 */
+	public function testEmbeddedFormWithNoFieldsAndUninitializedGlobalParserDoesNotThrow() {
+		$formTitle = Title::newFromText( 'NoFieldsForm', PF_NS_FORM );
+		$this->insertPage( $formTitle, "PFTestRunQueryNoFieldsMarker01\n"
+			. "{{{standard input|save}}}" );
+
+		MediaWikiServices::getInstance()->resetServiceForTesting( 'Parser' );
+
+		$page = $this->newSpecialPage();
+		$context = new DerivativeContext( RequestContext::getMain() );
+		$context->setRequest( new FauxRequest( [ 'form' => 'NoFieldsForm' ] ) );
+		$context->setOutput( new OutputPage( $context ) );
+		$page->setContext( $context );
+
+		$page->printPage( 'NoFieldsForm', true );
+
+		$this->assertStringContainsString( 'PFTestRunQueryNoFieldsMarker01', $context->getOutput()->getHTML() );
+	}
+
+	/**
 	 * ResourceLoader modules registered by parser tag hooks (e.g. ext.headertabs
 	 * from <headertabs />) while rendering the form definition must reach the
 	 * real OutputPage, not just the internal parser used by formHTML().
