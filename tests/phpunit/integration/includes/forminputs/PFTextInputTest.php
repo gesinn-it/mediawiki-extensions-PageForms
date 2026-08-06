@@ -203,4 +203,76 @@ class PFTextInputTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertStringContainsString( 'value="alpha; beta"', $html );
 	}
+
+	// ---- DisplayTitle resolution for disabled Page-type fields ----
+
+	public function testGetHtmlDisabledPageValueShowsDisplayTitleNotCanonicalValue(): void {
+		$html = $this->getHtml(
+			'Requirement:PFTITestReqUuid01',
+			false,
+			true,
+			[ 'possible_values' => [ 'Requirement:PFTITestReqUuid01' => 'PFTI Test Requirement Title 01' ] ]
+		);
+
+		$this->assertStringContainsString( 'value="PFTI Test Requirement Title 01"', $html );
+		$this->assertStringNotContainsString( 'value="Requirement:PFTITestReqUuid01"', $html );
+	}
+
+	public function testGetHtmlEnabledPageValueKeepsCanonicalValueForSubmission(): void {
+		$html = $this->getHtml(
+			'Requirement:PFTITestReqUuid01',
+			false,
+			false,
+			[ 'possible_values' => [ 'Requirement:PFTITestReqUuid01' => 'PFTI Test Requirement Title 01' ] ]
+		);
+
+		$this->assertStringContainsString( 'value="Requirement:PFTITestReqUuid01"', $html );
+	}
+
+	public function testGetHtmlDisabledPageValueOutsidePossibleValuesFallsBackToBareTitle(): void {
+		$html = $this->getHtml(
+			'Requirement:PFTITestReqUuidNotInList',
+			false,
+			true,
+			[ 'possible_values' => [ 'Requirement:PFTITestReqUuid01' => 'PFTI Test Requirement Title 01' ] ]
+		);
+
+		// No page named "Requirement:PFTITestReqUuidNotInList" exists in this test's
+		// DB, so it has no DisplayTitle page property to fall back to - the raw
+		// stored value is kept as-is (see PFValuesUtils::addDisplayTitlesForPageValues()).
+		$this->assertStringContainsString( 'value="Requirement:PFTITestReqUuidNotInList"', $html );
+	}
+
+	public function testGetHtmlDisabledListOfPageValuesShowsDisplayTitlesForEach(): void {
+		$html = PFTextInput::getHTML(
+			'Requirement:PFTITestReqUuid01@@Requirement:PFTITestReqUuid02',
+			'PFTIField01',
+			false,
+			true,
+			[
+				'is_list' => true,
+				'delimiter' => '@@',
+				'possible_values' => [
+					'Requirement:PFTITestReqUuid01' => 'PFTI Test Requirement Title 01',
+					'Requirement:PFTITestReqUuid02' => 'PFTI Test Requirement Title 02',
+				],
+			]
+		);
+
+		$this->assertStringContainsString(
+			'value="PFTI Test Requirement Title 01@@ PFTI Test Requirement Title 02"',
+			$html
+		);
+	}
+
+	public function testGetHtmlDisabledNonPageValueIsUnaffectedByNumericPossibleValues(): void {
+		$html = $this->getHtml(
+			'PFTITestPlainValue01',
+			false,
+			true,
+			[ 'possible_values' => [ 'PFTITestPlainValue01', 'PFTITestPlainValue02' ] ]
+		);
+
+		$this->assertStringContainsString( 'value="PFTITestPlainValue01"', $html );
+	}
 }
