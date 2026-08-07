@@ -4,6 +4,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\PossibleValueList;
+
 /**
  * @ingroup PFFormInput
  */
@@ -283,7 +285,17 @@ class PFTextAreaInput extends PFFormInput {
 	public function getHtmlText(): string {
 		$textarea_attrs = $this->getTextAreaAttributes();
 
-		$text = Html::element( 'textarea', $textarea_attrs, $this->mCurrentValue );
+		$displayValue = $this->mCurrentValue;
+		if ( $this->mIsDisabled && $this->mCurrentValue !== null ) {
+			// This input type has no JS-driven widget of its own, so it never
+			// gets a chance to swap the displayed value for the resolved
+			// DisplayTitle client-side. Do that swap here instead, for display
+			// only - a disabled field does not submit this value on save.
+			$displayValue = PossibleValueList::resolveDisabledDisplayValue(
+				$this->mCurrentValue, null, $this->mOtherArgs
+			);
+		}
+		$text = Html::element( 'textarea', $textarea_attrs, $displayValue );
 		$spanClass = 'inputSpan';
 		if ( $this->mInputName == 'pf_free_text' ) {
 			$spanClass .= ' freeText';

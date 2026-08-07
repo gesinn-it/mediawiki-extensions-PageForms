@@ -161,6 +161,11 @@ class PFComboBoxInput extends PFFormInput {
 				// (DisplayTitle or bare title) instead of the raw stored value.
 				$optionLabel = $possibleValueList->resolveMissingLabel( $cur_value );
 			}
+		} elseif ( $is_disabled ) {
+			// No 'values from ...' list is configured for this field at all (e.g. a
+			// plain Page-type relation field) - there is no JS widget running to
+			// resolve the DisplayTitle client-side while disabled, so do it here.
+			$optionLabel = PossibleValueList::resolveDisabledDisplayValue( $cur_value, null, $other_args );
 		}
 		$innerDropdown .= Html::element( 'option', $optionAttrs, $optionLabel );
 

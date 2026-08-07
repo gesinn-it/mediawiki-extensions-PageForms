@@ -261,7 +261,7 @@ class PFTextInput extends PFFormInput {
 			// disabled, it does not submit this value on save -
 			// FormField::additionalHTMLForInput() emits a separate hidden
 			// field carrying the original (canonical) $cur_value for that.
-			$displayValue = self::resolveDisplayValue( $cur_value, $delimiter, $other_args );
+			$displayValue = PossibleValueList::resolveDisabledDisplayValue( $cur_value, $delimiter, $other_args );
 		}
 		$text = Html::input( $input_name, $displayValue, 'text', $inputAttrs );
 
@@ -284,53 +284,6 @@ class PFTextInput extends PFFormInput {
 		}
 		$text = Html::rawElement( 'span', [ 'class' => $spanClass, 'data-input-type' => 'text' ], $text );
 		return $text;
-	}
-
-	/**
-	 * Resolves $cur_value's canonical page value(s) to their DisplayTitle,
-	 * for display purposes only. Used for disabled Page-type fields (see
-	 * getHTML()), which have no JS-driven widget to do this substitution
-	 * client-side the way combobox/tokens do.
-	 *
-	 * @param string $cur_value
-	 * @param string|null $delimiter Non-null for a list field.
-	 * @param array $other_args
-	 * @return string
-	 */
-	private static function resolveDisplayValue( $cur_value, $delimiter, array $other_args ) {
-		$possibleValues = $other_args['possible_values'] ?? null;
-		if ( $cur_value === '' || !is_array( $possibleValues ) ||
-			$possibleValues === [] || !is_string( array_key_first( $possibleValues ) )
-		) {
-			return $cur_value;
-		}
-
-		$possibleValueList = new PossibleValueList( $possibleValues, $other_args['value_labels'] ?? null );
-		if ( $delimiter === null ) {
-			return self::resolveLabelFor( $cur_value, $possibleValueList );
-		}
-
-		$labels = [];
-		foreach ( explode( $delimiter, $cur_value ) as $rawValue ) {
-			$labels[] = self::resolveLabelFor( trim( $rawValue ), $possibleValueList );
-		}
-		return implode( "$delimiter ", $labels );
-	}
-
-	/**
-	 * @param string $rawValue
-	 * @param PossibleValueList $possibleValueList
-	 * @return string
-	 */
-	private static function resolveLabelFor( $rawValue, PossibleValueList $possibleValueList ) {
-		$match = $possibleValueList->find( $rawValue );
-		if ( $match !== null ) {
-			return $match->getLabel();
-		}
-		// $rawValue sorted outside the truncated 'values from ...' fetch
-		// window - fall back to a resolved clean label (DisplayTitle or
-		// bare title) instead of the raw stored value.
-		return $possibleValueList->resolveMissingLabel( $rawValue );
 	}
 
 	public static function getParameters() {

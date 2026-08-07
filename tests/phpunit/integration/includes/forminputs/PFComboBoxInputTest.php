@@ -132,6 +132,35 @@ class PFComboBoxInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringNotContainsString( '>' . $curValue . '<', $html );
 	}
 
+	/**
+	 * Regression coverage: a plain Page-type field with no 'values from ...'
+	 * clause at all (possible_values stays empty) must still resolve the
+	 * current value's DisplayTitle - mirroring PFTextInput's fallback for
+	 * the same scenario (see PFTextInputTest::
+	 * testGetHtmlDisabledPageValueShowsDisplayTitleNotCanonicalValue()).
+	 * Previously the canonical-value override block was skipped entirely
+	 * whenever possible_values was empty, regardless of property_type.
+	 */
+	public function testGetHtmlUsesDisplayTitleForPageValueWithNoValuesFromList(): void {
+		$this->overrideConfigValue( 'RestrictDisplayTitle', false );
+
+		$title = Title::makeTitle( NS_CATEGORY, 'PFComboNoValuesFromDisplayTitle' );
+		$page = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
+		$this->editPage( $page, '{{DISPLAYTITLE:No Values From Display Title}}' );
+		DeferredUpdates::doUpdates();
+
+		$curValue = 'Category:PFComboNoValuesFromDisplayTitle';
+
+		$html = PFComboBoxInput::getHTML( $curValue, 'Field[Name]', false, true, [
+			'possible_values' => [],
+			'property_type' => '_wpg',
+		] );
+
+		$this->assertStringContainsString( 'value="' . $curValue . '"', $html );
+		$this->assertStringContainsString( 'No Values From Display Title', $html );
+		$this->assertStringNotContainsString( '>' . $curValue . '<', $html );
+	}
+
 	public function testGetHtmlMandatoryAddsMandatoryFieldSpanClassToWrapper(): void {
 		$html = PFComboBoxInput::getHTML( '', 'TestField', true, false, [ 'possible_values' => [] ] );
 

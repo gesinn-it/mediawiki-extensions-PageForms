@@ -142,4 +142,63 @@ class PossibleValueList {
 		$displayTitles = PFValuesUtils::addDisplayTitlesForPageValues( [ $rawValue ] );
 		return $displayTitles[$rawValue] ?? $pageValue->getCanonicalString();
 	}
+
+	/**
+	 * Resolves $cur_value to its display label(s) for a disabled form input
+	 * that has no JS-driven widget of its own to do this substitution
+	 * client-side (unlike combobox/tokens) - e.g. a plain text/textarea
+	 * input. Used directly by such input classes' getHTML()/getHtmlText()
+	 * instead of duplicating the possible_values/property_type handling.
+	 *
+	 * Resolves via the field's 'possible_values' map when one is configured
+	 * (a 'values from ...' list); otherwise, for a Page-type (_wpg)
+	 * property, falls back to a direct DisplayTitle lookup on $cur_value -
+	 * covering fields with no 'values from ...' clause at all. Anything
+	 * else (a plain string field, or a Page-type field with no match and no
+	 * resolvable page) is returned unchanged.
+	 *
+	 * @param string|null $cur_value
+	 * @param string|null $delimiter Non-null for a list field.
+	 * @param array $other_args Must contain 'possible_values' and/or
+	 *  'property_type' to have any effect.
+	 * @return string
+	 */
+	public static function resolveDisabledDisplayValue( $cur_value, $delimiter, array $other_args ) {
+		if ( $cur_value === null || $cur_value === '' ) {
+			return (string)$cur_value;
+		}
+
+		$possibleValues = $other_args['possible_values'] ?? null;
+		if ( !is_array( $possibleValues ) || $possibleValues === [] ||
+			!is_string( array_key_first( $possibleValues ) )
+		) {
+			if ( ( $other_args['property_type'] ?? null ) !== '_wpg' ) {
+				return $cur_value;
+			}
+			$possibleValues = [];
+		}
+
+		$possibleValueList = new self( $possibleValues, $other_args['value_labels'] ?? null );
+		if ( $delimiter === null ) {
+			return self::resolveLabelForValue( $cur_value, $possibleValueList );
+		}
+
+		$labels = [];
+		foreach ( explode( $delimiter, $cur_value ) as $rawValue ) {
+			$labels[] = self::resolveLabelForValue( trim( $rawValue ), $possibleValueList );
+		}
+		return implode( "$delimiter ", $labels );
+	}
+
+	private static function resolveLabelForValue( string $rawValue, self $possibleValueList ): string {
+		$match = $possibleValueList->find( $rawValue );
+		if ( $match !== null ) {
+			return $match->getLabel();
+		}
+		// $rawValue sorted outside the truncated 'values from ...' fetch
+		// window (or there was no 'values from ...' list at all) - fall back
+		// to a resolved clean label (DisplayTitle or bare title) instead of
+		// the raw stored value.
+		return $possibleValueList->resolveMissingLabel( $rawValue );
+	}
 }

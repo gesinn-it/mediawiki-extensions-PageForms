@@ -102,6 +102,40 @@ class PFTextAreaInputTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'disabled', $html );
 	}
 
+	// ---- DisplayTitle resolution for disabled Page-type fields ----
+
+	/**
+	 * Regression coverage: a disabled textarea bound to a Page-type (_wpg)
+	 * property must show the page's DisplayTitle instead of the raw stored
+	 * page name - mirroring PFTextInput's fix for the same scenario (see
+	 * PFTextInputTest::testGetHtmlDisabledPageValueShowsDisplayTitleNotCanonicalValue()).
+	 * This input type has no JS-driven widget of its own and never
+	 * attempted this resolution.
+	 */
+	public function testGetHtmlDisabledPageValueShowsDisplayTitleNotCanonicalValue(): void {
+		$this->overrideConfigValue( 'RestrictDisplayTitle', false );
+
+		$title = Title::makeTitle( NS_CATEGORY, 'PFTextAreaDisplayTitleFallback' );
+		$page = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
+		$this->editPage( $page, '{{DISPLAYTITLE:TextArea Fallback Display Title}}' );
+		DeferredUpdates::doUpdates();
+
+		$curValue = 'Category:PFTextAreaDisplayTitleFallback';
+
+		$html = $this->getHtml( $curValue, false, true, [ 'property_type' => '_wpg' ] );
+
+		$this->assertStringContainsString( '>TextArea Fallback Display Title</textarea>', $html );
+		$this->assertStringNotContainsString( '>' . $curValue . '</textarea>', $html );
+	}
+
+	public function testGetHtmlEnabledPageValueKeepsCanonicalValueForSubmission(): void {
+		$curValue = 'Category:PFTextAreaEnabledKeepsCanonical';
+
+		$html = $this->getHtml( $curValue, false, false, [ 'property_type' => '_wpg' ] );
+
+		$this->assertStringContainsString( '>' . $curValue . '</textarea>', $html );
+	}
+
 	public function testGetHtmlPlaceholderAttribute(): void {
 		$html = $this->getHtml( '', false, false, [ 'placeholder' => 'PFTAEnterText01' ] );
 
