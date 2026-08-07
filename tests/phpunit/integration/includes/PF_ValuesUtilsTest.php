@@ -524,7 +524,7 @@ class PFValuesUtilsTest extends TestCase {
 		$payload = 'nomatch"@en . } UNION { BIND("INJECTED-MARKER" AS ?valueLabel) } #';
 		$query = urlencode( 'P31=' . $payload );
 
-		$result = PFValuesUtils::getAllValuesFromWikidata( $query );
+		$result = $this->callWikidataOrSkip( $query );
 
 		$this->assertIsArray( $result );
 		$this->assertNotContains(
@@ -548,7 +548,7 @@ class PFValuesUtilsTest extends TestCase {
 		$query = urlencode( 'P31=Q6256' );
 		$substringPayload = 'x")) } UNION { BIND("INJECTED-MARKER" AS ?valueLabel) } #';
 
-		$result = PFValuesUtils::getAllValuesFromWikidata( $query, $substringPayload );
+		$result = $this->callWikidataOrSkip( $query, $substringPayload );
 
 		$this->assertIsArray( $result );
 		$this->assertNotContains( 'INJECTED-MARKER', $result );
@@ -567,7 +567,7 @@ class PFValuesUtilsTest extends TestCase {
 		// wdt:P31 wd:Q6256 = "instance of: country" - Germany (Q183) is one match.
 		$query = urlencode( 'P31=Q6256' );
 
-		$result = PFValuesUtils::getAllValuesFromWikidata( $query );
+		$result = $this->callWikidataOrSkip( $query );
 
 		$this->assertIsArray( $result );
 		$this->assertContains( 'Germany', $result );
@@ -583,6 +583,34 @@ class PFValuesUtilsTest extends TestCase {
 			$this->markTestSkipped( 'query.wikidata.org is not reachable from this environment' );
 		}
 		fclose( $reachable );
+	}
+
+	/**
+	 * Calls the live query.wikidata.org endpoint, treating any HTTP-level
+	 * failure (e.g. 429 Too Many Requests, a timeout, or any other
+	 * file_get_contents() failure inside getAllValuesFromWikidata()) as a
+	 * skip rather than a test error - reachability alone (see
+	 * skipIfWikidataUnreachable()) does not guarantee the public endpoint
+	 * will actually answer the request, and this is a live third-party
+	 * service this suite does not control.
+	 *
+	 * @param string $query
+	 * @param string|null $substring
+	 * @return string[]
+	 */
+	private function callWikidataOrSkip( string $query, ?string $substring = null ): array {
+		$error = null;
+		set_error_handler( static function ( $errno, $errstr ) use ( &$error ) {
+			$error = $errstr;
+			return true;
+		}, E_WARNING );
+		$result = PFValuesUtils::getAllValuesFromWikidata( $query, $substring );
+		restore_error_handler();
+
+		if ( $error !== null ) {
+			$this->markTestSkipped( "query.wikidata.org request failed: $error" );
+		}
+		return $result;
 	}
 
 	/**
