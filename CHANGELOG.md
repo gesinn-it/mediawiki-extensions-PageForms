@@ -6,6 +6,8 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.1.11] - 2026-08-07
+
 ### Added
 - `PFUtils::ensureParserInitialized()`: central helper that initializes a `Parser` (via `setOptions()`/`clearState()`) only if it hasn't been already, replacing several independently-written inline guards against the same MW 1.42+ typed-property problem described below
 
@@ -263,7 +265,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.10...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.11...HEAD
+[2.1.11]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.10...2.1.11
 [2.1.10]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.9...2.1.10
 [2.1.9]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.8...2.1.9
 [2.1.8]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.7...2.1.8
