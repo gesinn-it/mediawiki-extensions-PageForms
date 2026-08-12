@@ -846,12 +846,37 @@ class FormField {
 		$templateName = $this->mFieldArgs['mapping template'];
 		$title = Title::makeTitleSafe( NS_TEMPLATE, $templateName );
 		$templateExists = $title->exists();
+		// The global Parser singleton is not guaranteed to have gone through
+		// clearState() yet at this point in the request - e.g. on MW 1.43+,
+		// FormPrinter::createFreshParser() builds field HTML with its own
+		// ParserFactory-created Parser instance instead of this singleton, so
+		// nothing else may have initialized it. Parser::$mStripState is a
+		// typed property since MW 1.42, so recursiveTagParse() below would
+		// throw a fatal error instead of just being deprecated.
+		$parser = PFUtils::ensureParserInitialized(
+			PFUtils::getParser(), RequestContext::getMain()->getUser()
+		);
+		// The singleton may also have been left in OT_WIKI mode (and/or
+		// untitled) by other code that used it earlier this request without
+		// resetting it - e.g. PFAutoeditAPI::prepareAction() calls
+		// startExternalParse( null, ..., Parser::OT_WIKI ) on this same
+		// singleton while processing the form submission/preload that
+		// precedes rendering these fields. In OT_WIKI mode,
+		// braceSubstitution() deliberately leaves "{{templateName|value}}"
+		// as literal wikitext instead of expanding it - recursiveTagParse()
+		// below would silently return the raw markup unchanged, with no
+		// error. Reset unconditionally (ensureParserInitialized() only acts
+		// when uninitialized, which this parser already isn't).
+		$parser->setOutputType( Parser::OT_HTML );
+		if ( $parser->getTitle()->isSpecial( 'Badtitle' ) ) {
+			$parser->setTitle( RequestContext::getMain()->getTitle() );
+		}
 		foreach ( $this->mPossibleValues as $index => $value ) {
 			if ( $this->mUseDisplayTitle ) {
 				$value = $index;
 			}
 			if ( $templateExists ) {
-				$label = trim( PFUtils::getParser()->recursiveTagParse( '{{' . $templateName .
+				$label = trim( $parser->recursiveTagParse( '{{' . $templateName .
 					'|' . $value . '}}' ) );
 				if ( $label == '' ) {
 					$labels[$value] = $value;

@@ -6,7 +6,10 @@ namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
 use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\TemplateField;
+use MediaWiki\MediaWikiServices;
 use MediaWikiIntegrationTestCase;
+use Parser;
+use ParserOptions;
 use ReflectionClass;
 
 /**
@@ -170,6 +173,41 @@ class FormFieldMappingTest extends MediaWikiIntegrationTestCase {
 		// 'DE' is a storage key, not a label. array_search('DE', ['DE' => 'PFTestLabel'])
 		// finds nothing → identity fallback → 'DE' returned unchanged.
 		$this->assertSame( 'DE', $field->labelToValue( 'DE' ) );
+	}
+
+	/**
+	 * The global Parser singleton returned by PFUtils::getParser() can be left
+	 * in OT_WIKI mode by other code that used it earlier this request without
+	 * resetting it - e.g. PFAutoeditAPI::prepareAction() calls
+	 * startExternalParse( null, ..., Parser::OT_WIKI ) on this same singleton
+	 * while processing a form submission/preload, which runs before these
+	 * fields are rendered on the resulting edit form. In OT_WIKI mode,
+	 * braceSubstitution() deliberately leaves "{{TemplateName|value}}" as
+	 * literal wikitext instead of expanding it - recursiveTagParse() then
+	 * returns the raw markup unchanged, with no error, instead of the
+	 * template's actual output.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormField::setValuesWithMappingTemplate
+	 */
+	public function testSetValuesWithMappingTemplateWorksAfterParserLeftInOtWikiMode(): void {
+		$templateName = 'PFTestMappingTplOtWiki01';
+		$this->editPage(
+			"Template:$templateName",
+			'PFTestLabel'
+		);
+
+		// Simulate PFAutoeditAPI::prepareAction() having used the global
+		// singleton earlier this request and left it in OT_WIKI mode.
+		$parser = MediaWikiServices::getInstance()->getParser();
+		$parser->startExternalParse( null, ParserOptions::newFromAnon(), Parser::OT_WIKI );
+
+		$field = $this->makeFieldForMappingTemplate( $templateName, [ 'DE' ] );
+		$field->setValuesWithMappingTemplate();
+
+		$this->assertSame(
+			[ 'DE' => 'PFTestLabel' ],
+			$field->getPossibleValues()
+		);
 	}
 
 	// -------------------------------------------------------------------------

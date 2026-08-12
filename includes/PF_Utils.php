@@ -34,7 +34,9 @@ class PFUtils {
 	/**
 	 * Ensures a Parser is safe to use for parsing/output-reading calls that
 	 * touch its typed properties ($mOutput, $mStripState, $mOutputType, ...),
-	 * initializing it via clearState() if it hasn't been already.
+	 * initializing it via clearState() (and setOutputType(), for calls that
+	 * go through braceSubstitution(), e.g. recursiveTagParse()) if it hasn't
+	 * been already.
 	 *
 	 * The global Parser singleton returned by getParser() is not guaranteed
 	 * to have gone through clearState() yet at any given point in a request -
@@ -43,7 +45,9 @@ class PFUtils {
 	 * MW 1.42, accessing an uninitialized typed property like $mOutput just
 	 * returned null; since MW 1.42 it throws a fatal error instead. A freshly
 	 * constructed Parser (e.g. via ParserFactory::create()) is in the same
-	 * uninitialized state and needs the same treatment.
+	 * uninitialized state and needs the same treatment. clearState() itself
+	 * does not set $mOutputType/$ot - only setOutputType() does - so a call
+	 * path reaching braceSubstitution() (template expansion) needs both.
 	 *
 	 * Idempotent: if the parser is already initialized (getOutput() is set),
 	 * calling this again does not reset its accumulated state.
@@ -58,6 +62,7 @@ class PFUtils {
 		}
 		if ( !$parser->getOutput() ) {
 			$parser->clearState();
+			$parser->setOutputType( Parser::OT_HTML );
 		}
 		return $parser;
 	}
