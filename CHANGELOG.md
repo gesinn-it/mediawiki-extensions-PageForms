@@ -6,11 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
-### Added
-- `PFUtils::ensureParserReadyForTagParse()`: central helper for call sites that need the global `Parser` singleton to actually expand `{{...}}` constructs (templates, parser functions, magic words) via `recursiveTagParse()`/`replaceVariables()`-style calls. Builds on `ensureParserInitialized()` but additionally resets the output type (and title, if it's the `Badtitle` placeholder) unconditionally, since the singleton can already be "initialized" yet left in the wrong mode by unrelated earlier code this request
+## [2.1.12] - 2026-08-12
 
 ### Fixed
-- A `mapping template=` field (e.g. a checkbox/radiobutton/dropdown mapped through a template like `MT Int`) showed the raw, unexpanded template call (e.g. `{{MT Int|no}}`) instead of its resolved label, and an `SF_Select` field's `function=` argument (e.g. a parser function call) showed the same raw, unexpanded markup. Both read the global `Parser` singleton via `PFUtils::getParser()`/`MediaWikiServices::getInstance()->getParser()`, which can be left in `Parser::OT_WIKI` output-type mode (and/or untitled) by other code that used it earlier in the same request without resetting it — e.g. `PFAutoeditAPI::prepareAction()` calls `startExternalParse( null, ..., Parser::OT_WIKI )` on this same singleton while processing the form submission/preload that precedes rendering these fields. In `OT_WIKI` mode, `braceSubstitution()` deliberately leaves `{{TemplateName|value}}` as literal wikitext instead of expanding it, so the resulting `recursiveTagParse()`/`replaceVariables()` call silently returned the raw markup unchanged instead of throwing. `FormField::setValuesWithMappingTemplate()` and `PFSFSelectInput::getHTML()` now call the new `PFUtils::ensureParserReadyForTagParse()` before touching the singleton. Also guard against the singleton never having gone through `clearState()` at all this request (via `PFUtils::ensureParserInitialized()`, which `ensureParserReadyForTagParse()` builds on) — on MW 1.43+, `FormPrinter::createFreshParser()` builds field HTML with its own `ParserFactory`-created `Parser` instance rather than this global singleton, so nothing else may have initialized it, and `Parser::$mStripState`/`$mOutputType` are typed properties since MW 1.42 that fatal instead of just deprecating when accessed uninitialized — the same bug family as the `PFRunQuery`/`PFSFSelectAPI` fixes in 2.1.11. Fixed a related gap in `PFUtils::ensureParserInitialized()` itself: it called `clearState()` but never `setOutputType()`, even though `$mOutputType`/`$ot` are only initialized by the latter. Also reset the singleton before `PFAutoeditAPI::execute()`'s catch-block `recursiveTagParseFully()` call on the exception message, which runs after `prepareAction()` already left it in `OT_WIKI` mode (cosmetic-only impact: garbled `{{...}}` in an error message)
+- Fixed a `mapping template=` field (e.g. a checkbox/radiobutton/dropdown mapped through a template) showing the raw, unresolved template call instead of its label, and an `SF_Select` field's `function=` argument showing raw, unresolved markup instead of its result
 
 ## [2.1.11] - 2026-08-07
 
@@ -271,7 +270,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.11...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.12...HEAD
+[2.1.12]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.11...2.1.12
 [2.1.11]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.10...2.1.11
 [2.1.10]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.9...2.1.10
 [2.1.9]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.8...2.1.9
