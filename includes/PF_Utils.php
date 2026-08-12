@@ -68,6 +68,45 @@ class PFUtils {
 	}
 
 	/**
+	 * Ensures a Parser is safe to use for a recursiveTagParse()/replaceVariables()-style
+	 * call that must expand "{{...}}" constructs (templates, parser functions, magic
+	 * words) into HTML - e.g. resolving a 'mapping template=' or 'function=' field value.
+	 *
+	 * ensureParserInitialized() alone is not enough for these calls: it only acts when
+	 * the parser has never been touched this request. But the global Parser singleton
+	 * can also have already been initialized *and left in the wrong mode* by other code
+	 * that used it earlier in the same request for its own purposes without resetting
+	 * it afterward - e.g. PFAutoeditAPI::prepareAction() calls
+	 * startExternalParse( null, ..., Parser::OT_WIKI ) on this same singleton while
+	 * processing a form submission/preload that precedes rendering the fields below it.
+	 * In OT_WIKI mode, braceSubstitution() deliberately leaves "{{TemplateName|value}}"
+	 * as literal wikitext instead of expanding it - recursiveTagParse() then silently
+	 * returns the raw markup unchanged, with no error, instead of the expected output.
+	 * The same call also leaves the singleton untitled (resolving to the "Badtitle"
+	 * placeholder), which matters for any title-sensitive content being expanded (e.g.
+	 * "{{PAGENAME}}" inside the wikitext passed in).
+	 *
+	 * Unlike ensureParserInitialized(), this always resets the output type - and the
+	 * title, if it's currently the "Badtitle" placeholder - regardless of whether the
+	 * parser was already "initialized" by some earlier, unrelated caller.
+	 *
+	 * @param Parser $parser
+	 * @param User $user
+	 * @param Title|null $title Title to resolve title-sensitive content against, if the
+	 *  parser's current title is the "Badtitle" placeholder. Pass the page being
+	 *  edited/viewed - e.g. RequestContext::getMain()->getTitle().
+	 * @return Parser The same $parser instance, now safe to use for tag-parse calls
+	 */
+	public static function ensureParserReadyForTagParse( Parser $parser, User $user, ?Title $title = null ): Parser {
+		self::ensureParserInitialized( $parser, $user );
+		$parser->setOutputType( Parser::OT_HTML );
+		if ( $title !== null && $parser->getTitle()->isSpecial( 'Badtitle' ) ) {
+			$parser->setTitle( $title );
+		}
+		return $parser;
+	}
+
+	/**
 	 * Creates a link to a special page, using that page's top-level description as the link text.
 	 * @param LinkRenderer $linkRenderer
 	 * @param string $specialPageName

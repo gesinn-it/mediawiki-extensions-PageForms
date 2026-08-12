@@ -125,7 +125,14 @@ class PFAutoeditAPI extends ApiBase {
 		} catch ( Exception $e ) {
 			// This has to be Exception, not MWException, due to
 			// DateTime errors and possibly others.
-			$this->logMessage( PFUtils::getParser()->recursiveTagParseFully( $e->getMessage() ), $e->getCode() );
+			// prepareAction() above left the global Parser singleton in
+			// OT_WIKI mode (see PFUtils::ensureParserReadyForTagParse()) -
+			// reset it before this recursiveTagParseFully() call, or any
+			// "{{...}}" in the exception message is returned unexpanded.
+			$parser = PFUtils::ensureParserReadyForTagParse(
+				PFUtils::getParser(), $this->getUser(), RequestContext::getMain()->getTitle()
+			);
+			$this->logMessage( $parser->recursiveTagParseFully( $e->getMessage() ), $e->getCode() );
 		}
 
 		$this->finalizeResults();

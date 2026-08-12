@@ -42,7 +42,14 @@ class PFSFSelectInput extends PFFormInput {
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
 		global $wgPageFormsFieldNum, $wgPageFormsSFSelectConfig;
 
-		$parser = MediaWikiServices::getInstance()->getParser();
+		// See PFUtils::ensureParserReadyForTagParse() for why the global Parser
+		// singleton needs both initialization and an output-type/title reset
+		// before PFSFSelectField::setFunction()'s replaceVariables() call below.
+		$parser = PFUtils::ensureParserReadyForTagParse(
+			MediaWikiServices::getInstance()->getParser(),
+			RequestContext::getMain()->getUser(),
+			RequestContext::getMain()->getTitle()
+		);
 		$selectField = new PFSFSelectField( $parser );
 
 		// 'delimiter' must be read before 'query' or 'function'
