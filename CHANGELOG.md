@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- `FormField::setValuesWithMappingTemplate()`: a `mapping template=` field (e.g. a checkbox/radiobutton/dropdown mapped through a template like `MT Int`) showed the raw, unexpanded template call (e.g. `{{MT Int|no}}`) instead of its resolved label. The global `Parser` singleton this method reads via `PFUtils::getParser()` can be left in `Parser::OT_WIKI` output-type mode (and/or untitled) by other code that used it earlier in the same request without resetting it — e.g. `PFAutoeditAPI::prepareAction()` calls `startExternalParse( null, ..., Parser::OT_WIKI )` on this same singleton while processing the form submission/preload that precedes rendering these fields. In `OT_WIKI` mode, `braceSubstitution()` deliberately leaves `{{TemplateName|value}}` as literal wikitext instead of expanding it, so `recursiveTagParse()` silently returned the raw markup unchanged instead of throwing. Also guard against the singleton never having gone through `clearState()` at all this request (via `PFUtils::ensureParserInitialized()`) — on MW 1.43+, `FormPrinter::createFreshParser()` builds field HTML with its own `ParserFactory`-created `Parser` instance rather than this global singleton, so nothing else may have initialized it, and `Parser::$mStripState`/`$mOutputType` are typed properties since MW 1.42 that fatal instead of just deprecating when accessed uninitialized — the same bug family as the `PFRunQuery`/`PFSFSelectAPI` fixes in 2.1.11. Fixed a related gap in `PFUtils::ensureParserInitialized()` itself: it called `clearState()` but never `setOutputType()`, even though `$mOutputType`/`$ot` are only initialized by the latter
+
 ## [2.1.11] - 2026-08-07
 
 ### Added
