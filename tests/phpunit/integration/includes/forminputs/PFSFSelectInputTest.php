@@ -133,4 +133,46 @@ class PFSFSelectInputTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertStringContainsString( 'size="5"', $html );
 	}
+
+	/**
+	 * A `function=` field arg without '@@@@' is resolved immediately via
+	 * PFSFSelectField::setFunction()'s $this->mParser->replaceVariables() call.
+	 * Uses PageForms' own '#arraymap' parser function (registered via
+	 * ParserFirstCallInit, no SMW/ParserFunctions dependency needed) with an
+	 * identity formula, so the two options are just the two input values.
+	 *
+	 * @covers \PFSFSelectField::setFunction
+	 */
+	public function testFunctionArgWithoutPlaceholderIsResolvedImmediately(): void {
+		$funcArg = implode( ';', [ 'arraymap:PFTestSFSValueA.PFTestSFSValueB', '.', 'x', 'x' ] );
+		$html = $this->getHtml( '', false, false, [ 'function' => $funcArg ] );
+
+		$this->assertStringContainsString( '<option>PFTestSFSValueA</option>', $html );
+		$this->assertStringContainsString( '<option>PFTestSFSValueB</option>', $html );
+	}
+
+	/**
+	 * PFAutoeditAPI::prepareAction() can leave the global Parser singleton in
+	 * Parser::OT_WIKI mode (via startExternalParse()) earlier in the same
+	 * request - e.g. an autoedit-driven preload/submit that runs before this
+	 * SF_Select field is rendered on the resulting edit form. In OT_WIKI mode,
+	 * braceSubstitution() deliberately leaves "{{#arraymap:...}}" unexpanded,
+	 * so PFSFSelectInput::getHTML() must reset the singleton via
+	 * PFUtils::ensureParserReadyForTagParse() before constructing
+	 * PFSFSelectField, or the raw, unexpanded function call leaks into the
+	 * rendered <option> text instead of the resolved values.
+	 *
+	 * @covers \PFSFSelectInput::getHTML
+	 */
+	public function testFunctionArgResolvesAfterParserLeftInOtWikiMode(): void {
+		$parser = \MediaWiki\MediaWikiServices::getInstance()->getParser();
+		$parser->startExternalParse( null, \ParserOptions::newFromAnon(), \Parser::OT_WIKI );
+
+		$funcArg = implode( ';', [ 'arraymap:PFTestSFSValueA.PFTestSFSValueB', '.', 'x', 'x' ] );
+		$html = $this->getHtml( '', false, false, [ 'function' => $funcArg ] );
+
+		$this->assertStringNotContainsString( '{{#arraymap', $html );
+		$this->assertStringContainsString( '<option>PFTestSFSValueA</option>', $html );
+		$this->assertStringContainsString( '<option>PFTestSFSValueB</option>', $html );
+	}
 }
