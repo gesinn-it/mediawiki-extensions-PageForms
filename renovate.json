@@ -1,0 +1,17 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:recommended"],
+	"semanticCommits": "enabled",
+	"packageRules": [
+		{
+			"matchPackageNames": ["mediawiki/mediawiki-codesniffer"],
+			"allowedVersions": "<=48.0.0",
+			"description": "MW 1.39 / PHP 8.1 CI leg caps this at 48.0.0 — v50+ requires PHP >=8.2.0 (v49.0.0 also requires PHP >=8.2.0 despite absent Packagist metadata). See registry.yml verified_max_for."
+		},
+		{
+			"matchPackageNames": ["mediawiki/minus-x"],
+			"allowedVersions": "<=1.1.3",
+			"description": "MW 1.39 / PHP 8.1 CI leg caps this at 1.1.3 — v2.0.0+ requires PHP >=8.2. See registry.yml verified_max_for."
+		}
+	]
+}
