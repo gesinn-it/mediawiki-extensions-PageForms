@@ -80,7 +80,7 @@ jobs:
             dt_version: 4.0.3
             al_version: 0.7
             database_type: mysql
-            database_image: "mariadb:10.11"
+            database_image: "mariadb:12.3"
             coverage: false
             experimental: false
           - mediawiki_version: '1.46'
