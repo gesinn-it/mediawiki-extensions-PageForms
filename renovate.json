@@ -17,6 +17,12 @@
 			"matchPackageNames": ["mariadb"],
 			"allowedVersions": "<13.0.0",
 			"description": "MW 1.43 and MW 1.46 CI legs both pin the mariadb:12.x line (aligned 2026-08-22) — keep updates within 12.x, do not jump to 13.x without adding/testing a new CI leg first."
+		},
+		{
+			"matchPackageNames": ["brace-expansion"],
+			"matchCurrentVersion": "^5.0.7",
+			"enabled": false,
+			"description": "package.json pins brace-expansion to ^5.0.7 via an override scoped to minimatch@^10 (8d0d7d39) to close Dependabot alert #36 (exponential-time brace-expansion DoS below 5.0.7). minimatch@10's own peer range still points at brace-expansion@^1.x, so Renovate proposes reverting the override to v1 — do not let that land; bump the override version manually instead if a newer secure release supersedes 5.0.7."
 		}
 	]
 }
