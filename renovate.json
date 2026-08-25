@@ -28,6 +28,11 @@
 			"matchPackageNames": ["eslint"],
 			"allowedVersions": "<9.0.0",
 			"description": "eslint-config-wikimedia@0.32.5 (our current version) declares peerDependencies.eslint '^8.57.0' — no published eslint-config-wikimedia release yet supports eslint 9/10 (checked npm view eslint-config-wikimedia versions, 2026-08-25). A bot-proposed eslint@9/10 bump breaks lockfile resolution (renovate/artifacts failure on PR #199) and, if forced through, would silently stop loading our .eslintrc.json since eslint 9+ defaults to flat config. Remove this ceiling once eslint-config-wikimedia publishes a release whose peerDependencies allow the newer eslint major, and upgrade both together in the same PR."
+		},
+		{
+			"matchPackageNames": ["jsdom"],
+			"allowedVersions": "<30.0.0",
+			"description": "All three CI legs' base images (gesinn/mediawiki-ci:1.39-php8.1, 1.43-php8.3, 1.46-php8.4) run Node.js v20.19.2 (checked via `docker run --rm <image> node --version`, 2026-08-25). jsdom 30.x requires engines.node '^22.22.2 || ^24.15.0 || >=26.0.0' (jsdom 29.x only required '^20.19.0 || ...') — confirmed via `make ci` (PR #202): jsdom 30's undici dependency crashes with `TypeError: webidl.util.markAsUncloneable is not a function` on Node 20, since that API doesn't exist until later Node majors. Remove this ceiling once the CI base images are upgraded to a Node.js version jsdom 30+ supports."
 		}
 	]
 }
