@@ -14,7 +14,7 @@
 	"devDependencies": {
 		"eslint": "^8.57.1",
 		"eslint-config-wikimedia": "0.32.5",
-		"fetch-blob": "^3.2.0",
+		"fetch-blob": "^4.0.0",
 		"grunt-banana-checker": "0.13.0",
 		"jsdom": "^29.0.1",
 		"nyc": "^18.0.0",
