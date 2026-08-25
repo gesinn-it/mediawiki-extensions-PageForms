@@ -23,6 +23,11 @@
 			"matchCurrentVersion": "^5.0.7",
 			"enabled": false,
 			"description": "package.json pins brace-expansion to ^5.0.7 via an override scoped to minimatch@^10 (8d0d7d39) to close Dependabot alert #36 (exponential-time brace-expansion DoS below 5.0.7). minimatch@10's own peer range still points at brace-expansion@^1.x, so Renovate proposes reverting the override to v1 — do not let that land; bump the override version manually instead if a newer secure release supersedes 5.0.7."
+		},
+		{
+			"matchPackageNames": ["eslint"],
+			"allowedVersions": "<9.0.0",
+			"description": "eslint-config-wikimedia@0.32.5 (our current version) declares peerDependencies.eslint '^8.57.0' — no published eslint-config-wikimedia release yet supports eslint 9/10 (checked npm view eslint-config-wikimedia versions, 2026-08-25). A bot-proposed eslint@9/10 bump breaks lockfile resolution (renovate/artifacts failure on PR #199) and, if forced through, would silently stop loading our .eslintrc.json since eslint 9+ defaults to flat config. Remove this ceiling once eslint-config-wikimedia publishes a release whose peerDependencies allow the newer eslint major, and upgrade both together in the same PR."
 		}
 	]
 }
