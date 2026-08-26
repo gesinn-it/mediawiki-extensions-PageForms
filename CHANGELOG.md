@@ -6,13 +6,17 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-08-26
+
+Improves `combobox` fields with `existingvaluesonly` so stale or unmatched values are flagged as redlinks instead of silently cleared, and fixes a fatal error affecting checkbox fields in multi-instance templates.
+
 ### Added
-- A `combobox` field with `existingvaluesonly` now marks its value in red, like a MediaWiki redlink, when the form loads with a previously-saved value that no longer resolves to an existing page (e.g. the referenced page was deleted or renamed) — this applies regardless of whether the field uses local or remote (e.g. `category`, `property`, `concept`, `wikidata`) autocompletion, and the value itself is left untouched
+- A `combobox` field with `existingvaluesonly` now marks its value in red, like a MediaWiki redlink, when the form loads with a previously-saved value that no longer resolves to an existing page (e.g. the referenced page was deleted or renamed) — this applies regardless of whether the field uses local or remote (e.g. `category`, `property`, `concept`, `wikidata`) autocompletion, and the value itself is left untouched [`424b28b6`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/424b28b6) [`87fae51b`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/87fae51b)
 
 ### Fixed
-- Fixed a fatal `TypeError` (`strtolower(): Argument #1 ($string) must be of type string, null given`) in `action=formedit`/`action=edit` for forms with a checkbox field inside a multiple-instance template, when the "add another instance" starter row was rendered with no value yet
-- Fixed a `combobox` field with `existingvaluesonly` and remote autocompletion (e.g. `category`, `property`, `concept`, `wikidata`) clearing its value when the user tabbed to the next field right after typing or choosing a value, before the in-flight autocomplete lookup had resolved
-- Fixed a `combobox` field with `existingvaluesonly` and no matching autocomplete result swallowing the next Tab keypress instead of moving focus to the next field
+- Fixed a fatal `TypeError` (`strtolower(): Argument #1 ($string) must be of type string, null given`) in `action=formedit`/`action=edit` for forms with a checkbox field inside a multiple-instance template, when the "add another instance" starter row was rendered with no value yet [`de8b1388`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/de8b1388)
+- Fixed a `combobox` field with `existingvaluesonly` and remote autocompletion (e.g. `category`, `property`, `concept`, `wikidata`) clearing its value when the user tabbed to the next field right after typing or choosing a value, before the in-flight autocomplete lookup had resolved [`2f11053a`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/2f11053a)
+- Fixed a `combobox` field with `existingvaluesonly` and no matching autocomplete result swallowing the next Tab keypress instead of moving focus to the next field [`002cef5c`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/002cef5c) [`4885f17a`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/4885f17a)
 
 ## [2.1.12] - 2026-08-12
 
@@ -278,7 +282,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.12...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.2.0...HEAD
+[2.2.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.12...2.2.0
 [2.1.12]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.11...2.1.12
 [2.1.11]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.10...2.1.11
 [2.1.10]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.9...2.1.10
