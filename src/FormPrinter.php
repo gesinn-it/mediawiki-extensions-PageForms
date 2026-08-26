@@ -1211,8 +1211,8 @@ END;
 					if ( $tif->allowsMultiple() && !$tif->allInstancesPrinted() ) {
 						$wordForYes = PFUtils::getWordForYesOrNo( true );
 						if ( $form_field->getInputType() == 'checkbox' ) {
-							if ( strtolower( $cur_value ) == strtolower( $wordForYes )
-								|| strtolower( $cur_value ) == 'yes' || $cur_value == '1' ) {
+							if ( strtolower( (string)$cur_value ) == strtolower( $wordForYes )
+								|| strtolower( (string)$cur_value ) == 'yes' || $cur_value == '1' ) {
 								$cur_value = true;
 							} else {
 								$cur_value = false;
