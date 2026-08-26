@@ -106,14 +106,15 @@
 		} ] );
 		this.getMenu().toggle( false );
 
-		// A remote existingvaluesonly field's stored value might no longer exist
-		// (e.g. the referenced page was deleted or renamed since this value was
-		// saved) — the server can't check this cheaply for remote sources, so it
-		// renders the stored value as-is. Confirm it here, once, and mark it like
-		// a MediaWiki redlink if it doesn't resolve; this does not touch the
-		// stored value or existingvaluesonly's own clear-on-blur enforcement,
-		// it only flags a value that was already invalid when the form loaded.
-		if ( this.config['existingvaluesonly'] && this.config['autocompletedatatype'] !== undefined && initDisplayVal ) {
+		// An existingvaluesonly field's stored value might no longer exist (e.g.
+		// the referenced page was deleted or renamed since this value was saved)
+		// — the server renders the stored value as-is without checking its
+		// existence, for both local and remote sources. Confirm it here, once,
+		// and mark it like a MediaWiki redlink if it doesn't resolve; this does
+		// not touch the stored value or existingvaluesonly's own clear-on-blur
+		// enforcement, it only flags a value that was already invalid when the
+		// form loaded.
+		if ( this.config['existingvaluesonly'] && initDisplayVal ) {
 			this.dataSource.fetch( initDisplayVal ).then( ( items ) => {
 				const exists = items.some(
 					( item ) => item.title === initDisplayVal || item.displaytitle === initDisplayVal
