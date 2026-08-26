@@ -383,14 +383,6 @@ input.pfComboBoxActual {
 	border: 1px solid #ddd !important;
 }
 
-/* Same red as MediaWiki's redlinks (a.new): flags a combobox value that
-   doesn't match any existing item, without discarding what the user typed.
-   Selector matches the specificity of .oo-ui-textInputWidget .oo-ui-inputWidget-input
-   (0,2,0) so this rule isn't shadowed by it regardless of stylesheet order. */
-.oo-ui-textInputWidget input.pfComboBoxNewValue.oo-ui-inputWidget-input {
-	color: #ba0000;
-}
-
 /**
  * The box-sizing in the DateTimeInputWidget is incorrectly set to
  * "border-box" for MW versions before 1.38, which leads to too-narrow inputs.

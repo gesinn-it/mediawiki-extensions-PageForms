@@ -118,24 +118,20 @@
 		// Bind the blur event to resize input according to the value.
 		// When a remote autocomplete lookup is still in flight (e.g. the user
 		// tabbed away right after typing/choosing a value), wait for it to
-		// resolve before judging itemFound — otherwise the value would be
-		// judged unconfirmed even though it is valid, just not confirmed yet.
+		// resolve before judging itemFound — otherwise the field is cleared
+		// even though the value is valid, just not confirmed yet.
 		this.$input.blur( () => {
 			$.when( this.pendingValuesPromise ).then( () => {
-				// A value that doesn't match any known item is marked, not
-				// discarded — same semantics as a MediaWiki redlink: the
-				// value the user typed stays intact and visible, only its
-				// styling flags it as not (yet) an existing value.
-				this.$input.toggleClass(
-					'pfComboBoxNewValue',
-					!this.itemFound && !!this.config['existingvaluesonly'] && this.getValue() !== ''
-				);
-				this.syncCanonicalValue();
-				this.$element.css("width", this.getValue().length * 11);
+				if ( !this.itemFound && this.config['existingvaluesonly'] ){
+					this.setValue("");
+					this.syncCanonicalValue( "" );
+				} else {
+					this.syncCanonicalValue();
+					this.$element.css("width", this.getValue().length * 11);
+				}
 			} );
 		});
 		this.$input.focus( () => {
-			this.$input.removeClass( 'pfComboBoxNewValue' );
 			this.setValues();
 		});
 		this.$input.keyup( (event) => {
