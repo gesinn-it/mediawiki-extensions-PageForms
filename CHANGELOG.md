@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Added
+- A `combobox` field with `existingvaluesonly` and remote autocompletion (e.g. `category`, `property`, `concept`, `wikidata`) now marks its value in red, like a MediaWiki redlink, when the form loads with a previously-saved value that no longer resolves to an existing page (e.g. the referenced page was deleted or renamed) — the value itself is left untouched
+
 ### Fixed
 - Fixed a fatal `TypeError` (`strtolower(): Argument #1 ($string) must be of type string, null given`) in `action=formedit`/`action=edit` for forms with a checkbox field inside a multiple-instance template, when the "add another instance" starter row was rendered with no value yet
 - Fixed a `combobox` field with `existingvaluesonly` and remote autocompletion (e.g. `category`, `property`, `concept`, `wikidata`) clearing its value when the user tabbed to the next field right after typing or choosing a value, before the in-flight autocomplete lookup had resolved

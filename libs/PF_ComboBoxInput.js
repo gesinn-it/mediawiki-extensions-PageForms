@@ -106,6 +106,22 @@
 		} ] );
 		this.getMenu().toggle( false );
 
+		// A remote existingvaluesonly field's stored value might no longer exist
+		// (e.g. the referenced page was deleted or renamed since this value was
+		// saved) — the server can't check this cheaply for remote sources, so it
+		// renders the stored value as-is. Confirm it here, once, and mark it like
+		// a MediaWiki redlink if it doesn't resolve; this does not touch the
+		// stored value or existingvaluesonly's own clear-on-blur enforcement,
+		// it only flags a value that was already invalid when the form loaded.
+		if ( this.config['existingvaluesonly'] && this.config['autocompletedatatype'] !== undefined && initDisplayVal ) {
+			this.dataSource.fetch( initDisplayVal ).then( ( items ) => {
+				const exists = items.some(
+					( item ) => item.title === initDisplayVal || item.displaytitle === initDisplayVal
+				);
+				this.$input.toggleClass( 'pfComboBoxNewValue', !exists );
+			} );
+		}
+
 		if (this.config.autocompletesettings == 'external data') {
 			// this is especially set for dependent on settings
 			// when the source field has external data autocompletion
@@ -132,6 +148,10 @@
 			} );
 		});
 		this.$input.focus( () => {
+			// Clear the initial-load redlink marker: from here on, blur's own
+			// existingvaluesonly enforcement (clearing an unconfirmed value)
+			// is what governs the field's validity, not the load-time check.
+			this.$input.removeClass( 'pfComboBoxNewValue' );
 			this.setValues();
 		});
 		this.$input.keyup( (event) => {
