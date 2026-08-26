@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ### Fixed
 - Fixed a fatal `TypeError` (`strtolower(): Argument #1 ($string) must be of type string, null given`) in `action=formedit`/`action=edit` for forms with a checkbox field inside a multiple-instance template, when the "add another instance" starter row was rendered with no value yet
+- Fixed a `combobox` field with `existingvaluesonly` and remote autocompletion (e.g. `category`, `property`, `concept`, `wikidata`) clearing its value when the user tabbed to the next field right after typing or choosing a value, before the in-flight autocomplete lookup had resolved
 
 ## [2.1.12] - 2026-08-12
 

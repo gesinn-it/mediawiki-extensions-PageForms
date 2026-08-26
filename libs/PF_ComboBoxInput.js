@@ -115,15 +115,21 @@
 			const data_autocomplete = name.slice(0,Math.max(0, positionOfBracket))+'|'+name.slice(positionOfBracket+1,name.length-1);
 			this.setInputAttribute('data-autocomplete',data_autocomplete);
 		}
-		// Bind the blur event to resize input according to the value
+		// Bind the blur event to resize input according to the value.
+		// When a remote autocomplete lookup is still in flight (e.g. the user
+		// tabbed away right after typing/choosing a value), wait for it to
+		// resolve before judging itemFound — otherwise the field is cleared
+		// even though the value is valid, just not confirmed yet.
 		this.$input.blur( () => {
-			if ( !this.itemFound && this.config['existingvaluesonly'] ){
-				this.setValue("");
-				this.syncCanonicalValue( "" );
-			} else {
-				this.syncCanonicalValue();
-				this.$element.css("width", this.getValue().length * 11);
-			}
+			$.when( this.pendingValuesPromise ).then( () => {
+				if ( !this.itemFound && this.config['existingvaluesonly'] ){
+					this.setValue("");
+					this.syncCanonicalValue( "" );
+				} else {
+					this.syncCanonicalValue();
+					this.$element.css("width", this.getValue().length * 11);
+				}
+			} );
 		});
 		this.$input.focus( () => {
 			this.setValues();
@@ -206,7 +212,9 @@
 			$( '#loading-' + this.getInputId() ).show();
 		}
 
-		this.dataSource.fetch( curValue, showAllValues )
+		// Tracks the in-flight fetch so the blur handler can wait for itemFound
+		// to be resolved instead of judging it while the request is still pending.
+		this.pendingValuesPromise = this.dataSource.fetch( curValue, showAllValues )
 			.then( ( items ) => {
 				self._renderItems( items, curValue );
 				if ( isRemote ) {
@@ -219,6 +227,7 @@
 					$( '#loading-' + self.getInputId() ).hide();
 				}
 			} );
+		return this.pendingValuesPromise;
 	};
 
 	/**
