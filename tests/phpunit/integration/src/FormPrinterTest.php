@@ -1568,6 +1568,31 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'PFTestMinInstancesCheckboxTpl02', $formHtml );
 	}
 
+	public function testFormHTMLMultipleTemplateCheckboxWithoutDefaultDoesNotThrow(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		// No 'default=' on the checkbox field: getCurrentValue() legitimately
+		// returns null for the still-blank starter row of the additional
+		// instance, so $cur_value is null when it reaches
+		// strtolower( $cur_value ). Without casting to string first, this
+		// throws a fatal TypeError (strtolower(): Argument #1 ($string) must
+		// be of type string, null given).
+		$formDef = "{{{for template|PFTestMinInstancesCheckboxTpl03|multiple|minimum instances=2}}}\n"
+			. "{{{field|Active|input type=checkbox}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestMinInstancesCheckboxPage03', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'PFTestMinInstancesCheckboxTpl03', $formHtml );
+	}
+
 	// -------------------------------------------------------------------------
 	// Public delegation wrappers never called internally — #248-249, #286-287
 	// -------------------------------------------------------------------------
