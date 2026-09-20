@@ -57,7 +57,7 @@ jobs:
             coverage: false
             experimental: false
           - mediawiki_version: '1.43'
-            smw_version: '7.2.0'
+            smw_version: '7.3.0'
             php_version: 8.3
             dt_version: 4.0.3
             al_version: 0.7
@@ -66,7 +66,7 @@ jobs:
             coverage: false
             experimental: true
           - mediawiki_version: '1.43'
-            smw_version: '7.2.0'
+            smw_version: '7.3.0'
             php_version: 8.3
             dt_version: 4.0.3
             al_version: 0.7
