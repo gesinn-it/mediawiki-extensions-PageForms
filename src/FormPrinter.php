@@ -95,8 +95,11 @@ class FormPrinter {
 	/** Set by the {{{info|query form at top}}} tag; returned from formHTML(). */
 	private bool $runQueryFormAtTop = false;
 
+	private MappingLabels $mappingLabels;
+
 	public function __construct() {
 		global $wgPageFormsDisableOutsideServices;
+		$this->mappingLabels = new MappingLabels();
 		// Initialize variables.
 		$this->mSemanticTypeHooks = [];
 		$this->mInputTypeHooks = [];
@@ -1017,7 +1020,8 @@ class FormPrinter {
 					}
 					$field_name = trim( $tag_components[1] );
 					$form_field = FormField::newFromFormFieldTag(
-						$tag_components, $template, $tif, $form_is_disabled, $user, $parser
+						$tag_components, $template, $tif, $form_is_disabled, $user, $parser,
+						$this->mappingLabels
 					);
 					// For special displays, add in the
 					// form fields, so we know the data

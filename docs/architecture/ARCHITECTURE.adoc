@@ -103,8 +103,11 @@ Used by `FormPrinter::formHTML()`; they mix structure, request state and values.
   form fields, template multiplicity, template-level configuration.
 * `FormField` — a field of the form for the current request: field configuration,
   input type selection, default values, value sources and the possible values
-  (including the labels of `mapping template`, expanded in batches and remembered
-  per template revision).
+  (including the labels of `mapping template` and `mapping property`, which
+  `MappingLabels` provides).
+* `MappingLabels` — the labels a field shows for its values. The labels of a mapping
+  template are expanded in batches and remembered per template revision; the memory
+  belongs to the object, which `FormPrinter` creates once and hands to its fields.
 * `TemplateField` — a field defined in the underlying template: property mapping,
   field type, possible values, delimiter rules.
 

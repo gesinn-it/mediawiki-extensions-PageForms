@@ -11,7 +11,6 @@ use ParserOptions;
 use PFUtils;
 use PFValuesUtils;
 use RequestContext;
-use Title;
 use User;
 
 /**
@@ -23,8 +22,8 @@ use User;
  */
 class FormField {
 
-	/** @var array<string, string> Labels of the 'mapping template' fields built so far, by template, revision and value */
-	private static array $mappingTemplateLabels = [];
+	/** @var MappingLabels|null Shared with the other fields of the form once the form hands it in */
+	private ?MappingLabels $mappingLabels = null;
 
 	/**
 	 * @var TemplateField
@@ -309,7 +308,8 @@ class FormField {
 		$template_in_form,
 		$form_is_disabled,
 		User $user,
-		Parser $parser
+		Parser $parser,
+		?MappingLabels $mappingLabels = null
 	) {
 		global $wgPageFormsEmbeddedTemplates;
 
@@ -326,6 +326,9 @@ class FormField {
 		$parser->setOutputType( Parser::OT_HTML );
 
 		$f = new FormField();
+		if ( $mappingLabels !== null ) {
+			$f->mappingLabels = $mappingLabels;
+		}
 		$f->mFieldArgs = [];
 		$f->mInstanceField = new FormInstanceField( $f );
 
@@ -845,79 +848,9 @@ class FormField {
 	 * given a mapping template.
 	 */
 	public function setValuesWithMappingTemplate() {
-		$labels = [];
-		$templateName = $this->mFieldArgs['mapping template'];
-		$title = Title::makeTitleSafe( NS_TEMPLATE, $templateName );
-		$templateExists = $title->exists();
-		// See PFUtils::ensureParserReadyForTagParse() for why the global Parser
-		// singleton needs both initialization and an output-type/title reset
-		// before a recursiveTagParse() call like the one below.
-		$parser = PFUtils::ensureParserReadyForTagParse(
-			PFUtils::getParser(), RequestContext::getMain()->getUser(), RequestContext::getMain()->getTitle()
+		$this->mPossibleValues = $this->getMappingLabels()->forTemplate(
+			$this->mFieldArgs['mapping template'], $this->getMappingKeys()
 		);
-		$prefix = '';
-		$keys = [];
-		foreach ( $this->mPossibleValues as $index => $value ) {
-			$keys[] = $this->mUseDisplayTitle ? $index : $value;
-		}
-		if ( $templateExists ) {
-			// The label of a value is the same for every field mapped by this version of the
-			// template, such as the instances of a multiple-instance template.
-			$prefix = $templateName . "\0" . $title->getLatestRevID() . "\0";
-			$missing = [];
-			foreach ( $keys as $value ) {
-				if ( !isset( self::$mappingTemplateLabels[$prefix . $value] ) ) {
-					$missing[$value] = true;
-				}
-			}
-			self::parseMappingLabels( $parser, $templateName, $prefix, array_map( 'strval', array_keys( $missing ) ) );
-		}
-		foreach ( $keys as $value ) {
-			$label = $templateExists ? self::$mappingTemplateLabels[$prefix . $value] : '';
-			$labels[$value] = $label == '' ? $value : $label;
-		}
-		$this->mPossibleValues = $labels;
-	}
-
-	/**
-	 * Fills the label memo for the given values. Values that are plain text are expanded
-	 * together, many per parser call, because the call overhead dominates for long lists.
-	 * Anything that could affect its neighbours (markup, braces) is expanded on its own,
-	 * as is every value if a batch does not come back in the expected pieces.
-	 *
-	 * @param \Parser $parser
-	 * @param string $templateName
-	 * @param string $prefix Memo key prefix (template, revision)
-	 * @param string[] $values
-	 */
-	private static function parseMappingLabels( $parser, string $templateName, string $prefix, array $values ): void {
-		$separator = '@@PFMAPSEP@@';
-		$batchable = [];
-		foreach ( $values as $value ) {
-			if ( preg_match( '/[{}\[\]<>~\n@&]/', $value ) ) {
-				self::$mappingTemplateLabels[$prefix . $value] =
-					trim( $parser->recursiveTagParse( '{{' . $templateName . '|' . $value . '}}' ) );
-			} else {
-				$batchable[] = $value;
-			}
-		}
-		foreach ( array_chunk( $batchable, 100 ) as $chunk ) {
-			$wikitext = '';
-			foreach ( $chunk as $value ) {
-				$wikitext .= '{{' . $templateName . '|' . $value . "}}\n" . $separator . "\n";
-			}
-			$pieces = explode( $separator, $parser->recursiveTagParse( $wikitext ) );
-			array_pop( $pieces );
-			if ( count( $pieces ) !== count( $chunk ) ) {
-				$pieces = [];
-				foreach ( $chunk as $value ) {
-					$pieces[] = $parser->recursiveTagParse( '{{' . $templateName . '|' . $value . '}}' );
-				}
-			}
-			foreach ( $chunk as $i => $value ) {
-				self::$mappingTemplateLabels[$prefix . $value] = trim( $pieces[$i] );
-			}
-		}
 	}
 
 	/**
@@ -931,22 +864,35 @@ class FormField {
 			return;
 		}
 
-		$propertyName = $this->mFieldArgs['mapping property'];
-		$labels = [];
+		$this->mPossibleValues = $this->getMappingLabels()->forProperty(
+			$store, $this->mFieldArgs['mapping property'], $this->getMappingKeys()
+		);
+	}
+
+	/**
+	 * The values to look the labels up for: the page names, which are the keys of the possible
+	 * values when those are display titles.
+	 *
+	 * @return array<int, string|int>
+	 */
+	private function getMappingKeys(): array {
+		$keys = [];
 		foreach ( $this->mPossibleValues as $index => $value ) {
-			if ( $this->mUseDisplayTitle ) {
-				$value = $index;
-			}
-			$labels[$value] = $value;
-			$subject = Title::newFromText( $value );
-			if ( $subject != null ) {
-				$vals = PFValuesUtils::getSMWPropertyValues( $store, $subject, $propertyName );
-				if ( count( $vals ) > 0 ) {
-					$labels[$value] = trim( $vals[0] );
-				}
-			}
+			$keys[] = $this->mUseDisplayTitle ? $index : $value;
 		}
-		$this->mPossibleValues = $labels;
+		return $keys;
+	}
+
+	/**
+	 * @param MappingLabels $mappingLabels The labels (and what is remembered about them) of the form
+	 */
+	public function setMappingLabels( MappingLabels $mappingLabels ): void {
+		$this->mappingLabels = $mappingLabels;
+	}
+
+	private function getMappingLabels(): MappingLabels {
+		$this->mappingLabels ??= new MappingLabels();
+		return $this->mappingLabels;
 	}
 
 	/**
