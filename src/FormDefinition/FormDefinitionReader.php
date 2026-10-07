@@ -23,41 +23,61 @@ class FormDefinitionReader {
 		$definition = new FormDefinition();
 		$position = 0;
 
-		while ( true ) {
-			$open = strpos( $formDef, '{{{', $position );
-			if ( $open === false ) {
-				break;
-			}
-			$close = strpos( $formDef, '}}}', $open );
-			if ( $close === false ) {
-				throw new MWException(
-					'<div class="error">Error in form definition!'
-					. ' The following tag is missing its closing \'}}}\':</div>'
-					. "\n<pre>" . htmlspecialchars( substr( $formDef, $open ) ) . "</pre>"
-				);
-			}
-			// For cases with more than 3 ending brackets, take the last 3 ones as the tag end.
-			while ( ( $formDef[$close + 3] ?? '' ) === '}' ) {
-				$close++;
-			}
-			$components = PFUtils::getFormTagComponents( substr( $formDef, $open + 3, $close - ( $open + 3 ) ) );
-			if ( count( $components ) === 0 ) {
+		$tag = $this->findNextTag( $formDef, $position );
+		while ( $tag !== null ) {
+			if ( count( $tag['components'] ) === 0 ) {
 				break;
 			}
 
-			if ( $open > $position ) {
-				$definition->addElement( new TextSpec( substr( $formDef, $position, $open - $position ) ) );
+			if ( $tag['start'] > $position ) {
+				$definition->addElement( new TextSpec( substr( $formDef, $position, $tag['start'] - $position ) ) );
 			}
-			$definition->addElement(
-				$this->newTag( $components, substr( $formDef, $open, $close + 3 - $open ) )
-			);
-			$position = $close + 3;
+			$definition->addElement( $this->newTag(
+				$tag['components'], substr( $formDef, $tag['start'], $tag['end'] - $tag['start'] )
+			) );
+			$position = $tag['end'];
+			$tag = $this->findNextTag( $formDef, $position );
 		}
 
 		if ( $position < strlen( $formDef ) ) {
 			$definition->addElement( new TextSpec( substr( $formDef, $position ) ) );
 		}
 		return $definition;
+	}
+
+	/**
+	 * Find the next {{{...}}} tag at or after $offset. This is the single place that knows where a
+	 * tag begins and ends; everything that walks a form definition goes through it.
+	 *
+	 * @param string $text
+	 * @param int $offset
+	 * @return array{start: int, end: int, components: list<string>}|null The position of the opening
+	 *   braces, the position just after the closing braces, and the tag split at its top-level pipes
+	 *   (empty for a tag without content); null if there is no further tag
+	 * @throws MWException If the tag is missing its closing braces
+	 */
+	public function findNextTag( string $text, int $offset = 0 ): ?array {
+		$open = strpos( $text, '{{{', $offset );
+		if ( $open === false ) {
+			return null;
+		}
+		$close = strpos( $text, '}}}', $open );
+		if ( $close === false ) {
+			throw new MWException(
+				'<div class="error">Error in form definition!'
+				. ' The following tag is missing its closing \'}}}\':</div>'
+				. "\n<pre>" . htmlspecialchars( substr( $text, $open ) ) . "</pre>"
+			);
+		}
+		// For cases with more than 3 ending brackets, take the last 3 ones as the tag end.
+		while ( ( $text[$close + 3] ?? '' ) === '}' ) {
+			$close++;
+		}
+		return [
+			'start' => $open,
+			'end' => $close + 3,
+			'components' => PFUtils::getFormTagComponents( substr( $text, $open + 3, $close - ( $open + 3 ) ) ),
+		];
 	}
 
 	/**

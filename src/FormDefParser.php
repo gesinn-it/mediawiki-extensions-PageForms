@@ -240,22 +240,19 @@ class FormDefParser {
 	 */
 	public function splitFormDefIntoSections( string $form_def ): array {
 		$form_def_sections = [];
-		$start_position = 0;
 		$section_start = 0;
-		$brackets_loc = strpos( $form_def, '{{{', $start_position );
-		while ( $brackets_loc !== false ) {
-			$brackets_end_loc = strpos( $form_def, '}}}', $brackets_loc );
-			$bracketed_string = substr( $form_def, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 ) );
-			$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
-			if ( count( $tag_components ) > 0 ) {
-				$tag_title = trim( $tag_components[0] );
+		$offset = 0;
+		$tag = $this->reader->findNextTag( $form_def, $offset );
+		while ( $tag !== null ) {
+			if ( count( $tag['components'] ) > 0 ) {
+				$tag_title = trim( $tag['components'][0] );
 				if ( $tag_title === 'for template' || $tag_title === 'end template' ) {
-					$form_def_sections[] = substr( $form_def, $section_start, $brackets_loc - $section_start );
-					$section_start = $brackets_loc;
+					$form_def_sections[] = substr( $form_def, $section_start, $tag['start'] - $section_start );
+					$section_start = $tag['start'];
 				}
 			}
-			$start_position = $brackets_loc + 1;
-			$brackets_loc = strpos( $form_def, '{{{', $start_position );
+			$offset = $tag['start'] + 1;
+			$tag = $this->reader->findNextTag( $form_def, $offset );
 		}
 		$form_def_sections[] = trim( substr( $form_def, $section_start ) );
 		return $form_def_sections;

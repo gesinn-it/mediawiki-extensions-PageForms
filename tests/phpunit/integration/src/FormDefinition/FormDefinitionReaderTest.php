@@ -292,4 +292,29 @@ class FormDefinitionReaderTest extends MediaWikiIntegrationTestCase {
 
 		FormDefinition::fromArray( [ 'elements' => [ [ 'type' => 'bogus' ] ] ] );
 	}
+
+	public function testFindNextTagReportsPositionsAndComponents() {
+		$text = 'ab {{{field|x|size=5}}} cd {{{end template}}}';
+
+		$tag = ( new FormDefinitionReader() )->findNextTag( $text );
+		$this->assertSame( 3, $tag['start'] );
+		$this->assertSame( 23, $tag['end'] );
+		$this->assertSame( [ 'field', 'x', 'size=5' ], $tag['components'] );
+
+		$next = ( new FormDefinitionReader() )->findNextTag( $text, $tag['end'] );
+		$this->assertSame( [ 'end template' ], $next['components'] );
+		$this->assertNull( ( new FormDefinitionReader() )->findNextTag( $text, $next['end'] ) );
+	}
+
+	public function testFindNextTagTakesTheLastThreeOfMoreClosingBraces() {
+		$tag = ( new FormDefinitionReader() )->findNextTag( '{{{field|x}}}}' );
+
+		$this->assertSame( 14, $tag['end'] );
+	}
+
+	public function testFindNextTagRejectsATagWithoutClosingBraces() {
+		$this->expectException( MWException::class );
+
+		( new FormDefinitionReader() )->findNextTag( 'text {{{field|x' );
+	}
 }

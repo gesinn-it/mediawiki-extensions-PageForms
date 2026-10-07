@@ -8,6 +8,7 @@ use EditPage;
 use FatalError;
 use Html;
 use LogEventsList;
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\MediaWikiServices;
 use MWException;
 use OutputPage;
@@ -75,6 +76,8 @@ class FormPrinter {
 
 	private FormDefParser $formDefParser;
 
+	private FormDefinitionReader $formDefReader;
+
 	private StandardInputHtmlBuilder $standardInputHtmlBuilder;
 
 	private FormSectionHtmlBuilder $formSectionHtmlBuilder;
@@ -96,7 +99,8 @@ class FormPrinter {
 		$this->multipleTemplateHtmlBuilder = new MultipleTemplateHtmlBuilder();
 		$this->spreadsheetHtmlBuilder = new SpreadsheetHtmlBuilder();
 		$this->standardInputHtmlBuilder = new StandardInputHtmlBuilder();
-		$this->formSectionHtmlBuilder = new FormSectionHtmlBuilder();
+		$this->formDefReader = new FormDefinitionReader();
+		$this->formSectionHtmlBuilder = new FormSectionHtmlBuilder( $this->formDefReader );
 		$this->fieldValueResolver = new FieldValueResolver();
 
 		$this->standardInputsIncluded = false;
@@ -145,7 +149,9 @@ class FormPrinter {
 
 		// Build after all hooks are registered so the builder sees the full type maps.
 		$this->formFieldHtmlBuilder = new FormFieldHtmlBuilder( $this->mInputTypeHooks, $this->mSemanticTypeHooks );
-		$this->formDefParser = new FormDefParser( MediaWikiServices::getInstance()->getParserFactory() );
+		$this->formDefParser = new FormDefParser(
+			MediaWikiServices::getInstance()->getParserFactory(), $this->formDefReader
+		);
 	}
 
 	public function setSemanticTypeHook( $type, $is_list, $class_name, $default_args ) {
@@ -858,28 +864,13 @@ class FormPrinter {
 			$section = " " . $form_def_sections[$section_num];
 
 			while ( true ) {
-				$brackets_loc = strpos( $section, '{{{', $start_position );
-				if ( $brackets_loc === false ) {
+				$tag = $this->formDefReader->findNextTag( $section, $start_position );
+				if ( $tag === null || count( $tag['components'] ) == 0 ) {
 					break;
 				}
-				$brackets_end_loc = strpos( $section, "}}}", $brackets_loc );
-				if ( $brackets_end_loc === false ) {
-					throw new MWException(
-						'<div class="error">Error in form definition!'
-						. ' The following tag is missing its closing \'}}}\':</div>'
-						. "\n<pre>" . htmlspecialchars( substr( $section, $brackets_loc ) ) . "</pre>"
-					);
-				}
-				// For cases with more than 3 ending brackets,
-				// take the last 3 ones as the tag end.
-				while ( isset( $section[$brackets_end_loc + 3] ) && $section[$brackets_end_loc + 3] == "}" ) {
-					$brackets_end_loc++;
-				}
-				$bracketed_string = substr( $section, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 ) );
-				$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
-				if ( count( $tag_components ) == 0 ) {
-					break;
-				}
+				$brackets_loc = $tag['start'];
+				$brackets_end_loc = $tag['end'] - 3;
+				$tag_components = $tag['components'];
 				$tag_title = trim( $tag_components[0] );
 				// Checks for forbidden characters
 				if ( $tag_title != 'info' ) {

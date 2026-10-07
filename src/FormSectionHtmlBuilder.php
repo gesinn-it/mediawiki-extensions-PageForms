@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use Html;
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use PFPageSection;
 use PFTextAreaInput;
 use PFUtils;
@@ -16,6 +17,12 @@ use WebRequest;
  * Assembles the HTML fragment for a {{{section|...}}} tag within a PageForms form.
  */
 class FormSectionHtmlBuilder {
+
+	private FormDefinitionReader $reader;
+
+	public function __construct( ?FormDefinitionReader $reader = null ) {
+		$this->reader = $reader ?? new FormDefinitionReader();
+	}
 
 	/**
 	 * Builds the HTML input for a single section tag and updates $existing_page_content in-place.
@@ -162,18 +169,13 @@ class FormSectionHtmlBuilder {
 		$next_section_found = false;
 
 		while ( !$next_section_found ) {
-			$next_bracket_start_loc = strpos( $form_def_section, '{{{', $previous_brackets_end_loc );
-			if ( $next_bracket_start_loc === false ) {
+			$nextTag = $this->reader->findNextTag( $form_def_section, $previous_brackets_end_loc );
+			if ( $nextTag === null ) {
 				$section_end_loc = strpos( $existing_page_content, '{{', $section_start_loc );
 				$next_section_found = true;
 			} else {
-				$next_bracket_end_loc = strpos( $form_def_section, '}}}', $next_bracket_start_loc );
-				$bracketed_string_next_section = substr(
-					$form_def_section, $next_bracket_start_loc + 3,
-					$next_bracket_end_loc - ( $next_bracket_start_loc + 3 )
-				);
-				$tag_components_next_section =
-					PFUtils::getFormTagComponents( $bracketed_string_next_section );
+				$next_bracket_end_loc = $nextTag['end'] - 3;
+				$tag_components_next_section = $nextTag['components'];
 				$page_next_section_in_form =
 					PFPageSection::newFromFormTag( $tag_components_next_section, $user );
 				$tag_title_next_section = trim( $tag_components_next_section[0] );
