@@ -63,14 +63,14 @@
 			"@phpcs-fix"
 		],
 		"lint": "parallel-lint . --exclude vendor --exclude node_modules",
-		"phpcs": "phpcs -ps",
-		"phpcs-fix": "phpcbf -p",
-		"phan": "phan --allow-polyfill-parser",
+		"phpcs": "php -d memory_limit=1G vendor/bin/phpcs -ps",
+		"phpcs-fix": "php -d memory_limit=1G vendor/bin/phpcbf -p",
+		"phan": "php -d memory_limit=3G vendor/bin/phan --allow-polyfill-parser",
 		"audit": "composer audit",
 		"phpunit": [
 			"Composer\\Config::disableProcessTimeout",
-			"bash -c 'cd ${MW_INSTALL_PATH:-../..} && { [ -f tests/phpunit/generatePHPUnitConfig.php ] && { php tests/phpunit/generatePHPUnitConfig.php >/dev/null 2>&1 || true; [ -f phpunit.xml ] || printf \"%s\" \"<phpunit><!-- generatePHPUnitConfig --></phpunit>\" > phpunit.xml; } || true; } && MEDIAWIKI_HAS_INTEGRATION_TESTS=1 php -d memory_limit=512M vendor/bin/phpunit -c extensions/PageForms/phpunit.xml.dist --bootstrap tests/phpunit/bootstrap.php --testsuite extension-page-forms-unit --testdox'",
-			"bash -c 'cd ${MW_INSTALL_PATH:-../..} && MEDIAWIKI_HAS_INTEGRATION_TESTS=1 php -d memory_limit=512M vendor/bin/phpunit -c extensions/PageForms/phpunit.xml.dist --bootstrap tests/phpunit/bootstrap.php --testsuite extension-page-forms-integration --testdox'"
+			"bash -c 'cd ${MW_INSTALL_PATH:-../..} && { [ -f tests/phpunit/generatePHPUnitConfig.php ] && { php tests/phpunit/generatePHPUnitConfig.php >/dev/null 2>&1 || true; [ -f phpunit.xml ] || printf \"%s\" \"<phpunit><!-- generatePHPUnitConfig --></phpunit>\" > phpunit.xml; } || true; } && MEDIAWIKI_HAS_INTEGRATION_TESTS=1 php -d memory_limit=512M vendor/bin/phpunit -c extensions/PageForms/phpunit.xml.dist --bootstrap tests/phpunit/bootstrap.php --testsuite extension-page-forms-unit ${PF_FILTER:+--filter $PF_FILTER} --testdox'",
+			"bash -c 'cd ${MW_INSTALL_PATH:-../..} && MEDIAWIKI_HAS_INTEGRATION_TESTS=1 php -d memory_limit=512M vendor/bin/phpunit -c extensions/PageForms/phpunit.xml.dist --bootstrap tests/phpunit/bootstrap.php --testsuite extension-page-forms-integration ${PF_FILTER:+--filter $PF_FILTER} --testdox'"
 		],
 		"phpunit-coverage": [
 			"Composer\\Config::disableProcessTimeout",

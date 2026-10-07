@@ -78,7 +78,7 @@ php-test: .git-safe-dir
 ifdef COMPOSER_EXT
 	$(show-current-target)
 	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer lint"
-	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer phpunit$(if $(FILTER), -- --filter $(FILTER),)"
+	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && $(if $(FILTER),PF_FILTER='$(FILTER)' ,)composer phpunit"
 endif
 
 # JS development cycle: eslint + banana-checker + qunit
