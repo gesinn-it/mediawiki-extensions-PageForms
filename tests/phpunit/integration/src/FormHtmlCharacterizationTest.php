@@ -55,9 +55,15 @@ class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 		$title = Title::makeTitle( NS_MAIN, 'PFCharPage' );
 		$wgOut->getContext()->setTitle( $title );
 		RequestContext::getMain()->setTitle( $title );
-		if ( !empty( $case['globals'] ) ) {
-			$this->setMwGlobals( $case['globals'] );
-		}
+		// The defaults of the settings that change the output, as other tests may leave them changed.
+		$this->setMwGlobals( ( $case['globals'] ?? [] ) + [
+			'wgPageFormsUseDisplayTitle' => true,
+			'wgPageFormsMaxAutocompleteValues' => 1000,
+			'wgPageFormsMaxLocalAutocompleteValues' => 100,
+			'wgPageFormsAutocompleteOnAllChars' => false,
+			'wgPageFormsCacheAutocompleteValues' => false,
+			'wgPageFormsShowExpandAllLink' => false,
+		] );
 		if ( !empty( $case['fixtures'] ) ) {
 			$this->insertFixtures();
 		}
