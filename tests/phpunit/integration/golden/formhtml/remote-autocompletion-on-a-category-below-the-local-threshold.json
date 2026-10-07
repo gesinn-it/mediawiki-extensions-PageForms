@@ -1,0 +1,22 @@
+{
+    "form_text": [
+        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-content-ltr mw-parser-output\" lang=\"en\" dir=\"ltr\"><p> ",
+        "<span id=\"span_1\" class=\"comboboxSpan\" data-input-type=\"combobox\"><select id=\"input_1\" name=\"PFCharRemote[Pick]\" class=\"pfComboBox\" tabindex=\"1\" autocompletesettings=\"PFCharSourceCategory\" value=\"PFCharCategoryMemberBeta\" data-size=\"210\" style=\"width:210px\">\t<option value=\"\"></option>",
+        "<option selected=\"\" value=\"PFCharCategoryMemberBeta\">PFCharCategoryMemberBeta</option></select></span><input type=\"hidden\" value=\"true\" name=\"PFCharRemote[map_field][Pick]\">",
+        " ",
+        "<span id='wpSave' class='<oo-ui>'><button type='submit' tabindex='2' title='Save your changes [s]' accesskey='s' name='wpSave' value='' class='<oo-ui>'><span class='<oo-ui>'></span><span class='<oo-ui>'>Save page</span><span class='<oo-ui>'></span></button></span>",
+        "</p></div><input type=\"hidden\" value=\"\" name=\"pf_free_text\"><input type=\"hidden\" value=\"<timestamp>\" name=\"wpStarttime\"><input type=\"hidden\" value=\"<timestamp>\" name=\"wpEdittime\"><input type=\"hidden\" value=\"0\" name=\"editRevId\"><input type=\"hidden\" value=\"<token>\" name=\"wpEditToken\"><input type=\"hidden\" value=\"ℳ𝒲♥𝓊𝓃𝒾𝒸ℴ𝒹ℯ\" name=\"wpUnicodeCheck\"><input type=\"hidden\" value=\"1\" name=\"wpUltimateParam\">\t</form>",
+        ""
+    ],
+    "page_text": [
+        "{{PFCharRemote",
+        "|Pick=PFCharCategoryMemberBeta",
+        "}}",
+        ""
+    ],
+    "form_page_title": "",
+    "generated_page_name": null,
+    "modules": [],
+    "module_styles": [],
+    "query_form_at_top": false
+}

@@ -55,6 +55,12 @@ class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 		$title = Title::makeTitle( NS_MAIN, 'PFCharPage' );
 		$wgOut->getContext()->setTitle( $title );
 		RequestContext::getMain()->setTitle( $title );
+		if ( !empty( $case['globals'] ) ) {
+			$this->setMwGlobals( $case['globals'] );
+		}
+		if ( !empty( $case['fixtures'] ) ) {
+			$this->insertFixtures();
+		}
 		$user = $this->getTestUser()->getUser();
 
 		$request = $case['request'] !== null
@@ -331,11 +337,130 @@ class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 				'form_def' => "{{#if:1|Shown by a parser function}}\n"
 					. $tpl( 'PFCharSingle', '', "{{{field|Title|default={{PAGENAME}}}}}\n" ) . $save,
 			],
+			'mapping template on a dropdown, new page' => [
+				'fixtures' => true,
+				'form_def' => $tpl( 'PFCharMapped', '',
+					"{{{field|Pick|input type=dropdown|values=a,b,c|mapping template=PFCharMapTpl}}}\n" ) . $save,
+			],
+			'mapping template on a dropdown, existing page' => [
+				'fixtures' => true,
+				'form_def' => $tpl( 'PFCharMapped', '',
+					"{{{field|Pick|input type=dropdown|values=a,b,c|mapping template=PFCharMapTpl}}}\n" ) . $save,
+				'source_is_page' => true,
+				'existing' => "{{PFCharMapped|Pick=b}}\n",
+			],
+			'mapping template on a dropdown, submitted with the label' => [
+				'fixtures' => true,
+				'form_def' => $tpl( 'PFCharMapped', '',
+					"{{{field|Pick|input type=dropdown|values=a,b,c|mapping template=PFCharMapTpl}}}\n" ) . $save,
+				'submitted' => true,
+				'request' => [ 'PFCharMapped' => [ 'Pick' => 'Label c' ] ],
+			],
+			'mapping template on a list of checkboxes and tokens, existing page' => [
+				'fixtures' => true,
+				'form_def' => $tpl( 'PFCharMapped', '',
+					"{{{field|Boxes|list|input type=checkboxes|values=a,b,c|mapping template=PFCharMapTpl}}}\n"
+					. "{{{field|Chips|list|input type=tokens|values=a,b,c|mapping template=PFCharMapTpl}}}\n"
+				) . $save,
+				'source_is_page' => true,
+				'existing' => "{{PFCharMapped|Boxes=a, c|Chips=b, c}}\n",
+			],
+			'mapping template in a multiple template, existing page' => [
+				'fixtures' => true,
+				'form_def' => $tpl( 'PFCharMappedMulti', '|multiple',
+					"{{{field|Pick|input type=dropdown|values=a,b,c|mapping template=PFCharMapTpl}}}\n" ) . $save,
+				'source_is_page' => true,
+				'existing' => "{{PFCharMappedMulti|Pick=a}}\n{{PFCharMappedMulti|Pick=c}}\n",
+			],
+			'values from category, dropdown and combobox, new page' => [
+				'fixtures' => true,
+				'form_def' => $tpl( 'PFCharCategory', '',
+					"{{{field|Drop|input type=dropdown|values from category=PFCharSourceCategory}}}\n"
+					. "{{{field|Combo|input type=combobox|values from category=PFCharSourceCategory}}}\n"
+				) . $save,
+			],
+			'values from category, text with autocompletion and tokens, existing page' => [
+				'fixtures' => true,
+				'form_def' => $tpl( 'PFCharCategory', '',
+					"{{{field|Text|input type=text with autocomplete|values from category=PFCharSourceCategory}}}\n"
+					. "{{{field|Chips|list|input type=tokens|values from category=PFCharSourceCategory}}}\n"
+				) . $save,
+				'source_is_page' => true,
+				'existing' => "{{PFCharCategory|Text=PFCharCategoryMemberBeta|"
+					. "Chips=PFCharCategoryMemberAlpha, PFCharCategoryMemberGamma}}\n",
+			],
+			'values from category with use display title' => [
+				'fixtures' => true,
+				'globals' => [ 'wgPageFormsUseDisplayTitle' => true ],
+				'form_def' => $tpl( 'PFCharShown', '',
+					"{{{field|Pick|input type=dropdown|values from category=PFCharShownCategory|use display title}}}\n"
+				) . $save,
+				'source_is_page' => true,
+				'existing' => "{{PFCharShown|Pick=PFCharShownMemberDelta}}\n",
+			],
+			'values from namespace' => [
+				'fixtures' => true,
+				'form_def' => $tpl( 'PFCharNamespace', '',
+					"{{{field|Pick|input type=dropdown|values from namespace=Help}}}\n" ) . $save,
+				'source_is_page' => true,
+				'existing' => "{{PFCharNamespace|Pick=PFCharNamespaceMemberTwo}}\n",
+			],
+			'remote autocompletion on a category above the local threshold' => [
+				'fixtures' => true,
+				'globals' => [ 'wgPageFormsMaxLocalAutocompleteValues' => 1 ],
+				'form_def' => $tpl( 'PFCharRemote', '',
+					"{{{field|Pick|input type=combobox|values from category=PFCharSourceCategory"
+					. "|remote autocompletion}}}\n" ) . $save,
+				'source_is_page' => true,
+				'existing' => "{{PFCharRemote|Pick=PFCharCategoryMemberBeta}}\n",
+			],
+			'remote autocompletion on a category below the local threshold' => [
+				'fixtures' => true,
+				'globals' => [ 'wgPageFormsMaxLocalAutocompleteValues' => 100 ],
+				'form_def' => $tpl( 'PFCharRemote', '',
+					"{{{field|Pick|input type=combobox|values from category=PFCharSourceCategory"
+					. "|remote autocompletion}}}\n" ) . $save,
+				'source_is_page' => true,
+				'existing' => "{{PFCharRemote|Pick=PFCharCategoryMemberBeta}}\n",
+			],
+			'remote autocompletion in a multiple template and with a mapping template' => [
+				'fixtures' => true,
+				'globals' => [ 'wgPageFormsMaxLocalAutocompleteValues' => 1 ],
+				'form_def' => $tpl( 'PFCharRemoteMulti', '|multiple',
+					"{{{field|Pick|input type=combobox|values from category=PFCharSourceCategory"
+					. "|remote autocompletion}}}\n"
+					. "{{{field|Mapped|input type=combobox|values from category=PFCharSourceCategory"
+					. "|remote autocompletion|mapping template=PFCharMapTpl}}}\n" ) . $save,
+				'source_is_page' => true,
+				'existing' => "{{PFCharRemoteMulti|Pick=PFCharCategoryMemberAlpha|Mapped=PFCharCategoryMemberGamma}}\n",
+			],
 			'embedded form' => [
 				'form_def' => $tpl( 'PFCharSingle', '', "{{{field|Title}}}\n" ) . $save,
 				'is_embedded' => true,
 			],
 		];
+	}
+
+	/**
+	 * The pages that the "values from ..." and "mapping template" cases read.
+	 */
+	private function insertFixtures(): void {
+		// Lets a DISPLAYTITLE differ from the page name.
+		$this->overrideConfigValue( 'RestrictDisplayTitle', false );
+		$this->insertPage( Title::makeTitle( NS_TEMPLATE, 'PFCharMapTpl' ), 'Label {{{1}}}' );
+		foreach ( [ 'Alpha', 'Beta', 'Gamma' ] as $name ) {
+			$this->insertPage( "PFCharCategoryMember$name", "[[Category:PFCharSourceCategory]]" );
+		}
+		foreach ( [ 'Delta', 'Epsilon' ] as $name ) {
+			$this->insertPage(
+				"PFCharShownMember$name", "{{DISPLAYTITLE:Shown $name}}\n[[Category:PFCharShownCategory]]"
+			);
+		}
+		foreach ( [ 'One', 'Two' ] as $name ) {
+			$this->insertPage( "Help:PFCharNamespaceMember$name", 'content' );
+		}
+		// Display titles are page properties, which are written by a deferred update.
+		\DeferredUpdates::doUpdates();
 	}
 
 	/**
