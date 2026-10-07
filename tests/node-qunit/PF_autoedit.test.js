@@ -141,6 +141,74 @@ QUnit.test( 'sendData: ajax error handler sets error classes', ( assert ) => {
 	}, 50 );
 } );
 
+// ── failure text ──────────────────────────────────────────────────────────────
+
+QUnit.test( 'sendData: API error without responseText shows the error info', ( assert ) => {
+	const done = assert.async();
+	// mw.Api rejects with ( code, data ) when the response carries an "error" member; such a
+	// response (e.g. internal_api_error_*) has neither a status nor a responseText.
+	mw.Api.prototype.post.returns( $.Deferred().reject(
+		'internal_api_error_DBTransactionStateError',
+		{ error: { code: 'internal_api_error_DBTransactionStateError', info: 'Caught exception of type DBTransactionStateError' } }
+	) );
+	const { $trigger, $result } = createAutoedit();
+	freshRequire();
+
+	setTimeout( () => {
+		$trigger.trigger( 'click' );
+		setTimeout( () => {
+			assert.strictEqual(
+				$result.text(), 'Caught exception of type DBTransactionStateError', 'the error info is shown'
+			);
+			assert.true( $result[ 0 ].classList.contains( 'autoedit-result-error' ), 'result has error class' );
+			done();
+		}, 0 );
+	}, 50 );
+} );
+
+QUnit.test( 'sendData: error response shows the response text followed by every error message', ( assert ) => {
+	const done = assert.async();
+	mw.Api.prototype.post.returns( $.Deferred().reject(
+		'http',
+		{ xhr: { responseText: JSON.stringify( {
+			responseText: 'Modifying X failed.',
+			errors: [ { message: 'Reason: AS_CONFLICT_DETECTED' }, { message: 'second' } ]
+		} ) } }
+	) );
+	const { $trigger, $result } = createAutoedit();
+	freshRequire();
+
+	setTimeout( () => {
+		$trigger.trigger( 'click' );
+		setTimeout( () => {
+			assert.strictEqual(
+				$result.text(), 'Modifying X failed. Reason: AS_CONFLICT_DETECTED second', 'texts are joined'
+			);
+			done();
+		}, 0 );
+	}, 50 );
+} );
+
+QUnit.test( 'sendData: non-200 status in a regular response also shows the error messages', ( assert ) => {
+	const done = assert.async();
+	mw.Api.prototype.post.returns( $.Deferred().resolve( {
+		status: 400,
+		responseText: 'Modifying X failed.',
+		errors: [ { message: 'Reason: AS_CONFLICT_DETECTED' } ]
+	} ) );
+	const { $trigger, $result } = createAutoedit();
+	freshRequire();
+
+	setTimeout( () => {
+		$trigger.trigger( 'click' );
+		setTimeout( () => {
+			assert.strictEqual( $result.text(), 'Modifying X failed. Reason: AS_CONFLICT_DETECTED' );
+			assert.true( $result[ 0 ].classList.contains( 'autoedit-result-error' ), 'result has error class' );
+			done();
+		}, 0 );
+	}, 50 );
+} );
+
 // ── .autoedit-trigger-instant fires on load ───────────────────────────────────
 
 QUnit.test( 'autoedit-trigger-instant fires sendData immediately on ready', ( assert ) => {

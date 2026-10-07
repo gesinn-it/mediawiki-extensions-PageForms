@@ -2,6 +2,7 @@
 
 use MediaWiki\Extension\PageForms\HtmlFormDataExtractor;
 use OOUI\BlankTheme;
+use Wikimedia\Timestamp\ConvertibleTimestamp;
 
 /**
  * @covers \PFAutoeditAPI
@@ -1506,5 +1507,100 @@ class PFAutoeditAPITest extends ApiTestCase {
 		$this->assertStringContainsString( 'day=2026-10-07', $text );
 		$this->assertStringContainsString( 'note=added', $text );
 		$this->assertStringNotContainsString( '{{AEStoreMultiTpl}}', $text, 'no empty instances' );
+	}
+
+	/**
+	 * Saves AEStoreTpl through pfautoedit while the page has been changed since the
+	 * revision the request claims to be based on (what #autoedit embeds when it is rendered),
+	 * which EditPage reports as an edit conflict.
+	 *
+	 * @return PFAutoeditAPI
+	 */
+	private function executeStoreWithStaleBaseRevision( string $formName, string $targetName ): PFAutoeditAPI {
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, $formName ),
+			"{{{for template|AEStoreConflictTpl|multiple}}}\n{{{field|text}}}\n{{{end template}}}\n"
+			. "{{{standard input|free text}}}\n{{{standard input|save}}}"
+		);
+		// EditPage compares timestamps with second resolution, so the two edits must not
+		// fall into the same second.
+		try {
+			ConvertibleTimestamp::setFakeTime( '20260101120000' );
+			$this->insertPage( $targetName, "{{AEStoreConflictTpl\n|text=first\n}}\n" );
+			$page = PFUtils::newWikiPageFromTitle( Title::newFromText( $targetName ) );
+			$page->clear();
+			$staleTimestamp = $page->getTimestamp();
+			$staleRevId = $page->getLatest();
+
+			ConvertibleTimestamp::setFakeTime( '20260101120100' );
+			$this->editPage(
+				$targetName, "{{AEStoreConflictTpl\n|text=first\n}}\nadded by someone else\n", 'other edit',
+				NS_MAIN, $this->getTestSysop()->getAuthority()
+			);
+		} finally {
+			ConvertibleTimestamp::setFakeTime( false );
+		}
+
+		return $this->executeStore( $formName, $targetName, [
+			'wpEdittime' => $staleTimestamp,
+			'editRevId' => $staleRevId,
+			'AEStoreConflictTpl' => [ 'new' => [ 'text' => 'second' ] ],
+		] );
+	}
+
+	/**
+	 * An edit conflict used to be reported with the same generic "Modifying ... failed."
+	 * text as five other EditPage outcomes, so nobody could tell why a save failed. The
+	 * message must now name the EditPage status.
+	 *
+	 * @covers \PFAutoeditAPI::handleSaveStatus
+	 */
+	public function testEditConflictIsReportedWithItsReason(): void {
+		$module = $this->executeStoreWithStaleBaseRevision( 'AEStoreFormConflict', 'AEStoreTargetConflict' );
+
+		$this->assertSame( 400, $module->getStatus() );
+		$errors = $module->getResult()->getResultData()['errors'];
+		$this->assertStringContainsString( 'AS_CONFLICT_DETECTED', $errors[0]['message'] );
+		$this->assertStringContainsString( 'AEStoreTargetConflict', $errors[0]['message'] );
+	}
+
+	/**
+	 * A failed save is written to the "PageForms" log channel with the form, target and user,
+	 * so that the reason can be found on the server and not only in the browser's response.
+	 *
+	 * @covers \PFAutoeditAPI::logMessage
+	 */
+	public function testFailedSaveIsLogged(): void {
+		$logger = $this->createMock( \Psr\Log\LoggerInterface::class );
+		$logger->expects( $this->atLeastOnce() )->method( 'warning' )->with(
+			$this->stringContains( 'pfautoedit' ),
+			$this->callback( static function ( array $context ) {
+				return $context['form'] === 'AEStoreFormLogged'
+					&& $context['target'] === 'AEStoreTargetLogged'
+					&& str_contains( $context['reason'], 'AS_CONFLICT_DETECTED' );
+			} )
+		);
+		$this->setLogger( 'PageForms', $logger );
+
+		$this->executeStoreWithStaleBaseRevision( 'AEStoreFormLogged', 'AEStoreTargetLogged' );
+	}
+
+	/**
+	 * Successful saves and non-error messages must not be logged as failures.
+	 *
+	 * @covers \PFAutoeditAPI::logMessage
+	 */
+	public function testSuccessfulSaveIsNotLoggedAsFailure(): void {
+		$formName = $this->createTestForm( 'AEStoreFormNoLog' );
+		$logger = $this->createMock( \Psr\Log\LoggerInterface::class );
+		$logger->expects( $this->never() )->method( 'warning' );
+		$logger->expects( $this->never() )->method( 'error' );
+		$this->setLogger( 'PageForms', $logger );
+
+		$module = $this->executeStore( $formName, 'AEStoreTargetNoLog', [
+			'AEStoreTpl' => [ 'text' => 'fine' ],
+		] );
+
+		$this->assertSame( 200, $module->getStatus() );
 	}
 }

@@ -12,6 +12,27 @@
 
 	const api = new mw.Api();
 
+	/**
+	 * Text describing a failed request: the module's response text followed by each error
+	 * message it reported. A response that failed inside the API itself (an "error" member
+	 * such as internal_api_error_*) carries neither, so its error info is used instead.
+	 *
+	 * @param {Object} response
+	 * @return {string}
+	 */
+	function failureText( response ) {
+		let text = ( response && response.responseText ) || '';
+		const errors = ( response && response.errors ) || [];
+
+		for ( let i = 0; i < errors.length; i++ ) {
+			text += ' ' + errors[ i ].message;
+		}
+		if ( text === '' && response && response.error ) {
+			text = response.error.info || response.error.code || '';
+		}
+		return text;
+	}
+
 	function sendData( $trigger ){
 		const $autoedit = $trigger.closest( '.autoedit' );
 		const $result = $autoedit.find( '.autoedit-result' );
@@ -30,9 +51,9 @@
 
 		api.post( data ).then(
 			( result ) => {
-				$result.empty().append( result.responseText );
-
 				if ( result.status === 200 ) {
+					$result.empty().append( result.responseText );
+
 					if ( reload ) {
 						window.location.reload();
 					}
@@ -40,6 +61,7 @@
 					$result.removeClass( 'autoedit-result-wait' ).addClass( 'autoedit-result-ok' );
 					$trigger.removeClass( 'autoedit-trigger-wait' ).addClass( 'autoedit-trigger-ok' );
 				} else {
+					$result.empty().append( failureText( result ) );
 					$result.removeClass( 'autoedit-result-wait' ).addClass( 'autoedit-result-error' );
 					$trigger.removeClass( 'autoedit-trigger-wait' ).addClass( 'autoedit-trigger-error' );
 				}
@@ -47,14 +69,8 @@
 			( code, error ) => {
 				// pfautoedit returns HTTP 4xx on error; mw.Api rejects with ('http', {xhr, ...})
 				const response = code === 'http' ? JSON.parse( error.xhr.responseText ) : error;
-				let text = ( response && response.responseText ) || '';
-				const errors = ( response && response.errors ) || [];
 
-				for ( let i = 0; i < errors.length; i++ ) {
-					text += ' ' + errors[ i ].message;
-				}
-
-				$result.empty().append( text );
+				$result.empty().append( failureText( response ) );
 				$result.removeClass( 'autoedit-result-wait' ).addClass( 'autoedit-result-error' );
 				$trigger.removeClass( 'autoedit-trigger-wait' ).addClass( 'autoedit-trigger-error' );
 			}

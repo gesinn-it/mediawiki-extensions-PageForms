@@ -201,6 +201,7 @@
 	"pf_autoedit_anoneditwarning": "Warning: You are not logged in. Your IP address will be recorded in this page's edit history.",
 	"pf_autoedit_success": "Modified [[$1]] using form $2.",
 	"pf_autoedit_fail": "Modifying [[$1]] failed.",
+	"pf_autoedit_fail_reason": "Reason: $1",
 	"pf_autoedit_notargetspecified": "No target page specified.",
 	"pf_autoedit_invalidtargetspecified": "The specified target page '''$1''' is invalid.",
 	"pf_autoedit_invalidform": "'''$1''' is not a valid form.",

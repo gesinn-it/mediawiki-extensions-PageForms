@@ -8,6 +8,7 @@ declare( strict_types=1 );
 
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\HtmlFormDataExtractor;
+use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
 
@@ -132,7 +133,7 @@ class PFAutoeditAPI extends ApiBase {
 			$parser = PFUtils::ensureParserReadyForTagParse(
 				PFUtils::getParser(), $this->getUser(), RequestContext::getMain()->getTitle()
 			);
-			$this->logMessage( $parser->recursiveTagParseFully( $e->getMessage() ), $e->getCode() );
+			$this->logMessage( $parser->recursiveTagParseFully( $e->getMessage() ), $e->getCode(), $e );
 		}
 
 		$this->finalizeResults();
@@ -522,6 +523,30 @@ class PFAutoeditAPI extends ApiBase {
 	}
 
 	/**
+	 * Names the outcome of EditPage::internalAttemptSave() for a failed save: the EditPage::AS_*
+	 * constant, followed by the message MediaWiki attached to the status, if any.
+	 *
+	 * Several different outcomes (an edit conflict, a page that was deleted in the meantime,
+	 * a missing summary, ...) are reported to the caller with the same generic failure text,
+	 * so without this the reason of a failure cannot be told apart.
+	 *
+	 * @param \Status $status
+	 * @return string
+	 */
+	private function describeSaveStatus( \Status $status ): string {
+		$name = 'AS_' . $status->value;
+		foreach ( ( new ReflectionClass( EditPage::class ) )->getConstants() as $constant => $value ) {
+			if ( $value === $status->value && str_starts_with( $constant, 'AS_' ) ) {
+				$name = $constant;
+				break;
+			}
+		}
+		$text = trim( MediaWikiServices::getInstance()->getFormatterFactory()
+			->getStatusFormatter( $this->getContext() )->getWikiText( $status ) );
+		return $text === '' ? $name : "$name: $text";
+	}
+
+	/**
 	 * Maps the EditPage::AS_* status returned by EditPage::internalAttemptSave()
 	 * to a result/redirect/exception, per the contract documented on doStore().
 	 *
@@ -570,7 +595,10 @@ class PFAutoeditAPI extends ApiBase {
 				// article is too big (> $wgMaxArticleSize), after merging in the new section
 			case EditPage::AS_END:
 				// WikiPage::doEdit() was unsuccessful
-				throw new MWException( $this->msg( 'pf_autoedit_fail', $this->mOptions['target'] )->parse() );
+				throw new MWException(
+					$this->msg( 'pf_autoedit_fail', $this->mOptions['target'] )->parse()
+					. ' ' . $this->msg( 'pf_autoedit_fail_reason', $this->describeSaveStatus( $status ) )->parse()
+				);
 
 			case EditPage::AS_HOOK_ERROR:
 				// Article update aborted by a hook function
@@ -1208,19 +1236,50 @@ class PFAutoeditAPI extends ApiBase {
 	/**
 	 * Add error message to the ApiResult
 	 *
+	 * Failures (level ERROR) are also written to the "PageForms" log channel, because the
+	 * message in the API result is otherwise the only trace of why a request failed.
+	 *
 	 * @param string $msg
 	 * @param int $errorLevel
+	 * @param Throwable|null $exception The exception this failure was reported for, if any
 	 *
 	 * @return string
 	 */
-	private function logMessage( $msg, $errorLevel = self::ERROR ) {
+	private function logMessage( $msg, $errorLevel = self::ERROR, ?Throwable $exception = null ) {
 		if ( $errorLevel === self::ERROR ) {
 			$this->mStatus = 400;
+			$this->logFailure( $msg, $exception );
 		}
 
 		$this->getResult()->addValue( [ 'errors' ], null, [ 'level' => $errorLevel, 'message' => $msg ] );
 
 		return $msg;
+	}
+
+	/**
+	 * Writes a failed request to the "PageForms" log channel.
+	 *
+	 * @param string $msg The (HTML) message that is also returned to the client
+	 * @param Throwable|null $exception
+	 */
+	private function logFailure( string $msg, ?Throwable $exception ): void {
+		$context = [
+			'form' => $this->mOptions['form'] ?? '',
+			'target' => $this->mOptions['target'] ?? '',
+			'user' => $this->getUser()->getName(),
+			'reason' => trim( strip_tags( $msg ) ),
+		];
+		if ( $exception !== null ) {
+			$context['exception'] = $exception;
+		}
+		$logger = LoggerFactory::getInstance( 'PageForms' );
+		// A request that fails with a non-PageForms exception (a database error, for example)
+		// is a server problem; everything else is the outcome of what the caller asked for.
+		if ( $exception !== null && !$exception instanceof MWException ) {
+			$logger->error( 'pfautoedit failed for {target} using form {form}: {reason}', $context );
+		} else {
+			$logger->warning( 'pfautoedit failed for {target} using form {form}: {reason}', $context );
+		}
 	}
 
 	/**

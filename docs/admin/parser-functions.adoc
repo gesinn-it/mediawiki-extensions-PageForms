@@ -256,6 +256,25 @@ $wgPageFormsAutoeditNamespaces[] = NS_USER;
 
 Autoedit is also available as a MediaWiki API action. See xref:../developer/api.adoc[API Reference] for details.
 
+=== When an edit fails
+
+A failed edit shows "Modifying _page_ failed." followed by the reason, for example `Reason: AS_CONFLICT_DETECTED`.
+The same message is written to the `PageForms` log channel together with the form, the target page and the user,
+for example by adding to `LocalSettings.php`:
+
+[source,php]
+----
+$wgDebugLogGroups['PageForms'] = '/var/log/mediawiki/pageforms.log';
+----
+
+Common reasons:
+
+* `AS_CONFLICT_DETECTED` - the target page was changed after the page containing `#autoedit` was rendered, in a
+  place the edit also changes. `#autoedit` remembers the revision of the target page as of rendering, so a page
+  that is served from the parser cache can report a conflict for pages that were edited since.
+* An error from the database or MediaWiki's rate limit (`$wgRateLimits`), if many `#autoedit` links with
+  `link type=instant` run at once.
+
 == #autoedit_rating
 
 Renders a row of stars. The number of stars the user selects is written to a field on the target page via autoedit.
