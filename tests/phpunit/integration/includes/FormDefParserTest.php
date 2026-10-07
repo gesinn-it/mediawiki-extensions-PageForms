@@ -152,6 +152,95 @@ class FormDefParserTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 'hello', $data['PFTest_FDP_Tpl07']['Value'] );
 	}
 
+	// ---------------------------------------- preparePreloadData: multiple-instance templates
+
+	public function testMultipleInstanceTemplateReturnsEveryInstanceFromPage(): void {
+		$formDef = "{{{for template|PFTestFDPMulti01|multiple}}}\n"
+			. "{{{field|Step}}}\n"
+			. "{{{field|Note}}}\n"
+			. "{{{end template}}}";
+
+		$pageContent = "{{PFTestFDPMulti01|Step=one|Note=first}}\n{{PFTestFDPMulti01|Step=two|Note=second}}";
+
+		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
+
+		// Instances are keyed like HtmlFormDataExtractor does ("0a", "1a", ...).
+		$this->assertSame(
+			[
+				'0a' => [ 'Step' => 'one', 'Note' => 'first' ],
+				'1a' => [ 'Step' => 'two', 'Note' => 'second' ],
+			],
+			$data['PFTestFDPMulti01']
+		);
+	}
+
+	public function testMultipleInstanceTemplateWithSingleInstanceIsKeyedAsInstance(): void {
+		$formDef = "{{{for template|PFTestFDPMulti02|multiple}}}\n"
+			. "{{{field|Step}}}\n"
+			. "{{{end template}}}";
+
+		$data = $this->parser->preparePreloadData( $formDef, '{{PFTestFDPMulti02|Step=only}}' );
+
+		$this->assertSame( [ '0a' => [ 'Step' => 'only' ] ], $data['PFTestFDPMulti02'] );
+	}
+
+	public function testMultipleInstanceTemplateKeepsEmptyInstanceToPreserveCount(): void {
+		$formDef = "{{{for template|PFTestFDPMulti03|multiple}}}\n"
+			. "{{{field|Step}}}\n"
+			. "{{{end template}}}";
+
+		$pageContent = "{{PFTestFDPMulti03}}\n{{PFTestFDPMulti03|Step=second}}";
+
+		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
+
+		$this->assertSame(
+			[ '0a' => [], '1a' => [ 'Step' => 'second' ] ],
+			$data['PFTestFDPMulti03']
+		);
+	}
+
+	public function testMultipleInstanceTemplateFreeTextExcludesAllInstances(): void {
+		$formDef = "{{{for template|PFTestFDPMulti04|multiple}}}\n"
+			. "{{{field|Step}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|free text}}}";
+
+		$pageContent = "{{PFTestFDPMulti04|Step=a}}{{PFTestFDPMulti04|Step=b}}\n\nBody text.";
+
+		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
+
+		$this->assertSame( 'Body text.', $data['pf_free_text'] );
+	}
+
+	public function testMultipleInstanceTemplateDoesNotAffectSurroundingSingleTemplates(): void {
+		$formDef = "{{{for template|PFTestFDPSingle05}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{for template|PFTestFDPMulti05|multiple}}}\n"
+			. "{{{field|Step}}}\n"
+			. "{{{end template}}}";
+
+		$pageContent = '{{PFTestFDPSingle05|Name=Alice}}{{PFTestFDPMulti05|Step=a}}{{PFTestFDPMulti05|Step=b}}';
+
+		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
+
+		$this->assertSame( [ 'Name' => 'Alice' ], $data['PFTestFDPSingle05'] );
+		$this->assertCount( 2, $data['PFTestFDPMulti05'] );
+	}
+
+	public function testSingleInstanceTemplateStillReadsOnlyFirstInstance(): void {
+		// Unchanged behaviour: without the `multiple` attribute only the first call is read.
+		$formDef = "{{{for template|PFTestFDPSingle06}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}";
+
+		$data = $this->parser->preparePreloadData(
+			$formDef, '{{PFTestFDPSingle06|Name=first}}{{PFTestFDPSingle06|Name=second}}'
+		);
+
+		$this->assertSame( [ 'Name' => 'first' ], $data['PFTestFDPSingle06'] );
+	}
+
 	// ------------------------------------------------------------------ splitFormDefIntoSections
 
 	/**

@@ -313,9 +313,9 @@ class FormPrinter {
 	 * HtmlFormDataExtractor::extract(), so the result can be merged directly
 	 * into PFAutoeditAPI::$mOptions without further transformation.
 	 *
-	 * **Limitation**: Only the first occurrence of each template is read; multiple-instance
-	 * templates (those with the `multiple` attribute) are not supported — subsequent
-	 * instances on the page are silently ignored.
+	 * Every instance of a multiple-instance template (one with the `multiple` attribute) is
+	 * read and keyed "0a", "1a", ... as HtmlFormDataExtractor::extract() names them. For all
+	 * other templates only the first occurrence on the page is read.
 	 *
 	 * @param string $form_def Form definition wikitext (noinclude already stripped)
 	 * @param string $existing_page_content Wikitext of the existing page to preload from

@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
+- Fixed `#autoedit` and the `pfautoedit` API removing the existing entries of a multiple-instance template (e.g. earlier transfer steps) and writing empty template calls instead when an entry is added to an existing page.
 - Fixed the missing reference (citation) button in the WikiEditor toolbar of free text and textarea inputs using `editor=wikieditor` when the Cite extension is installed [#184](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/184)
 - Fixed a fatal `TypeError` (`str_replace(): Argument #3 ($subject) must be of type array|string, null given`) when opening a form with `onlyinclude free text` or `includeonly free text` for a page that does not exist yet [#212](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/212)
 

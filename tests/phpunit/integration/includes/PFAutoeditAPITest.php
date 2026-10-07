@@ -1467,4 +1467,44 @@ class PFAutoeditAPITest extends ApiTestCase {
 			$blockStore->deleteBlock( $block );
 		}
 	}
+
+	/**
+	 * Adding an instance to a page that already has one (the "transfer step"
+	 * workflow) must keep the existing instance: the preload path used for
+	 * save must read every instance of a multiple-instance template, not only
+	 * the first one — otherwise the existing instance is dropped and replaced
+	 * by empty ones.
+	 *
+	 * @covers \PFAutoeditAPI::execute
+	 * @covers \MediaWiki\Extension\PageForms\FormDefParser::preparePreloadData
+	 */
+	public function testStoreAddsInstanceToMultipleInstanceTemplateKeepingExistingOnes(): void {
+		$formName = 'AEStoreFormMultiInstance';
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, $formName ),
+			"{{{for template|AEStoreMultiTpl|multiple}}}\n"
+			. "{{{field|day}}}\n"
+			. "{{{field|note}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}"
+		);
+		$targetName = 'AEStoreTargetMultiInstance';
+		$this->insertPage(
+			$targetName,
+			"{{AEStoreMultiTpl\n|day=2026-10-06\n|note=existing\n}}\n"
+		);
+
+		$module = $this->executeStore( $formName, $targetName, [
+			'AEStoreMultiTpl' => [ 'new' => [ 'day' => '2026-10-07', 'note' => 'added' ] ],
+		] );
+
+		$this->assertSame( 200, $module->getStatus() );
+		$text = $this->getExistingTestPage( $targetName )->getContent()->getText();
+		$this->assertSame( 2, preg_match_all( '/\{\{AEStoreMultiTpl/', $text ), $text );
+		$this->assertStringContainsString( 'day=2026-10-06', $text );
+		$this->assertStringContainsString( 'note=existing', $text );
+		$this->assertStringContainsString( 'day=2026-10-07', $text );
+		$this->assertStringContainsString( 'note=added', $text );
+		$this->assertStringNotContainsString( '{{AEStoreMultiTpl}}', $text, 'no empty instances' );
+	}
 }

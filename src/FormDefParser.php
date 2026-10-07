@@ -56,6 +56,9 @@ class FormDefParser {
 		$result = [];
 		$tif = null;
 		$template_key = null;
+		// Field values of every instance of the current multiple-instance template,
+		// in page order. Stays null for single-instance templates.
+		$instances = null;
 
 		foreach ( $form_def_sections as $section ) {
 			$section = ' ' . $section;
@@ -82,7 +85,28 @@ class FormDefParser {
 					$template_key = str_replace( ' ', '_', $template_name );
 					$tif = TemplateInForm::newFromFormTag( $tag_components, $parser );
 					$tif->setPageRelatedInfo( $existing_page_content );
-					if ( $tif->pageCallsThisTemplate() ) {
+					$instances = null;
+					if ( $tif->allowsMultiple() ) {
+						// Read every call of this template on the page, like formHTML() does
+						// by repeating the section once per instance.
+						$instances = [];
+						while ( $tif->pageCallsThisTemplate() ) {
+							$tif->setFieldValuesFromPage( $existing_page_content );
+							$existing_template_text = $tif->getFullTextInPage();
+							if ( $existing_template_text === '' ) {
+								break;
+							}
+							$instances[] = $tif->getValuesFromPage();
+							$existing_page_content = PFUtils::strReplaceFirst(
+								$existing_template_text, '', $existing_page_content
+							);
+							$tif->setPageRelatedInfo( $existing_page_content );
+						}
+						foreach ( $instances as $i => $unused ) {
+							// An instance without any field still counts as an instance.
+							$result[$template_key][$i . 'a'] = [];
+						}
+					} elseif ( $tif->pageCallsThisTemplate() ) {
 						$tif->setFieldValuesFromPage( $existing_page_content );
 						$existing_template_text = $tif->getFullTextInPage();
 						$existing_page_content = PFUtils::strReplaceFirst(
@@ -92,8 +116,22 @@ class FormDefParser {
 				} elseif ( $tag_title === 'end template' ) {
 					$tif = null;
 					$template_key = null;
+					$instances = null;
 				} elseif ( $tag_title === 'field' && $tif !== null && $template_key !== null ) {
 					$field_name = trim( $tag_components[1] );
+					if ( $instances !== null ) {
+						// Multiple-instance template: instances are keyed "0a", "1a", ... exactly
+						// as HtmlFormDataExtractor::addToArray() names them.
+						if ( $field_name !== '#freetext#' ) {
+							foreach ( $instances as $i => $values ) {
+								if ( array_key_exists( $field_name, $values ) ) {
+									$result[$template_key][$i . 'a'][$field_name] = $values[$field_name];
+								}
+							}
+						}
+						$start_position = $brackets_loc + 1;
+						continue;
+					}
 					if ( $field_name !== '#freetext#'
 						&& $tif->getFullTextInPage() !== ''
 						&& $tif->hasValueFromPageForField( $field_name )
