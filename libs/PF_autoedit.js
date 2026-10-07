@@ -33,7 +33,26 @@
 		return text;
 	}
 
-	function sendData( $trigger ){
+	/**
+	 * Whether a rejected request failed inside the database layer, e.g. because another save
+	 * changed a row this one had read. The save was rolled back, so sending it again is safe.
+	 *
+	 * @param {string} code
+	 * @return {boolean}
+	 */
+	function isTransientDatabaseError( code ) {
+		return typeof code === 'string' && /^internal_api_error_DB/.test( code );
+	}
+
+	/**
+	 * Sends the autoedit request of a trigger.
+	 *
+	 * @param {jQuery} $trigger
+	 * @param {boolean} [retried] Whether this is the second attempt after a transient database error
+	 * @return {jQuery.Promise} Settles when the request has finished, whatever its outcome
+	 */
+	function sendData( $trigger, retried ){
+		const finished = $.Deferred();
 		const $autoedit = $trigger.closest( '.autoedit' );
 		const $result = $autoedit.find( '.autoedit-result' );
 		const reload = $trigger[ 0 ].classList.contains( 'reload' );
@@ -51,6 +70,7 @@
 
 		api.post( data ).then(
 			( result ) => {
+				finished.resolve();
 				if ( result.status === 200 ) {
 					$result.empty().append( result.responseText );
 
@@ -67,6 +87,13 @@
 				}
 			},
 			( code, error ) => {
+				if ( !retried && isTransientDatabaseError( code ) ) {
+					setTimeout( () => {
+						sendData( $trigger, true ).then( finished.resolve );
+					}, 500 );
+					return;
+				}
+				finished.resolve();
 				// pfautoedit returns HTTP 4xx on error; mw.Api rejects with ('http', {xhr, ...})
 				const response = code === 'http' ? JSON.parse( error.xhr.responseText ) : error;
 
@@ -75,6 +102,7 @@
 				$trigger.removeClass( 'autoedit-trigger-wait' ).addClass( 'autoedit-trigger-error' );
 			}
 		);
+		return finished.promise();
 	}
 
 	const autoEditHandler = function handleAutoEdit( e ){
@@ -106,23 +134,28 @@
 		const targetpage = $editdata.find( 'input[name=target]' ).val();
 		const confirmEdit = $editdata[ 0 ].classList.contains( 'confirm-edit' );
 		if ( confirmEdit ) {
-			OO.ui.confirm( mw.msg( 'pf_autoedit_confirm', targetpage ) ).then( (confirmed) => {
+			return OO.ui.confirm( mw.msg( 'pf_autoedit_confirm', targetpage ) ).then( (confirmed) => {
 				if ( confirmed ) {
-					sendData( $trigger );
+					return sendData( $trigger );
 				}
 			})
 		} else {
-			sendData( $trigger );
+			return sendData( $trigger );
 		}
 	};
 
 	$( () => {
 		$( '.autoedit-trigger' ).click( autoEditHandler );
+		// The instant triggers of a page are sent one after the other: all at once, a page with
+		// many of them (e.g. the transfer of 100 samples) exceeds the rate limit and makes the
+		// saves compete for the same database rows.
+		let queue = $.Deferred().resolve().promise();
 		$( '.autoedit-trigger-instant' ).each( function() {
-			autoEditHandler.call( this, {
+			const trigger = this;
+			queue = queue.then( () => autoEditHandler.call( trigger, {
 				preventDefault: function(){},
 				stopPropagation: function(){}
-			} );
+			} ) ).then( null, () => {} );
 		} );
 	} );
 

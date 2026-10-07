@@ -148,8 +148,8 @@ QUnit.test( 'sendData: API error without responseText shows the error info', ( a
 	// mw.Api rejects with ( code, data ) when the response carries an "error" member; such a
 	// response (e.g. internal_api_error_*) has neither a status nor a responseText.
 	mw.Api.prototype.post.returns( $.Deferred().reject(
-		'internal_api_error_DBTransactionStateError',
-		{ error: { code: 'internal_api_error_DBTransactionStateError', info: 'Caught exception of type DBTransactionStateError' } }
+		'internal_api_error_MWException',
+		{ error: { code: 'internal_api_error_MWException', info: 'Caught exception of type DBTransactionStateError' } }
 	) );
 	const { $trigger, $result } = createAutoedit();
 	freshRequire();
@@ -220,5 +220,72 @@ QUnit.test( 'autoedit-trigger-instant fires sendData immediately on ready', ( as
 	setTimeout( () => {
 		assert.true( mw.Api.prototype.post.calledOnce, 'post called for instant trigger' );
 		done();
+	}, 50 );
+} );
+
+QUnit.test( 'instant triggers are sent one after the other', ( assert ) => {
+	const done = assert.async();
+	const pending = [];
+	mw.Api.prototype.post.callsFake( () => {
+		const request = $.Deferred();
+		pending.push( request );
+		return request;
+	} );
+	createAutoedit( { instant: true } );
+	createAutoedit( { instant: true } );
+	createAutoedit( { instant: true } );
+	freshRequire();
+
+	setTimeout( () => {
+		assert.strictEqual( mw.Api.prototype.post.callCount, 1, 'only the first request is sent' );
+		pending[ 0 ].resolve( { status: 200, responseText: 'ok' } );
+		setTimeout( () => {
+			assert.strictEqual( mw.Api.prototype.post.callCount, 2, 'the second follows when the first is done' );
+			pending[ 1 ].reject( 'http', { xhr: { responseText: JSON.stringify( { responseText: 'fail' } ) } } );
+			setTimeout( () => {
+				assert.strictEqual( mw.Api.prototype.post.callCount, 3, 'a failed request does not stop the queue' );
+				done();
+			}, 20 );
+		}, 20 );
+	}, 50 );
+} );
+
+// ── transient database errors ─────────────────────────────────────────────────
+
+QUnit.test( 'a transient database error is retried once', ( assert ) => {
+	const done = assert.async();
+	mw.Api.prototype.post.onFirstCall().returns( $.Deferred().reject(
+		'internal_api_error_DBTransactionStateError',
+		{ error: { code: 'internal_api_error_DBTransactionStateError', info: 'Error 1020' } }
+	) );
+	mw.Api.prototype.post.onSecondCall().returns( $.Deferred().resolve( { status: 200, responseText: 'saved' } ) );
+	const { $trigger, $result } = createAutoedit();
+	freshRequire();
+
+	setTimeout( () => {
+		$trigger.trigger( 'click' );
+		setTimeout( () => {
+			assert.strictEqual( mw.Api.prototype.post.callCount, 2, 'the request was sent again' );
+			assert.strictEqual( $result.text(), 'saved', 'the result of the second attempt is shown' );
+			done();
+		}, 700 );
+	}, 50 );
+} );
+
+QUnit.test( 'other errors are not retried', ( assert ) => {
+	const done = assert.async();
+	mw.Api.prototype.post.returns( $.Deferred().reject(
+		'http',
+		{ xhr: { responseText: JSON.stringify( { responseText: 'Modifying X failed.' } ) } }
+	) );
+	const { $trigger } = createAutoedit();
+	freshRequire();
+
+	setTimeout( () => {
+		$trigger.trigger( 'click' );
+		setTimeout( () => {
+			assert.strictEqual( mw.Api.prototype.post.callCount, 1, 'sent once' );
+			done();
+		}, 700 );
 	}, 50 );
 } );

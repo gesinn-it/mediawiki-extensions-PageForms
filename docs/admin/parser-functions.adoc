@@ -220,7 +220,8 @@ Renders a link, button, or plain text that creates or modifies a wiki page silen
 | Text or markup for the link/button.
 
 | `link type=`
-| `link` renders a hyperlink; `button` renders a button; omitting renders plain text (not clickable).
+| `link` renders a hyperlink; `button` renders a button; `instant` saves when the page loads, without a click
+  (several `instant` links on a page are sent one after the other); omitting renders plain text (not clickable).
 
 | `query string=`
 | Field values to set, in `templateName[fieldName]=value` format.
@@ -273,8 +274,12 @@ Common reasons:
 * `AS_CONFLICT_DETECTED` - the target page was changed after the page containing `#autoedit` was rendered, in a
   place the edit also changes. `#autoedit` remembers the revision of the target page as of rendering, so a page
   that is served from the parser cache can report a conflict for pages that were edited since.
-* An error from the database or MediaWiki's rate limit (`$wgRateLimits`), if many `#autoedit` links with
-  `link type=instant` run at once.
+* MediaWiki's rate limit (`$wgRateLimits`; by default 90 edits per 60 seconds for a user), if a page has many
+  `#autoedit` links with `link type=instant`. The links are sent one after the other, which does not lower the number
+  of edits: for more than 90 on one page, raise `$wgRateLimits['edit']['user']` for the users concerned or give them the
+  `noratelimit` right.
+* A transient error from the database. The browser sends the request once more when the database reports that the save
+  was rolled back (error code `internal_api_error_DB...`).
 
 == #autoedit_rating
 
