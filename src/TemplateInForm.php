@@ -4,7 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use MWException;
 use Parser;
 use WebRequest;
 
@@ -46,17 +45,17 @@ class TemplateInForm {
 	 * specifically, a template in a form) to edit a particular page.
 	 * Perhaps they should go in another class.
 	 */
-	private $mSearchTemplateStr;
-	private $mPregMatchTemplateStr;
-	private $mFullTextInPage;
-	private $mValuesFromPage = [];
+	private $mPageValues;
 	private $mValuesFromSubmit = [];
 	private $mNumInstancesFromSubmit = 0;
-	private $mPageCallsThisTemplate = false;
 	private $mNumSeenInstancesOnThisPage = null;
 	private $mInstanceNum = 0;
 	private $mAllInstancesPrinted = false;
 	private $mGridValues = [];
+
+	public function __construct() {
+		$this->mPageValues = new TemplatePageValues();
+	}
 
 	public static function create(
 		$name, $label = null, $allowMultiple = null, $maxAllowed = null, $formFields = null
@@ -235,19 +234,19 @@ class TemplateInForm {
 	}
 
 	public function getPregMatchTemplateStr() {
-		return $this->mPregMatchTemplateStr;
+		return $this->mPageValues->getPregMatchTemplateStr();
 	}
 
 	public function setPregMatchTemplateStr( $value ) {
-		$this->mPregMatchTemplateStr = $value;
+		$this->mPageValues->setPregMatchTemplateStr( $value );
 	}
 
 	public function getSearchTemplateStr() {
-		return $this->mSearchTemplateStr;
+		return $this->mPageValues->getSearchTemplateStr();
 	}
 
 	public function setSearchTemplateStr( $value ) {
-		$this->mSearchTemplateStr = $value;
+		$this->mPageValues->setSearchTemplateStr( $value );
 	}
 
 	public function numSeenInstancesOnThisPage() {
@@ -288,25 +287,23 @@ class TemplateInForm {
 	 * @return string
 	 */
 	public function getFullTextInPage() {
-		return $this->mFullTextInPage;
+		return $this->mPageValues->getFullTextInPage();
 	}
 
 	public function pageCallsThisTemplate() {
-		return $this->mPageCallsThisTemplate;
+		return $this->mPageValues->pageCallsThisTemplate();
 	}
 
 	public function hasValueFromPageForField( $field_name ) {
-		return array_key_exists( $field_name, $this->mValuesFromPage );
+		return $this->mPageValues->hasValueFromPageForField( $field_name );
 	}
 
 	public function getAndRemoveValueFromPageForField( $field_name ) {
-		$value = $this->mValuesFromPage[$field_name];
-		unset( $this->mValuesFromPage[$field_name] );
-		return $value;
+		return $this->mPageValues->getAndRemoveValueFromPageForField( $field_name );
 	}
 
 	public function getValuesFromPage() {
-		return $this->mValuesFromPage;
+		return $this->mPageValues->getValuesFromPage();
 	}
 
 	public function getInstanceNum() {
@@ -344,11 +341,7 @@ class TemplateInForm {
 	 * @param string|null $modifier
 	 */
 	public function changeFieldValues( $field_name, $new_value, $modifier = null ) {
-		$this->mValuesFromPage[$field_name] = $new_value;
-		if ( $modifier !== null && array_key_exists( $field_name . $modifier, $this->mValuesFromPage ) ) {
-			// clean up old values with + or - in them from the array
-			unset( $this->mValuesFromPage[$field_name . $modifier] );
-		}
+		$this->mPageValues->changeFieldValues( $field_name, $new_value, $modifier );
 	}
 
 	public function setFieldValuesFromSubmit( WebRequest $request ) {
@@ -427,152 +420,27 @@ class TemplateInForm {
 	}
 
 	/**
-	 * Remove all the bits that should not be parsed - those
-	 * contained in <pre> tags, etc. - and place them in an array,
-	 * so that they can be added back in later. This will prevent
-	 * the brackets, curly braces and pipes within those bits from
-	 * interfering with the parsing we need to do.
-	 *
 	 * @param string $str
 	 * @param string[] &$replacements
 	 * @return string
+	 * @see TemplatePageValues::removeUnparsedText()
 	 */
 	public static function removeUnparsedText( $str, &$replacements ) {
-		$startAndEndTags = [
-			[ '<pre', 'pre>' ],
-			[ '<syntaxhighlight', 'syntaxhighlight>' ],
-			[ '<source', 'source>' ],
-			[ '<ref', 'ref>' ],
-			[ '<nowiki', 'nowiki>' ]
-		];
-		foreach ( $startAndEndTags as $tags ) {
-			[ $startTag, $endTag ] = $tags;
-
-			$startTagLoc = -1;
-			while ( true ) {
-				if ( $startTagLoc + strlen( $startTag ) >= strlen( $str ) ) {
-					break;
-				}
-				$startTagLoc = strpos( $str, $startTag, $startTagLoc + strlen( $startTag ) );
-				if ( $startTagLoc === false ) {
-					break;
-				}
-				// Ignore "singleton" tags, like '<ref name="abc" />'.
-				$possibleSingletonTagEnd = strpos( $str, '/>', $startTagLoc );
-				if ( $possibleSingletonTagEnd !== false &&
-					$possibleSingletonTagEnd < strpos( $str, '>', $startTagLoc ) ) {
-					continue;
-				}
-				$endTagLoc = strpos( $str, $endTag, $startTagLoc + strlen( $startTag ) );
-				// Also ignore unclosed tags.
-				if ( $endTagLoc === false ) {
-					continue;
-				}
-				$fullTagTextLength = $endTagLoc + strlen( $endTag ) - $startTagLoc;
-				$replacements[] = substr( $str, $startTagLoc, $fullTagTextLength );
-				$replacementNum = count( $replacements ) - 1;
-				$str = substr_replace( $str, "\1" . $replacementNum . "\2", $startTagLoc, $fullTagTextLength );
-			}
-		}
-		return $str;
+		return TemplatePageValues::removeUnparsedText( $str, $replacements );
 	}
 
 	/**
 	 * @param string $str
 	 * @param string[] $replacements
 	 * @return string
+	 * @see TemplatePageValues::restoreUnparsedText()
 	 */
 	public static function restoreUnparsedText( $str, $replacements ) {
-		foreach ( $replacements as $i => $fullTagText ) {
-			$str = str_replace( "\1" . $i . "\2", $fullTagText, $str );
-		}
-		return $str;
+		return TemplatePageValues::restoreUnparsedText( $str, $replacements );
 	}
 
 	public function setFieldValuesFromPage( $existing_page_content ) {
-		$unparsedTextReplacements = [];
-		$existing_page_content = self::removeUnparsedText( $existing_page_content, $unparsedTextReplacements );
-		$matches = [];
-		$search_pattern = '/{{' . $this->mPregMatchTemplateStr . '\s*[\|}]/i';
-		$content_str = str_replace( '_', ' ', $existing_page_content );
-		preg_match( $search_pattern, $content_str, $matches, PREG_OFFSET_CAPTURE );
-		// is this check necessary?
-		if ( array_key_exists( 0, $matches ) && array_key_exists( 1, $matches[0] ) ) {
-			$start_char = $matches[0][1];
-			$fields_start_char = $start_char + 2 + strlen( $this->mSearchTemplateStr );
-			// Skip ahead to the first real character.
-			while ( in_array( $existing_page_content[$fields_start_char], [ ' ', '\n' ] ) ) {
-				$fields_start_char++;
-			}
-			// If the next character is a pipe, skip that too.
-			if ( $existing_page_content[$fields_start_char] == '|' ) {
-				$fields_start_char++;
-			}
-			$this->mValuesFromPage = [ '0' => '' ];
-			// Cycle through template call, splitting it up by pipes ('|'),
-			// except when that pipe is part of a piped link.
-			$field = "";
-			$uncompleted_square_brackets = 0;
-			$uncompleted_curly_brackets = 2;
-			$template_ended = false;
-			for ( $i = $fields_start_char; !$template_ended && ( $i < strlen( $existing_page_content ) ); $i++ ) {
-				$c = $existing_page_content[$i];
-				if ( $i + 1 < strlen( $existing_page_content ) ) {
-					$nextc = $existing_page_content[$i + 1];
-				} else {
-					$nextc = null;
-				}
-				if ( $i > 0 ) {
-					$prevc = $existing_page_content[$i - 1];
-				} else {
-					$prevc = null;
-				}
-				if ( $c == '[' && ( $nextc == '[' || $prevc == '[' ) ) {
-					$uncompleted_square_brackets++;
-				} elseif ( $c == ']' && ( $nextc == ']' || $prevc == ']' ) && $uncompleted_square_brackets > 0 ) {
-					$uncompleted_square_brackets--;
-				} elseif ( $c == '{' && ( $nextc == '{' || $prevc == '{' ) ) {
-					$uncompleted_curly_brackets++;
-				} elseif ( $c == '}' && ( $nextc == '}' || $prevc == '}' ) && $uncompleted_curly_brackets > 0 ) {
-					$uncompleted_curly_brackets--;
-				}
-				// handle an end to a field and/or template declaration
-				$template_ended = ( $uncompleted_curly_brackets == 0 && $uncompleted_square_brackets == 0 );
-				$field_ended = ( $c == '|' && $uncompleted_square_brackets == 0 && $uncompleted_curly_brackets <= 2 );
-				if ( $template_ended || $field_ended ) {
-					// If this was the last character in the template, remove
-					// the closing curly brackets.
-					if ( $template_ended ) {
-						$field = substr( $field, 0, -1 );
-					}
-					$field = self::restoreUnparsedText( $field, $unparsedTextReplacements );
-					// Either there's an equals sign near the beginning or not -
-					// handling is similar in either way; if there's no equals
-					// sign, the index of this field becomes the key.
-					$sub_fields = explode( '=', $field, 2 );
-					if ( count( $sub_fields ) > 1 ) {
-						$this->mValuesFromPage[trim( $sub_fields[0] )] = trim( $sub_fields[1] );
-					} else {
-						$this->mValuesFromPage[] = trim( $sub_fields[0] );
-					}
-					$field = '';
-				} else {
-					$field .= $c;
-				}
-			}
-
-			// If there are uncompleted opening brackets, the whole form will get messed up -
-			// throw an exception.
-			// (If there are too many *closing* brackets, some template stuff will end up in
-			// the "free text" field - which is bad, but it's harder for the code to detect
-			// the problem - though hopefully, easier for users.)
-			if ( $uncompleted_curly_brackets > 0 || $uncompleted_square_brackets > 0 ) {
-				throw new MWException( "PageFormsMismatchedBrackets" );
-			}
-
-			$fullText = substr( $existing_page_content, $start_char, $i - $start_char );
-			$this->mFullTextInPage = self::restoreUnparsedText( $fullText, $unparsedTextReplacements );
-		}
+		$this->mPageValues->setFieldValuesFromPage( $existing_page_content );
 	}
 
 	/**
@@ -582,18 +450,8 @@ class TemplateInForm {
 	 * @param string $existing_page_content
 	 */
 	public function setPageRelatedInfo( $existing_page_content ) {
-		// Replace underlines with spaces in template name, to allow for
-		// searching on either.
-		$this->mSearchTemplateStr = str_replace( '_', ' ', $this->mTemplateName );
-		$this->mPregMatchTemplateStr = str_replace(
-			[ '/', '(', ')', '^' ],
-			[ '\/', '\(', '\)', '\^' ],
-			$this->mSearchTemplateStr );
-		$this->mPageCallsThisTemplate = preg_match(
-			'/{{' . $this->mPregMatchTemplateStr . '\s*[\|}]/i',
-			str_replace( '_', ' ', $existing_page_content )
-		);
-		if ( $this->mPageCallsThisTemplate ) {
+		$this->mPageValues->setPageRelatedInfo( $this->mTemplateName, $existing_page_content );
+		if ( $this->mPageValues->pageCallsThisTemplate() ) {
 			$this->mNumSeenInstancesOnThisPage = $this->mInstanceNum + 1;
 		}
 	}
@@ -619,7 +477,7 @@ class TemplateInForm {
 		if ( !$form_submitted && $this->mInstanceNum < $this->mMinAllowed ) {
 			return;
 		}
-		if ( !$form_submitted && $source_is_page && $this->mPageCallsThisTemplate ) {
+		if ( !$form_submitted && $source_is_page && $this->mPageValues->pageCallsThisTemplate() ) {
 			return;
 		}
 		if ( !$form_submitted && !$source_is_page && $this->mValuesFromSubmit != null ) {
