@@ -158,15 +158,16 @@ class TemplatePageValues {
 		foreach ( $startAndEndTags as $tags ) {
 			[ $startTag, $endTag ] = $tags;
 
-			$startTagLoc = -1;
+			$searchFrom = 0;
 			while ( true ) {
-				if ( $startTagLoc + strlen( $startTag ) >= strlen( $str ) ) {
+				if ( $searchFrom >= strlen( $str ) ) {
 					break;
 				}
-				$startTagLoc = strpos( $str, $startTag, $startTagLoc + strlen( $startTag ) );
+				$startTagLoc = strpos( $str, $startTag, $searchFrom );
 				if ( $startTagLoc === false ) {
 					break;
 				}
+				$searchFrom = $startTagLoc + strlen( $startTag );
 				// Ignore "singleton" tags, like '<ref name="abc" />'.
 				$possibleSingletonTagEnd = strpos( $str, '/>', $startTagLoc );
 				if ( $possibleSingletonTagEnd !== false &&
@@ -211,7 +212,7 @@ class TemplatePageValues {
 			$start_char = $matches[0][1];
 			$fields_start_char = $start_char + 2 + strlen( $this->mSearchTemplateStr );
 			// Skip ahead to the first real character.
-			while ( in_array( $existing_page_content[$fields_start_char], [ ' ', '\n' ] ) ) {
+			while ( in_array( $existing_page_content[$fields_start_char], [ ' ', "\n" ] ) ) {
 				$fields_start_char++;
 			}
 			// If the next character is a pipe, skip that too.

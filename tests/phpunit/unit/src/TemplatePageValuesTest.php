@@ -21,8 +21,7 @@ class TemplatePageValuesTest extends TestCase {
 		$values = $this->read( 'Tpl', "{{Tpl\n|a=1\n| b = two \n}}" );
 
 		$this->assertTrue( (bool)$values->pageCallsThisTemplate() );
-		$named = array_filter( $values->getValuesFromPage(), 'is_string', ARRAY_FILTER_USE_KEY );
-		$this->assertSame( [ 'a' => '1', 'b' => 'two' ], $named );
+		$this->assertSame( [ 0 => '', 'a' => '1', 'b' => 'two' ], $values->getValuesFromPage() );
 		$this->assertSame( "{{Tpl\n|a=1\n| b = two \n}}", $values->getFullTextInPage() );
 	}
 
@@ -187,5 +186,27 @@ class TemplatePageValuesTest extends TestCase {
 		$this->assertSame( '1', $values->takeValueFromPage( 'o', false, $remaining ) );
 		$this->assertSame( 'rest{{Emb|x=1}}{{Emb|x=2}}', $remaining );
 		$this->assertFalse( $values->hasValueFromPageForField( 'items' ) );
+	}
+
+	public function testANewlineAfterTheTemplateNameDoesNotAddAnEmptyPositionalValue(): void {
+		$values = $this->read( 'Tpl', "{{Tpl\n|a=1}}" );
+
+		$this->assertSame( [ 0 => '', 'a' => '1' ], $values->getValuesFromPage() );
+	}
+
+	public function testAnUnparsedTagAtTheStartOfTheTextIsFound(): void {
+		$replacements = [];
+
+		$stripped = TemplatePageValues::removeUnparsedText( '<pre>{{x|y}}</pre> rest', $replacements );
+
+		$this->assertSame( [ '<pre>{{x|y}}</pre>' ], $replacements );
+		$this->assertStringNotContainsString( '{{', $stripped );
+	}
+
+	public function testAnUnparsedTagAtTheStartOfThePageDoesNotSplitTheCall(): void {
+		$values = $this->read( 'Tpl', '<nowiki>}}</nowiki>{{Tpl|a=1}}' );
+
+		$this->assertSame( '1', $values->getValuesFromPage()['a'] );
+		$this->assertSame( '{{Tpl|a=1}}', $values->getFullTextInPage() );
 	}
 }
