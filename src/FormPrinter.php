@@ -8,8 +8,8 @@ use EditPage;
 use FatalError;
 use Html;
 use LogEventsList;
-use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormDefinition\StandardInputSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
@@ -652,8 +652,8 @@ class FormPrinter {
 	}
 
 	/**
-	 * @HACK - replace the 'free text' standard input with a field declaration
-	 * to get it to be handled as a field.
+	 * Replace the 'free text' standard input with a field declaration
+	 * to get it to be handled as a field (a hack).
 	 *
 	 * @param FormElement $element
 	 * @return FormElement
