@@ -182,6 +182,17 @@ class PFAutoeditAPI extends ApiBase {
 				case 'pfautoedit':
 					$this->mIsAutoEdit = true;
 					$this->mAction = self::ACTION_SAVE;
+					// #autoedit embeds the target's wpEdittime and editRevId into its form when the
+					// page containing it is rendered. That can be long before the click (or be
+					// served from the parser cache), so it is not the revision this save is based
+					// on: the new page text is computed from the target as it is now. EditPage
+					// would report an edit conflict for every change made to the target since
+					// the rendering (AS_CONFLICT_DETECTED, "Modifying ... failed"), although
+					// nothing is overwritten. The values are therefore dropped here, and the base
+					// of the save is determined when the page text is read (see doAction()).
+					// This only applies to #autoedit requests; saves from a form (wpSave) keep the
+					// base the user was shown.
+					unset( $this->mOptions['wpEdittime'], $this->mOptions['editRevId'] );
 					break;
 				case 'preview':
 					$this->mAction = self::ACTION_PREVIEW;
@@ -1013,6 +1024,25 @@ class PFAutoeditAPI extends ApiBase {
 		} else {
 			$targetNameFormula = null;
 			$targetTitle = Title::newFromText( $targetName );
+		}
+
+		if ( $this->mIsAutoEdit && $targetTitle instanceof Title && $targetTitle->exists() ) {
+			// The base of the save: the revision the new text is computed from. EditPage compares
+			// it with the latest revision when saving. If the target was changed in between
+			// (e.g. by another #autoedit running at the same time), EditPage merges the changes
+			// or reports a conflict, instead of silently overwriting the other change.
+			//
+			// It has to be taken BEFORE the page text is read below: if a change slips in
+			// between the two, the text is newer than the base, which at worst makes EditPage
+			// merge two identical changes. The other way round, the text would be older than
+			// the base, and the change would be lost unnoticed.
+			//
+			// Only the revision ID is given, not the timestamp. EditPage compares timestamps by
+			// the second, and going by the timestamp it ignores changes made by others within
+			// the same second (the reason for T58849); the revision ID is exact.
+			$targetPage = PFUtils::newWikiPageFromTitle( $targetTitle );
+			$targetPage->clear();
+			$this->mOptions['editRevId'] = $targetPage->getLatest();
 		}
 
 		$preloadContent = '';

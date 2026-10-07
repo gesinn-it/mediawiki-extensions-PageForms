@@ -1214,6 +1214,8 @@ class PFAutoeditAPITest extends ApiTestCase {
 			'wpSave' => '1',
 			'wpEditToken' => $user->getEditToken(),
 		], $extraOptions );
+		// An option set to null is left out of the request.
+		$requestData = array_filter( $requestData, static fn ( $value ) => $value !== null );
 
 		$mainContext = RequestContext::getMain();
 		$originalTitle = $mainContext->getTitle();
@@ -1646,7 +1648,9 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 *
 	 * @return PFAutoeditAPI
 	 */
-	private function executeStoreWithStaleBaseRevision( string $formName, string $targetName ): PFAutoeditAPI {
+	private function executeStoreWithStaleBaseRevision(
+		string $formName, string $targetName, bool $asForm = true
+	): PFAutoeditAPI {
 		$this->insertPage(
 			Title::makeTitle( PF_NS_FORM, $formName ),
 			"{{{for template|AEStoreConflictTpl|multiple}}}\n{{{field|text}}}\n{{{end template}}}\n"
@@ -1672,10 +1676,79 @@ class PFAutoeditAPITest extends ApiTestCase {
 		}
 
 		return $this->executeStore( $formName, $targetName, [
+			// Without wpSave the request is what #autoedit sends.
+			'wpSave' => $asForm ? '1' : null,
 			'wpEdittime' => $staleTimestamp,
 			'editRevId' => $staleRevId,
 			'AEStoreConflictTpl' => [ 'new' => [ 'text' => 'second' ] ],
 		] );
+	}
+
+	/**
+	 * #autoedit embeds the target's revision at the time its page is rendered, which may be long
+	 * before the click (or served from the parser cache). A change made to the target since then
+	 * must not be reported as an edit conflict: the new text is computed from the current text.
+	 *
+	 * @covers \PFAutoeditAPI::doAction
+	 */
+	public function testAutoeditIgnoresTheRevisionEmbeddedAtRenderTime(): void {
+		$module = $this->executeStoreWithStaleBaseRevision( 'AEStoreFormStale', 'AEStoreTargetStale', false );
+
+		$this->assertSame( 200, $module->getStatus() );
+		$text = $this->getExistingTestPage( 'AEStoreTargetStale' )->getContent()->getText();
+		$this->assertStringContainsString( 'text=second', $text );
+		$this->assertStringContainsString( 'added by someone else', $text );
+	}
+
+	/**
+	 * A change to the target made after its text was read must not be overwritten silently.
+	 * Two #autoedit requests that run at the same time both read the target and then save a
+	 * text computed from what they read; the later save would otherwise drop the other's change.
+	 *
+	 * pfautoedit bases the save on the revision it read, so EditPage either merges the changes
+	 * or reports a conflict. The change is made in the EditFormInitialText hook, which runs
+	 * after the text was read and before the save.
+	 *
+	 * The two edits are by different users and the second one falls into the same second as
+	 * the base: going by the timestamp, EditPage would take the second edit for the saving
+	 * user's own and let it pass.
+	 *
+	 * @covers \PFAutoeditAPI::doAction
+	 */
+	public function testAutoeditDoesNotOverwriteAChangeMadeWhileSaving(): void {
+		$formName = 'AEStoreFormRace';
+		$targetName = 'AEStoreTargetRace';
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, $formName ),
+			"{{{for template|AEStoreRaceTpl|multiple}}}\n{{{field|text}}}\n{{{end template}}}\n"
+			. "{{{standard input|free text}}}\n{{{standard input|save}}}"
+		);
+		$this->insertPage( $targetName, "{{AEStoreRaceTpl\n|text=first\n}}\n" );
+
+		$sysop = $this->getTestSysop()->getAuthority();
+		$testUser = $this->getMutableTestUser();
+		$this->setTemporaryHook(
+			'PageForms::EditFormInitialText',
+			function () use ( $targetName, $sysop, $testUser ) {
+				$this->editPage(
+					$targetName, "{{AEStoreRaceTpl\n|text=first\n}}\n\n\n\nadded meanwhile\n", 'meanwhile',
+					NS_MAIN, $sysop
+				);
+				// editPage() makes the editor the user of the request; the save is by $testUser.
+				RequestContext::getMain()->setUser( $testUser->getUser() );
+			}
+		);
+
+		$module = $this->executeStore( 'AEStoreFormRace', $targetName, [
+			'wpSave' => null,
+			'AEStoreRaceTpl' => [ 'new' => [ 'text' => 'second' ] ],
+		], $testUser );
+
+		$text = $this->getExistingTestPage( $targetName )->getContent()->getText();
+		$this->assertTrue(
+			str_contains( $text, 'added meanwhile' ) || $module->getStatus() === 400,
+			"The change made meanwhile was overwritten:\n$text"
+		);
 	}
 
 	/**
