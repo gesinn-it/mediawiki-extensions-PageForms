@@ -24,15 +24,14 @@ PageForms can be understood as a pipeline consisting of several layers.
 Form Definition (Form namespace)
         │
         ▼
-Form Parsing
-        │
-        ▼
-Domain Model
+Form Definition Model (value-free)
         │
         ├─────────────────────────────┐
         ▼                             ▼
 Interactive Form             PF_AutoeditAPI
 (FormPrinter + JS)           (API / #autoedit)
+        │                             │
+        │                     Values (page + request)
         │                             │
         └──────────────┬──────────────┘
                        ▼
@@ -44,74 +43,70 @@ Interactive Form             PF_AutoeditAPI
 
 Each stage is handled by specific components within the extension.
 
-At the *Domain Model* stage the pipeline forks into two paths:
+At the *form definition model* stage the pipeline forks into two paths:
 
 * *Interactive path* — `FormPrinter` renders the form as HTML, ResourceLoader
   modules initialize client-side widgets, and the user submits the form via the
   browser.
 * *API path* — `PF_AutoeditAPI` (invoked directly via the MediaWiki API or
   through the `#autoedit` / `#autoeditrating` parser functions) applies field
-  values programmatically, without any browser interaction. It reuses
-  `FormPrinter` internally to resolve default values and existing page
-  content, then proceeds directly to submission processing.
+  values programmatically, without any browser interaction. It reads the values
+  of the existing page through `FormDefParser` and `FormValues` (no HTML
+  round-trip), lays the request over them, and then proceeds to submission
+  processing.
 
 == Core Domain Model
 
-Form definitions are parsed into a set of PHP objects representing the structure of the form.
+The model is split in two layers: what a form *is* (the form definition, free of
+any value) and what it *holds* (values from a page or a request). A third group of
+classes, which combines the two with the environment of one request, exists for
+rendering.
 
-The core domain model consists of the following classes.
+=== Form definition model (value-free)
 
-----
-Form
-TemplateInForm
-FormField
-TemplateField
-----
+Namespace `MediaWiki\Extension\PageForms\FormDefinition`.
 
-=== Form
+A single `FormDefinitionReader` reads the `{{{...}}}` tags of a form definition into
+a `FormDefinition`: an ordered list of elements (`TemplateSpec`, `FieldSpec`,
+`SectionSpec`, `StandardInputSpec`, `InfoSpec`, `EndTemplateSpec`, `UnknownTagSpec`
+and the `TextSpec` between them). It is the only tokenizer
+(`FormDefinitionReader::findNextTag()`); `FormCache`, `FormPrinter::formHTML()` and
+`FormDefParser` all use it.
 
-Represents the complete form definition.
+`FormCache` stores the model (as an array, see `FormDefinition::toArray()`), keyed by
+form page and parser options. Entries written in the older format, a pre-processed
+string, are still read.
 
-Responsibilities:
+=== Values layer
 
-* parsing the form page
-* managing templates used within the form
-* coordinating rendering
+`FormValues` holds the values of the fields per template and instance, the
+parameters the form does not define (kept with their instance), the free text and
+the fields whose value is a label that has to be mapped back (`mapping template`,
+`mapping property`).
 
-=== TemplateInForm
+* `FormDefParser::readPageValues()` fills it from the text of an existing page
+  using the form definition model.
+* `FormValues::mergeRequest()` applies a request on top: request values win,
+  `+=` / `-=` modifiers and `Template[<n>][field]` instance numbers are resolved
+  against the values of the page.
+* `RestrictedInputs` lists the fields, sections and the free text a user may not
+  change (`restricted`); they are removed from a request before it is applied.
 
-Represents a template used within a form.
+=== Rendering classes
 
-Responsibilities:
+Used by `FormPrinter::formHTML()`; they mix structure, request state and values.
 
-* mapping template parameters to form fields
-* controlling template multiplicity
-* managing template-level configuration
+* `TemplateInForm` — a template used within a form: mapping template parameters to
+  form fields, template multiplicity, template-level configuration.
+* `FormField` — a field of the form for the current request: field configuration,
+  input type selection, default values, value sources and the possible values
+  (including the labels of `mapping template`, expanded in batches and remembered
+  per template revision).
+* `TemplateField` — a field defined in the underlying template: property mapping,
+  field type, possible values, delimiter rules.
 
-=== FormField
-
-Represents a field defined in the form definition.
-
-Responsibilities include:
-
-* field configuration
-* input type selection
-* validation rules
-* default values
-* value sources
-
-This class acts as the bridge between the form definition and the runtime input widget.
-
-=== TemplateField
-
-Represents a field defined in the underlying template.
-
-It stores metadata about the template parameter including:
-
-* property mapping
-* field type
-* possible values
-* delimiter rules
+`Form` is only used by `Special:CreateForm`, to describe a form that is being
+created; it is not the model of a form definition.
 
 == Form Processing Pipeline
 
@@ -121,19 +116,20 @@ When a form page is accessed, the following processing steps occur.
 Form definition page
         │
         ▼
-Form parses form definition
+FormCache: FormDefinition (read by FormDefinitionReader on a miss)
         │
         ▼
-TemplateInForm objects created
+FormPrinter::formHTML() walks the elements
         │
         ▼
-FormField objects created
+TemplateInForm / FormField objects created
         │
         ▼
-Form rendering begins
+HTML of the form
 ----
 
-The parsing stage extracts field configuration from the form markup and transforms it into the internal domain model.
+The reading stage turns the form markup into the value-free model once; rendering
+then walks its elements and builds the request-dependent objects.
 
 == Form Rendering
 
@@ -150,10 +146,9 @@ Responsibilities include:
 * attaching client-side behavior
 * preparing submission metadata
 
-The renderer transforms the domain model into the interactive form presented in
-the browser. It is also invoked by `PF_AutoeditAPI` on the API path to resolve
-default values and load existing page content, even though no visible form is
-rendered in that case.
+The renderer transforms the form definition model and the values into the interactive
+form presented in the browser. `PF_AutoeditAPI` also calls it, without sending
+the HTML anywhere, to produce the wikitext of the page from the submitted values.
 
 == Programmatic Editing (API Path)
 
@@ -169,11 +164,15 @@ Entry points:
 Behavior:
 
 * Accepts form name, target page, and field values as request parameters.
-* Internally invokes `FormPrinter` to load the form definition and resolve
-  default values from existing page content.
+* Reads the values of the existing page with `FormDefParser::readPageValues()`,
+  applies the request with `FormValues::mergeRequest()` and drops what the user
+  may not change (`RestrictedInputs`). Earlier versions rendered the form and
+  extracted the values from its HTML (`HtmlFormDataExtractor`); that route is now
+  only used to show an existing page in the form editor.
 * Bypasses the browser UI entirely — no HTML form is sent to the client.
-* Applies the submitted field values, constructs wiki text, and saves the page
-  via the standard MediaWiki edit pipeline.
+* Saves the page via the standard MediaWiki edit pipeline, based on the revision
+  that is current when the page text is read (so a change made in between is
+  merged or reported as an edit conflict).
 
 This makes `PF_AutoeditAPI` the primary integration point for automated or
 inline page updates triggered from wiki pages or external scripts.
@@ -407,7 +406,9 @@ PageForms has evolved over many years and contains some legacy architectural pat
 
 Examples include:
 
-* mixing of domain and rendering responsibilities
+* `TemplateInForm` and `FormField` mix the structure of a form with the state of one
+  request and with values; only the form definition model and `FormValues` are free
+  of that
 * historical coupling with specific extensions
 * global configuration variables influencing runtime behavior
 
