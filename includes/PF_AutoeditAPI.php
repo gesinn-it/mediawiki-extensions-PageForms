@@ -546,9 +546,8 @@ class PFAutoeditAPI extends ApiBase {
 			$text = $services->getFormatterFactory()
 				->getStatusFormatter( $this->getContext() )->getWikiText( $status );
 		} else {
-			// MW < 1.42
-			// @phan-suppress-next-line PhanUndeclaredMethod
-			$text = $status->getWikiText();
+			// MW < 1.42; called indirectly because newer versions no longer have the method
+			$text = call_user_func( [ $status, 'getWikiText' ] );
 		}
 		$text = trim( $text );
 		return $text === '' ? $name : "$name: $text";
