@@ -172,4 +172,30 @@ class PFCheckboxesInputTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertStringNotContainsString( 'select-all', $html );
 	}
+
+	/**
+	 * With a 'mapping template' the possible values are a value => label map and the current
+	 * value reaches the input as the labels of the stored values. The checkboxes of those
+	 * labels have to be checked.
+	 */
+	public function testGetHtmlChecksTheOptionsOfAMappedCurrentValueGivenAsLabels(): void {
+		$html = $this->getHtml(
+			'Label a, Label c',
+			[ 'a' => 'Label a', 'b' => 'Label b', 'c' => 'Label c' ]
+		);
+
+		$this->assertSame( 2, substr_count( $html, "checked='checked'" ) );
+		$this->assertMatchesRegularExpression( "/value='a'\\s+checked='checked'/", $html );
+		$this->assertMatchesRegularExpression( "/value='c'\\s+checked='checked'/", $html );
+		$this->assertDoesNotMatchRegularExpression( "/value='b'\\s+checked='checked'/", $html );
+	}
+
+	public function testGetHtmlChecksTheOptionsOfAMappedCurrentValueGivenAsValues(): void {
+		$html = $this->getHtml(
+			'a, c',
+			[ 'a' => 'Label a', 'b' => 'Label b', 'c' => 'Label c' ]
+		);
+
+		$this->assertSame( 2, substr_count( $html, "checked='checked'" ) );
+	}
 }

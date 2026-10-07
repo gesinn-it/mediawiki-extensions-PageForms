@@ -4,6 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\PossibleValue;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 
 /**
@@ -59,7 +60,7 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 				'tabIndex' => $wgPageFormsTabIndex,
 				'label' => 'checkbox'
 			];
-			if ( in_array( $possible_value, $cur_values ) ) {
+			if ( self::isChecked( $possibleValue, $cur_values, $possibleValueList ) ) {
 				$checkbox_attrs['checked'] = 'checked';
 				$checkbox_attrs['selected'] = true;
 			}
@@ -146,6 +147,26 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 		$text = "\t" . Html::rawElement( 'span', $outerSpanAttrs, $text ) . "\n";
 
 		return $text;
+	}
+
+	/**
+	 * Whether one of the current values refers to $possibleValue, by its value or by its label
+	 * (with a 'mapping template' the current values are the labels of the stored values).
+	 *
+	 * @param PossibleValue $possibleValue
+	 * @param string[] $curValues
+	 * @param PossibleValueList $possibleValueList
+	 * @return bool
+	 */
+	private static function isChecked(
+		PossibleValue $possibleValue, array $curValues, PossibleValueList $possibleValueList
+	): bool {
+		foreach ( $curValues as $curValue ) {
+			if ( $possibleValueList->find( (string)$curValue ) === $possibleValue ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

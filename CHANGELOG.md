@@ -10,6 +10,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - `#autoedit` links with `link type=instant` are now sent one after the other instead of all at once when the page loads, and a save that the database rolled back (for example `DBTransactionStateError`) is sent once more. The documentation names MediaWiki's rate limit (90 edits per 60 seconds by default) as the limit for such pages [#220](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/220)
 - Forms with several fields that use the same `values from ...` source, or the same `mapping template` in the instances of a multiple-instance template, open faster: each source is counted and each mapped label looked up once per request instead of once per field, and the labels of one field are looked up together instead of one by one [#221](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/221), [#222](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/222)
 
+### Fixed
+- Fixed a `checkboxes` field with a `mapping template` showing no box checked when an existing page is edited; the values stored on the page are checked again, as they were before 2.1.6.
+
 ### Removed
 - `FormUtils::getFormDefinition()` (also called as `PFFormUtils::getFormDefinition()`), deprecated for a long time, and `PFAutoeditAPI::addToArray()`. Custom code that calls them should use `FormCache::getFormDefinition()` (`PFFormCache::getFormDefinition()`) and `HtmlFormDataExtractor::addToArray()` instead; the arguments and results are the same [#230](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/230)
 
