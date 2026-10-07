@@ -95,6 +95,10 @@ abstract class TagSpec implements FormElement {
 		return $name;
 	}
 
+	public function toWikitext(): string {
+		return '{{{' . implode( '|', $this->components ) . '}}}';
+	}
+
 	public function toArray(): array {
 		return [ 'type' => static::TYPE, 'components' => $this->components ];
 	}

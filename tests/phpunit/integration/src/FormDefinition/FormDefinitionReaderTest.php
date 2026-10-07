@@ -317,4 +317,14 @@ class FormDefinitionReaderTest extends MediaWikiIntegrationTestCase {
 
 		( new FormDefinitionReader() )->findNextTag( 'text {{{field|x' );
 	}
+
+	public function testToWikitextGivesTheFormDefinitionBack() {
+		$formDef = "intro {{{for template|T|multiple}}}\n{{{field|a|default={{Foo|x}}}}}\n{{{bogus|y}}}"
+			. "{{{end template}}} {{{standard input|save}}}\ntail";
+
+		$definition = ( new FormDefinitionReader() )->read( $formDef );
+
+		$this->assertSame( $formDef, $definition->toWikitext() );
+		$this->assertSame( $formDef, FormDefinition::fromArray( $definition->toArray() )->toWikitext() );
+	}
 }

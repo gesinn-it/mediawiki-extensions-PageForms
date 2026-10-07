@@ -27,6 +27,10 @@ class UnknownTagSpec extends TagSpec {
 		return $this->raw;
 	}
 
+	public function toWikitext(): string {
+		return $this->raw !== '' ? $this->raw : parent::toWikitext();
+	}
+
 	public function toArray(): array {
 		return parent::toArray() + [ 'raw' => $this->raw ];
 	}

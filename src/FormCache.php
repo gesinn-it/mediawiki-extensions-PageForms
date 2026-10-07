@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use BagOStuff;
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinition;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RenderedRevision;
@@ -84,6 +85,20 @@ class FormCache {
 	 * @return string Parsed form definition HTML/wikitext
 	 */
 	public static function getFormDefinition( Parser $parser, ?string $form_def = null, ?int $form_id = null ): string {
+		return self::getFormDefinitionModel( $parser, $form_def, $form_id )->toWikitext();
+	}
+
+	/**
+	 * Parse the form definition and return it as a model, using or populating the cache.
+	 *
+	 * @param Parser $parser
+	 * @param string|null $form_def Raw wikitext of the form definition (optional)
+	 * @param int|null $form_id Page ID of the form page (optional)
+	 * @return FormDefinition The parsed form definition
+	 */
+	public static function getFormDefinitionModel(
+		Parser $parser, ?string $form_def = null, ?int $form_id = null
+	): FormDefinition {
 		if ( $form_id !== null ) {
 			$cachedDef = self::getFormDefinitionFromCache( $form_id, $parser );
 
@@ -96,7 +111,7 @@ class FormCache {
 			$form_title = Title::newFromID( $form_id );
 			$form_def = PFUtils::getPageText( $form_title ) ?? '';
 		} elseif ( $form_def == null ) {
-			return '';
+			return new FormDefinition();
 		}
 
 		// Remove <noinclude> sections and <includeonly> tags from form definition
@@ -142,6 +157,8 @@ class FormCache {
 			$form_def
 		);
 
+		$definition = $reader->read( $form_def );
+
 		if ( $output->getCacheTime() == -1 ) {
 			$form_wikipage = $form_id !== null
 				? MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $form_id )
@@ -151,10 +168,10 @@ class FormCache {
 			}
 			wfDebug( "Caching disabled for form definition $form_id\n" );
 		} elseif ( $form_id !== null ) {
-			self::cacheFormDefinition( $form_id, $form_def, $parser );
+			self::cacheFormDefinition( $form_id, $definition, $parser );
 		}
 
-		return $form_def;
+		return $definition;
 	}
 
 	/**
@@ -162,9 +179,9 @@ class FormCache {
 	 *
 	 * @param int $form_id
 	 * @param Parser $parser
-	 * @return string|null Cached definition, or null on miss / cache disabled
+	 * @return FormDefinition|null Cached definition, or null on miss / cache disabled
 	 */
-	protected static function getFormDefinitionFromCache( int $form_id, Parser $parser ): ?string {
+	protected static function getFormDefinitionFromCache( int $form_id, Parser $parser ): ?FormDefinition {
 		global $wgPageFormsCacheFormDefinitions;
 
 		if ( !$wgPageFormsCacheFormDefinitions ) {
@@ -175,9 +192,14 @@ class FormCache {
 		$cacheKeyForForm = self::getCacheKey( $form_id, $parser );
 		$cached_def = $cache->get( $cacheKeyForForm );
 
-		if ( is_string( $cached_def ) ) {
+		if ( is_array( $cached_def ) ) {
 			wfDebug( "Cache hit: Got form definition $cacheKeyForForm from cache\n" );
-			return $cached_def;
+			return FormDefinition::fromArray( $cached_def );
+		}
+		if ( is_string( $cached_def ) ) {
+			// Cached as wikitext by an earlier version.
+			wfDebug( "Cache hit: Got form definition $cacheKeyForForm from cache\n" );
+			return ( new FormDefinitionReader() )->read( $cached_def );
 		}
 
 		wfDebug( "Cache miss: Form definition $cacheKeyForForm not found in cache\n" );
@@ -188,10 +210,10 @@ class FormCache {
 	 * Store a form definition in cache.
 	 *
 	 * @param int $form_id
-	 * @param string $form_def
+	 * @param FormDefinition $form_def
 	 * @param Parser $parser
 	 */
-	protected static function cacheFormDefinition( int $form_id, string $form_def, Parser $parser ): void {
+	protected static function cacheFormDefinition( int $form_id, FormDefinition $form_def, Parser $parser ): void {
 		global $wgPageFormsCacheFormDefinitions;
 
 		if ( !$wgPageFormsCacheFormDefinitions ) {
@@ -213,7 +235,7 @@ class FormCache {
 		// rarely changed forms automatically (after one day per
 		// default). Instead the cache is purged on storing/purging a
 		// form definition.
-		$cache->set( $cacheKeyForForm, $form_def );
+		$cache->set( $cacheKeyForForm, $form_def->toArray() );
 		$cache->set( $cacheKeyForList, $listOfFormKeys );
 		wfDebug( "Cached form definition $cacheKeyForForm\n" );
 	}

@@ -57,6 +57,13 @@ class FormDefinition {
 	}
 
 	/**
+	 * @return string The form definition as wikitext, with the tags as they were written
+	 */
+	public function toWikitext(): string {
+		return implode( '', array_map( static fn ( FormElement $e ): string => $e->toWikitext(), $this->elements ) );
+	}
+
+	/**
 	 * @return list<TemplateSpec>
 	 */
 	public function getTemplates(): array {

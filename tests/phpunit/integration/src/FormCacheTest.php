@@ -263,7 +263,7 @@ class FormCacheTest extends MediaWikiIntegrationTestCase {
 
 		$cache = FormCache::getFormCache();
 		$cacheKeyForForm = FormCache::getCacheKey( $formId, $parser );
-		$this->assertIsString( $cache->get( $cacheKeyForForm ) );
+		$this->assertIsArray( $cache->get( $cacheKeyForForm ) );
 
 		$result = FormCache::purgeCache( $wikiPage );
 		$this->assertTrue( $result );

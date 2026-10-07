@@ -318,40 +318,45 @@ class FormDefParserTest extends MediaWikiIntegrationTestCase {
 		$this->assertArrayNotHasKey( '_unhandled_PFTestFDPUnh05_Legacy', $data );
 	}
 
-	// ------------------------------------------------------------------ splitFormDefIntoSections
+	// ------------------------------------------------------------------ splitIntoSections
+
+	private function sectionTexts( string $formDef ): array {
+		$reader = new \MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader();
+		$definition = $reader->read( $formDef );
+		return array_map(
+			static fn ( array $els ) => implode( '', array_map( static fn ( $e ) => $e->toWikitext(), $els ) ),
+			$this->parser->splitIntoSections( $definition )
+		);
+	}
 
 	/**
-	 * This is the single shared implementation used by both FormDefParser::preparePreloadData()
-	 * and FormPrinter::formHTML() (see issue #124) — regular {{{for template}}} / {{{end
-	 * template}}} boundaries must split into separate sections.
+	 * Regular {{{for template}}} / {{{end template}}} boundaries must split into separate sections.
 	 */
-	public function testSplitFormDefIntoSectionsSplitsOnTemplateBoundaries(): void {
+	public function testSplitIntoSectionsSplitsOnTemplateBoundaries(): void {
 		$formDef = "intro text\n"
 			. "{{{for template|Tpl}}}\n"
 			. "{{{field|Name}}}\n"
 			. "{{{end template}}}\n"
 			. "outro text";
 
-		$sections = $this->parser->splitFormDefIntoSections( $formDef );
+		$sections = $this->sectionTexts( $formDef );
 
 		$this->assertCount( 3, $sections );
-		$this->assertSame( 'intro text', trim( $sections[0] ) );
+		$this->assertSame( "intro text\n", $sections[0] );
 		$this->assertStringStartsWith( '{{{for template|Tpl}}}', $sections[1] );
 		$this->assertStringStartsWith( '{{{end template}}}', $sections[2] );
-		$this->assertStringEndsWith( 'outro text', trim( $sections[2] ) );
+		$this->assertStringEndsWith( 'outro text', $sections[2] );
 	}
 
-	/**
-	 * Empty {{{ }}} tags must not crash the split. This guards against the drift introduced
-	 * when PF_FormPrinter.php's copy of this method (which had this guard) and
-	 * FormDefParser.php's copy (which lacked it) went out of sync — see issue #124.
-	 */
-	public function testSplitFormDefIntoSectionsIgnoresEmptyBracketedTag(): void {
+	public function testSplitIntoSectionsTrimsOnlyTheLastSection(): void {
+		$sections = $this->sectionTexts( "  a {{{for template|T}}} b {{{end template}}} c  \n" );
+
+		$this->assertSame( [ '  a ', '{{{for template|T}}} b ', '{{{end template}}} c' ], $sections );
+	}
+
+	public function testSplitIntoSectionsKeepsTheFormDefinitionIntact(): void {
 		$formDef = "before {{{}}} {{{for template|Tpl}}}middle{{{end template}}} after";
 
-		$sections = $this->parser->splitFormDefIntoSections( $formDef );
-
-		$this->assertStringContainsString( 'for template|Tpl', implode( '', $sections ) );
-		$this->assertStringContainsString( 'end template', implode( '', $sections ) );
+		$this->assertSame( $formDef, implode( '', $this->sectionTexts( $formDef ) ) );
 	}
 }

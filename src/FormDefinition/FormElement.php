@@ -10,6 +10,11 @@ namespace MediaWiki\Extension\PageForms\FormDefinition;
 interface FormElement {
 
 	/**
+	 * @return string The element as it is written in a form definition
+	 */
+	public function toWikitext(): string;
+
+	/**
 	 * @return array<string, mixed> Plain data (arrays, strings) from which fromArray() rebuilds the element
 	 */
 	public function toArray(): array;

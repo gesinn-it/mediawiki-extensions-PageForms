@@ -21,6 +21,10 @@ class TextSpec implements FormElement {
 		return $this->text;
 	}
 
+	public function toWikitext(): string {
+		return $this->text;
+	}
+
 	public function toArray(): array {
 		return [ 'type' => self::TYPE, 'text' => $this->text ];
 	}

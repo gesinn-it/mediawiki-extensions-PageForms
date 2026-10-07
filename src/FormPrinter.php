@@ -9,7 +9,9 @@ use FatalError;
 use Html;
 use LogEventsList;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
+use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
+use MediaWiki\Extension\PageForms\FormDefinition\StandardInputSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TextSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\UnknownTagSpec;
@@ -650,6 +652,21 @@ class FormPrinter {
 	}
 
 	/**
+	 * @HACK - replace the 'free text' standard input with a field declaration
+	 * to get it to be handled as a field.
+	 *
+	 * @param FormElement $element
+	 * @return FormElement
+	 */
+	private function freeTextAsField( FormElement $element ): FormElement {
+		if ( $element instanceof StandardInputSpec && $element->isFreeText() ) {
+			$args = array_slice( $element->getComponents(), 2 );
+			return new FieldSpec( array_merge( [ 'field', '#freetext#' ], $args ) );
+		}
+		return $element;
+	}
+
+	/**
 	 * Create a fresh Parser instance for use by formHTML(), titled at $this->mPageTitle.
 	 *
 	 * @param User $user
@@ -833,7 +850,7 @@ class FormPrinter {
 
 		$parser = $this->createFreshParser( $user );
 
-		$form_def = FormCache::getFormDefinition( $parser, $form_def, $form_id );
+		$form_definition = FormCache::getFormDefinitionModel( $parser, $form_def, $form_id );
 		// Snapshot RL modules registered by parser tag hooks during form-definition
 		// parsing. FormField calls $parser->clearState() during field rendering,
 		// which resets $parser->mOutput and discards these modules. We save them
@@ -843,10 +860,7 @@ class FormPrinter {
 
 		$free_text_was_included = false;
 		$preloaded_free_text = null;
-		// @HACK - replace the 'free text' standard input with a
-		// field declaration to get it to be handled as a field.
-		$form_def = str_replace( 'standard input|free text', 'field|#freetext#', $form_def );
-		$form_def_sections = $this->formDefParser->splitFormDefIntoSections( $form_def );
+		$form_def_sections = $this->formDefParser->splitIntoSections( $form_definition );
 
 		// Cycle through the form definition file, and possibly an
 		// existing article as well, finding template and field
@@ -862,9 +876,10 @@ class FormPrinter {
 		for ( $section_num = 0; $section_num < count( $form_def_sections ); $section_num++ ) {
 			// The section's text and tags, in order. The HTML for the section is
 			// assembled from them in $section.
-			$section_elements = $this->formDefReader->read( " " . $form_def_sections[$section_num] )
-				->getElements();
-			$section = '';
+			$section_elements = array_map(
+				[ $this, 'freeTextAsField' ], $form_def_sections[$section_num]
+			);
+			$section = ' ';
 
 			foreach ( $section_elements as $element_num => $element ) {
 				if ( $element instanceof TextSpec ) {

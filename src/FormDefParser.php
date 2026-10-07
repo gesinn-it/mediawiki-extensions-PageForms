@@ -4,7 +4,12 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Extension\PageForms\FormDefinition\EndTemplateSpec;
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinition;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
+use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
+use MediaWiki\Extension\PageForms\FormDefinition\TemplateSpec;
+use MediaWiki\Extension\PageForms\FormDefinition\TextSpec;
 use MediaWiki\MediaWikiServices;
 use Parser;
 use ParserFactory;
@@ -55,8 +60,7 @@ class FormDefParser {
 	): FormValues {
 		$parser = $this->createParser( $this->parserFactory );
 
-		$form_def = FormCache::getFormDefinition( $parser, $form_def, $form_id );
-		$definition = $this->reader->read( $form_def );
+		$definition = FormCache::getFormDefinitionModel( $parser, $form_def, $form_id );
 
 		// Walk the templates and collect the values on the page.
 		$result = new FormValues();
@@ -170,7 +174,7 @@ class FormDefParser {
 		// The current services' parser factory, not the one this (long-lived) instance was built with:
 		// this runs on every autoedit request, including after the services have been replaced.
 		$parser = $this->createParser( MediaWikiServices::getInstance()->getParserFactory() );
-		$definition = $this->reader->read( FormCache::getFormDefinition( $parser, $form_def, $form_id ) );
+		$definition = FormCache::getFormDefinitionModel( $parser, $form_def, $form_id );
 		$restricted = new RestrictedInputs();
 
 		foreach ( $definition->getTemplates() as $templateSpec ) {
@@ -228,34 +232,36 @@ class FormDefParser {
 	}
 
 	/**
-	 * Split a form definition string into sections on {{{for template}}} / {{{end template}}}
-	 * boundaries.
+	 * Split a form definition into sections on {{{for template}}} / {{{end template}}} boundaries.
 	 *
-	 * The first element of the returned array is any text before the first template tag;
-	 * subsequent elements each start with a {{{for template}}} or {{{end template}}} tag.
+	 * The first section is any text before the first template tag; every further section starts
+	 * with a {{{for template}}} or {{{end template}}} tag. Whitespace around the last section
+	 * is trimmed.
 	 *
-	 * @param string $form_def Form definition wikitext (with 'standard input|free text' already
-	 *   replaced by 'field|#freetext#' when needed).
-	 * @return list<string>
+	 * @param FormDefinition $definition
+	 * @return list<list<FormElement>> The elements of each section
 	 */
-	public function splitFormDefIntoSections( string $form_def ): array {
-		$form_def_sections = [];
-		$section_start = 0;
-		$offset = 0;
-		$tag = $this->reader->findNextTag( $form_def, $offset );
-		while ( $tag !== null ) {
-			if ( count( $tag['components'] ) > 0 ) {
-				$tag_title = trim( $tag['components'][0] );
-				if ( $tag_title === 'for template' || $tag_title === 'end template' ) {
-					$form_def_sections[] = substr( $form_def, $section_start, $tag['start'] - $section_start );
-					$section_start = $tag['start'];
-				}
+	public function splitIntoSections( FormDefinition $definition ): array {
+		$sections = [ [] ];
+		foreach ( $definition->getElements() as $element ) {
+			if ( $element instanceof TemplateSpec || $element instanceof EndTemplateSpec ) {
+				$sections[] = [];
 			}
-			$offset = $tag['start'] + 1;
-			$tag = $this->reader->findNextTag( $form_def, $offset );
+			$sections[count( $sections ) - 1][] = $element;
 		}
-		$form_def_sections[] = trim( substr( $form_def, $section_start ) );
-		return $form_def_sections;
+
+		$last = array_pop( $sections );
+		if ( ( $last[0] ?? null ) instanceof TextSpec ) {
+			$text = ltrim( $last[0]->getText() );
+			$text === '' ? array_shift( $last ) : $last[0] = new TextSpec( $text );
+		}
+		$lastIndex = count( $last ) - 1;
+		if ( ( $last[$lastIndex] ?? null ) instanceof TextSpec ) {
+			$text = rtrim( $last[$lastIndex]->getText() );
+			$text === '' ? array_pop( $last ) : $last[$lastIndex] = new TextSpec( $text );
+		}
+		$sections[] = $last;
+		return $sections;
 	}
 
 }
