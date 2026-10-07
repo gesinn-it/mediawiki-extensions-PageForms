@@ -59,6 +59,9 @@ class FormDefParser {
 		// Field values of every instance of the current multiple-instance template,
 		// in page order. Stays null for single-instance templates.
 		$instances = null;
+		// Names of the fields the form defines for the current template; whatever else the
+		// page's template call carries is "unhandled" (see FormUtils::unhandledFieldsHTML()).
+		$handledFields = [];
 
 		foreach ( $form_def_sections as $section ) {
 			$section = ' ' . $section;
@@ -86,6 +89,7 @@ class FormDefParser {
 					$tif = TemplateInForm::newFromFormTag( $tag_components, $parser );
 					$tif->setPageRelatedInfo( $existing_page_content );
 					$instances = null;
+					$handledFields = [];
 					if ( $tif->allowsMultiple() ) {
 						// Read every call of this template on the page, like formHTML() does
 						// by repeating the section once per instance.
@@ -114,11 +118,30 @@ class FormDefParser {
 						);
 					}
 				} elseif ( $tag_title === 'end template' ) {
+					if ( $tif !== null && $template_key !== null ) {
+						$valueSets = $instances ?? [ $tif->getValuesFromPage() ];
+						foreach ( $valueSets as $values ) {
+							foreach ( $values as $name => $value ) {
+								$unhandledKey = '_unhandled_' . $template_key . '_' . urlencode( (string)$name );
+								// Positional parameters are not carried over, and neither
+								// formHTML() nor the later page assembly distinguishes the
+								// instances of a multiple-instance template here: the first
+								// instance that has the parameter provides its value.
+								if ( !is_numeric( $name ) && !in_array( $name, $handledFields, true )
+									&& !array_key_exists( $unhandledKey, $result )
+								) {
+									$result[$unhandledKey] = $value;
+								}
+							}
+						}
+					}
 					$tif = null;
 					$template_key = null;
 					$instances = null;
+					$handledFields = [];
 				} elseif ( $tag_title === 'field' && $tif !== null && $template_key !== null ) {
 					$field_name = trim( $tag_components[1] );
+					$handledFields[] = $field_name;
 					if ( $instances !== null ) {
 						// Multiple-instance template: instances are keyed "0a", "1a", ... exactly
 						// as HtmlFormDataExtractor::addToArray() names them.

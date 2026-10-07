@@ -125,6 +125,16 @@ class AutoeditPreloadParityTest extends ApiTestCase {
 				"{{AEParityDefault\n|a=real\n|o=1\n}}\n",
 				[ 'AEParityDefault' => [ 'o' => '2' ] ],
 			],
+			'template parameter the form does not define is kept' => [
+				"{{{for template|AEParityUnhandled}}}\n{{{field|a}}}\n{{{end template}}}\n$s",
+				"{{AEParityUnhandled\n|a=1\n|legacy=keep\n}}\n",
+				[ 'AEParityUnhandled' => [ 'a' => '2' ] ],
+			],
+			'template parameter the form does not define, positional and named' => [
+				"{{{for template|AEParityUnhandled2}}}\n{{{field|a}}}\n{{{end template}}}\n$s",
+				"{{AEParityUnhandled2|a=1|legacy=keep|positional}}\n",
+				[ 'AEParityUnhandled2' => [ 'a' => '2' ] ],
+			],
 			'template in the form but not on the page' => [
 				"{{{for template|AEParityX}}}\n{{{field|a}}}\n{{{end template}}}\n"
 					. "{{{for template|AEParityY}}}\n{{{field|b}}}\n{{{end template}}}\n$s",
@@ -153,13 +163,6 @@ class AutoeditPreloadParityTest extends ApiTestCase {
 	private static function knownGaps(): array {
 		$s = self::SAVE_INPUTS;
 		return [
-			'template parameter not in the form is lost' => [
-				"{{{for template|AEParityUnhandled}}}\n{{{field|a}}}\n{{{end template}}}\n$s",
-				"{{AEParityUnhandled\n|a=1\n|legacy=keep\n}}\n",
-				[ 'AEParityUnhandled' => [ 'a' => '2' ] ],
-				'parameters of a template call that the form does not define are dropped'
-					. ' (formHTML() keeps them through the "_unhandled_" fields)',
-			],
 			'embedded template inside a "holds template" field is lost' => [
 				"{{{for template|AEParityOuter}}}\n{{{field|f|holds template}}}\n{{{end template}}}\n"
 					. "{{{for template|AEParityInner|multiple|embed in field=AEParityOuter[f]}}}\n"

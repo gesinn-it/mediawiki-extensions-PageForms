@@ -241,6 +241,77 @@ class FormDefParserTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [ 'Name' => 'first' ], $data['PFTestFDPSingle06'] );
 	}
 
+	// ---------------------------------------- preparePreloadData: parameters the form does not define
+
+	public function testParameterNotDefinedInFormIsReturnedAsUnhandled(): void {
+		$formDef = "{{{for template|PFTestFDPUnh01}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}";
+
+		$pageContent = "{{PFTestFDPUnh01\n|Name=Alice\n|Legacy=keep\n}}";
+
+		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
+
+		// Same key format as FormUtils::unhandledFieldsHTML(), read back by
+		// PFWikiPageTemplate::addUnhandledParams().
+		$this->assertSame( 'keep', $data['_unhandled_PFTestFDPUnh01_Legacy'] );
+		$this->assertSame( [ 'Name' => 'Alice' ], $data['PFTestFDPUnh01'] );
+	}
+
+	public function testUnhandledParameterNameIsUrlEncodedAndTemplateNameUsesUnderscores(): void {
+		$formDef = "{{{for template|PFTestFDP Unh 02}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}";
+
+		$pageContent = '{{PFTestFDP Unh 02|Name=Alice|my param=x y}}';
+
+		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
+
+		$this->assertSame( 'x y', $data['_unhandled_PFTestFDP_Unh_02_my+param'] );
+	}
+
+	public function testPositionalParametersAreNotReturnedAsUnhandled(): void {
+		$formDef = "{{{for template|PFTestFDPUnh03}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}";
+
+		$data = $this->parser->preparePreloadData( $formDef, '{{PFTestFDPUnh03|Name=Alice|positional}}' );
+
+		$this->assertSame(
+			[ 'PFTestFDPUnh03' ],
+			array_keys( $data ),
+			'only the template values, no _unhandled_ key'
+		);
+	}
+
+	public function testNoUnhandledKeyWhenAllParametersAreHandledOrTemplateIsAbsent(): void {
+		$formDef = "{{{for template|PFTestFDPUnh04}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}";
+
+		$all = $this->parser->preparePreloadData( $formDef, '{{PFTestFDPUnh04|Name=Alice}}' );
+		$absent = $this->parser->preparePreloadData( $formDef, 'plain text' );
+
+		$this->assertSame( [ 'PFTestFDPUnh04' ], array_keys( $all ) );
+		$this->assertSame( [ 'pf_free_text' ], array_keys( $absent ) );
+	}
+
+	public function testMultipleInstanceTemplateReturnsUnhandledParameterOfFirstInstanceThatHasIt(): void {
+		// formHTML() emits the hidden "_unhandled_" inputs once per instance and the
+		// extractor keeps the first one, so the first instance that has the parameter wins.
+		$formDef = "{{{for template|PFTestFDPUnh05|multiple}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}";
+
+		$pageContent = "{{PFTestFDPUnh05|Name=a}}\n{{PFTestFDPUnh05|Name=b|Legacy=second}}"
+			. "\n{{PFTestFDPUnh05|Name=c|Legacy=third}}";
+
+		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
+
+		$this->assertSame( 'second', $data['_unhandled_PFTestFDPUnh05_Legacy'] );
+		$this->assertArrayNotHasKey( 'Legacy', $data['PFTestFDPUnh05']['1a'] );
+	}
+
 	// ------------------------------------------------------------------ splitFormDefIntoSections
 
 	/**
