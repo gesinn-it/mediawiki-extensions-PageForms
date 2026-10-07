@@ -226,7 +226,8 @@ Renders a link, button, or plain text that creates or modifies a wiki page silen
 | Field values to set, in `templateName[fieldName]=value` format.
   Use `+=` to add a value to a list field: `templateName[fieldName]+=value`.
   Use `-=` to remove a value: `templateName[fieldName]-=value`.
-  For multiple-instance templates: `templateName[instanceNumber][fieldName]=value`.
+  For multiple-instance templates: `templateName[instanceNumber][fieldName]=value`; the instances are counted from 0.
+  `+=` and `-=` need the instance there too (`templateName[0][fieldName]+=value`); without it the request is refused.
 
 | `summary=`
 | Edit summary for the generated edit.

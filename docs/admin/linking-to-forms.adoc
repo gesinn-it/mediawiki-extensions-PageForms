@@ -79,6 +79,7 @@ It supports:
 
 * Adding or removing a value from a list field: `templateName[fieldName]+=value` / `-=value` (comma-delimited lists only).
 * Editing specific instances of a multiple-instance template: `templateName[instanceNumber][fieldName]=value`.
+  The instances are counted from 0. For a multiple-instance template the instance has to be named for `+=` / `-=` as well; without it the request is refused.
 
 The same editing capability is available via the MediaWiki API (`pfautoedit` action), enabling bots and external scripts to update template fields in wiki pages.
 See xref:../developer/api.adoc[API Reference].
