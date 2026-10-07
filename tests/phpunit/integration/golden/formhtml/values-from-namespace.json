@@ -1,6 +1,6 @@
 {
     "form_text": [
-        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-content-ltr mw-parser-output\" lang=\"en\" dir=\"ltr\"><p> ",
+        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-parser-output\"><p> ",
         "<span class=\"inputSpan\"><select id=\"input_1\" tabindex=\"1\" name=\"PFCharNamespace[Pick]\" class=\"createboxInput\">\t<option value=\"\"></option>",
         "<option value=\"PFCharNamespaceMemberOne\">PFCharNamespaceMemberOne</option><option value=\"PFCharNamespaceMemberTwo\" selected=\"\">PFCharNamespaceMemberTwo</option></select></span><input type=\"hidden\" value=\"true\" name=\"PFCharNamespace[map_field][Pick]\">",
         " ",

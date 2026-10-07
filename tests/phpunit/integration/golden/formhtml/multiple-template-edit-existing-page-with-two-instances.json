@@ -1,6 +1,6 @@
 {
     "form_text": [
-        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-content-ltr mw-parser-output\" lang=\"en\" dir=\"ltr\"><p>\t<div class=\"multipleTemplateWrapper\">",
+        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-parser-output\"><p>\t<div class=\"multipleTemplateWrapper\">",
         "\t<div class=\"multipleTemplateList\">",
         "\t\t<div class=\"multipleTemplateInstance multipleTemplate\">\t\t\t<table class=\"multipleTemplateInstanceTable\">",
         "\t\t\t<tr>",

@@ -1,6 +1,6 @@
 {
     "form_text": [
-        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-content-ltr mw-parser-output\" lang=\"en\" dir=\"ltr\"><p> ",
+        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-parser-output\"><p> ",
         "<span id=\"span_1\" class=\"comboboxSpan\" data-input-type=\"combobox\"><select id=\"input_1\" name=\"PFCharCategory[Text]\" class=\"pfComboBox\" tabindex=\"1\" autocompletesettings=\"PFCharSourceCategory\" value=\"PFCharCategoryMemberBeta\" data-size=\"210\" style=\"width:210px\">\t<option value=\"\"></option>",
         "<option value=\"PFCharCategoryMemberBeta\" selected=\"\">PFCharCategoryMemberBeta</option></select></span><input type=\"hidden\" value=\"true\" name=\"PFCharCategory[map_field][Text]\">",
         "",

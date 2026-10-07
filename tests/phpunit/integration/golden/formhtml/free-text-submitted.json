@@ -1,6 +1,6 @@
 {
     "form_text": [
-        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-content-ltr mw-parser-output\" lang=\"en\" dir=\"ltr\"><p> ",
+        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-parser-output\"><p> ",
         "<span class=\"inputSpan\" data-input-type=\"text\"><input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" value=\"T\" name=\"PFCharSingle[Title]\"></span>",
         " ",
         "<span class=\"inputSpan freeText\"><textarea tabindex=\"2\" name=\"pf_free_text\" id=\"pf_free_text\" class=\"createboxInput\" rows=\"5\" cols=\"90\" style=\"width: 100%\">Typed free text</textarea></span>",

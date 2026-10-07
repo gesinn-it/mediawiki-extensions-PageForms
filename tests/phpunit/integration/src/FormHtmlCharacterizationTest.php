@@ -63,6 +63,7 @@ class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 			'wgPageFormsAutocompleteOnAllChars' => false,
 			'wgPageFormsCacheAutocompleteValues' => false,
 			'wgPageFormsShowExpandAllLink' => false,
+			'wgArticlePath' => '/wiki/$1',
 		] );
 		if ( !empty( $case['fixtures'] ) ) {
 			$this->insertFixtures();
@@ -521,6 +522,16 @@ class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 			'/class=([\'"])([^\'"]*\boo-ui-[^\'"]*)\1/',
 			static fn ( array $m ): string => 'class=' . $m[1] . '<oo-ui>' . $m[1],
 			$text
+		);
+		// MediaWiki 1.39 does not give the output of the parser a language and direction, and
+		// writes the "edit" link of a heading differently.
+		$text = str_replace(
+			'<div class="mw-content-ltr mw-parser-output" lang="en" dir="ltr">',
+			'<div class="mw-parser-output">',
+			$text
+		);
+		$text = preg_replace(
+			'#<span class="mw-editsection">.*?\]</span></span>#', '<span class="mw-editsection"></span>', $text
 		);
 		// MediaWiki 1.39 closes void elements with "/>" and writes the attributes of an option in
 		// another order.

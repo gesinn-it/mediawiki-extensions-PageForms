@@ -1,6 +1,6 @@
 {
     "form_text": [
-        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-content-ltr mw-parser-output\" lang=\"en\" dir=\"ltr\"><p><fieldset>",
+        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-parser-output\"><p><fieldset>",
         "<legend>First part</legend>",
         "Intro text ",
         "<span class=\"inputSpan\" data-input-type=\"text\"><input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" name=\"PFCharFirst[A]\"></span>",
