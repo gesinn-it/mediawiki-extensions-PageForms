@@ -1152,7 +1152,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 			[ 'AEModTpl3' => [ 'tags+' => 'b' ] ]
 		);
 
-		$this->assertMatchesRegularExpression( '/\|done=Yes\b/', $text );
+		$this->assertRegex( '/\|done=Yes\b/', $text );
 		$this->assertStringContainsString( 'tags=a;b', $text );
 	}
 
