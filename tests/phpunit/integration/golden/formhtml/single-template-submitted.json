@@ -5,7 +5,7 @@
         "<span class=\"inputSpan\"><select id=\"input_2\" tabindex=\"2\" name=\"PFCharSingle[Kind]\" class=\"createboxInput\">\t<option value=\"\"></option>",
         "<option value=\"A\">A</option><option value=\"B\" selected=\"\">B</option><option value=\"C\">C</option></select></span>",
         "\t<input type=\"hidden\" value=\"true\" name=\"PFCharSingle[Done][is_checkbox]\">",
-        "\t<span id='input_3' class='<oo-ui>'><input type='checkbox' tabindex='3' name='PFCharSingle[Done][value]' value='' class='<oo-ui>' /><span class='<oo-ui>'></span></span><t />",
+        "\t<span id='input_3' class='<oo-ui>'><input type='checkbox' tabindex='3' name='PFCharSingle[Done][value]' value='' class='<oo-ui>'><span class='<oo-ui>'></span></span><t>",
         "<span class=\"inputSpan\"><textarea tabindex=\"4\" name=\"PFCharSingle[Notes]\" id=\"input_4\" class=\"createboxInput\" rows=\"3\" cols=\"90\" style=\"width: 100%\">line1",
         "line2</textarea></span>",
         " ",

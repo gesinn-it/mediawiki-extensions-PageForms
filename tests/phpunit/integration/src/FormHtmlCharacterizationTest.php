@@ -522,6 +522,10 @@ class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 			static fn ( array $m ): string => 'class=' . $m[1] . '<oo-ui>' . $m[1],
 			$text
 		);
+		// MediaWiki 1.39 closes void elements with "/>" and writes the attributes of an option in
+		// another order.
+		$text = preg_replace( '#\s*/>#', '>', $text );
+		$text = preg_replace( '/<option selected="" value="([^"]*)">/', '<option value="$1" selected="">', $text );
 		return explode( "\n", $text );
 	}
 

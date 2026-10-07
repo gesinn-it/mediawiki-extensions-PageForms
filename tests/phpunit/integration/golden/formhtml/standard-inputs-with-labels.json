@@ -4,7 +4,7 @@
         "<span class=\"inputSpan\" data-input-type=\"text\"><input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" name=\"PFCharSingle[Title]\"></span>",
         " ",
         "<span id='wpSave' class='<oo-ui>'><button type='submit' tabindex='2' title='Save your changes [s]' accesskey='s' name='wpSave' value='' class='<oo-ui>'><span class='<oo-ui>'></span><span class='<oo-ui>'>Store it</span><span class='<oo-ui>'></span></button></span>",
-        "<div class='<oo-ui>'><div class='<oo-ui>'><span class='<oo-ui>'><label for='ooui-php-<n>' class='<oo-ui>'>Why</label></span><div class='<oo-ui>'><div id='wpSummary' class='<oo-ui>'><input type='text' tabindex='3' title='Enter a short summary [b]' accesskey='b' name='wpSummary' value='' id='ooui-php-<n>' class='<oo-ui>' /><span class='<oo-ui>'></span><span class='<oo-ui>'></span></div></div></div></div>",
+        "<div class='<oo-ui>'><div class='<oo-ui>'><span class='<oo-ui>'><label for='ooui-php-<n>' class='<oo-ui>'>Why</label></span><div class='<oo-ui>'><div id='wpSummary' class='<oo-ui>'><input type='text' tabindex='3' title='Enter a short summary [b]' accesskey='b' name='wpSummary' value='' id='ooui-php-<n>' class='<oo-ui>'><span class='<oo-ui>'></span><span class='<oo-ui>'></span></div></div></div></div>",
         "</p></div><input type=\"hidden\" value=\"\" name=\"pf_free_text\"><input type=\"hidden\" value=\"<timestamp>\" name=\"wpStarttime\"><input type=\"hidden\" value=\"<timestamp>\" name=\"wpEdittime\"><input type=\"hidden\" value=\"0\" name=\"editRevId\"><input type=\"hidden\" value=\"<token>\" name=\"wpEditToken\"><input type=\"hidden\" value=\"ℳ𝒲♥𝓊𝓃𝒾𝒸ℴ𝒹ℯ\" name=\"wpUnicodeCheck\"><input type=\"hidden\" value=\"1\" name=\"wpUltimateParam\">\t</form>",
         ""
     ],
