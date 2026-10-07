@@ -1672,6 +1672,68 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
+	public function testFormHTMLOnlyIncludeFreeTextInputForNewPageYieldsEmptyFreeText(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{info|onlyinclude free text}}}\n"
+			. "{{{standard input|free text}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml, $pageText ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestOnlyIncludeFreeTextPage02', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'pf_free_text', $formHtml );
+		$this->assertStringNotContainsString( '!free_text!', $formHtml );
+		$this->assertSame( "<onlyinclude></onlyinclude>\n", $pageText );
+	}
+
+	public function testFormHTMLOnlyIncludeFreeTextSubmittedWithoutFreeTextParamDoesNotCrash(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{info|onlyinclude free text}}}\n"
+			. "{{{for template|PFTestOnlyIncludeTpl03}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|free text}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, true, false, null, null,
+			'PFTestOnlyIncludeFreeTextPage03', null, false, false, false, [],
+			self::getTestUser()->getUser(),
+			new \FauxRequest( [ 'PFTestOnlyIncludeTpl03' => [ 'Name' => 'x' ] ], true )
+		);
+
+		$this->assertStringContainsString( '{{PFTestOnlyIncludeTpl03', $pageText );
+	}
+
+	public function testFormHTMLOnlyIncludeFreeTextFromExistingPageIsStrippedInForm(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{info|onlyinclude free text}}}\n"
+			. "{{{standard input|free text}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, true, null,
+			'<onlyinclude>PFTestOnlyIncludeExistingBody04</onlyinclude>',
+			'PFTestOnlyIncludeFreeTextPage04', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'PFTestOnlyIncludeExistingBody04', $formHtml );
+		$this->assertStringNotContainsString( 'onlyinclude', $formHtml );
+	}
+
 	// -------------------------------------------------------------------------
 	// 'edit title' info-tag component + page-changed-form warning — #487-490, #672-673
 	// -------------------------------------------------------------------------
