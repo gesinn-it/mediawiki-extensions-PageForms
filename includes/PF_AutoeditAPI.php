@@ -1224,19 +1224,6 @@ class PFAutoeditAPI extends ApiBase {
 	}
 
 	/**
-	 * Delegate to HtmlFormDataExtractor::addToArray() for backward compatibility.
-	 *
-	 * @param array &$array is root
-	 * @param string $key identifies path to position in tree.
-	 *    Format: 1stLevelName[2ndLevel][3rdLevel][...], i.e. normal array notation
-	 * @param mixed $value the value to insert
-	 * @param bool $toplevel if this is a toplevel value.
-	 */
-	public static function addToArray( &$array, $key, $value, $toplevel = true ) {
-		HtmlFormDataExtractor::addToArray( $array, $key, $value, $toplevel );
-	}
-
-	/**
 	 * Get a MessageCache depending on mediawiki version
 	 * @return MessageCache
 	 */

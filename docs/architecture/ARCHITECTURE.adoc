@@ -74,8 +74,9 @@ and the `TextSpec` between them). It is the only tokenizer
 `FormDefParser` all use it.
 
 `FormCache` stores the model (as an array, see `FormDefinition::toArray()`), keyed by
-form page and parser options. Entries written in the older format, a pre-processed
-string, are still read.
+form page, a format version and parser options. When the stored format changes the
+version is raised: older entries are never read, the definition is rebuilt on the next
+request, and the old entries are removed when the form is purged.
 
 === Values layer
 
@@ -85,7 +86,9 @@ the fields whose value is a label that has to be mapped back (`mapping template`
 `mapping property`).
 
 * `FormDefParser::readPageValues()` fills it from the text of an existing page
-  using the form definition model.
+  using the form definition model. `TemplatePageValues` reads one template call from
+  the page text (bracket-aware, no MediaWiki state); `FormPrinter::formHTML()` uses the
+  same class through `TemplateInForm`, so both read a page in the same way.
 * `FormValues::mergeRequest()` applies a request on top: request values win,
   `+=` / `-=` modifiers and `Template[<n>][field]` instance numbers are resolved
   against the values of the page.
@@ -413,3 +416,12 @@ Examples include:
 * global configuration variables influencing runtime behavior
 
 Future refactoring could focus on improving separation of concerns and modularization.
+Deliberately left open for now:
+
+* `FormPrinter::formHTML()` is about 690 lines and does the rendering of a whole form in one
+  method; splitting it is a refactoring of its own.
+* The FORMEDIT branch of `PFAutoeditAPI` still gets the values of an existing page from
+  `formHTML()` and `HtmlFormDataExtractor`. Moving it to `readPageValues()` would change which
+  values `mOptions` holds (defaults, query values, mapping labels) and is a change in
+  behaviour, not only in structure.
+* `remote autocompletion` together with a `mapping template` still returns labels from the API.

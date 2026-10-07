@@ -9,7 +9,6 @@ use Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RenderedRevision;
 use OOUI\ButtonInputWidget;
-use Parser;
 use PFUtils;
 use RequestContext;
 use Title;
@@ -452,11 +451,6 @@ class FormUtils {
 	 */
 	public static function resetGlobalVarsForSpreadsheetGuard() {
 		self::$globalVarsForSpreadsheetSet = false;
-	}
-
-	/** @deprecated since PageForms 6.x — use FormCache::getFormDefinition() instead. */
-	public static function getFormDefinition( Parser $parser, $form_def = null, $form_id = null ) {
-		return FormCache::getFormDefinition( $parser, $form_def, $form_id );
 	}
 
 	/** @deprecated since PageForms 6.x — use FormCache::purgeCache() instead. */

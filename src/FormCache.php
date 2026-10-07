@@ -35,6 +35,13 @@ use WikiPage;
  */
 class FormCache {
 
+	/**
+	 * Part of the key of a cached form definition. Raise it when the stored array format
+	 * changes: entries of an older format are then never read and are rebuilt on the next
+	 * request (and removed from the cache when the form is purged).
+	 */
+	private const FORMAT_VERSION = 2;
+
 	// -----------------------------------------------------------------------
 	// Preload
 	// -----------------------------------------------------------------------
@@ -196,11 +203,6 @@ class FormCache {
 			wfDebug( "Cache hit: Got form definition $cacheKeyForForm from cache\n" );
 			return FormDefinition::fromArray( $cached_def );
 		}
-		if ( is_string( $cached_def ) ) {
-			// Cached as wikitext by an earlier version.
-			wfDebug( "Cache hit: Got form definition $cacheKeyForForm from cache\n" );
-			return ( new FormDefinitionReader() )->read( $cached_def );
-		}
 
 		wfDebug( "Cache miss: Form definition $cacheKeyForForm not found in cache\n" );
 		return null;
@@ -323,6 +325,7 @@ class FormCache {
 			? $cache->makeKey( 'ext.PageForms.formdefinition', $formId )
 			: $cache->makeKey(
 				'ext.PageForms.formdefinition',
+				'v' . self::FORMAT_VERSION,
 				$formId,
 				$parser->getOptions()->optionsHash( ParserOptions::allCacheVaryingOptions() )
 			);

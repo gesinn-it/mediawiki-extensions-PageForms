@@ -64,52 +64,6 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// addToArray
-	// -------------------------------------------------------------------------
-
-	/**
-	 * @covers \PFAutoeditAPI::addToArray
-	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::addToArray
-	 */
-	public function testAddToArrayTopLevelKeyAddsStringValue(): void {
-		$data = [];
-		PFAutoeditAPI::addToArray( $data, 'key', 'value' );
-		$this->assertSame( [ 'key' => 'value' ], $data );
-	}
-
-	/**
-	 * @covers \PFAutoeditAPI::addToArray
-	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::addToArray
-	 */
-	public function testAddToArrayNestedKeyCreatesNestedArray(): void {
-		$data = [];
-		PFAutoeditAPI::addToArray( $data, 'template[field]', 'val' );
-		$this->assertSame( [ 'template' => [ 'field' => 'val' ] ], $data );
-	}
-
-	/**
-	 * @covers \PFAutoeditAPI::addToArray
-	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::addToArray
-	 */
-	public function testAddToArrayTopLevelSpaceEncodedAsUnderscore(): void {
-		$data = [];
-		PFAutoeditAPI::addToArray( $data, 'my template[field]', 'val' );
-		$this->assertArrayHasKey( 'my_template', $data );
-	}
-
-	/**
-	 * @covers \PFAutoeditAPI::addToArray
-	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::addToArray
-	 */
-	public function testAddToArrayEmptyKeyAppendsValue(): void {
-		$data = [];
-		PFAutoeditAPI::addToArray( $data, '', 'a' );
-		PFAutoeditAPI::addToArray( $data, '', 'b' );
-		$this->assertContains( 'a', $data );
-		$this->assertContains( 'b', $data );
-	}
-
-	// -------------------------------------------------------------------------
 	// finalizeResults – 'ok text' / 'error text' copy-paste bug
 	// -------------------------------------------------------------------------
 
@@ -420,32 +374,6 @@ class PFAutoeditAPITest extends ApiTestCase {
 		// Title::newFromText normalises spaces to underscores and capitalises.
 		$this->assertSame( 'Test form', $opts['form'] );
 		$this->assertSame( 'Test page', $opts['target'] );
-	}
-
-	// -------------------------------------------------------------------------
-	// addToArray – numeric instance key appends 'a' suffix (non-top-level)
-	// -------------------------------------------------------------------------
-
-	/**
-	 * @covers \PFAutoeditAPI::addToArray
-	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::addToArray
-	 */
-	public function testAddToArrayNumericSubkeyGetsSuffix(): void {
-		$data = [];
-		// Non-top-level numeric key inside a parent key → parent['0a'][...]
-		PFAutoeditAPI::addToArray( $data, 'T[0][field]', 'v', false );
-		$this->assertArrayHasKey( '0a', $data['T'] );
-	}
-
-	/**
-	 * @covers \PFAutoeditAPI::addToArray
-	 * @covers \MediaWiki\Extension\PageForms\HtmlFormDataExtractor::addToArray
-	 */
-	public function testAddToArrayDoesNotOverwriteExistingChildArray(): void {
-		$data = [ 'T' => [ 'f' => 'old' ] ];
-		// Trying to set a string on a key that already holds an array → no-op
-		PFAutoeditAPI::addToArray( $data, 'T', 'should not overwrite' );
-		$this->assertIsArray( $data['T'] );
 	}
 
 	// -------------------------------------------------------------------------

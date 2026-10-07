@@ -528,15 +528,6 @@ class FormUtilsTest extends TestCase {
 	}
 
 	/**
-	 * @covers \MediaWiki\Extension\PageForms\FormUtils::getFormDefinition
-	 */
-	public function testGetFormDefinitionForwardsToFormCache() {
-		$parser = MediaWikiServices::getInstance()->getParserFactory()->create();
-		$result = FormUtils::getFormDefinition( $parser, null, null );
-		$this->assertSame( '', $result );
-	}
-
-	/**
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::purgeCache
 	 */
 	public function testPurgeCacheForwardsToFormCache() {

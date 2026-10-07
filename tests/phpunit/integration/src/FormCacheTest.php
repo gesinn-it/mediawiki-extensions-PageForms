@@ -212,6 +212,38 @@ class FormCacheTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( $firstResult, $secondResult );
 	}
 
+	public function testGetFormDefinitionIgnoresAnEntryOfAnOlderCacheFormat() {
+		$this->setMwGlobals( 'wgPageFormsCacheFormDefinitions', true );
+		// See testGetFormDefinitionCacheHitReturnsCachedValue() for why the backend is pinned.
+		$this->setMwGlobals( 'wgPageFormsFormCacheType', CACHE_HASH );
+
+		$title = Title::newFromText( 'PFFormCacheTestOldFormatForm01', PF_NS_FORM );
+		$this->editPage( $title, '{{{standard input|save}}}' );
+		$formId = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title )->getId();
+
+		$parser = $this->getServiceContainer()->getParserFactory()->create();
+		$parser->setOptions( ParserOptions::newFromAnon() );
+		$parser->setTitle( $title );
+		$parser->clearState();
+
+		// What an earlier version stored: the wikitext of the definition, under a key
+		// without a format version.
+		$cache = FormCache::getFormCache();
+		$oldKey = $cache->makeKey(
+			'ext.PageForms.formdefinition',
+			$formId,
+			$parser->getOptions()->optionsHash( ParserOptions::allCacheVaryingOptions() )
+		);
+		$this->assertNotSame( $oldKey, FormCache::getCacheKey( $formId, $parser ) );
+		$cache->set( $oldKey, '{{{standard input|stale}}}' );
+
+		$result = FormCache::getFormDefinition( $parser, null, $formId );
+
+		$this->assertStringContainsString( '{{{standard input|save}}}', $result );
+		$this->assertStringNotContainsString( 'stale', $result );
+		$this->assertIsArray( $cache->get( FormCache::getCacheKey( $formId, $parser ) ) );
+	}
+
 	public function testGetFormDefinitionCacheDisabledPurgesWikiPage() {
 		$this->setMwGlobals( 'wgPageFormsCacheFormDefinitions', false );
 
