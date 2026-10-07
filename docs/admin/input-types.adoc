@@ -55,7 +55,7 @@ _Special parameters:_
 | `editor=_editor type_`
 | Adds a JavaScript-based editor to the textarea to make editing its contents more user-friendly. The following values are supported:
 
-* `wikieditor` -- uses the WikiEditor extension, which must be installed. If you want to add any additional custom toolbars to WikiEditor, you will need to add them in the JavaScript to `('#free_text').wikiEditor`, just as they exist for `('#wpTextbox1').wikiEditor`.
+* `wikieditor` -- uses the WikiEditor extension, which must be installed. If the Cite extension is installed as well, its reference button is added to the toolbar. If you want to add any additional custom toolbars to WikiEditor, you will need to add them in the JavaScript to `('#free_text').wikiEditor`, just as they exist for `('#wpTextbox1').wikiEditor`.
 * `visualeditor` -- uses the VisualEditor extension, which must be installed. Another extension, VEForAll, must also be installed. If you would like the toolbar to show up at the top of the edit field rather than at the bottom (default) you will also have to add `\|class=toolbarOnTop`.
 
 | `max height=_maximum height_`

@@ -29,6 +29,36 @@ class PFTextAreaInputTest extends MediaWikiIntegrationTestCase {
 		return $input->getHtmlText();
 	}
 
+	public function testWikiEditorLoadsCiteModuleWhenCiteIsRegistered(): void {
+		$out = RequestContext::getMain()->getOutput();
+		$registered = $out->getResourceLoader()->getModuleNames();
+		if ( !in_array( 'ext.wikiEditor', $registered ) || !in_array( 'ext.cite.wikiEditor', $registered ) ) {
+			$this->markTestSkipped( 'WikiEditor and Cite are required' );
+		}
+		$this->setMwGlobals( 'wgOut', $out );
+
+		$this->getHtml( '', false, false, [ 'editor' => 'wikieditor' ] );
+
+		$this->assertContains( 'ext.wikiEditor', $out->getModules() );
+		$this->assertContains( 'ext.cite.wikiEditor', $out->getModules() );
+	}
+
+	public function testWikiEditorWithCiteMarksSpecialPageBodyAsSubject(): void {
+		$out = RequestContext::getMain()->getOutput();
+		$registered = $out->getResourceLoader()->getModuleNames();
+		if ( !in_array( 'ext.wikiEditor', $registered ) || !in_array( 'ext.cite.wikiEditor', $registered ) ) {
+			$this->markTestSkipped( 'WikiEditor and Cite are required' );
+		}
+		$out->setTitle( SpecialPage::getTitleFor( 'FormEdit' ) );
+		$this->setMwGlobals( 'wgOut', $out );
+
+		$this->getHtml( '', false, false, [ 'editor' => 'wikieditor' ] );
+
+		$property = new ReflectionProperty( $out, 'mAdditionalBodyClasses' );
+		$property->setAccessible( true );
+		$this->assertContains( 'ns-subject', $property->getValue( $out ) );
+	}
+
 	public function testGetHtmlRendersTextareaElement(): void {
 		$html = $this->getHtml();
 

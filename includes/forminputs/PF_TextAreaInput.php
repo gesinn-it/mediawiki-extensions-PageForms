@@ -185,6 +185,17 @@ class PFTextAreaInput extends PFFormInput {
 			global $wgOut;
 			$wgOut->addModuleStyles( 'ext.wikiEditor.styles' );
 			$wgOut->addModules( 'ext.wikiEditor' );
+			// Cite adds its toolbar button only via EditPage::showEditForm:initial,
+			// which never fires for Special:FormEdit. Cite is optional, so only
+			// load its module if it has been registered.
+			if ( in_array( 'ext.cite.wikiEditor', $wgOut->getResourceLoader()->getModuleNames() ) ) {
+				$wgOut->addModules( 'ext.cite.wikiEditor' );
+				// Cite's button is filtered by 'body.ns-subject', which a special
+				// page body never has.
+				if ( $wgOut->getTitle() && $wgOut->getTitle()->isSpecialPage() ) {
+					$wgOut->addBodyClasses( 'ns-subject' );
+				}
+			}
 			$className = 'wikieditor ';
 		} elseif ( $this->mEditor == 'visualeditor' ) {
 			$className = 'visualeditor ';
