@@ -11,6 +11,9 @@ use MediaWiki\MediaWikiServices;
 
 class PFValuesUtils {
 
+	/** @var array<string, int> Source counts of the live store, by type and source */
+	private static array $sourceCounts = [];
+
 	/**
 	 * Helper function to handle getPropertyValues().
 	 *
@@ -946,6 +949,33 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 	 */
 	public static function getSourceCount(
 		string $autocompleteFieldType, string $autocompletionSource, $store = null
+	): ?int {
+		// Several fields of a form often share a source, and each field asks twice. Remember the
+		// count of the live store for the rest of the request.
+		if ( $store !== null ) {
+			return self::countSource( $autocompleteFieldType, $autocompletionSource, $store );
+		}
+		$key = $autocompleteFieldType . "\0" . $autocompletionSource;
+		if ( !array_key_exists( $key, self::$sourceCounts ) ) {
+			$count = self::countSource( $autocompleteFieldType, $autocompletionSource, null );
+			if ( $count === null ) {
+				// Not cached: SMW may be missing or the query may have failed for now.
+				return null;
+			}
+			self::$sourceCounts[$key] = $count;
+		}
+		return self::$sourceCounts[$key];
+	}
+
+	/**
+	 * Forget the source counts remembered by getSourceCount().
+	 */
+	public static function resetSourceCounts(): void {
+		self::$sourceCounts = [];
+	}
+
+	private static function countSource(
+		string $autocompleteFieldType, string $autocompletionSource, $store
 	): ?int {
 		global $wgPageFormsMaxLocalAutocompleteValues;
 

@@ -639,4 +639,23 @@ class PFValuesUtilsTest extends TestCase {
 
 		$GLOBALS[$globalName] = $value;
 	}
+
+	/**
+	 * @covers \PFValuesUtils::getSourceCount
+	 * @covers \PFValuesUtils::resetSourceCounts
+	 */
+	public function testGetSourceCountOfTheLiveStoreIsRememberedUntilReset(): void {
+		if ( !class_exists( '\SMW\StoreFactory' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+		$remembered = new ReflectionProperty( PFValuesUtils::class, 'sourceCounts' );
+		PFValuesUtils::resetSourceCounts();
+
+		$count = PFValuesUtils::getSourceCount( 'category', 'PFSourceCountTestCategory' );
+
+		$this->assertSame( 0, $count );
+		$this->assertCount( 1, $remembered->getValue() );
+		PFValuesUtils::resetSourceCounts();
+		$this->assertSame( [], $remembered->getValue() );
+	}
 }
