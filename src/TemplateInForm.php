@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Extension\PageForms\FormDefinition\TemplateSpec;
 use Parser;
 use WebRequest;
 
@@ -77,11 +78,11 @@ class TemplateInForm {
 		return $tif;
 	}
 
-	public static function newFromFormTag( $tag_components, Parser $parser ) {
+	public static function newFromFormTag( TemplateSpec $spec, Parser $parser ) {
 		global $wgPageFormsEmbeddedTemplates;
 
 		$tif = new TemplateInForm();
-		$tif->mTemplateName = str_replace( '_', ' ', trim( $parser->recursiveTagParse( $tag_components[1] ) ) );
+		$tif->mTemplateName = str_replace( '_', ' ', trim( $parser->recursiveTagParse( $spec->getRawName() ) ) );
 
 		$tif->mAddButtonText = wfMessage( 'pf_formedit_addanother' )->text();
 
@@ -91,55 +92,59 @@ class TemplateInForm {
 			$tif->mPlaceholder = FormPrinter::placeholderFormat( $tif->mEmbedInTemplate, $tif->mEmbedInField );
 		}
 
-		// Cycle through the other components.
-		for ( $i = 2; $i < count( $tag_components ); $i++ ) {
-			$component = $tag_components[$i];
-			if ( $component == 'multiple' ) {
-				$tif->mAllowMultiple = true;
-			} elseif ( $component == 'strict' ) {
-				$tif->mStrictParsing = true;
-			}
-			$sub_components = array_map( 'trim', explode( '=', $component, 2 ) );
-			if ( count( $sub_components ) == 2 ) {
-				if ( $sub_components[0] == 'label' ) {
-					$tif->mLabel = $parser->recursiveTagParse( $sub_components[1] );
-				} elseif ( $sub_components[0] == 'intro' ) {
-					$tif->mIntro = $sub_components[1];
-				} elseif ( $sub_components[0] == 'minimum instances' ) {
-					$tif->mMinAllowed = $sub_components[1];
-				} elseif ( $sub_components[0] == 'maximum instances' ) {
-					$tif->mMaxAllowed = $sub_components[1];
-				} elseif ( $sub_components[0] == 'add button text' ) {
-					$tif->mAddButtonText = $parser->recursiveTagParse( $sub_components[1] );
-				} elseif ( $sub_components[0] == 'embed in field' ) {
-					// Placeholder on form template level. Assume that the template form def
-					// will have a multiple+placeholder parameters, and get the placeholder value.
-					// We expect something like TemplateName[fieldName], and convert it to the
-					// TemplateName___fieldName form used internally.
-					preg_match( '/\s*(.*)\[(.*)\]\s*/', $sub_components[1], $matches );
-					if ( count( $matches ) > 2 ) {
-						$tif->mEmbedInTemplate = $matches[1];
-						$tif->mEmbedInField = $matches[2];
-						$tif->mPlaceholder = FormPrinter::placeholderFormat(
-							$tif->mEmbedInTemplate, $tif->mEmbedInField
-						);
-					}
-				} elseif ( $sub_components[0] == 'display' ) {
-					$tif->mDisplay = $sub_components[1];
-				} elseif ( $sub_components[0] == 'height' ) {
-					$tif->mHeight = $sub_components[1];
-				} elseif ( $sub_components[0] == 'displayed fields when minimized' ) {
-					$tif->mDisplayedFieldsWhenMinimized = $sub_components[1];
-				} elseif ( $sub_components[0] == 'event title field' ) {
-					$tif->mEventTitleField = $sub_components[1];
-				} elseif ( $sub_components[0] == 'event date field' ) {
-					$tif->mEventDateField = $sub_components[1];
-				} elseif ( $sub_components[0] == 'event start date field' ) {
-					$tif->mEventStartDateField = $sub_components[1];
-				} elseif ( $sub_components[0] == 'event end date field' ) {
-					$tif->mEventEndDateField = $sub_components[1];
-				}
-			}
+		if ( $spec->isMultiple() ) {
+			$tif->mAllowMultiple = true;
+		}
+		if ( $spec->isStrict() ) {
+			$tif->mStrictParsing = true;
+		}
+		$label = $spec->getLabel();
+		if ( $label !== null ) {
+			$tif->mLabel = $parser->recursiveTagParse( $label );
+		}
+		if ( $spec->getIntro() !== null ) {
+			$tif->mIntro = $spec->getIntro();
+		}
+		if ( $spec->getMinimumInstances() !== null ) {
+			$tif->mMinAllowed = $spec->getMinimumInstances();
+		}
+		if ( $spec->getMaximumInstances() !== null ) {
+			$tif->mMaxAllowed = $spec->getMaximumInstances();
+		}
+		$addButtonText = $spec->getAddButtonText();
+		if ( $addButtonText !== null ) {
+			$tif->mAddButtonText = $parser->recursiveTagParse( $addButtonText );
+		}
+		// Placeholder on form template level. Assume that the template form def
+		// will have a multiple+placeholder parameters, and get the placeholder value.
+		// The spec converts TemplateName[fieldName] to the pair used internally.
+		$embedInField = $spec->getEmbedInField();
+		if ( $embedInField !== null ) {
+			[ $tif->mEmbedInTemplate, $tif->mEmbedInField ] = $embedInField;
+			$tif->mPlaceholder = FormPrinter::placeholderFormat(
+				$tif->mEmbedInTemplate, $tif->mEmbedInField
+			);
+		}
+		if ( $spec->getDisplay() !== null ) {
+			$tif->mDisplay = $spec->getDisplay();
+		}
+		if ( $spec->getHeight() !== null ) {
+			$tif->mHeight = $spec->getHeight();
+		}
+		if ( $spec->getDisplayedFieldsWhenMinimized() !== null ) {
+			$tif->mDisplayedFieldsWhenMinimized = $spec->getDisplayedFieldsWhenMinimized();
+		}
+		if ( $spec->getEventTitleField() !== null ) {
+			$tif->mEventTitleField = $spec->getEventTitleField();
+		}
+		if ( $spec->getEventDateField() !== null ) {
+			$tif->mEventDateField = $spec->getEventDateField();
+		}
+		if ( $spec->getEventStartDateField() !== null ) {
+			$tif->mEventStartDateField = $spec->getEventStartDateField();
+		}
+		if ( $spec->getEventEndDateField() !== null ) {
+			$tif->mEventEndDateField = $spec->getEventEndDateField();
 		}
 
 		return $tif;

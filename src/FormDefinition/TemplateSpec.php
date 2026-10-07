@@ -80,4 +80,28 @@ class TemplateSpec extends TagSpec {
 		}
 		return null;
 	}
+
+	public function getHeight(): ?string {
+		return $this->getArg( 'height' );
+	}
+
+	public function getDisplayedFieldsWhenMinimized(): ?string {
+		return $this->getArg( 'displayed fields when minimized' );
+	}
+
+	public function getEventTitleField(): ?string {
+		return $this->getArg( 'event title field' );
+	}
+
+	public function getEventDateField(): ?string {
+		return $this->getArg( 'event date field' );
+	}
+
+	public function getEventStartDateField(): ?string {
+		return $this->getArg( 'event start date field' );
+	}
+
+	public function getEventEndDateField(): ?string {
+		return $this->getArg( 'event end date field' );
+	}
 }

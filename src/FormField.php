@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use Html;
+use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\MediaWikiServices;
 use Parser;
 use ParserOptions;
@@ -303,7 +304,7 @@ class FormField {
 	}
 
 	public static function newFromFormFieldTag(
-		$tag_components,
+		FieldSpec $spec,
 		$template,
 		$template_in_form,
 		$form_is_disabled,
@@ -332,7 +333,7 @@ class FormField {
 		$f->mFieldArgs = [];
 		$f->mInstanceField = new FormInstanceField( $f );
 
-		$field_name = trim( $tag_components[1] );
+		$field_name = $spec->getName();
 		$template_name = $template_in_form->getTemplateName();
 
 		// See if this field matches one of the fields defined for this
@@ -387,60 +388,61 @@ class FormField {
 			$f->mFieldArgs['values from namespace'] = $namespaceFromTemplate;
 		}
 
-		// Cycle through the other components.
-		for ( $i = 2; $i < count( $tag_components ); $i++ ) {
-			$component = trim( $tag_components[$i] );
+		if ( $spec->isMandatory() ) {
+			$f->mIsMandatory = true;
+		}
+		if ( $spec->isHidden() ) {
+			$f->mIsHidden = true;
+		}
+		if ( $spec->isList() ) {
+			$f->mIsList = true;
+		}
+		if ( $spec->isUnique() ) {
+			$f->mFieldArgs['unique'] = true;
+		}
+		if ( $spec->isFlag( 'restricted' ) ) {
+			$f->mIsRestricted = !$user->isAllowed( 'editrestrictedfields' );
+		}
+		if ( $spec->isFlag( 'edittools' ) ) {
+			// free text only
+			$f->mFieldArgs['edittools'] = true;
+		}
 
-			if ( $component == 'mandatory' ) {
-				$f->mIsMandatory = true;
-			} elseif ( $component == 'hidden' ) {
-				$f->mIsHidden = true;
-			} elseif ( $component == 'restricted' ) {
-				$f->mIsRestricted = !$user->isAllowed( 'editrestrictedfields' );
-			} elseif ( $component == 'list' ) {
-				$f->mIsList = true;
-			} elseif ( $component == 'unique' ) {
-				$f->mFieldArgs['unique'] = true;
-			} elseif ( $component == 'edittools' ) {
-				// free text only
-				$f->mFieldArgs['edittools'] = true;
-			}
-
-			$sub_components = array_map( 'trim', explode( '=', $component, 2 ) );
-
-			if ( count( $sub_components ) == 1 ) {
+		// Cycle through the arguments.
+		foreach ( $spec->getArgs() as $argName => $argValue ) {
+			if ( $spec->isFlag( $argName ) ) {
 				// add handling for single-value params, for custom input types
-				$f->mFieldArgs[$sub_components[0]] = true;
+				$f->mFieldArgs[$argName] = true;
 
-				if ( $component == 'holds template' ) {
+				if ( $argName == 'holds template' ) {
 					$f->mIsHidden = true;
 					$f->mHoldsTemplate = true;
 				}
-			} elseif ( count( $sub_components ) == 2 ) {
+			} else {
 				// First, set each value as its own entry in $this->mFieldArgs.
-				$f->mFieldArgs[$sub_components[0]] = $sub_components[1];
+				$f->mFieldArgs[$argName] = $argValue;
 
 				// Then, do all special handling.
-				if ( $sub_components[0] == 'autocapitalize' ) {
-					$f->mAutocapitalize = strtolower( $sub_components[1] );
-				} elseif ( $sub_components[0] == 'input type' ) {
-					$f->mInputType = $sub_components[1];
-				} elseif ( $sub_components[0] == 'default' ) {
+				if ( $argName == 'autocapitalize' ) {
+					$f->mAutocapitalize = strtolower( $argValue );
+				} elseif ( $argName == 'input type' ) {
+					$f->mInputType = $argValue;
+				} elseif ( $argName == 'default' ) {
 					// We call recursivePreprocess() here,
 					// and not the more standard
 					// recursiveTagParse(), so that
 					// wikitext in the value, and bare URLs,
 					// will not get turned into HTML.
-					$f->mDefaultValue = $parser->recursivePreprocess( $sub_components[1] );
-				} elseif ( $sub_components[0] == 'preload' ) {
-					$f->mPreloadPage = $sub_components[1];
-				} elseif ( $sub_components[0] == 'label' ) {
-					$f->mLabel = $sub_components[1];
-				} elseif ( $sub_components[0] == 'label msg' ) {
-					$f->mLabelMsg = $sub_components[1];
-				} elseif ( $sub_components[0] == 'show on select' ) {
+					$f->mDefaultValue = $parser->recursivePreprocess( $argValue );
+				} elseif ( $argName == 'preload' ) {
+					$f->mPreloadPage = $argValue;
+				} elseif ( $argName == 'label' ) {
+					$f->mLabel = $argValue;
+				} elseif ( $argName == 'label msg' ) {
+					$f->mLabelMsg = $argValue;
+				} elseif ( $argName == 'show on select' ) {
 					// html_entity_decode() is needed to turn '&gt;' to '>'
-					$vals = explode( ';', html_entity_decode( $sub_components[1] ) );
+					$vals = explode( ';', html_entity_decode( $argValue ) );
 					foreach ( $vals as $val ) {
 						$val = trim( $val );
 						if ( $val === '' ) {
@@ -459,49 +461,49 @@ class FormField {
 							$show_on_select[$val] = [];
 						}
 					}
-				} elseif ( $sub_components[0] == 'values' ) {
+				} elseif ( $argName == 'values' ) {
 					// Handle this one only after
 					// 'delimiter' has also been set.
-					$values = $parser->recursiveTagParse( $sub_components[1] );
-				} elseif ( $sub_components[0] == 'values from property' ) {
+					$values = $parser->recursiveTagParse( $argValue );
+				} elseif ( $argName == 'values from property' ) {
 					// The actual fetch is deferred to after the full component
 					// loop has run (see below), so that a 'remote autocompletion'
 					// component appearing later in the tag is already known.
-					$valuesFromPropertyName = $sub_components[1];
-				} elseif ( $sub_components[0] == 'values from wikidata' ) {
+					$valuesFromPropertyName = $argValue;
+				} elseif ( $argName == 'values from wikidata' ) {
 					$valuesSourceType = 'wikidata';
-					$valuesSource = urlencode( $sub_components[1] );
-				} elseif ( $sub_components[0] == 'values from query' ) {
+					$valuesSource = urlencode( $argValue );
+				} elseif ( $argName == 'values from query' ) {
 					$valuesSourceType = 'query';
-					$valuesSource = $sub_components[1];
-				} elseif ( $sub_components[0] == 'values from category' ) {
-					$valuesSource = $parser->recursiveTagParse( $sub_components[1] );
+					$valuesSource = $argValue;
+				} elseif ( $argName == 'values from category' ) {
+					$valuesSource = $parser->recursiveTagParse( $argValue );
 					global $wgCapitalLinks;
 					if ( $wgCapitalLinks ) {
 						$valuesSource = ucfirst( $valuesSource );
 					}
 					$valuesSourceType = 'category';
-				} elseif ( $sub_components[0] == 'values from concept' ) {
+				} elseif ( $argName == 'values from concept' ) {
 					$valuesSourceType = 'concept';
-					$valuesSource = $parser->recursiveTagParse( $sub_components[1] );
-				} elseif ( $sub_components[0] == 'values from namespace' ) {
+					$valuesSource = $parser->recursiveTagParse( $argValue );
+				} elseif ( $argName == 'values from namespace' ) {
 					$valuesSourceType = 'namespace';
-					$valuesSource = $parser->recursiveTagParse( $sub_components[1] );
-				} elseif ( $sub_components[0] == 'values dependent on' ) {
+					$valuesSource = $parser->recursiveTagParse( $argValue );
+				} elseif ( $argName == 'values dependent on' ) {
 					global $wgPageFormsDependentFields;
-					$wgPageFormsDependentFields[] = [ $sub_components[1], $fullFieldName ];
-				} elseif ( $sub_components[0] == 'unique for category' ) {
+					$wgPageFormsDependentFields[] = [ $argValue, $fullFieldName ];
+				} elseif ( $argName == 'unique for category' ) {
 					$f->mFieldArgs['unique'] = true;
-					$f->mFieldArgs['unique_for_category'] = $parser->recursiveTagParse( $sub_components[1] );
-				} elseif ( $sub_components[0] == 'unique for namespace' ) {
+					$f->mFieldArgs['unique_for_category'] = $parser->recursiveTagParse( $argValue );
+				} elseif ( $argName == 'unique for namespace' ) {
 					$f->mFieldArgs['unique'] = true;
-					$f->mFieldArgs['unique_for_namespace'] = $parser->recursiveTagParse( $sub_components[1] );
-				} elseif ( $sub_components[0] == 'unique for concept' ) {
+					$f->mFieldArgs['unique_for_namespace'] = $parser->recursiveTagParse( $argValue );
+				} elseif ( $argName == 'unique for concept' ) {
 					$f->mFieldArgs['unique'] = true;
-					$f->mFieldArgs['unique_for_concept'] = $parser->recursiveTagParse( $sub_components[1] );
-				} elseif ( $sub_components[0] == 'property' ) {
-					$semantic_property = $sub_components[1];
-				} elseif ( $sub_components[0] == 'default filename' ) {
+					$f->mFieldArgs['unique_for_concept'] = $parser->recursiveTagParse( $argValue );
+				} elseif ( $argName == 'property' ) {
+					$semantic_property = $argValue;
+				} elseif ( $argName == 'default filename' ) {
 					$titleGlobal = RequestContext::getMain()->getTitle();
 					$page_name = $titleGlobal->getText();
 					if ( $titleGlobal->isSpecialPage() ) {
@@ -513,16 +515,16 @@ class FormField {
 							$page_name = $pageNameComponents[2];
 						}
 					}
-					$default_filename = str_replace( '<page name>', $page_name, $sub_components[1] );
+					$default_filename = str_replace( '<page name>', $page_name, $argValue );
 					// Parse value, so default filename can
 					// include parser functions.
 					$default_filename = $parser->recursiveTagParse( $default_filename );
 					$f->mFieldArgs['default filename'] = $default_filename;
-				} elseif ( $sub_components[0] == 'restricted' ) {
+				} elseif ( $argName == 'restricted' ) {
 					$effectiveGroups = MediaWikiServices::getInstance()->getUserGroupManager()
 						->getUserEffectiveGroups( $user );
 					$f->mIsRestricted = !array_intersect(
-						$effectiveGroups, array_map( 'trim', explode( ',', $sub_components[1] ) )
+						$effectiveGroups, array_map( 'trim', explode( ',', $argValue ) )
 					);
 				}
 			}

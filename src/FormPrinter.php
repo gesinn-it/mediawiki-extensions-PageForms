@@ -931,7 +931,8 @@ class FormPrinter {
 					$is_new_template = ( $template_name != $previous_template_name );
 					if ( $is_new_template ) {
 						$template = Template::newFromName( $template_name );
-						$tif = TemplateInForm::newFromFormTag( $tag_components, $parser );
+						// @phan-suppress-next-line PhanTypeMismatchArgumentSuperType Is a TemplateSpec
+						$tif = TemplateInForm::newFromFormTag( $element, $parser );
 					}
 					// The template tag itself produces no output.
 					// If we are editing a page, and this
@@ -1020,7 +1021,9 @@ class FormPrinter {
 					}
 					$field_name = trim( $tag_components[1] );
 					$form_field = FormField::newFromFormFieldTag(
-						$tag_components, $template, $tif, $form_is_disabled, $user, $parser,
+						// @phan-suppress-next-line PhanTypeMismatchArgumentSuperType Is a FieldSpec
+						$element,
+						$template, $tif, $form_is_disabled, $user, $parser,
 						$this->mappingLabels
 					);
 					// For special displays, add in the

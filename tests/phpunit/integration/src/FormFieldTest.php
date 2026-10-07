@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\FormInstanceField;
 use MediaWiki\Extension\PageForms\Template;
@@ -142,7 +143,12 @@ class FormFieldTest extends TestCase {
 
 		// Call the method under test
 		$formField = FormField::newFromFormFieldTag(
-			$tagComponents, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser, $this->mockParser
+			new FieldSpec( $tagComponents ),
+			$this->mockTemplate,
+			$this->mockTemplateInForm,
+			false,
+			$this->mockUser,
+			$this->mockParser
 		);
 
 		// Assert that the template field was set
@@ -165,7 +171,12 @@ class FormFieldTest extends TestCase {
 		// field found, newFromFormFieldTag() must return early with a fresh,
 		// empty TemplateField and mIsList = false (src/FormField.php:232-239).
 		$formField = FormField::newFromFormFieldTag(
-			$tagComponents, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser, $this->mockParser
+			new FieldSpec( $tagComponents ),
+			$this->mockTemplate,
+			$this->mockTemplateInForm,
+			false,
+			$this->mockUser,
+			$this->mockParser
 		);
 
 		$this->assertInstanceOf( TemplateField::class, $formField->template_field );
@@ -179,7 +190,7 @@ class FormFieldTest extends TestCase {
 
 		// Call the method
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -194,7 +205,7 @@ class FormFieldTest extends TestCase {
 
 		// Call the method
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -209,7 +220,7 @@ class FormFieldTest extends TestCase {
 
 		// Call the method
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -224,7 +235,7 @@ class FormFieldTest extends TestCase {
 
 		// Call the method
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -239,7 +250,7 @@ class FormFieldTest extends TestCase {
 
 		// Call the method
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -291,7 +302,7 @@ class FormFieldTest extends TestCase {
 		$this->mockTemplateInForm->method( 'allowsMultiple' )->willReturn( false );
 
 		$formField = FormField::newFromFormFieldTag(
-			$tagComponents,
+			new FieldSpec( $tagComponents ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -315,7 +326,7 @@ class FormFieldTest extends TestCase {
 
 		// Call the method
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -330,7 +341,7 @@ class FormFieldTest extends TestCase {
 
 		// Call the method
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -345,7 +356,7 @@ class FormFieldTest extends TestCase {
 
 		// Call the method
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -360,7 +371,7 @@ class FormFieldTest extends TestCase {
 
 		// Call the method
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -903,7 +914,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'label msg=pf-formfield-test-label-msg' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -921,7 +932,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'edittools' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -945,7 +956,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', 'test_field' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -970,7 +981,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'holds template' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -985,7 +996,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'preload=PFTestFormFieldPreloadPage01' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1003,7 +1014,7 @@ class FormFieldTest extends TestCase {
 		];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1023,7 +1034,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'show on select=optionA' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1042,7 +1053,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'values from wikidata=Q1', 'input type=combobox' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1056,7 +1067,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'values from query=PFTestFormFieldQuery01' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1073,7 +1084,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'values from category=PFTestFormFieldCategory01' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1090,7 +1101,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'values from namespace=PFTestFormFieldNamespace01' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1113,7 +1124,7 @@ class FormFieldTest extends TestCase {
 		$this->mockTemplateInForm->method( 'getTemplateName' )->willReturn( 'PFTestFormFieldTemplateName01' );
 
 		FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1130,7 +1141,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'unique for category=PFTestFormFieldUniqueCategory01' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1147,7 +1158,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'unique for namespace=PFTestFormFieldUniqueNamespace01' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1164,7 +1175,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'unique for concept=PFTestFormFieldUniqueConcept01' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1185,7 +1196,7 @@ class FormFieldTest extends TestCase {
 			$tag_components = [ '', '', 'default filename=<page name>.jpg' ];
 
 			$formField = FormField::newFromFormFieldTag(
-				$tag_components,
+				new FieldSpec( $tag_components ),
 				$this->mockTemplate,
 				$this->mockTemplateInForm,
 				false,
@@ -1214,7 +1225,7 @@ class FormFieldTest extends TestCase {
 			$tag_components = [ '', '', 'default filename=<page name>.jpg' ];
 
 			$formField = FormField::newFromFormFieldTag(
-				$tag_components,
+				new FieldSpec( $tag_components ),
 				$this->mockTemplate,
 				$this->mockTemplateInForm,
 				false,
@@ -1236,7 +1247,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'restricted=sysop,bureaucrat' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1264,7 +1275,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', 'test_field' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1301,7 +1312,7 @@ class FormFieldTest extends TestCase {
 		];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1322,7 +1333,7 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', 'test_field' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1404,7 +1415,7 @@ class FormFieldTest extends TestCase {
 	public function testAutocapitalizeWordsMode() {
 		$tag_components = [ '', '', 'autocapitalize=words' ];
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1546,7 +1557,7 @@ class FormFieldTest extends TestCase {
 
 		$tag_components = [ '', 'PFTestFormFieldName06', 'default=PFTestFormFieldDefaultValue01' ];
 		$field = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1576,7 +1587,7 @@ class FormFieldTest extends TestCase {
 			'', 'PFTestFormFieldName06b', 'default={{PAGENAME}}'
 		];
 		$field = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -1593,7 +1604,7 @@ class FormFieldTest extends TestCase {
 
 		$tag_components = [ '', 'PFTestFormFieldName07', 'preload=PFTestFormFieldPreloadPage02' ];
 		$field = FormField::newFromFormFieldTag(
-			$tag_components,
+			new FieldSpec( $tag_components ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
@@ -2041,7 +2052,12 @@ class FormFieldTest extends TestCase {
 		];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser, $this->mockParser
+			new FieldSpec( $tag_components ),
+			$this->mockTemplate,
+			$this->mockTemplateInForm,
+			false,
+			$this->mockUser,
+			$this->mockParser
 		);
 
 		$this->assertTrue( $formField->hasDeferredPossibleValues() );
@@ -2062,7 +2078,12 @@ class FormFieldTest extends TestCase {
 		$tag_components = [ '', '', 'values from category=PFTestFormFieldRemoteCat02' ];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser, $this->mockParser
+			new FieldSpec( $tag_components ),
+			$this->mockTemplate,
+			$this->mockTemplateInForm,
+			false,
+			$this->mockUser,
+			$this->mockParser
 		);
 
 		$this->assertFalse( $formField->hasDeferredPossibleValues() );
@@ -2084,7 +2105,12 @@ class FormFieldTest extends TestCase {
 		];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser, $this->mockParser
+			new FieldSpec( $tag_components ),
+			$this->mockTemplate,
+			$this->mockTemplateInForm,
+			false,
+			$this->mockUser,
+			$this->mockParser
 		);
 
 		$this->assertFalse( $formField->hasDeferredPossibleValues() );
@@ -2110,7 +2136,12 @@ class FormFieldTest extends TestCase {
 		];
 
 		$formField = FormField::newFromFormFieldTag(
-			$tag_components, $this->mockTemplate, $this->mockTemplateInForm, false, $this->mockUser, $this->mockParser
+			new FieldSpec( $tag_components ),
+			$this->mockTemplate,
+			$this->mockTemplateInForm,
+			false,
+			$this->mockUser,
+			$this->mockParser
 		);
 
 		$this->assertFalse( $formField->hasDeferredPossibleValues() );

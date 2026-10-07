@@ -77,6 +77,21 @@ abstract class TagSpec implements FormElement {
 	}
 
 	/**
+	 * Whether the tag carries the argument $name as a bare flag, without an "=".
+	 */
+	public function isFlag( string $name ): bool {
+		$name = $this->normalizeArgName( $name );
+		$count = count( $this->components );
+		for ( $i = 2; $i < $count; $i++ ) {
+			$parts = array_map( 'trim', explode( '=', $this->components[$i], 2 ) );
+			if ( count( $parts ) === 1 && $this->normalizeArgName( $parts[0] ) === $name ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Who may edit what this tag defines, as far as the tag restricts it: null if the tag is not
 	 * "restricted", [] for a bare "restricted" (the right to edit restricted fields) and the list
 	 * of group names for "restricted=group1,group2".

@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
+use MediaWiki\Extension\PageForms\FormDefinition\TemplateSpec;
 use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\TemplateInForm;
 use MediaWikiIntegrationTestCase;
@@ -265,7 +266,7 @@ class TemplateInFormTest extends MediaWikiIntegrationTestCase {
 		$parser->setOutputType( Parser::OT_HTML );
 
 		$template = TemplateInForm::newFromFormTag(
-			[ 'for template', 'PFTestTemplateInFormDefaultParser01' ],
+			new TemplateSpec( [ 'for template', 'PFTestTemplateInFormDefaultParser01' ] ),
 			$parser
 		);
 
@@ -275,7 +276,7 @@ class TemplateInFormTest extends MediaWikiIntegrationTestCase {
 
 	public function testNewFromFormTagBasicOptions(): void {
 		$template = TemplateInForm::newFromFormTag(
-			[
+			new TemplateSpec( [
 				'for template',
 				'PFTestTemplateInFormBasic01',
 				'multiple',
@@ -292,7 +293,7 @@ class TemplateInFormTest extends MediaWikiIntegrationTestCase {
 				'event date field=dateField',
 				'event start date field=startDateField',
 				'event end date field=endDateField',
-			],
+			] ),
 			$this->createMockParser()
 		);
 
@@ -314,11 +315,11 @@ class TemplateInFormTest extends MediaWikiIntegrationTestCase {
 
 	public function testNewFromFormTagEmbedInField(): void {
 		$template = TemplateInForm::newFromFormTag(
-			[
+			new TemplateSpec( [
 				'for template',
 				'PFTestTemplateInFormEmbed01',
 				'embed in field=PFTestTemplateInFormEmbedParent01[fieldName]',
-			],
+			] ),
 			$this->createMockParser()
 		);
 
@@ -335,7 +336,7 @@ class TemplateInFormTest extends MediaWikiIntegrationTestCase {
 
 		try {
 			$template = TemplateInForm::newFromFormTag(
-				[ 'for template', 'PFTestTemplateInFormGlobalEmbed01' ],
+				new TemplateSpec( [ 'for template', 'PFTestTemplateInFormGlobalEmbed01' ] ),
 				$this->createMockParser()
 			);
 
@@ -615,7 +616,9 @@ class TemplateInFormTest extends MediaWikiIntegrationTestCase {
 
 	public function testCheckIfAllInstancesPrintedBelowMinimumAllowed(): void {
 		$template = TemplateInForm::newFromFormTag(
-			[ 'for template', 'PFTestTemplateInFormAllPrintedB01', 'multiple', 'minimum instances=3' ],
+			new TemplateSpec(
+				[ 'for template', 'PFTestTemplateInFormAllPrintedB01', 'multiple', 'minimum instances=3' ]
+			),
 			$this->createMockParser()
 		);
 
