@@ -589,6 +589,30 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'textarea', strtolower( $formHtml ) );
 	}
 
+	/**
+	 * Issue #212: a new page opened through a form with 'onlyinclude free text'
+	 * has no free text at all, which used to end up as null in str_replace().
+	 */
+	public function testFormHTMLOnlyIncludeFreeTextForNewPageDoesNotCrash(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{info|onlyinclude free text}}}\n"
+			. "{{{for template|PFTestFieldTpl10}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestFieldPage10', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'pf_free_text', $formHtml );
+	}
+
 	public function testFormHTMLPageNameFormulaSubstitutedFromFieldValue(): void {
 		global $wgPageFormsFormPrinter, $wgOut;
 

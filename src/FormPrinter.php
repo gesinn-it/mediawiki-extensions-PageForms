@@ -459,7 +459,7 @@ class FormPrinter {
 			$free_text = null;
 		}
 
-		if ( $wiki_page->freeTextOnlyInclude() ) {
+		if ( $free_text !== null && $wiki_page->freeTextOnlyInclude() ) {
 			$free_text = str_replace( "<onlyinclude>", '', $free_text );
 			$free_text = str_replace( "</onlyinclude>", '', $free_text );
 			$free_text = trim( $free_text );

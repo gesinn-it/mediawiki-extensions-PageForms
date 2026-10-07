@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- Fixed a fatal `TypeError` (`str_replace(): Argument #3 ($subject) must be of type array|string, null given`) when opening a form with `onlyinclude free text` or `includeonly free text` for a page that does not exist yet [#212](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/212)
+
 ## [2.2.0] - 2026-08-26
 
 Improves `combobox` fields with `existingvaluesonly` so stale or unmatched values are flagged as redlinks instead of silently cleared, and fixes a fatal error affecting checkbox fields in multi-instance templates.
