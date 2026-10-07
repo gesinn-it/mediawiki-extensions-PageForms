@@ -1,0 +1,23 @@
+{
+    "form_text": [
+        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-content-ltr mw-parser-output\" lang=\"en\" dir=\"ltr\"><p><span style=\"visibility: hidden;\"></span>",
+        " ",
+        "<span class=\"inputSpan\" data-input-type=\"text\"><input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" name=\"PFCharQuery[Title]\"></span>",
+        "<span class=\"inputSpan\"><select id=\"input_2\" tabindex=\"2\" name=\"PFCharQuery[Kind]\" class=\"createboxInput\">\t<option value=\"\"></option>",
+        "<option value=\"A\">A</option><option value=\"B\">B</option></select></span>",
+        " ",
+        "<div class='<oo-ui>'><div class='<oo-ui>'><span class='<oo-ui>'><label id='ooui-php-<n>' class='<oo-ui>'></label></span><span class='<oo-ui>'><span id='wpRunQuery' aria-labelledby='ooui-php-<n>' class='<oo-ui>'><button type='submit' tabindex='3' title='Run query' name='wpRunQuery' value='' class='<oo-ui>'><span class='<oo-ui>'></span><span class='<oo-ui>'>Run query</span><span class='<oo-ui>'></span></button></span></span></div></div>",
+        "",
+        "</p></div><input type=\"hidden\" value=\"\" name=\"pf_free_text\">\t</form>",
+        ""
+    ],
+    "page_text": [
+        "{{PFCharQuery}}",
+        ""
+    ],
+    "form_page_title": "",
+    "generated_page_name": null,
+    "modules": [],
+    "module_styles": [],
+    "query_form_at_top": true
+}

@@ -1,0 +1,24 @@
+{
+    "form_text": [
+        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-content-ltr mw-parser-output\" lang=\"en\" dir=\"ltr\"><p> ",
+        "<span class=\"inputSpan\" data-input-type=\"text\"><input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" name=\"PFCharSingle[Title]\"></span>",
+        "<span class=\"inputSpan\"><select id=\"input_2\" tabindex=\"2\" name=\"PFCharSingle[Kind]\" class=\"createboxInput\">\t<option value=\"\"></option>",
+        "<option value=\"A\">A</option><option value=\"B\">B</option><option value=\"C\">C</option></select></span>",
+        "\t<input type=\"hidden\" value=\"true\" name=\"PFCharSingle[Done][is_checkbox]\">",
+        "\t<span id='input_3' class='<oo-ui>'><input type='checkbox' tabindex='3' name='PFCharSingle[Done][value]' value='' class='<oo-ui>' /><span class='<oo-ui>'></span></span><t />",
+        "<span class=\"inputSpan\"><textarea tabindex=\"4\" name=\"PFCharSingle[Notes]\" id=\"input_4\" class=\"createboxInput\" rows=\"3\" cols=\"90\" style=\"width: 100%\"></textarea></span>",
+        " ",
+        "<span id='wpSave' class='<oo-ui>'><button type='submit' tabindex='5' title='Save your changes [s]' accesskey='s' name='wpSave' value='' class='<oo-ui>'><span class='<oo-ui>'></span><span class='<oo-ui>'>Save page</span><span class='<oo-ui>'></span></button></span>",
+        "</p></div><input type=\"hidden\" value=\"\" name=\"pf_free_text\"><input type=\"hidden\" value=\"<timestamp>\" name=\"wpStarttime\"><input type=\"hidden\" value=\"<timestamp>\" name=\"wpEdittime\"><input type=\"hidden\" value=\"0\" name=\"editRevId\"><input type=\"hidden\" value=\"<token>\" name=\"wpEditToken\"><input type=\"hidden\" value=\"ℳ𝒲♥𝓊𝓃𝒾𝒸ℴ𝒹ℯ\" name=\"wpUnicodeCheck\"><input type=\"hidden\" value=\"1\" name=\"wpUltimateParam\">\t</form>",
+        ""
+    ],
+    "page_text": [
+        "{{PFCharSingle}}",
+        ""
+    ],
+    "form_page_title": "",
+    "generated_page_name": null,
+    "modules": [],
+    "module_styles": [],
+    "query_form_at_top": false
+}

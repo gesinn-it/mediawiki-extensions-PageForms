@@ -1,0 +1,33 @@
+{
+    "form_text": [
+        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-content-ltr mw-parser-output\" lang=\"en\" dir=\"ltr\"><p> ",
+        "\t<span id=\"span_4\" class=\"checkboxesSpan\">\t<label class=\"checkboxLabel\"><span id='input_1' class='<oo-ui>'><input type='checkbox' tabindex='1' name='PFCharLists[Tags][0]' value='a' checked='checked' class='<oo-ui>' /><span class='<oo-ui>'></span></span><t />&nbsp;a</label> \t<label class=\"checkboxLabel\"><span id='input_1' class='<oo-ui>'><input type='checkbox' tabindex='2' name='PFCharLists[Tags][1]' value='b' class='<oo-ui>' /><span class='<oo-ui>'></span></span><t />&nbsp;b</label> \t<label class=\"checkboxLabel\"><span id='input_1' class='<oo-ui>'><input type='checkbox' tabindex='3' name='PFCharLists[Tags][2]' value='c' checked='checked' class='<oo-ui>' /><span class='<oo-ui>'></span></span><t />&nbsp;c</label> <input type=\"hidden\" value=\"1\" name=\"PFCharLists[Tags][is_list]\"></span>",
+        "",
+        "<span id=\"span_8\" class=\"radioButtonSpan\">",
+        "\t<label class=\"radioButtonItem\"><input id=\"input_6\" tabindex=\"6\" data-original-value=\"0\" type=\"radio\" value=\"\" name=\"PFCharLists[Pick]\">&nbsp;None/unknown</label>",
+        "\t<label class=\"radioButtonItem\"><input id=\"input_7\" tabindex=\"7\" data-original-value=\"1\" type=\"radio\" value=\"x\" name=\"PFCharLists[Pick]\">&nbsp;x</label>",
+        "\t<label class=\"radioButtonItem\"><input id=\"input_8\" tabindex=\"8\" data-original-value=\"2\" checked=\"\" type=\"radio\" value=\"y\" name=\"PFCharLists[Pick]\">&nbsp;y</label>",
+        "</span>",
+        "",
+        "<span id=\"span_9\" class=\"inputSpan\" data-input-type=\"tokens\">",
+        "\t<select id=\"input_9\" name=\"PFCharLists[Many][]\" class=\"pfTokens createboxInput\" style=\"width:450px\" multiple=\"\" size=\"1\" data-size=\"450px\" tabindex=\"9\" autocompletesettings=\"Values-9,list,;\"><option value=\"p,q,r\">p,q,r</option><option value=\"p\" selected=\"\">p</option><option value=\"r\" selected=\"\">r</option></select>",
+        "<input type=\"hidden\" value=\"1\" name=\"PFCharLists[Many][is_list]\"></span>",
+        " ",
+        "<span id='wpSave' class='<oo-ui>'><button type='submit' tabindex='10' title='Save your changes [s]' accesskey='s' name='wpSave' value='' class='<oo-ui>'><span class='<oo-ui>'></span><span class='<oo-ui>'>Save page</span><span class='<oo-ui>'></span></button></span>",
+        "</p></div><input type=\"hidden\" value=\"\" name=\"pf_free_text\"><input type=\"hidden\" value=\"<timestamp>\" name=\"wpStarttime\"><input type=\"hidden\" value=\"<timestamp>\" name=\"wpEdittime\"><input type=\"hidden\" value=\"0\" name=\"editRevId\"><input type=\"hidden\" value=\"<token>\" name=\"wpEditToken\"><input type=\"hidden\" value=\"ℳ𝒲♥𝓊𝓃𝒾𝒸ℴ𝒹ℯ\" name=\"wpUnicodeCheck\"><input type=\"hidden\" value=\"1\" name=\"wpUltimateParam\">\t</form>",
+        ""
+    ],
+    "page_text": [
+        "{{PFCharLists",
+        "|Tags=a, c",
+        "|Pick=y",
+        "|Many=p;r",
+        "}}",
+        ""
+    ],
+    "form_page_title": "",
+    "generated_page_name": null,
+    "modules": [],
+    "module_styles": [],
+    "query_form_at_top": false
+}

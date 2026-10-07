@@ -1,0 +1,26 @@
+{
+    "form_text": [
+        "<span class=\"loadingImage\"><div id=\"loadingMask\"></div><div style=\"position: fixed; left: 50%; top: 50%;\"><img src=\"/extensions/PageForms/skins/loadingbg.png\"></div><div style=\"position: fixed; left: 50%; top: 50%; padding: 48px;\"><img src=\"/extensions/PageForms/skins/loading.gif\"></div></span> <div class=\"mw-content-ltr mw-parser-output\" lang=\"en\" dir=\"ltr\"><p> ",
+        "<span class=\"inputSpan\" data-input-type=\"text\"><input id=\"input_1\" tabindex=\"1\" class=\"createboxInput\" size=\"35\" name=\"PFCharSingle[Title]\"></span>",
+        " ",
+        "<div class='<oo-ui>'><div class='<oo-ui>'><span class='<oo-ui>'><label for='ooui-php-<n>' class='<oo-ui>'>Summary:</label></span><div class='<oo-ui>'><div id='wpSummary' class='<oo-ui>'><input type='text' tabindex='2' title='Enter a short summary [b]' accesskey='b' name='wpSummary' value='' id='ooui-php-<n>' class='<oo-ui>' /><span class='<oo-ui>'></span><span class='<oo-ui>'></span></div></div></div></div>",
+        "<span class=\"pf-submit-option\"><label title=\"Mark this as a minor edit\"><span id='wpMinoredit' class='<oo-ui>'><input type='checkbox' tabindex='3' accesskey='i' name='wpMinoredit' value='' class='<oo-ui>' /><span class='<oo-ui>'></span></span><label class='<oo-ui>'>This is a minor edit</label></label></span>",
+        "<span class=\"pf-submit-option\"><label title=\"Add this page to your watchlist\"><span id='wpWatchthis' class='<oo-ui>'><input type='checkbox' tabindex='4' accesskey='w' name='wpWatchthis' value='' checked='checked' class='<oo-ui>' /><span class='<oo-ui>'></span></span><label class='<oo-ui>'>Watch this page</label></label></span>",
+        "<span id='wpSave' class='<oo-ui>'><button type='submit' tabindex='5' title='Save your changes [s]' accesskey='s' name='wpSave' value='' class='<oo-ui>'><span class='<oo-ui>'></span><span class='<oo-ui>'>Save page</span><span class='<oo-ui>'></span></button></span>",
+        "<span id='wpPreview' class='<oo-ui>'><button type='submit' tabindex='6' title='Preview your changes. Please use this before publishing. [p]' accesskey='p' name='wpPreview' value='' class='<oo-ui>'><span class='<oo-ui>'></span><span class='<oo-ui>'>Show preview</span><span class='<oo-ui>'></span></button></span>",
+        "<span id='wpDiff' class='<oo-ui>'><button type='submit' tabindex='7' title='Show which changes you made to the text [v]' accesskey='v' name='wpDiff' value='' class='<oo-ui>'><span class='<oo-ui>'></span><span class='<oo-ui>'>Show changes</span><span class='<oo-ui>'></span></button></span>",
+        "\t\t<span class='<oo-ui>'><a role='button' tabindex='0' href='http://localhost:8080/wiki/PFCharPage' rel='nofollow' class='<oo-ui>'><span class='<oo-ui>'></span><span class='<oo-ui>'>Cancel</span><span class='<oo-ui>'></span></a></span>",
+        "",
+        "</p></div><input type=\"hidden\" value=\"\" name=\"pf_free_text\"><input type=\"hidden\" value=\"<timestamp>\" name=\"wpStarttime\"><input type=\"hidden\" value=\"<timestamp>\" name=\"wpEdittime\"><input type=\"hidden\" value=\"0\" name=\"editRevId\"><input type=\"hidden\" value=\"<token>\" name=\"wpEditToken\"><input type=\"hidden\" value=\"ℳ𝒲♥𝓊𝓃𝒾𝒸ℴ𝒹ℯ\" name=\"wpUnicodeCheck\"><input type=\"hidden\" value=\"1\" name=\"wpUltimateParam\">\t</form>",
+        ""
+    ],
+    "page_text": [
+        "{{PFCharSingle}}",
+        ""
+    ],
+    "form_page_title": "",
+    "generated_page_name": null,
+    "modules": [],
+    "module_styles": [],
+    "query_form_at_top": false
+}
