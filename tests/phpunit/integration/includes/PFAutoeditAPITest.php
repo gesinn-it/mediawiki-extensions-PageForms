@@ -1510,6 +1510,34 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
+	 * A template embedded in a "holds template" field must survive a save that does not touch it
+	 * (issue #213): both the outer call and the inner calls stay on the page.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormDefParser::readPageValues
+	 */
+	public function testStoreKeepsTemplateEmbeddedInAHoldsTemplateField(): void {
+		$formName = 'AEStoreFormHolds';
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, $formName ),
+			"{{{for template|AEStoreOuter}}}\n{{{field|f|holds template}}}\n{{{end template}}}\n"
+			. "{{{for template|AEStoreInner|multiple|embed in field=AEStoreOuter[f]}}}\n"
+			. "{{{field|x}}}\n{{{end template}}}\n"
+			. "{{{standard input|free text}}}\n{{{standard input|save}}}"
+		);
+		$targetName = 'AEStoreTargetHolds';
+		$this->insertPage( $targetName, "{{AEStoreOuter\n|f={{AEStoreInner|x=1}}{{AEStoreInner|x=2}}\n}}\n" );
+
+		$module = $this->executeStore( $formName, $targetName, [ 'pf_free_text' => 'note' ] );
+
+		$this->assertSame( 200, $module->getStatus() );
+		$text = $this->getExistingTestPage( $targetName )->getContent()->getText();
+		$this->assertSame( 1, preg_match_all( '/\{\{AEStoreOuter/', $text ), $text );
+		$this->assertSame( 2, preg_match_all( '/\{\{AEStoreInner/', $text ), $text );
+		$this->assertMatchesRegularExpression( '/x=1\s*\}\}.*x=2\s*\}\}/s', $text );
+		$this->assertStringContainsString( 'note', $text );
+	}
+
+	/**
 	 * Saves AEStoreTpl through pfautoedit while the page has been changed since the
 	 * revision the request claims to be based on (what #autoedit embeds when it is rendered),
 	 * which EditPage reports as an edit conflict.

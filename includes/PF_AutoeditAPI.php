@@ -1057,8 +1057,8 @@ class PFAutoeditAPI extends ApiBase {
 				// SAVE / PREVIEW / DIFF (no +/- modifiers): extract field values directly
 				// from the wikitext of the existing page, bypassing the formHTML() +
 				// HtmlFormDataExtractor HTML round-trip.
-				$data = $formPrinter->preparePreloadData( $formContent, $preloadContent, $formArticleId );
-				$this->mOptions = PFUtils::arrayMergeRecursiveDistinct( $data, $this->mOptions );
+				$values = $formPrinter->readPageValues( $formContent, $preloadContent, $formArticleId );
+				$this->mOptions = $values->mergeRequest( $this->mOptions );
 			} else {
 				// FORMEDIT: formHTML() is needed to produce the HTML for the browser.
 				// SAVE/PREVIEW/DIFF with +/- modifiers: formHTML() must run with

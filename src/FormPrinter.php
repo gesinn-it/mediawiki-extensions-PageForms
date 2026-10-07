@@ -328,6 +328,20 @@ class FormPrinter {
 	}
 
 	/**
+	 * Read the values the form's fields have on an existing page, apart from the form's structure.
+	 *
+	 * @param string $form_def Form definition wikitext.
+	 * @param string $existing_page_content Wikitext of the page being edited.
+	 * @param int|null $form_id Page ID of the form page (used by FormCache).
+	 * @return FormValues
+	 */
+	public function readPageValues(
+		string $form_def, string $existing_page_content, ?int $form_id = null
+	): FormValues {
+		return $this->formDefParser->readPageValues( $form_def, $existing_page_content, $form_id );
+	}
+
+	/**
 	 * Resolve $this->mPageTitle (needed for permission testing even when the real
 	 * page name isn't known yet) and compute the edit-permission errors for formHTML().
 	 *

@@ -9,9 +9,7 @@ use OOUI\BlankTheme;
  * ends in "+" or "-" (see PFAutoeditAPI::hasModifierKeys()), which this test uses to force
  * it with a dummy template key.
  *
- * Both routes must save the same page text. Cases where they are known to differ are listed
- * in provideKnownGaps(): they are reported as incomplete on every run, and fail as soon as the
- * routes agree, so the entry gets removed together with the fix.
+ * Both routes must save the same page text.
  *
  * @covers \PFAutoeditAPI::execute
  * @covers \MediaWiki\Extension\PageForms\FormDefParser::preparePreloadData
@@ -135,6 +133,13 @@ class AutoeditPreloadParityTest extends ApiTestCase {
 				"{{AEParityUnhandled2|a=1|legacy=keep|positional}}\n",
 				[ 'AEParityUnhandled2' => [ 'a' => '2' ] ],
 			],
+			'mapping template: a submitted label is mapped back to its value' => [
+				"{{{for template|AEParityMapLabel}}}\n"
+					. "{{{field|m|input type=dropdown|values=a,b,c|mapping template=AEParityMapTpl}}}\n"
+					. "{{{end template}}}\n$s",
+				"{{AEParityMapLabel\n|m=b\n}}\n",
+				[ 'AEParityMapLabel' => [ 'm' => 'Label c' ] ],
+			],
 			'template in the form but not on the page' => [
 				"{{{for template|AEParityX}}}\n{{{field|a}}}\n{{{end template}}}\n"
 					. "{{{for template|AEParityY}}}\n{{{field|b}}}\n{{{end template}}}\n$s",
@@ -154,48 +159,12 @@ class AutoeditPreloadParityTest extends ApiTestCase {
 		];
 	}
 
-	/**
-	 * Cases in which the two routes are known to produce different pages, with a short note.
-	 * The fast path (first column of the result) is the one that is wrong in each of them.
-	 *
-	 * @return array<string, array{0: string, 1: string, 2: array, 3: string}>
-	 */
-	private static function knownGaps(): array {
-		$s = self::SAVE_INPUTS;
-		return [
-			'embedded template inside a "holds template" field is lost' => [
-				"{{{for template|AEParityOuter}}}\n{{{field|f|holds template}}}\n{{{end template}}}\n"
-					. "{{{for template|AEParityInner|multiple|embed in field=AEParityOuter[f]}}}\n"
-					. "{{{field|x}}}\n{{{end template}}}\n$s",
-				"{{AEParityOuter\n|f={{AEParityInner|x=1}}\n}}\n",
-				[ 'pf_free_text' => 'note' ],
-				'the outer template and the template embedded in its field disappear'
-					. ' (formHTML() re-reads the embedded call from the field value)',
-			],
-			'mapping template: submitted label is not mapped back to its value' => [
-				"{{{for template|AEParityMapLabel}}}\n"
-					. "{{{field|m|input type=dropdown|values=a,b,c|mapping template=AEParityMapTpl}}}\n"
-					. "{{{end template}}}\n$s",
-				"{{AEParityMapLabel\n|m=b\n}}\n",
-				[ 'AEParityMapLabel' => [ 'm' => 'Label c' ] ],
-				'a label submitted for a mapped field is stored as the label, not as its value'
-					. ' (formHTML() maps it back through the "map_field" marker)',
-			],
-		];
-	}
-
 	private function insertMappingTemplate(): void {
 		$this->insertPage( Title::makeTitle( NS_TEMPLATE, 'AEParityMapTpl' ), 'Label {{{1}}}' );
 	}
 
 	public static function provideParityCases(): iterable {
 		foreach ( self::cases() as $label => $case ) {
-			yield $label => $case;
-		}
-	}
-
-	public static function provideKnownGaps(): iterable {
-		foreach ( self::knownGaps() as $label => $case ) {
 			yield $label => $case;
 		}
 	}
@@ -210,23 +179,5 @@ class AutoeditPreloadParityTest extends ApiTestCase {
 		$viaFormHtml = $this->savedText( $formDef, $page, $request, true );
 
 		$this->assertSame( $viaFormHtml, $direct );
-	}
-
-	/**
-	 * @dataProvider provideKnownGaps
-	 */
-	public function testKnownGap( string $formDef, string $page, array $request, string $note ): void {
-		$this->insertMappingTemplate();
-
-		$direct = $this->savedText( $formDef, $page, $request, false );
-		$viaFormHtml = $this->savedText( $formDef, $page, $request, true );
-
-		if ( $direct === $viaFormHtml ) {
-			$this->fail( 'The routes now agree: remove this case from knownGaps(). ' . $note );
-		}
-		$this->markTestIncomplete(
-			"Known gap in the direct route: $note.\n  direct:      " . json_encode( $direct )
-			. "\n  formHTML(): " . json_encode( $viaFormHtml )
-		);
 	}
 }

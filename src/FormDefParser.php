@@ -36,6 +36,20 @@ class FormDefParser {
 	 * @return array<string, mixed>
 	 */
 	public function preparePreloadData( string $form_def, string $existing_page_content, ?int $form_id = null ): array {
+		return $this->readPageValues( $form_def, $existing_page_content, $form_id )->toOptions();
+	}
+
+	/**
+	 * Read the values the form's fields have on an existing page.
+	 *
+	 * @param string $form_def Form definition wikitext.
+	 * @param string $existing_page_content Wikitext of the page being edited.
+	 * @param ?int $form_id Optional form page ID (used by FormCache).
+	 * @return FormValues
+	 */
+	public function readPageValues(
+		string $form_def, string $existing_page_content, ?int $form_id = null
+	): FormValues {
 		$user = RequestContext::getMain()->getUser();
 
 		// Set up a fresh parser — same approach as formHTML(). Title it from the
@@ -51,11 +65,10 @@ class FormDefParser {
 		$parser->clearState();
 
 		$form_def = FormCache::getFormDefinition( $parser, $form_def, $form_id );
-
 		$definition = $this->reader->read( $form_def );
 
-		// Walk the templates and collect preloaded field values.
-		$result = [];
+		// Walk the templates and collect the values on the page.
+		$result = new FormValues();
 
 		foreach ( $definition->getTemplates() as $templateSpec ) {
 			$tag_components = $templateSpec->getComponents();
@@ -85,7 +98,7 @@ class FormDefParser {
 				}
 				foreach ( $instances as $i => $unused ) {
 					// An instance without any field still counts as an instance.
-					$result[$template_key][$i . 'a'] = [];
+					$result->addInstance( $template_key, $i . 'a' );
 				}
 			} elseif ( $tif->pageCallsThisTemplate() ) {
 				$tif->setFieldValuesFromPage( $existing_page_content );
@@ -95,37 +108,48 @@ class FormDefParser {
 				);
 			}
 
+			$mappedFields = [];
 			foreach ( $templateSpec->getFields() as $field ) {
 				$field_name = $field->getName();
+				if ( $field->getMappingType() !== null ) {
+					$mappedFields[] = $field_name;
+				}
 				if ( $instances !== null ) {
 					// Multiple-instance template: instances are keyed "0a", "1a", ... exactly
 					// as HtmlFormDataExtractor::addToArray() names them.
 					foreach ( $instances as $i => $values ) {
 						if ( array_key_exists( $field_name, $values ) ) {
-							$result[$template_key][$i . 'a'][$field_name] = $values[$field_name];
+							$result->setFieldValue( $template_key, $i . 'a', $field_name, $values[$field_name] );
 						}
 					}
 				} elseif ( $tif->getFullTextInPage() !== ''
 					&& $tif->hasValueFromPageForField( $field_name )
 				) {
-					$result[$template_key][$field_name] = $tif->getAndRemoveValueFromPageForField( $field_name );
+					$value = $tif->getAndRemoveValueFromPageForField( $field_name );
+					$result->setFieldValue( $template_key, null, $field_name, $value );
+					if ( $field->holdsTemplate() ) {
+						// The value holds the calls of the template embedded in this field.
+						// Like formHTML(), put them back at the end of the page text, where the
+						// form section of the embedded template finds them.
+						$existing_page_content .= $value;
+					}
 				}
 			}
+			$result->setMappedFields( $template_key, $mappedFields );
 
 			// Whatever else the page's template call carries is "unhandled" (see
 			// FormUtils::unhandledFieldsHTML()).
 			$handledFields = $templateSpec->getFieldNames();
 			foreach ( $instances ?? [ $tif->getValuesFromPage() ] as $values ) {
 				foreach ( $values as $name => $value ) {
-					$unhandledKey = '_unhandled_' . $template_key . '_' . urlencode( (string)$name );
 					// Positional parameters are not carried over, and neither
 					// formHTML() nor the later page assembly distinguishes the
 					// instances of a multiple-instance template here: the first
 					// instance that has the parameter provides its value.
 					if ( !is_numeric( $name ) && !in_array( $name, $handledFields, true )
-						&& !array_key_exists( $unhandledKey, $result )
+						&& !$result->hasUnhandled( $template_key, (string)$name )
 					) {
-						$result[$unhandledKey] = $value;
+						$result->setUnhandled( $template_key, (string)$name, $value );
 					}
 				}
 			}
@@ -137,7 +161,7 @@ class FormDefParser {
 		// Without this, an autoedit SAVE would silently delete any free text on the page.
 		$freeText = trim( $existing_page_content );
 		if ( $freeText !== '' ) {
-			$result['pf_free_text'] = $freeText;
+			$result->setFreeText( $freeText );
 		}
 
 		return $result;
