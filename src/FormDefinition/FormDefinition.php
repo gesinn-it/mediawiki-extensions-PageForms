@@ -102,10 +102,13 @@ class FormDefinition {
 	 * @return list<T>
 	 */
 	private function elementsOfType( string $class ): array {
-		return array_values( array_filter(
-			$this->elements,
-			static fn ( FormElement $element ): bool => $element instanceof $class
-		) );
+		$matching = [];
+		foreach ( $this->elements as $element ) {
+			if ( $element instanceof $class ) {
+				$matching[] = $element;
+			}
+		}
+		return $matching;
 	}
 
 	/**

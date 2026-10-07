@@ -13,6 +13,9 @@ namespace MediaWiki\Extension\PageForms\FormDefinition;
  */
 abstract class TagSpec implements FormElement {
 
+	/** The type name of a kind of tag, set by each subclass */
+	public const TYPE = '';
+
 	/** @var list<string> */
 	private array $components;
 
@@ -97,6 +100,7 @@ abstract class TagSpec implements FormElement {
 	}
 
 	public static function fromArray( array $data ): static {
+		// @phan-suppress-next-line PhanTypeInstantiateAbstractStatic Only called on the concrete subclasses
 		return new static( $data['components'] );
 	}
 }

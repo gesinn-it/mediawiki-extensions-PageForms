@@ -8,7 +8,6 @@ use Html;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use PFPageSection;
 use PFTextAreaInput;
-use PFUtils;
 use PFWikiPage;
 use User;
 use WebRequest;
