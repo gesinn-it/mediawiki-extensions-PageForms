@@ -1306,7 +1306,8 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
 		$wgOut->getContext()->setTitle( $this->getTitle() );
 
-		$readOnlyMode = $this->createMock( \Wikimedia\Rdbms\ReadOnlyMode::class );
+		// The class moved namespaces between MediaWiki versions; mock whatever the service is.
+		$readOnlyMode = $this->createMock( get_class( MediaWikiServices::getInstance()->getReadOnlyMode() ) );
 		$readOnlyMode->method( 'isReadOnly' )->willReturn( true );
 		$readOnlyMode->method( 'getReason' )->willReturn( 'PFTestReadOnlyReason01' );
 		$this->setService( 'ReadOnlyMode', $readOnlyMode );
