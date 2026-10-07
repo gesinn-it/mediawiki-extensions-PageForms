@@ -541,8 +541,16 @@ class PFAutoeditAPI extends ApiBase {
 				break;
 			}
 		}
-		$text = trim( MediaWikiServices::getInstance()->getFormatterFactory()
-			->getStatusFormatter( $this->getContext() )->getWikiText( $status ) );
+		$services = MediaWikiServices::getInstance();
+		if ( method_exists( $services, 'getFormatterFactory' ) ) {
+			$text = $services->getFormatterFactory()
+				->getStatusFormatter( $this->getContext() )->getWikiText( $status );
+		} else {
+			// MW < 1.42
+			// @phan-suppress-next-line PhanUndeclaredMethod
+			$text = $status->getWikiText();
+		}
+		$text = trim( $text );
 		return $text === '' ? $name : "$name: $text";
 	}
 

@@ -1533,7 +1533,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 		$text = $this->getExistingTestPage( $targetName )->getContent()->getText();
 		$this->assertSame( 1, preg_match_all( '/\{\{AEStoreOuter/', $text ), $text );
 		$this->assertSame( 2, preg_match_all( '/\{\{AEStoreInner/', $text ), $text );
-		$this->assertMatchesRegularExpression( '/x=1\s*\}\}.*x=2\s*\}\}/s', $text );
+		$this->assertRegex( '/x=1\s*\}\}.*x=2\s*\}\}/s', $text );
 		$this->assertStringContainsString( 'note', $text );
 	}
 
@@ -1630,8 +1630,8 @@ class PFAutoeditAPITest extends ApiTestCase {
 		$text = $this->getExistingTestPage( $targetName )->getContent()->getText();
 		preg_match_all( '/\{\{AEStoreMultiUnh.*?\}\}/s', $text, $calls );
 		$this->assertCount( 4, $calls[0], $text );
-		$this->assertMatchesRegularExpression( '/name=a\s*\|legacy=one\s*\}\}/', $calls[0][0] );
-		$this->assertMatchesRegularExpression( '/name=b/', $calls[0][1] );
+		$this->assertRegex( '/name=a\s*\|legacy=one\s*\}\}/', $calls[0][0] );
+		$this->assertRegex( '/name=b/', $calls[0][1] );
 		$this->assertStringContainsString( 'legacy=two', $calls[0][1] );
 		$this->assertStringContainsString( 'other=o', $calls[0][1] );
 		$this->assertStringNotContainsString( 'legacy', $calls[0][2] );
