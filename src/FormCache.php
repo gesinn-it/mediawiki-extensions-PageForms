@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use BagOStuff;
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RenderedRevision;
 use ObjectCache;
@@ -109,27 +110,22 @@ class FormCache {
 		// Also include a quotation mark, to help avoid security leaks.
 		$rnd = wfRandomString( 16 ) . '"' . wfRandomString( 15 );
 
-		// This regexp will find any PF triple braced tags (including correct handling of contained braces), i.e.
-		// {{{field|foo|default={{Bar}}}}} is not a problem. When used with preg_match and friends, $matches[0] will
-		// contain the whole PF tag, $matches[1] will contain the tag without the enclosing triple braces.
-		$regexp = '#\{\{\{((?>[^\{\}]+)|(\{((?>[^\{\}]+)|(?-2))*\}))*\}\}\}#';
-		// Needed to restore highlighting in vi - <?
-
+		// Replace all PF tags by strip markers. FormDefinitionReader::findNextTag() finds the tags
+		// (including correct handling of contained braces), i.e. {{{field|foo|default={{Bar}}}}} is
+		// not a problem.
 		$items = [];
-
-		// Replace all PF tags by strip markers
-		$form_def = preg_replace_callback(
-			$regexp,
-
-			// This is essentially a copy of Parser::insertStripItem().
-			static function ( array $matches ) use ( &$items, $rnd ) {
-				$markerIndex = count( $items );
-				$items[] = $matches[0];
-				return "$rnd-item-$markerIndex-$rnd";
-			},
-
-			$form_def
-		);
+		$reader = new FormDefinitionReader();
+		$stripped = '';
+		$position = 0;
+		$tag = $reader->findNextTag( $form_def );
+		while ( $tag !== null ) {
+			$markerIndex = count( $items );
+			$items[] = substr( $form_def, $tag['start'], $tag['end'] - $tag['start'] );
+			$stripped .= substr( $form_def, $position, $tag['start'] - $position ) . "$rnd-item-$markerIndex-$rnd";
+			$position = $tag['end'];
+			$tag = $reader->findNextTag( $form_def, $position );
+		}
+		$form_def = $stripped . substr( $form_def, $position );
 
 		// Parse wiki-text.
 		$title = $parser->getTitle();
