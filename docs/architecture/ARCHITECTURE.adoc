@@ -70,7 +70,7 @@ A single `FormDefinitionReader` reads the `{{{...}}}` tags of a form definition 
 a `FormDefinition`: an ordered list of elements (`TemplateSpec`, `FieldSpec`,
 `SectionSpec`, `StandardInputSpec`, `InfoSpec`, `EndTemplateSpec`, `UnknownTagSpec`
 and the `TextSpec` between them). It is the only tokenizer
-(`FormDefinitionReader::findNextTag()`); `FormCache`, `FormPrinter::formHTML()` and
+(`FormDefinitionReader::findNextTag()`); `FormCache`, `FormPrinter::render()` and
 `FormDefParser` all use it.
 
 `FormCache` stores the model (as an array, see `FormDefinition::toArray()`), keyed by
@@ -87,7 +87,7 @@ the fields whose value is a label that has to be mapped back (`mapping template`
 
 * `FormDefParser::readPageValues()` fills it from the text of an existing page
   using the form definition model. `TemplatePageValues` reads one template call from
-  the page text (bracket-aware, no MediaWiki state); `FormPrinter::formHTML()` uses the
+  the page text (bracket-aware, no MediaWiki state); `FormPrinter::render()` uses the
   same class through `TemplateInForm`, so both read a page in the same way.
 * `FormValues::mergeRequest()` applies a request on top: request values win,
   `+=` / `-=` modifiers and `Template[<n>][field]` instance numbers are resolved
@@ -97,7 +97,7 @@ the fields whose value is a label that has to be mapped back (`mapping template`
 
 === Rendering classes
 
-Used by `FormPrinter::formHTML()`; they mix structure, request state and values.
+Used by `FormPrinter::render()`; they mix structure, request state and values.
 
 * `TemplateInForm` — a template used within a form: mapping template parameters to
   form fields, template multiplicity, template-level configuration.
@@ -421,7 +421,7 @@ Examples include:
 Future refactoring could focus on improving separation of concerns and modularization.
 Deliberately left open for now:
 
-* `FormPrinter::formHTML()` is about 690 lines and does the rendering of a whole form in one
+* `FormPrinter::render()` is about 690 lines and does the rendering of a whole form in one
   method; splitting it is a refactoring of its own.
 * The FORMEDIT branch of `PFAutoeditAPI` still gets the values of an existing page from
   `formHTML()` and `HtmlFormDataExtractor`. Moving it to `readPageValues()` would change which

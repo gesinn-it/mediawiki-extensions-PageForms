@@ -1106,13 +1106,17 @@ class PFAutoeditAPI extends ApiBase {
 				// FORMEDIT: formHTML() is needed to produce the HTML for the browser.
 				$session = RequestContext::getMain()->getRequest()->getSession();
 				$fauxRequest = new FauxRequest( $this->mOptions, true, $session );
-				[ $formHTML, $targetContent, $form_page_title, $generatedTargetNameFormula, $formParserOutput ] =
-					$formPrinter->formHTML(
-						$formContent, false, $pageExists,
-						$formArticleId, $preloadContent, $targetName, $targetNameFormula,
-						$is_query = false, $is_embedded = false, $is_autocreate = false,
-						$autocreate_query = [], $this->getUser(), $fauxRequest
-					);
+				$result = $formPrinter->render(
+					$formContent, false, $pageExists,
+					$formArticleId, $preloadContent, $targetName, $targetNameFormula,
+					$is_query = false, $is_embedded = false, $is_autocreate = false,
+					$autocreate_query = [], $this->getUser(), $fauxRequest
+				);
+				$formHTML = $result->getFormText();
+				$targetContent = $result->getPageText();
+				$form_page_title = $result->getFormPageTitle();
+				$generatedTargetNameFormula = $result->getGeneratedPageName();
+				$formParserOutput = $result->getParserOutput();
 				$data = HtmlFormDataExtractor::extract( $formHTML, $this->mOptions );
 				$this->mOptions = PFUtils::arrayMergeRecursiveDistinct( $data, $this->mOptions );
 			}
@@ -1132,13 +1136,17 @@ class PFAutoeditAPI extends ApiBase {
 		if ( $preloadContent == '' ) {
 			$session = RequestContext::getMain()->getRequest()->getSession();
 			$fauxRequest = new FauxRequest( $this->mOptions, true, $session );
-			[ $formHTML, $targetContent, $generatedFormName, $generatedTargetNameFormula, $formParserOutput ] =
-				$formPrinter->formHTML(
-					$formContent, $isFormSubmitted, $pageExists,
-					$formArticleId, $preloadContent, $targetName, $targetNameFormula,
-					$is_query = false, $is_embedded = false, $is_autocreate = false,
-					$autocreate_query = [], $this->getUser(), $fauxRequest
-				);
+			$result = $formPrinter->render(
+				$formContent, $isFormSubmitted, $pageExists,
+				$formArticleId, $preloadContent, $targetName, $targetNameFormula,
+				$is_query = false, $is_embedded = false, $is_autocreate = false,
+				$autocreate_query = [], $this->getUser(), $fauxRequest
+			);
+			$formHTML = $result->getFormText();
+			$targetContent = $result->getPageText();
+			$generatedFormName = $result->getFormPageTitle();
+			$generatedTargetNameFormula = $result->getGeneratedPageName();
+			$formParserOutput = $result->getParserOutput();
 		} else {
 			$generatedFormName = $form_page_title;
 		}

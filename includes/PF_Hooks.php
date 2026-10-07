@@ -275,17 +275,16 @@ class PFHooks {
 			'<div id="pfForm" class="previewnote" style="font-weight: bold">' . $previewNote . "</div>\n<hr />\n";
 
 		$form_definition = StringUtils::delimiterReplace( '<noinclude>', '</noinclude>', '', $editpage->textbox1 );
-		[ $form_text, $data_text, $form_page_title, $generated_page_name, $parserOutput ] =
-			$wgPageFormsFormPrinter->formHTML(
-				$form_definition, false, false, null, null, "Page Forms form preview dummy title", null,
-				false, false, false, [], null, $request
-			);
+		$result = $wgPageFormsFormPrinter->render(
+			$form_definition, false, false, null, null, "Page Forms form preview dummy title", null,
+			false, false, false, [], null, $request
+		);
 
-		$wgOut->addParserOutputMetadata( $parserOutput );
+		$wgOut->addParserOutputMetadata( $result->getParserOutput() );
 
 		PFUtils::addFormRLModules();
 		$editpage->previewTextAfterContent .=
-			'<div style="margin-top: 15px">' . $form_text . "</div>";
+			'<div style="margin-top: 15px">' . $result->getFormText() . "</div>";
 
 		return true;
 	}

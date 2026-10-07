@@ -55,8 +55,8 @@ return [
 			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::addTranslatableInput', '\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML']
 		],
 		'src/FormPrinter.php' => [
-			'PhanTypeMismatchArgumentNullableInternal' => ['\\MediaWiki\\Extension\\PageForms\\FormPrinter::formHTML'],
-			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormPrinter::formHTML']
+			'PhanTypeMismatchArgumentNullableInternal' => ['\\MediaWiki\\Extension\\PageForms\\FormPrinter::render'],
+			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormPrinter::render']
 		],
 		'src/FormUtils.php' => [
 			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormUtils::minorEditInputHTML', '\\MediaWiki\\Extension\\PageForms\\FormUtils::unhandledFieldsHTML', '\\MediaWiki\\Extension\\PageForms\\FormUtils::watchInputHTML']

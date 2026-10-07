@@ -75,12 +75,11 @@ class FormLinker {
 			'PageForms::EditFormPreloadText', [ &$preloadContent, $title, $formTitle ]
 		);
 
-		[ $formText, $pageText, $formPageTitle, $generatedPageName ] =
-			$wgPageFormsFormPrinter->formHTML(
-				$formDefinition, false, false, null, $preloadContent,
-				'Some very long page name that will hopefully never get created ABCDEF123',
-				null, false, false, true, $inQueryArr, null, RequestContext::getMain()->getRequest()
-			);
+		$result = $wgPageFormsFormPrinter->render(
+			$formDefinition, false, false, null, $preloadContent,
+			'Some very long page name that will hopefully never get created ABCDEF123',
+			null, false, false, true, $inQueryArr, null, RequestContext::getMain()->getRequest()
+		);
 		$params = [];
 
 		// Get user "responsible" for all auto-generated
@@ -94,7 +93,7 @@ class FormLinker {
 			}
 		}
 		$params['user_id'] = $userID;
-		$params['page_text'] = $pageText;
+		$params['page_text'] = $result->getPageText();
 		$job = new PFCreatePageJob( $title, $params );
 
 		$jobs = [ $job ];

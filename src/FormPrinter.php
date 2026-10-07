@@ -92,9 +92,6 @@ class FormPrinter {
 
 	private ?FormCounters $counters = null;
 
-	/** Set by the {{{info|query form at top}}} tag; returned from formHTML(). */
-	private bool $runQueryFormAtTop = false;
-
 	private MappingLabels $mappingLabels;
 
 	public function __construct() {
@@ -703,15 +700,18 @@ class FormPrinter {
 	 * Reads 'create title'/'add title', 'edit title' and 'query title' (returning
 	 * whichever applies as $form_page_title), and applies the side effects of
 	 * 'includeonly free text'/'onlyinclude free text' (on $wiki_page) and
-	 * 'query form at top' (on $this->runQueryFormAtTop).
+	 * 'query form at top' (in $runQueryFormAtTop).
 	 *
 	 * @param array $tag_components
 	 * @param bool $is_query
 	 * @param PFWikiPage $wiki_page
 	 * @param string|null $form_page_title current value, returned unchanged if no title tag applies
+	 * @param bool &$runQueryFormAtTop set to true by the 'query form at top' tag
 	 * @return string|null
 	 */
-	private function processInfoTag( array $tag_components, $is_query, PFWikiPage $wiki_page, $form_page_title ) {
+	private function processInfoTag(
+		array $tag_components, $is_query, PFWikiPage $wiki_page, $form_page_title, bool &$runQueryFormAtTop
+	) {
 		foreach ( array_slice( $tag_components, 1 ) as $component ) {
 			$sub_components = array_map( 'trim', explode( '=', $component, 2 ) );
 			// Tag names are case-insensitive
@@ -737,7 +737,7 @@ class FormPrinter {
 			} elseif ( $tag == 'includeonly free text' || $tag == 'onlyinclude free text' ) {
 				$wiki_page->makeFreeTextOnlyInclude();
 			} elseif ( $tag == 'query form at top' ) {
-				$this->runQueryFormAtTop = true;
+				$runQueryFormAtTop = true;
 			}
 		}
 		return $form_page_title;
@@ -765,12 +765,11 @@ class FormPrinter {
 	 * @param array $autocreate_query query parameters from #formredlink
 	 * @param User|null $user
 	 * @param WebRequest|null $request
-	 * @return array [ $form_text, $page_text, $form_page_title, $generated_page_name,
-	 *   $parserOutput, $runQueryFormAtTop ]
+	 * @return FormRenderResult
 	 * @throws FatalError
 	 * @throws MWException
 	 */
-	public function formHTML(
+	public function render(
 		$form_def,
 		$form_submitted,
 		$source_is_page,
@@ -784,7 +783,7 @@ class FormPrinter {
 		$autocreate_query = [],
 		$user = null,
 		$request = null
-	) {
+	): FormRenderResult {
 		if ( $request === null ) {
 			$request = RequestContext::getMain()->getRequest();
 		}
@@ -800,7 +799,7 @@ class FormPrinter {
 		$wgPageFormsTabIndex = 0;
 		$wgPageFormsFieldNum = 0;
 		$this->counters = new FormCounters();
-		$this->runQueryFormAtTop = false;
+		$runQueryFormAtTop = false;
 		$this->standardInputsIncluded = false;
 		$source_page_matches_this_form = false;
 		$form_page_title = null;
@@ -1295,7 +1294,7 @@ END;
 					}
 					$info_tag_seen = true;
 					$form_page_title = $this->processInfoTag(
-						$tag_components, $is_query, $wiki_page, $form_page_title
+						$tag_components, $is_query, $wiki_page, $form_page_title, $runQueryFormAtTop
 					);
 					// Replace the {{{info}}} tag with a hidden span, instead of a blank, to avoid a
 					// potential security issue.
@@ -1449,9 +1448,52 @@ END;
 			'form_page_title' => $form_page_title,
 		] );
 
-		return [
-			$form_text, $page_text, $form_page_title, $generated_page_name, $parserOutput, $this->runQueryFormAtTop
-		];
+		return new FormRenderResult(
+			$form_text, $page_text, $form_page_title, $generated_page_name, $parserOutput, $runQueryFormAtTop
+		);
+	}
+
+	/**
+	 * Same as render(), with the result as a list.
+	 *
+	 * @deprecated use render(), which returns a named result.
+	 * @param string $form_def
+	 * @param bool $form_submitted
+	 * @param bool $source_is_page
+	 * @param string|null $form_id
+	 * @param string|null $existing_page_content
+	 * @param string|null $page_name
+	 * @param string|null $page_name_formula
+	 * @param bool $is_query
+	 * @param bool $is_embedded
+	 * @param bool $is_autocreate
+	 * @param array $autocreate_query
+	 * @param User|null $user
+	 * @param WebRequest|null $request
+	 * @return array [ $form_text, $page_text, $form_page_title, $generated_page_name,
+	 *   $parserOutput, $runQueryFormAtTop ]
+	 * @throws FatalError
+	 * @throws MWException
+	 */
+	public function formHTML(
+		$form_def,
+		$form_submitted,
+		$source_is_page,
+		$form_id = null,
+		$existing_page_content = null,
+		$page_name = null,
+		$page_name_formula = null,
+		$is_query = false,
+		$is_embedded = false,
+		$is_autocreate = false,
+		$autocreate_query = [],
+		$user = null,
+		$request = null
+	) {
+		return $this->render(
+			$form_def, $form_submitted, $source_is_page, $form_id, $existing_page_content, $page_name,
+			$page_name_formula, $is_query, $is_embedded, $is_autocreate, $autocreate_query, $user, $request
+		)->toArray();
 	}
 
 	/**
