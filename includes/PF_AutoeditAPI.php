@@ -1095,26 +1095,20 @@ class PFAutoeditAPI extends ApiBase {
 			// effect in the form.
 			$pageExists = true;
 
-			if ( $isFormSubmitted && !$this->hasModifierKeys() ) {
-				// SAVE / PREVIEW / DIFF (no +/- modifiers): extract field values directly
-				// from the wikitext of the existing page, bypassing the formHTML() +
-				// HtmlFormDataExtractor HTML round-trip.
+			if ( $isFormSubmitted ) {
+				// SAVE / PREVIEW / DIFF: take the field values directly from the wikitext of the
+				// existing page, bypassing the formHTML() + HtmlFormDataExtractor HTML round-trip.
+				// The request is laid over them; this is also where a "+" / "-" modifier ("Tags+")
+				// is resolved against the value the page has.
 				$values = $formPrinter->readPageValues( $formContent, $preloadContent, $formArticleId );
 				$this->mOptions = $values->mergeRequest( $this->mOptions );
 			} else {
 				// FORMEDIT: formHTML() is needed to produce the HTML for the browser.
-				// SAVE/PREVIEW/DIFF with +/- modifiers: formHTML() must run with
-				// source_is_page=true so that the val_modifier logic in getCurrentValue()
-				// can read the page value from TIF and compute the merged result (e.g.
-				// "existing,new" for the + modifier) before HtmlFormDataExtractor
-				// extracts it back into $this->mOptions.
 				$session = RequestContext::getMain()->getRequest()->getSession();
 				$fauxRequest = new FauxRequest( $this->mOptions, true, $session );
 				[ $formHTML, $targetContent, $form_page_title, $generatedTargetNameFormula, $formParserOutput ] =
 					$formPrinter->formHTML(
-						// Special handling for autoedit edits — otherwise, multi-instance
-						// templates don't get saved, for some convoluted reason.
-						$formContent, ( $isFormSubmitted && !$this->mIsAutoEdit ), $pageExists,
+						$formContent, false, $pageExists,
 						$formArticleId, $preloadContent, $targetName, $targetNameFormula,
 						$is_query = false, $is_embedded = false, $is_autocreate = false,
 						$autocreate_query = [], $this->getUser(), $fauxRequest
@@ -1197,31 +1191,6 @@ class PFAutoeditAPI extends ApiBase {
 		$token = $request->getVal( 'wpEditToken' );
 		$user = $this->getUser();
 		return $user->matchEditToken( $token );
-	}
-
-	/**
-	 * Returns true if $mOptions contains any field-level append (+) or
-	 * remove (-) modifier key (e.g. "Country+" or "Tags-").
-	 *
-	 * When modifier keys are present, the preload extraction must go through
-	 * formHTML() so that the val_modifier logic in FormField::getCurrentValue()
-	 * can merge the page value with the submitted value before writing the page.
-	 */
-	private function hasModifierKeys(): bool {
-		foreach ( $this->mOptions as $value ) {
-			if ( !is_array( $value ) ) {
-				continue;
-			}
-			foreach ( array_keys( $value ) as $key ) {
-				if ( is_string( $key ) &&
-					strlen( $key ) > 1 &&
-					( $key[-1] === '+' || $key[-1] === '-' )
-				) {
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 
 	/**

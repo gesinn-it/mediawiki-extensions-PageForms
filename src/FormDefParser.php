@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Extension\PageForms\FormDefinition\EndTemplateSpec;
+use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinition;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
@@ -104,8 +105,10 @@ class FormDefParser {
 			}
 
 			$mappedFields = [];
+			$template = Template::newFromName( $template_name );
 			foreach ( $templateSpec->getFields() as $field ) {
 				$field_name = $field->getName();
+				$result->setDelimiter( $template_key, $field_name, $this->getDelimiter( $field, $template ) );
 				if ( $field->getMappingType() !== null ) {
 					$mappedFields[] = $field_name;
 				}
@@ -229,6 +232,18 @@ class FormDefParser {
 		}
 		$parser->clearState();
 		return $parser;
+	}
+
+	/**
+	 * The delimiter of the list a field holds, as FormField decides it: the "delimiter" of the
+	 * field in the form, else the one the template declares, else a comma.
+	 */
+	private function getDelimiter( FieldSpec $field, Template $template ): string {
+		$delimiter = $field->getArg( 'delimiter' );
+		if ( $delimiter === null || $delimiter === '' ) {
+			$delimiter = $template->getFieldNamed( $field->getName() )?->getDelimiter();
+		}
+		return $delimiter === null || $delimiter === '' ? ',' : (string)$delimiter;
 	}
 
 	/**

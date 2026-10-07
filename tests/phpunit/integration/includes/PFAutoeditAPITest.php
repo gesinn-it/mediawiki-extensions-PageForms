@@ -984,49 +984,6 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// hasModifierKeys()
-	// -------------------------------------------------------------------------
-
-	/**
-	 * hasModifierKeys() must return false when no modifier keys are present.
-	 *
-	 * @covers \PFAutoeditAPI::hasModifierKeys
-	 */
-	public function testHasModifierKeysReturnsFalseWithNoModifiers(): void {
-		[ $module ] = $this->newModule();
-		$module->setOptions( [ 'form' => 'Frm', 'target' => 'Pg', 'Tpl' => [ 'f' => 'v' ] ] );
-		$ref = ( new ReflectionClass( PFAutoeditAPI::class ) )->getMethod( 'hasModifierKeys' );
-		$ref->setAccessible( true );
-		$this->assertFalse( $ref->invoke( $module ) );
-	}
-
-	/**
-	 * hasModifierKeys() must return true when a + append modifier key is present.
-	 *
-	 * @covers \PFAutoeditAPI::hasModifierKeys
-	 */
-	public function testHasModifierKeysReturnsTrueForAppendKey(): void {
-		[ $module ] = $this->newModule();
-		$module->setOptions( [ 'form' => 'Frm', 'target' => 'Pg', 'Tpl' => [ 'f+' => 'v' ] ] );
-		$ref = ( new ReflectionClass( PFAutoeditAPI::class ) )->getMethod( 'hasModifierKeys' );
-		$ref->setAccessible( true );
-		$this->assertTrue( $ref->invoke( $module ) );
-	}
-
-	/**
-	 * hasModifierKeys() must return true when a - remove modifier key is present.
-	 *
-	 * @covers \PFAutoeditAPI::hasModifierKeys
-	 */
-	public function testHasModifierKeysReturnsTrueForRemoveKey(): void {
-		[ $module ] = $this->newModule();
-		$module->setOptions( [ 'form' => 'Frm', 'target' => 'Pg', 'Tpl' => [ 'f-' => 'v' ] ] );
-		$ref = ( new ReflectionClass( PFAutoeditAPI::class ) )->getMethod( 'hasModifierKeys' );
-		$ref->setAccessible( true );
-		$this->assertTrue( $ref->invoke( $module ) );
-	}
-
-	// -------------------------------------------------------------------------
 	// Append (+) and Remove (-) modifiers — Gesinn Patch
 	//
 	// These tests cover the val_modifier code path in FormPrinter::formHTML()
@@ -1127,6 +1084,158 @@ class PFAutoeditAPITest extends ApiTestCase {
 			$pageText,
 			'Remove modifier (field-=value) must remove specified value from existing list'
 		);
+	}
+
+	// -------------------------------------------------------------------------
+	// Modifiers and instance numbers of a request, saved through pfautoedit
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Saves $formDef's form through pfautoedit onto $targetName, whose text is $pageText.
+	 */
+	private function saveOntoPage(
+		string $formName, string $formDef, string $targetName, string $pageText, array $request
+	): string {
+		$this->insertPage( Title::makeTitle( PF_NS_FORM, $formName ), $formDef );
+		$this->insertPage( $targetName, $pageText );
+		$module = $this->executeStore( $formName, $targetName, $request );
+		$this->assertSame( 200, $module->getStatus(), json_encode( $module->getResult()->getResultData() ) );
+		return $this->getExistingTestPage( $targetName )->getContent()->getText();
+	}
+
+	/**
+	 * A "+" modifier adds to the list the page has, with the delimiter of the field.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormValues::mergeRequest
+	 */
+	public function testAppendModifierAddsToTheListOnThePage(): void {
+		$text = $this->saveOntoPage(
+			'AEModForm1',
+			"{{{for template|AEModTpl1}}}\n{{{field|tags|delimiter=;}}}\n{{{end template}}}\n"
+			. "{{{standard input|free text}}}\n{{{standard input|save}}}",
+			'AEModTarget1', "{{AEModTpl1\n|tags=a;b\n}}\n",
+			[ 'AEModTpl1' => [ 'tags+' => 'c' ] ]
+		);
+
+		$this->assertStringContainsString( 'tags=a;b;c', $text );
+	}
+
+	/**
+	 * A "-" modifier removes from the list the page has.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormValues::mergeRequest
+	 */
+	public function testRemoveModifierRemovesFromTheListOnThePage(): void {
+		$text = $this->saveOntoPage(
+			'AEModForm2',
+			"{{{for template|AEModTpl2}}}\n{{{field|tags|delimiter=;}}}\n{{{end template}}}\n"
+			. "{{{standard input|free text}}}\n{{{standard input|save}}}",
+			'AEModTarget2', "{{AEModTpl2\n|tags=a;b;c\n}}\n",
+			[ 'AEModTpl2' => [ 'tags-' => 'b' ] ]
+		);
+
+		$this->assertStringContainsString( 'tags=a;c', $text );
+	}
+
+	/**
+	 * A modifier on one field must not change the other fields: a checked checkbox
+	 * stays checked (it used to be saved as "No").
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormValues::mergeRequest
+	 */
+	public function testModifierKeepsACheckedCheckbox(): void {
+		$text = $this->saveOntoPage(
+			'AEModForm3',
+			"{{{for template|AEModTpl3}}}\n{{{field|done|input type=checkbox}}}\n{{{field|tags|delimiter=;}}}\n"
+			. "{{{end template}}}\n{{{standard input|free text}}}\n{{{standard input|save}}}",
+			'AEModTarget3', "{{AEModTpl3\n|done=Yes\n|tags=a\n}}\n",
+			[ 'AEModTpl3' => [ 'tags+' => 'b' ] ]
+		);
+
+		$this->assertMatchesRegularExpression( '/\|done=Yes\b/', $text );
+		$this->assertStringContainsString( 'tags=a;b', $text );
+	}
+
+	/**
+	 * A modifier together with a multiple-instance template (and free text only otherwise)
+	 * must not empty the page: the instances stay, the modifier applies to the instance it names.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormValues::mergeRequest
+	 */
+	public function testModifierOnAnInstanceKeepsTheOtherInstances(): void {
+		$text = $this->saveOntoPage(
+			'AEModForm4',
+			"{{{for template|AEModTpl4|multiple|minimum instances=2}}}\n{{{field|tags|delimiter=;}}}\n"
+			. "{{{end template}}}\n{{{standard input|free text}}}\n{{{standard input|save}}}",
+			'AEModTarget4', "{{AEModTpl4\n|tags=a\n}}\n{{AEModTpl4\n|tags=b\n}}\n",
+			[ 'AEModTpl4' => [ '1a' => [ 'tags+' => 'c' ] ] ]
+		);
+
+		$this->assertSame( 2, substr_count( $text, '{{AEModTpl4' ), $text );
+		$this->assertStringContainsString( 'tags=a', $text );
+		$this->assertStringContainsString( 'tags=b;c', $text );
+	}
+
+	/**
+	 * A modifier on a multiple-instance template that does not say which instance it applies to
+	 * is refused; it used to be saved as an empty instance of its own.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormValues::mergeRequest
+	 */
+	public function testModifierWithoutInstanceOnAMultipleTemplateIsRefused(): void {
+		$formName = 'AEModForm5';
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, $formName ),
+			"{{{for template|AEModTpl5|multiple}}}\n{{{field|tags}}}\n{{{end template}}}\n"
+			. "{{{standard input|free text}}}\n{{{standard input|save}}}"
+		);
+		$this->insertPage( 'AEModTarget5', "{{AEModTpl5\n|tags=a\n}}\n{{AEModTpl5\n|tags=b\n}}\n" );
+
+		$module = $this->executeStore( $formName, 'AEModTarget5', [ 'AEModTpl5' => [ 'tags+' => 'c' ] ] );
+
+		$this->assertSame( 400, $module->getStatus() );
+		$text = $this->getExistingTestPage( 'AEModTarget5' )->getContent()->getText();
+		$this->assertSame( 2, substr_count( $text, '{{AEModTpl5' ), $text );
+	}
+
+	/**
+	 * "Tpl[<n>][field]" names the instance n (counted from 0) of a multiple-instance
+	 * template. It used to add an instance and leave the instance n unchanged.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormValues::mergeRequest
+	 */
+	public function testInstanceNumberEditsThatInstance(): void {
+		$text = $this->saveOntoPage(
+			'AEInstForm1',
+			"{{{for template|AEInstTpl1|multiple}}}\n{{{field|note}}}\n{{{end template}}}\n"
+			. "{{{standard input|free text}}}\n{{{standard input|save}}}",
+			'AEInstTarget1', "{{AEInstTpl1\n|note=one\n}}\n{{AEInstTpl1\n|note=two\n}}\n",
+			[ 'AEInstTpl1' => [ '1' => [ 'note' => 'CHG' ] ] ]
+		);
+
+		$this->assertSame( 2, substr_count( $text, '{{AEInstTpl1' ), $text );
+		$this->assertStringContainsString( 'note=one', $text );
+		$this->assertStringContainsString( 'note=CHG', $text );
+		$this->assertStringNotContainsString( 'note=two', $text );
+	}
+
+	/**
+	 * An instance number beyond the instances of the page still adds an instance.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormValues::mergeRequest
+	 */
+	public function testInstanceNumberBeyondThePageAddsAnInstance(): void {
+		$text = $this->saveOntoPage(
+			'AEInstForm2',
+			"{{{for template|AEInstTpl2|multiple}}}\n{{{field|note}}}\n{{{end template}}}\n"
+			. "{{{standard input|free text}}}\n{{{standard input|save}}}",
+			'AEInstTarget2', "{{AEInstTpl2\n|note=one\n}}\n",
+			[ 'AEInstTpl2' => [ '5' => [ 'note' => 'added' ] ] ]
+		);
+
+		$this->assertSame( 2, substr_count( $text, '{{AEInstTpl2' ), $text );
+		$this->assertStringContainsString( 'note=one', $text );
+		$this->assertStringContainsString( 'note=added', $text );
 	}
 
 	/**
