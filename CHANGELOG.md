@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Changed
+- Forms with several fields that use the same `values from ...` source, or the same `mapping template` in the instances of a multiple-instance template, open faster: each source is counted and each mapped label looked up once per request instead of once per field [#221](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/221), [#222](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/222)
+
 ### Fixed
 - Fixed `#autoedit` and the `pfautoedit` API removing the existing entries of a multiple-instance template (e.g. earlier transfer steps) and writing empty template calls instead when an entry is added to an existing page.
 - Fixed `#autoedit` and the `pfautoedit` API dropping a template that is embedded in a `holds template` field (and the template call around it) when an existing page was saved through them [#213](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/213)

@@ -23,6 +23,9 @@ use User;
  */
 class FormField {
 
+	/** @var array<string, string> Labels of the 'mapping template' fields built so far, by template, revision and value */
+	private static array $mappingTemplateLabels = [];
+
 	/**
 	 * @var TemplateField
 	 */
@@ -857,8 +860,11 @@ class FormField {
 				$value = $index;
 			}
 			if ( $templateExists ) {
-				$label = trim( $parser->recursiveTagParse( '{{' . $templateName .
-					'|' . $value . '}}' ) );
+				// The label of a value is the same for every field mapped by this version of the
+				// template, such as the instances of a multiple-instance template.
+				$cacheKey = $templateName . "\0" . $title->getLatestRevID() . "\0" . $value;
+				$label = self::$mappingTemplateLabels[$cacheKey]
+					??= trim( $parser->recursiveTagParse( '{{' . $templateName . '|' . $value . '}}' ) );
 				if ( $label == '' ) {
 					$labels[$value] = $value;
 				} else {

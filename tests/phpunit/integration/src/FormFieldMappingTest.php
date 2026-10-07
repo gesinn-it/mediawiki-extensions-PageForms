@@ -61,6 +61,29 @@ class FormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
+	 * Labels are remembered per template revision: a second field using the same
+	 * template gets the same labels, and an edited template is read again.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormField::setValuesWithMappingTemplate
+	 */
+	public function testSetValuesWithMappingTemplateRereadsAnEditedTemplate(): void {
+		$templateName = 'PFTestMappingTplEdited01';
+		$this->editPage( "Template:$templateName", 'First' );
+
+		$first = $this->makeFieldForMappingTemplate( $templateName, [ 'DE' ] );
+		$first->setValuesWithMappingTemplate();
+		$second = $this->makeFieldForMappingTemplate( $templateName, [ 'DE' ] );
+		$second->setValuesWithMappingTemplate();
+		$this->editPage( "Template:$templateName", 'Second' );
+		$third = $this->makeFieldForMappingTemplate( $templateName, [ 'DE' ] );
+		$third->setValuesWithMappingTemplate();
+
+		$this->assertSame( [ 'DE' => 'First' ], $first->getPossibleValues() );
+		$this->assertSame( [ 'DE' => 'First' ], $second->getPossibleValues() );
+		$this->assertSame( [ 'DE' => 'Second' ], $third->getPossibleValues() );
+	}
+
+	/**
 	 * When the mapping template exists but returns an empty string for a value,
 	 * the value is used as its own label (identity fallback).
 	 *
