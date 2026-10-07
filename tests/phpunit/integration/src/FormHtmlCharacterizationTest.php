@@ -365,6 +365,17 @@ class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 				'source_is_page' => true,
 				'existing' => "{{PFCharMapped|Boxes=a, c|Chips=b, c}}\n",
 			],
+			'mapping template on a list of checkboxes, submitted with a label and a value' => [
+				'fixtures' => true,
+				'form_def' => $tpl( 'PFCharMapped', '',
+					"{{{field|Boxes|list|input type=checkboxes|values=a,b,c|mapping template=PFCharMapTpl}}}\n"
+				) . $save,
+				'submitted' => true,
+				'request' => [ 'PFCharMapped' => [
+					'Boxes' => [ 0 => 'Label a', 2 => 'c', 'is_list' => '1' ],
+					'map_field' => [ 'Boxes' => 'true' ],
+				] ],
+			],
 			'mapping template in a multiple template, existing page' => [
 				'fixtures' => true,
 				'form_def' => $tpl( 'PFCharMappedMulti', '|multiple',
