@@ -979,6 +979,11 @@ class PFAutoeditAPI extends ApiBase {
 		// the article id of the form to be used
 		$formArticleId = $formTitle->getArticleID();
 
+		// A restricted field the user may not edit keeps the value it has on the page, whatever
+		// the request says: the form shows such a field disabled, and the API must not be a way around it.
+		$this->mOptions = $formPrinter->getRestrictedInputs( $formContent, $formArticleId, $this->getUser() )
+			->removeFrom( $this->mOptions );
+
 		// the name of the target page; might be empty when using the one-step-process
 		$targetName = $this->mOptions['target'];
 

@@ -342,6 +342,18 @@ class FormPrinter {
 	}
 
 	/**
+	 * The inputs of the form that $user may not edit because they are marked "restricted".
+	 *
+	 * @param string $form_def Form definition wikitext.
+	 * @param int|null $form_id Page ID of the form page (used by FormCache).
+	 * @param User $user
+	 * @return RestrictedInputs
+	 */
+	public function getRestrictedInputs( string $form_def, ?int $form_id, User $user ): RestrictedInputs {
+		return $this->formDefParser->getRestrictedInputs( $form_def, $form_id, $user );
+	}
+
+	/**
 	 * Resolve $this->mPageTitle (needed for permission testing even when the real
 	 * page name isn't known yet) and compute the edit-permission errors for formHTML().
 	 *

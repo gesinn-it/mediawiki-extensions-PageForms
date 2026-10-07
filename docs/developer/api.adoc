@@ -34,6 +34,10 @@ POST api.php?action=pfautoedit
 
 The action requires a POST request with a valid CSRF edit token.
 
+=== Restricted fields
+
+Fields, sections and the free text input that the form marks as `restricted` are enforced by the API as well: values sent for them by a user who may not edit them (the `restricted` and `restricted=` parameters of the form definition) are ignored, and the page keeps the value it already has. For a page that does not exist yet, the field gets its default value or stays empty.
+
 === Parameters
 
 [cols="2,1,4", options="header"]

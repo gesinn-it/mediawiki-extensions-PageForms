@@ -5,10 +5,13 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
+use MediaWiki\MediaWikiServices;
+use Parser;
 use ParserFactory;
 use ParserOptions;
 use PFUtils;
 use RequestContext;
+use User;
 
 /**
  * Parses a PageForms form definition and extracts preloaded field values
@@ -50,19 +53,7 @@ class FormDefParser {
 	public function readPageValues(
 		string $form_def, string $existing_page_content, ?int $form_id = null
 	): FormValues {
-		$user = RequestContext::getMain()->getUser();
-
-		// Set up a fresh parser — same approach as formHTML(). Title it from the
-		// current request so wikitext parsed below (e.g. a template-name tag
-		// containing {{PAGENAME}}) doesn't resolve against a "Badtitle" placeholder
-		// (see issue #189).
-		$parser = $this->parserFactory->create();
-		$parser->setOptions( ParserOptions::newFromUser( $user ) );
-		$contextTitle = RequestContext::getMain()->getTitle();
-		if ( $contextTitle !== null ) {
-			$parser->setTitle( $contextTitle );
-		}
-		$parser->clearState();
+		$parser = $this->createParser( $this->parserFactory );
 
 		$form_def = FormCache::getFormDefinition( $parser, $form_def, $form_id );
 		$definition = $this->reader->read( $form_def );
@@ -165,6 +156,75 @@ class FormDefParser {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * The inputs of a form that $user may not edit because they are marked "restricted".
+	 *
+	 * @param string $form_def Form definition wikitext.
+	 * @param ?int $form_id Optional form page ID (used by FormCache).
+	 * @param User $user
+	 * @return RestrictedInputs
+	 */
+	public function getRestrictedInputs( string $form_def, ?int $form_id, User $user ): RestrictedInputs {
+		// The current services' parser factory, not the one this (long-lived) instance was built with:
+		// this runs on every autoedit request, including after the services have been replaced.
+		$parser = $this->createParser( MediaWikiServices::getInstance()->getParserFactory() );
+		$definition = $this->reader->read( FormCache::getFormDefinition( $parser, $form_def, $form_id ) );
+		$restricted = new RestrictedInputs();
+
+		foreach ( $definition->getTemplates() as $templateSpec ) {
+			$template_name = str_replace( '_', ' ', $parser->recursiveTagParse( $templateSpec->getRawName() ) );
+			$template_key = str_replace( ' ', '_', $template_name );
+			foreach ( $templateSpec->getFields() as $field ) {
+				if ( $this->isRestrictedFor( $field->getRestriction(), $user ) ) {
+					$restricted->addField( $template_key, $field->getName() );
+				}
+			}
+		}
+		foreach ( $definition->getSections() as $section ) {
+			if ( $this->isRestrictedFor( $section->getRestriction(), $user ) ) {
+				$restricted->addSection( $section->getName() );
+			}
+		}
+		foreach ( $definition->getStandardInputs() as $input ) {
+			if ( $input->isFreeText() && $this->isRestrictedFor( $input->getRestriction(), $user ) ) {
+				$restricted->restrictFreeText();
+			}
+		}
+		return $restricted;
+	}
+
+	/**
+	 * @param list<string>|null $restriction As returned by TagSpec::getRestriction()
+	 * @param User $user
+	 * @return bool Whether the restriction keeps $user from editing
+	 */
+	private function isRestrictedFor( ?array $restriction, User $user ): bool {
+		if ( $restriction === null ) {
+			return false;
+		}
+		if ( $restriction === [] ) {
+			return !$user->isAllowed( 'editrestrictedfields' );
+		}
+		$groups = MediaWikiServices::getInstance()->getUserGroupManager()->getUserEffectiveGroups( $user );
+		return !array_intersect( $groups, $restriction );
+	}
+
+	/**
+	 * A fresh parser, set up like the one formHTML() uses. It is titled from the current
+	 * request so wikitext parsed with it (e.g. a template-name tag containing {{PAGENAME}})
+	 * doesn't resolve against a "Badtitle" placeholder (see issue #189).
+	 */
+	private function createParser( ParserFactory $parserFactory ): Parser {
+		$parser = $parserFactory->create();
+		$parser->setOptions( ParserOptions::newFromUser( RequestContext::getMain()->getUser() ) );
+		$contextTitle = RequestContext::getMain()->getTitle();
+		if ( $contextTitle !== null ) {
+			$parser->setTitle( $contextTitle );
+		}
+		$parser->clearState();
+		return $parser;
 	}
 
 	/**

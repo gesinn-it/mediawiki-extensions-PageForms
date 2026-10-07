@@ -160,7 +160,7 @@ The syntax is:
   Note: using both `mandatory` and `hidden` together causes the mandatory check to always fail, so these two parameters should not be combined.
 
 | `restricted`
-| Makes the field editable only by administrators (sysops) in the wiki.
+| Makes the field editable only by administrators (sysops) in the wiki. Values sent for it through the `pfautoedit` API or `#autoedit` by other users are ignored.
 
 | `restricted=` _group name_
 | Makes the field editable only by users in the specified user group.

@@ -73,6 +73,21 @@ abstract class TagSpec implements FormElement {
 		return $this->getArg( $name ) !== null;
 	}
 
+	/**
+	 * Who may edit what this tag defines, as far as the tag restricts it: null if the tag is not
+	 * "restricted", [] for a bare "restricted" (the right to edit restricted fields) and the list
+	 * of group names for "restricted=group1,group2".
+	 *
+	 * @return list<string>|null
+	 */
+	public function getRestriction(): ?array {
+		$value = $this->getArg( 'restricted' );
+		if ( $value === null ) {
+			return null;
+		}
+		return $value === '' ? [] : array_map( 'trim', explode( ',', $value ) );
+	}
+
 	protected function normalizeArgName( string $name ): string {
 		return $name;
 	}
