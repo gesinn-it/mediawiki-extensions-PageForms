@@ -117,4 +117,124 @@ class FormValuesTest extends TestCase {
 			$values->toOptions()
 		);
 	}
+
+	private static function tags(): FormValues {
+		$values = new FormValues();
+		$values->setFieldValue( 'Tpl', null, 'tags', 'a,b' );
+		$values->setFieldValue( 'Tpl', null, 'o', '1' );
+		return $values;
+	}
+
+	public function testPlusModifierAddsToTheListOnThePage(): void {
+		$merged = self::tags()->mergeRequest( [ 'Tpl' => [ 'tags+' => 'c' ] ] );
+
+		$this->assertSame( [ 'Tpl' => [ 'tags' => 'a,b,c', 'o' => '1' ] ], $merged );
+	}
+
+	public function testPlusModifierDoesNotAddAValueThePageAlreadyHas(): void {
+		$merged = self::tags()->mergeRequest( [ 'Tpl' => [ 'tags+' => 'b' ] ] );
+
+		$this->assertSame( 'a,b', $merged['Tpl']['tags'] );
+	}
+
+	public function testMinusModifierRemovesFromTheListOnThePage(): void {
+		$merged = self::tags()->mergeRequest( [ 'Tpl' => [ 'tags-' => 'a' ] ] );
+
+		$this->assertSame( 'b', $merged['Tpl']['tags'] );
+		$this->assertArrayNotHasKey( 'tags-', $merged['Tpl'] );
+	}
+
+	public function testModifierUsesTheDelimiterOfTheField(): void {
+		$values = new FormValues();
+		$values->setFieldValue( 'Tpl', null, 'tags', 'a;b' );
+		$values->setDelimiter( 'Tpl', 'tags', ';' );
+
+		$merged = $values->mergeRequest( [ 'Tpl' => [ 'tags+' => 'c' ] ] );
+
+		$this->assertSame( 'a;b;c', $merged['Tpl']['tags'] );
+	}
+
+	public function testModifierValueGivenAsAListIsJoinedWithTheDelimiter(): void {
+		$merged = self::tags()->mergeRequest( [ 'Tpl' => [ 'tags+' => [ 'is_list' => '1', 'c', 'd' ] ] ] );
+
+		$this->assertSame( 'a,b,c, d', $merged['Tpl']['tags'] );
+	}
+
+	public function testModifierOnATemplateTheValuesDoNotKnowIsLeftAlone(): void {
+		$merged = self::tags()->mergeRequest( [ 'Other' => [ 'tags+' => 'c' ] ] );
+
+		$this->assertSame( [ 'tags+' => 'c' ], $merged['Other'] );
+	}
+
+	public function testModifierOnAnInstanceChangesOnlyThatInstance(): void {
+		$values = new FormValues();
+		$values->setFieldValue( 'Tpl', '0a', 'tags', 'a' );
+		$values->setFieldValue( 'Tpl', '1a', 'tags', 'x' );
+
+		$merged = $values->mergeRequest( [ 'Tpl' => [ '1a' => [ 'tags+' => 'y' ] ] ] );
+
+		$this->assertSame( 'a', $merged['Tpl']['0a']['tags'] );
+		$this->assertSame( 'x,y', $merged['Tpl']['1a']['tags'] );
+	}
+
+	public function testModifierWithoutAnInstanceOnAMultipleTemplateIsRefused(): void {
+		$values = new FormValues();
+		$values->setFieldValue( 'Tpl', '0a', 'tags', 'a' );
+
+		$this->expectException( MWException::class );
+		$this->expectExceptionMessage( "The modifier 'tags+' cannot be applied" );
+
+		$values->mergeRequest( [ 'Tpl' => [ 'tags+' => 'b' ] ] );
+	}
+
+	public function testModifiedValueOfAMappedFieldIsNotMarkedForMappingBack(): void {
+		$values = new FormValues();
+		$values->setFieldValue( 'Tpl', null, 'm', 'a,b' );
+		$values->setMappedFields( 'Tpl', [ 'm' ] );
+
+		$merged = $values->mergeRequest( [ 'Tpl' => [ 'm+' => 'c' ] ] );
+
+		$this->assertSame( [ 'Tpl' => [ 'm' => 'a,b,c' ] ], $merged );
+	}
+
+	public function testPlainInstanceNumberEditsThatInstance(): void {
+		$values = new FormValues();
+		$values->setFieldValue( 'Tpl', '0a', 'a', 'first' );
+		$values->setFieldValue( 'Tpl', '1a', 'a', 'second' );
+
+		$merged = $values->mergeRequest( [ 'Tpl' => [ '1' => [ 'a' => 'changed' ] ] ] );
+
+		$this->assertSame(
+			[ 'Tpl' => [ '0a' => [ 'a' => 'first' ], '1a' => [ 'a' => 'changed' ] ] ],
+			$merged
+		);
+	}
+
+	public function testInstanceNumberBeyondThePageAddsAnInstance(): void {
+		$values = new FormValues();
+		$values->setFieldValue( 'Tpl', '0a', 'a', 'first' );
+
+		$merged = $values->mergeRequest( [ 'Tpl' => [ '5' => [ 'a' => 'new' ] ] ] );
+
+		$this->assertSame( [ '0a' => [ 'a' => 'first' ], '5' => [ 'a' => 'new' ] ], $merged['Tpl'] );
+	}
+
+	public function testRequestKeyThatIsAlreadyAPageInstanceKeyIsKept(): void {
+		$values = new FormValues();
+		$values->setFieldValue( 'Tpl', '0a', 'a', 'first' );
+		$values->setFieldValue( 'Tpl', '0a', 'b', 'keep' );
+
+		$merged = $values->mergeRequest( [ 'Tpl' => [ '0a' => [ 'a' => 'changed' ] ] ] );
+
+		$this->assertSame( [ 'Tpl' => [ '0a' => [ 'a' => 'changed', 'b' => 'keep' ] ] ], $merged );
+	}
+
+	public function testNumbersOfASingleInstanceTemplateAreNotRenamed(): void {
+		$values = new FormValues();
+		$values->setFieldValue( 'Tpl', null, 'a', 'v' );
+
+		$merged = $values->mergeRequest( [ 'Tpl' => [ '1' => 'x' ] ] );
+
+		$this->assertSame( [ 'Tpl' => [ 'a' => 'v', '1' => 'x' ] ], $merged );
+	}
 }

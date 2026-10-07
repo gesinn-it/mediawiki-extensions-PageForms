@@ -12,6 +12,7 @@ use MediaWiki\Extension\PageForms\FormDefinition\StandardInputSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TemplateSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TextSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\UnknownTagSpec;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader
@@ -26,7 +27,7 @@ use MediaWiki\Extension\PageForms\FormDefinition\UnknownTagSpec;
  * @covers \MediaWiki\Extension\PageForms\FormDefinition\TextSpec
  * @group PF
  */
-class FormDefinitionReaderTest extends MediaWikiIntegrationTestCase {
+class FormDefinitionReaderTest extends TestCase {
 
 	private function read( string $formDef ): FormDefinition {
 		return ( new FormDefinitionReader() )->read( $formDef );
