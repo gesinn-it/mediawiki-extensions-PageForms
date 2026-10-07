@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use ParserFactory;
 use ParserOptions;
 use PFUtils;
@@ -17,8 +18,11 @@ class FormDefParser {
 
 	private ParserFactory $parserFactory;
 
-	public function __construct( ParserFactory $parserFactory ) {
+	private FormDefinitionReader $reader;
+
+	public function __construct( ParserFactory $parserFactory, ?FormDefinitionReader $reader = null ) {
 		$this->parserFactory = $parserFactory;
+		$this->reader = $reader ?? new FormDefinitionReader();
 	}
 
 	/**
@@ -48,122 +52,85 @@ class FormDefParser {
 
 		$form_def = FormCache::getFormDefinition( $parser, $form_def, $form_id );
 
-		// Neutralise the 'free text' standard input so it doesn't confuse the scan.
-		$form_def = str_replace( 'standard input|free text', 'field|#freetext#', $form_def );
-		$form_def_sections = $this->splitFormDefIntoSections( $form_def );
+		$definition = $this->reader->read( $form_def );
 
-		// Walk sections and collect preloaded field values.
+		// Walk the templates and collect preloaded field values.
 		$result = [];
-		$tif = null;
-		$template_key = null;
-		// Field values of every instance of the current multiple-instance template,
-		// in page order. Stays null for single-instance templates.
-		$instances = null;
-		// Names of the fields the form defines for the current template; whatever else the
-		// page's template call carries is "unhandled" (see FormUtils::unhandledFieldsHTML()).
-		$handledFields = [];
 
-		foreach ( $form_def_sections as $section ) {
-			$section = ' ' . $section;
-			$start_position = 0;
-
-			while ( true ) {
-				$brackets_loc = strpos( $section, '{{{', $start_position );
-				if ( $brackets_loc === false ) {
-					break;
-				}
-				$brackets_end_loc = strpos( $section, '}}}', $brackets_loc );
-				$bracketed_string = substr(
-					$section, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 )
-				);
-				$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
-				if ( count( $tag_components ) === 0 ) {
-					break;
-				}
-				$tag_title = trim( $tag_components[0] );
-
-				if ( $tag_title === 'for template' ) {
-					$template_name = str_replace( '_', ' ', $parser->recursiveTagParse( $tag_components[1] ) );
-					// Top-level array key: spaces → underscores, matching HtmlFormDataExtractor output.
-					$template_key = str_replace( ' ', '_', $template_name );
-					$tif = TemplateInForm::newFromFormTag( $tag_components, $parser );
+		foreach ( $definition->getTemplates() as $templateSpec ) {
+			$tag_components = $templateSpec->getComponents();
+			$template_name = str_replace( '_', ' ', $parser->recursiveTagParse( $tag_components[1] ) );
+			// Top-level array key: spaces → underscores, matching HtmlFormDataExtractor output.
+			$template_key = str_replace( ' ', '_', $template_name );
+			$tif = TemplateInForm::newFromFormTag( $tag_components, $parser );
+			$tif->setPageRelatedInfo( $existing_page_content );
+			// Field values of every instance of a multiple-instance template, in page
+			// order. Stays null for single-instance templates.
+			$instances = null;
+			if ( $tif->allowsMultiple() ) {
+				// Read every call of this template on the page, like formHTML() does
+				// by repeating the section once per instance.
+				$instances = [];
+				while ( $tif->pageCallsThisTemplate() ) {
+					$tif->setFieldValuesFromPage( $existing_page_content );
+					$existing_template_text = $tif->getFullTextInPage();
+					if ( $existing_template_text === '' ) {
+						break;
+					}
+					$instances[] = $tif->getValuesFromPage();
+					$existing_page_content = PFUtils::strReplaceFirst(
+						$existing_template_text, '', $existing_page_content
+					);
 					$tif->setPageRelatedInfo( $existing_page_content );
-					$instances = null;
-					$handledFields = [];
-					if ( $tif->allowsMultiple() ) {
-						// Read every call of this template on the page, like formHTML() does
-						// by repeating the section once per instance.
-						$instances = [];
-						while ( $tif->pageCallsThisTemplate() ) {
-							$tif->setFieldValuesFromPage( $existing_page_content );
-							$existing_template_text = $tif->getFullTextInPage();
-							if ( $existing_template_text === '' ) {
-								break;
-							}
-							$instances[] = $tif->getValuesFromPage();
-							$existing_page_content = PFUtils::strReplaceFirst(
-								$existing_template_text, '', $existing_page_content
-							);
-							$tif->setPageRelatedInfo( $existing_page_content );
-						}
-						foreach ( $instances as $i => $unused ) {
-							// An instance without any field still counts as an instance.
-							$result[$template_key][$i . 'a'] = [];
-						}
-					} elseif ( $tif->pageCallsThisTemplate() ) {
-						$tif->setFieldValuesFromPage( $existing_page_content );
-						$existing_template_text = $tif->getFullTextInPage();
-						$existing_page_content = PFUtils::strReplaceFirst(
-							$existing_template_text, '', $existing_page_content
-						);
-					}
-				} elseif ( $tag_title === 'end template' ) {
-					if ( $tif !== null && $template_key !== null ) {
-						$valueSets = $instances ?? [ $tif->getValuesFromPage() ];
-						foreach ( $valueSets as $values ) {
-							foreach ( $values as $name => $value ) {
-								$unhandledKey = '_unhandled_' . $template_key . '_' . urlencode( (string)$name );
-								// Positional parameters are not carried over, and neither
-								// formHTML() nor the later page assembly distinguishes the
-								// instances of a multiple-instance template here: the first
-								// instance that has the parameter provides its value.
-								if ( !is_numeric( $name ) && !in_array( $name, $handledFields, true )
-									&& !array_key_exists( $unhandledKey, $result )
-								) {
-									$result[$unhandledKey] = $value;
-								}
-							}
+				}
+				foreach ( $instances as $i => $unused ) {
+					// An instance without any field still counts as an instance.
+					$result[$template_key][$i . 'a'] = [];
+				}
+			} elseif ( $tif->pageCallsThisTemplate() ) {
+				$tif->setFieldValuesFromPage( $existing_page_content );
+				$existing_template_text = $tif->getFullTextInPage();
+				$existing_page_content = PFUtils::strReplaceFirst(
+					$existing_template_text, '', $existing_page_content
+				);
+			}
+
+			foreach ( $templateSpec->getFields() as $field ) {
+				if ( $field->isFreeText() ) {
+					continue;
+				}
+				$field_name = $field->getName();
+				if ( $instances !== null ) {
+					// Multiple-instance template: instances are keyed "0a", "1a", ... exactly
+					// as HtmlFormDataExtractor::addToArray() names them.
+					foreach ( $instances as $i => $values ) {
+						if ( array_key_exists( $field_name, $values ) ) {
+							$result[$template_key][$i . 'a'][$field_name] = $values[$field_name];
 						}
 					}
-					$tif = null;
-					$template_key = null;
-					$instances = null;
-					$handledFields = [];
-				} elseif ( $tag_title === 'field' && $tif !== null && $template_key !== null ) {
-					$field_name = trim( $tag_components[1] );
-					$handledFields[] = $field_name;
-					if ( $instances !== null ) {
-						// Multiple-instance template: instances are keyed "0a", "1a", ... exactly
-						// as HtmlFormDataExtractor::addToArray() names them.
-						if ( $field_name !== '#freetext#' ) {
-							foreach ( $instances as $i => $values ) {
-								if ( array_key_exists( $field_name, $values ) ) {
-									$result[$template_key][$i . 'a'][$field_name] = $values[$field_name];
-								}
-							}
-						}
-						$start_position = $brackets_loc + 1;
-						continue;
-					}
-					if ( $field_name !== '#freetext#'
-						&& $tif->getFullTextInPage() !== ''
-						&& $tif->hasValueFromPageForField( $field_name )
+				} elseif ( $tif->getFullTextInPage() !== ''
+					&& $tif->hasValueFromPageForField( $field_name )
+				) {
+					$result[$template_key][$field_name] = $tif->getAndRemoveValueFromPageForField( $field_name );
+				}
+			}
+
+			// Whatever else the page's template call carries is "unhandled" (see
+			// FormUtils::unhandledFieldsHTML()).
+			$handledFields = $templateSpec->getFieldNames();
+			foreach ( $instances ?? [ $tif->getValuesFromPage() ] as $values ) {
+				foreach ( $values as $name => $value ) {
+					$unhandledKey = '_unhandled_' . $template_key . '_' . urlencode( (string)$name );
+					// Positional parameters are not carried over, and neither
+					// formHTML() nor the later page assembly distinguishes the
+					// instances of a multiple-instance template here: the first
+					// instance that has the parameter provides its value.
+					if ( !is_numeric( $name ) && !in_array( $name, $handledFields, true )
+						&& !array_key_exists( $unhandledKey, $result )
 					) {
-						$result[$template_key][$field_name] = $tif->getAndRemoveValueFromPageForField( $field_name );
+						$result[$unhandledKey] = $value;
 					}
 				}
-
-				$start_position = $brackets_loc + 1;
 			}
 		}
 
