@@ -40,6 +40,46 @@ class TemplatePageValues {
 		);
 	}
 
+	/**
+	 * Read the first call of the template from the page text: its values and its full text
+	 * become available through the getters.
+	 *
+	 * @param string $templateName
+	 * @param string $existing_page_content
+	 * @return string The page text without that call; the page text as it was if the page does not
+	 *   call the template
+	 * @throws MWException if the brackets of the call do not match
+	 */
+	public function readFirstCall( $templateName, $existing_page_content ) {
+		$this->setPageRelatedInfo( $templateName, $existing_page_content );
+		if ( !$this->pageCallsThisTemplate() ) {
+			return $existing_page_content;
+		}
+		$this->setFieldValuesFromPage( $existing_page_content );
+		return \PFUtils::strReplaceFirst( $this->getFullTextInPage(), '', $existing_page_content );
+	}
+
+	/**
+	 * Take the value of a field out of the values read from the page, so that what is left are
+	 * the parameters no field of the form handles.
+	 *
+	 * The value of a field that holds an embedded template is the calls of that template. They
+	 * are put back at the end of the remaining page text, where the form section of the
+	 * embedded template finds them like any other call on the page.
+	 *
+	 * @param string $field_name
+	 * @param bool $holdsTemplate
+	 * @param string &$remainingPageText
+	 * @return string
+	 */
+	public function takeValueFromPage( $field_name, $holdsTemplate, &$remainingPageText ) {
+		$value = $this->getAndRemoveValueFromPageForField( $field_name );
+		if ( $holdsTemplate ) {
+			$remainingPageText .= $value;
+		}
+		return $value;
+	}
+
 	public function getPregMatchTemplateStr() {
 		return $this->mPregMatchTemplateStr;
 	}

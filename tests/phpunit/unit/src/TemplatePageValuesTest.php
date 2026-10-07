@@ -140,4 +140,52 @@ class TemplatePageValuesTest extends TestCase {
 		$this->assertStringContainsString( '<ref name="n" />', $stripped );
 		$this->assertSame( $text, TemplatePageValues::restoreUnparsedText( $stripped, $replacements ) );
 	}
+
+	public function testReadFirstCallReturnsThePageWithoutThatCall(): void {
+		$values = new TemplatePageValues();
+
+		$remaining = $values->readFirstCall( 'Tpl', "intro\n{{Tpl|a=1}}{{Tpl|a=2}}\noutro" );
+
+		$this->assertSame( "intro\n{{Tpl|a=2}}\noutro", $remaining );
+		$this->assertSame( '1', $values->getValuesFromPage()['a'] );
+		$this->assertSame( '{{Tpl|a=1}}', $values->getFullTextInPage() );
+	}
+
+	public function testReadFirstCallLeavesAPageThatDoesNotCallTheTemplateAlone(): void {
+		$values = new TemplatePageValues();
+
+		$this->assertSame( '{{Other|a=1}}', $values->readFirstCall( 'Tpl', '{{Other|a=1}}' ) );
+		$this->assertFalse( (bool)$values->pageCallsThisTemplate() );
+		$this->assertSame( [], $values->getValuesFromPage() );
+	}
+
+	public function testReadFirstCallRepeatedlyReadsEveryInstanceInPageOrder(): void {
+		$values = new TemplatePageValues();
+		$page = '{{Tpl|a=1}}{{Tpl|a=2}}{{Tpl|a=3}}';
+		$seen = [];
+
+		while ( true ) {
+			$page = $values->readFirstCall( 'Tpl', $page );
+			if ( !$values->pageCallsThisTemplate() ) {
+				break;
+			}
+			$seen[] = $values->getValuesFromPage()['a'];
+		}
+
+		$this->assertSame( [ '1', '2', '3' ], $seen );
+		$this->assertSame( '', $page );
+	}
+
+	public function testTakeValueFromPageAppendsTheValueOfAHoldsTemplateField(): void {
+		$values = new TemplatePageValues();
+		$values->readFirstCall( 'Tpl', '{{Tpl|items={{Emb|x=1}}{{Emb|x=2}}|o=1}}' );
+		$remaining = 'rest';
+
+		$this->assertSame( '{{Emb|x=1}}{{Emb|x=2}}', $values->takeValueFromPage( 'items', true, $remaining ) );
+		$this->assertSame( 'rest{{Emb|x=1}}{{Emb|x=2}}', $remaining );
+
+		$this->assertSame( '1', $values->takeValueFromPage( 'o', false, $remaining ) );
+		$this->assertSame( 'rest{{Emb|x=1}}{{Emb|x=2}}', $remaining );
+		$this->assertFalse( $values->hasValueFromPageForField( 'items' ) );
+	}
 }

@@ -15,7 +15,6 @@ use MediaWiki\MediaWikiServices;
 use Parser;
 use ParserFactory;
 use ParserOptions;
-use PFUtils;
 use RequestContext;
 use User;
 
@@ -71,37 +70,28 @@ class FormDefParser {
 			$template_name = str_replace( '_', ' ', $parser->recursiveTagParse( $tag_components[1] ) );
 			// Top-level array key: spaces → underscores, matching HtmlFormDataExtractor output.
 			$template_key = str_replace( ' ', '_', $template_name );
-			$tif = TemplateInForm::newFromFormTag( $tag_components, $parser );
-			$tif->setPageRelatedInfo( $existing_page_content );
+			$pageValues = new TemplatePageValues();
 			// Field values of every instance of a multiple-instance template, in page
 			// order. Stays null for single-instance templates.
 			$instances = null;
-			if ( $tif->allowsMultiple() ) {
+			if ( $templateSpec->isMultiple() ) {
 				// Read every call of this template on the page, like formHTML() does
 				// by repeating the section once per instance.
 				$instances = [];
-				while ( $tif->pageCallsThisTemplate() ) {
-					$tif->setFieldValuesFromPage( $existing_page_content );
-					$existing_template_text = $tif->getFullTextInPage();
-					if ( $existing_template_text === '' ) {
+				while ( true ) {
+					$remaining = $pageValues->readFirstCall( trim( $template_name ), $existing_page_content );
+					if ( !$pageValues->pageCallsThisTemplate() || $pageValues->getFullTextInPage() === '' ) {
 						break;
 					}
-					$instances[] = $tif->getValuesFromPage();
-					$existing_page_content = PFUtils::strReplaceFirst(
-						$existing_template_text, '', $existing_page_content
-					);
-					$tif->setPageRelatedInfo( $existing_page_content );
+					$instances[] = $pageValues->getValuesFromPage();
+					$existing_page_content = $remaining;
 				}
 				foreach ( $instances as $i => $unused ) {
 					// An instance without any field still counts as an instance.
 					$result->addInstance( $template_key, $i . 'a' );
 				}
-			} elseif ( $tif->pageCallsThisTemplate() ) {
-				$tif->setFieldValuesFromPage( $existing_page_content );
-				$existing_template_text = $tif->getFullTextInPage();
-				$existing_page_content = PFUtils::strReplaceFirst(
-					$existing_template_text, '', $existing_page_content
-				);
+			} else {
+				$existing_page_content = $pageValues->readFirstCall( trim( $template_name ), $existing_page_content );
 			}
 
 			$mappedFields = [];
@@ -120,17 +110,13 @@ class FormDefParser {
 							$result->setFieldValue( $template_key, $i . 'a', $field_name, $values[$field_name] );
 						}
 					}
-				} elseif ( $tif->getFullTextInPage() !== ''
-					&& $tif->hasValueFromPageForField( $field_name )
+				} elseif ( $pageValues->getFullTextInPage() !== ''
+					&& $pageValues->hasValueFromPageForField( $field_name )
 				) {
-					$value = $tif->getAndRemoveValueFromPageForField( $field_name );
+					$value = $pageValues->takeValueFromPage(
+						$field_name, $field->holdsTemplate(), $existing_page_content
+					);
 					$result->setFieldValue( $template_key, null, $field_name, $value );
-					if ( $field->holdsTemplate() ) {
-						// The value holds the calls of the template embedded in this field.
-						// Like formHTML(), put them back at the end of the page text, where the
-						// form section of the embedded template finds them.
-						$existing_page_content .= $value;
-					}
 				}
 			}
 			$result->setMappedFields( $template_key, $mappedFields );
@@ -138,7 +124,7 @@ class FormDefParser {
 			// Whatever else the page's template call carries is "unhandled" (see
 			// FormUtils::unhandledFieldsHTML()). Positional parameters are not carried over.
 			$handledFields = $templateSpec->getFieldNames();
-			foreach ( $instances ?? [ $tif->getValuesFromPage() ] as $i => $values ) {
+			foreach ( $instances ?? [ $pageValues->getValuesFromPage() ] as $i => $values ) {
 				foreach ( $values as $name => $value ) {
 					if ( is_numeric( $name ) || in_array( $name, $handledFields, true ) ) {
 						continue;

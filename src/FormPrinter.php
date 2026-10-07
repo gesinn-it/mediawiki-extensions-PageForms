@@ -937,18 +937,13 @@ class FormPrinter {
 					// values are allowed, repeat this
 					// section.
 					if ( $source_is_page ) {
-						$tif->setPageRelatedInfo( $existing_page_content );
 						// Get the first instance of
 						// this template on the page
 						// being edited, even if there
-						// are more.
+						// are more, and remove it from
+						// the text being edited.
+						$existing_page_content = $tif->readFirstCallFromPage( $existing_page_content );
 						if ( $tif->pageCallsThisTemplate() ) {
-							$tif->setFieldValuesFromPage( $existing_page_content );
-							$existing_template_text = $tif->getFullTextInPage();
-							// Now remove this template from the text being edited.
-							$existing_page_content = PFUtils::strReplaceFirst(
-								$existing_template_text, '', $existing_page_content
-							);
 							// If we've found a match in the source
 							// page, there's a good chance that this
 							// page was created with this form - note
@@ -1070,16 +1065,9 @@ class FormPrinter {
 							// can have a list of all
 							// the fields that weren't
 							// handled by the form.
-							$cur_value = $tif->getAndRemoveValueFromPageForField( $field_name );
-
-							// If the field is a placeholder, the contents of this template
-							// parameter should be treated as elements parsed by an another
-							// multiple template form.
-							// By putting that at the very end of the parsed string, we'll
-							// have it processed as a regular multiple template form.
-							if ( $form_field->holdsTemplate() ) {
-								$existing_page_content .= $cur_value;
-							}
+							$cur_value = $tif->takeValueFromPage(
+								$field_name, $form_field->holdsTemplate(), $existing_page_content
+							);
 						} elseif ( $cur_value !== '' ) {
 							// Do nothing.
 						} else {

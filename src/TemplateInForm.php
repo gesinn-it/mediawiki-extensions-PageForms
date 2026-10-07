@@ -444,6 +444,32 @@ class TemplateInForm {
 	}
 
 	/**
+	 * Read the first call of this template from the page text (see
+	 * TemplatePageValues::readFirstCall()) and note how many instances the page has up to here.
+	 *
+	 * @param string $existing_page_content
+	 * @return string The page text without that call
+	 */
+	public function readFirstCallFromPage( $existing_page_content ) {
+		$remaining = $this->mPageValues->readFirstCall( $this->mTemplateName, $existing_page_content );
+		if ( $this->mPageValues->pageCallsThisTemplate() ) {
+			$this->mNumSeenInstancesOnThisPage = $this->mInstanceNum + 1;
+		}
+		return $remaining;
+	}
+
+	/**
+	 * @param string $field_name
+	 * @param bool $holdsTemplate
+	 * @param string &$remainingPageText
+	 * @return string
+	 * @see TemplatePageValues::takeValueFromPage()
+	 */
+	public function takeValueFromPage( $field_name, $holdsTemplate, &$remainingPageText ) {
+		return $this->mPageValues->takeValueFromPage( $field_name, $holdsTemplate, $remainingPageText );
+	}
+
+	/**
 	 * Set some vars based on the current contents of the page being
 	 * edited - or at least vars that only need to be set if there's
 	 * an existing page.
