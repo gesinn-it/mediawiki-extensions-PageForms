@@ -974,7 +974,7 @@ class FormPrinter {
 							' \'end template\' tag cannot contain any additional parameters.</div>'
 						);
 					}
-					if ( $source_is_page ) {
+					if ( $source_is_page && $tif && !$tif->allowsMultiple() ) {
 						// Add any unhandled template fields
 						// in the page as hidden variables.
 						$form_text .= FormUtils::unhandledFieldsHTML( $tif );
@@ -1345,6 +1345,13 @@ END;
 						"{{{insertionpoint}}}",
 						$existing_page_content );
 				}
+			}
+
+			if ( $source_is_page && $tif && $tif->allowsMultiple() && !$tif->allInstancesPrinted() ) {
+				// The parameters of this instance's template call that the form does not define,
+				// as hidden inputs of the instance. (The "end template" tag is only handled once
+				// for all instances, so it cannot do this.)
+				$section .= FormUtils::unhandledFieldsHTML( $tif );
 			}
 
 			$multipleTemplateHTML = '';

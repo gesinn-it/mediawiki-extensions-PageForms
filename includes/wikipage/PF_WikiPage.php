@@ -15,7 +15,15 @@ class PFWikiPage {
 
 	public function addTemplate( $templateInForm ) {
 		$templateName = $templateInForm->getTemplateName();
-		$this->mComponents[] = new PFWikiPageTemplate( $templateName, !$templateInForm->allowsMultiple() );
+		$template = new PFWikiPageTemplate( $templateName, !$templateInForm->allowsMultiple() );
+		$this->mComponents[] = $template;
+		if ( $templateInForm->allowsMultiple() ) {
+			// Each instance carries the parameters the form does not define in its own values.
+			$unhandled = $templateInForm->getValuesFromSubmit()['_unhandled'] ?? [];
+			if ( is_array( $unhandled ) ) {
+				$template->setInstanceUnhandledParams( $unhandled );
+			}
+		}
 		if ( $templateInForm->getInstanceNum() == 0 ) {
 			$embedInTemplate = $templateInForm->getEmbedInTemplate();
 			$embedInParam = $templateInForm->getEmbedInField();

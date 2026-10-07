@@ -104,4 +104,17 @@ class FormValuesTest extends TestCase {
 
 		$this->assertSame( [ 'x' => '1' ], $values->mergeRequest( [ 'x' => '1' ] ) );
 	}
+
+	public function testUnhandledParametersOfMultipleInstancesStayWithTheirInstance(): void {
+		$values = new FormValues();
+		$values->addInstance( 'Tpl', '0a' );
+		$values->addInstance( 'Tpl', '1a' );
+		$values->setFieldValue( 'Tpl', '1a', 'a', 'x' );
+		$values->setUnhandled( 'Tpl', 'my param', 'v', '1a' );
+
+		$this->assertSame(
+			[ 'Tpl' => [ '0a' => [], '1a' => [ 'a' => 'x', '_unhandled' => [ 'my+param' => 'v' ] ] ] ],
+			$values->toOptions()
+		);
+	}
 }

@@ -11,6 +11,7 @@ class PFWikiPageTemplate {
 	private $mName;
 	private $mParams = [];
 	private $mAddUnhandledParams;
+	private $mInstanceUnhandledParams = [];
 
 	public function __construct( $name, $addUnhandledParams ) {
 		$this->mName = $name;
@@ -39,7 +40,24 @@ class PFWikiPageTemplate {
 		$this->addParam( $paramName, $value );
 	}
 
+	/**
+	 * Set the parameters the form does not define that belong to this very call. They are added
+	 * after the form's own parameters, like the ones a single-instance template reads from the
+	 * request.
+	 *
+	 * @param array<string, mixed> $params Parameter name (URL-encoded) => value
+	 */
+	public function setInstanceUnhandledParams( array $params ) {
+		$this->mInstanceUnhandledParams = $params;
+	}
+
 	public function addUnhandledParams( WebRequest $request ) {
+		foreach ( $this->mInstanceUnhandledParams as $paramName => $value ) {
+			if ( is_string( $value ) ) {
+				$this->addUnhandledParam( urldecode( (string)$paramName ), $value );
+			}
+		}
+		$this->mInstanceUnhandledParams = [];
 		if ( !$this->mAddUnhandledParams ) {
 			return;
 		}

@@ -71,6 +71,26 @@ class FormUtilsTest extends TestCase {
 	}
 
 	/**
+	 * The unhandled parameters of a multiple-instance template are named after the instance
+	 * ("[num]" is replaced by the instance number), so that each instance keeps its own.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::unhandledFieldsHTML
+	 */
+	public function testUnhandledFieldsHTMLForMultipleInstanceTemplateBelongToTheInstance() {
+		$mockTemplate = $this->createMock( TemplateInForm::class );
+		$mockTemplate->method( 'getTemplateName' )->willReturn( 'Example Template' );
+		$mockTemplate->method( 'allowsMultiple' )->willReturn( true );
+		$mockTemplate->method( 'getValuesFromPage' )->willReturn( [ 'field 1' => 'value1', 2 => 'positional' ] );
+
+		$output = FormUtils::unhandledFieldsHTML( $mockTemplate );
+
+		$this->assertStringContainsString( 'name="Example_Template[num][_unhandled][field+1]"', $output );
+		$this->assertStringContainsString( 'value="value1"', $output );
+		$this->assertStringNotContainsString( 'positional', $output );
+		$this->assertStringNotContainsString( '_unhandled_Example', $output );
+	}
+
+	/**
 	 * Test for unhandledFieldsHTML method when the template is null.
 	 *
 	 * This test ensures that when the template is null, the method returns an empty string.

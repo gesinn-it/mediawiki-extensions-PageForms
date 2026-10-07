@@ -28,7 +28,12 @@ class FormUtils {
 
 	/**
 	 * Add a hidden input for each field in the template call that's
-	 * not handled by the form itself
+	 * not handled by the form itself.
+	 *
+	 * For a multiple-instance template, the inputs go into the instance's own request values
+	 * ("Template[num][_unhandled][param]", with "num" replaced by the instance like for any
+	 * other input of the instance), so each instance keeps its own parameters.
+	 *
 	 * @param TemplateInForm|null $template_in_form
 	 * @return string
 	 */
@@ -46,7 +51,11 @@ class FormUtils {
 		foreach ( $template_in_form->getValuesFromPage() as $key => $value ) {
 			if ( $key !== null && !is_numeric( $key ) ) {
 				$key = urlencode( $key );
-				$text .= Html::hidden( '_unhandled_' . $templateName . '_' . $key, $value );
+				if ( $template_in_form->allowsMultiple() ) {
+					$text .= Html::hidden( $templateName . '[num][_unhandled][' . $key . ']', $value );
+				} else {
+					$text .= Html::hidden( '_unhandled_' . $templateName . '_' . $key, $value );
+				}
 			}
 		}
 		return $text;

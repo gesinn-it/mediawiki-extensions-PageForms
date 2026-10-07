@@ -17,11 +17,13 @@ class PFWikiPageTest extends TestCase {
 		bool $allowsMultiple = false,
 		int $instanceNum = 0,
 		?string $embedInTemplate = null,
-		?string $embedInField = null
+		?string $embedInField = null,
+		array $valuesFromSubmit = []
 	) {
 		$tif = $this->getMockBuilder( stdClass::class )
 			->addMethods( [
-				'getTemplateName', 'getInstanceNum', 'getEmbedInTemplate', 'getEmbedInField', 'allowsMultiple'
+				'getTemplateName', 'getInstanceNum', 'getEmbedInTemplate', 'getEmbedInField', 'allowsMultiple',
+				'getValuesFromSubmit'
 			] )
 			->getMock();
 		$tif->method( 'getTemplateName' )->willReturn( $templateName );
@@ -29,6 +31,7 @@ class PFWikiPageTest extends TestCase {
 		$tif->method( 'getEmbedInTemplate' )->willReturn( $embedInTemplate );
 		$tif->method( 'getEmbedInField' )->willReturn( $embedInField );
 		$tif->method( 'allowsMultiple' )->willReturn( $allowsMultiple );
+		$tif->method( 'getValuesFromSubmit' )->willReturn( $valuesFromSubmit );
 		return $tif;
 	}
 
@@ -302,6 +305,20 @@ class PFWikiPageTest extends TestCase {
 		$text = $wikiPage->createTemplateCallsForTemplateName( 'MyTemplate', $request );
 
 		$this->assertStringNotContainsString( 'field1', $text );
+	}
+
+	public function testMultipleInstanceTemplateCallCarriesTheUnhandledParamsOfItsOwnInstance() {
+		$wikiPage = new PFWikiPage();
+		$wikiPage->addTemplate( $this->makeTemplateInForm(
+			'MyTemplate', true, 0, null, null, [ '_unhandled' => [ 'legacy+param' => 'one' ] ]
+		) );
+		$wikiPage->addTemplate( $this->makeTemplateInForm( 'MyTemplate', true, 1 ) );
+		$wikiPage->addTemplateParam( 'MyTemplate', 0, 'field1', 'a' );
+		$wikiPage->addTemplateParam( 'MyTemplate', 1, 'field1', 'b' );
+
+		$text = $wikiPage->createTemplateCallsForTemplateName( 'MyTemplate', new FauxRequest() );
+
+		$this->assertSame( "{{MyTemplate\n|field1=a\n|legacy param=one\n}}\n{{MyTemplate\n|field1=b\n}}\n", $text );
 	}
 
 	// -------------------------------------------------------------------------

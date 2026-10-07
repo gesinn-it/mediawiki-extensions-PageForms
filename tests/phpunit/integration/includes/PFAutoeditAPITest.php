@@ -1602,6 +1602,44 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
+	 * Parameters of a multiple-instance template that the form does not define stay with the
+	 * instance they were on (issue #216), also when an instance is added.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormDefParser::readPageValues
+	 * @covers \PFWikiPage::addTemplate
+	 */
+	public function testStoreKeepsUnhandledParametersOfMultipleInstanceTemplatePerInstance(): void {
+		$formName = 'AEStoreFormMultiUnhandled';
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, $formName ),
+			"{{{for template|AEStoreMultiUnh|multiple}}}\n{{{field|name}}}\n{{{end template}}}\n"
+			. "{{{standard input|save}}}"
+		);
+		$targetName = 'AEStoreTargetMultiUnhandled';
+		$this->insertPage(
+			$targetName,
+			"{{AEStoreMultiUnh|name=a|legacy=one}}\n{{AEStoreMultiUnh|name=b|legacy=two|other=o}}\n"
+			. "{{AEStoreMultiUnh|name=c}}\n"
+		);
+
+		$module = $this->executeStore( $formName, $targetName, [
+			'AEStoreMultiUnh' => [ 'new' => [ 'name' => 'd' ] ],
+		] );
+
+		$this->assertSame( 200, $module->getStatus() );
+		$text = $this->getExistingTestPage( $targetName )->getContent()->getText();
+		preg_match_all( '/\{\{AEStoreMultiUnh.*?\}\}/s', $text, $calls );
+		$this->assertCount( 4, $calls[0], $text );
+		$this->assertMatchesRegularExpression( '/name=a\s*\|legacy=one\s*\}\}/', $calls[0][0] );
+		$this->assertMatchesRegularExpression( '/name=b/', $calls[0][1] );
+		$this->assertStringContainsString( 'legacy=two', $calls[0][1] );
+		$this->assertStringContainsString( 'other=o', $calls[0][1] );
+		$this->assertStringNotContainsString( 'legacy', $calls[0][2] );
+		$this->assertStringNotContainsString( 'legacy', $calls[0][3] );
+		$this->assertStringNotContainsString( 'other', $calls[0][0] );
+	}
+
+	/**
 	 * Saves AEStoreTpl through pfautoedit while the page has been changed since the
 	 * revision the request claims to be based on (what #autoedit embeds when it is rendered),
 	 * which EditPage reports as an edit conflict.

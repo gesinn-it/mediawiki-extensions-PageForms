@@ -261,6 +261,32 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
+	 * Editing a page in the form keeps the template parameters the form does not define: for a
+	 * multiple-instance template as hidden inputs of the instance they belong to (issue #216).
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormUtils::unhandledFieldsHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
+	 */
+	public function testFormHtmlCarriesUnhandledParametersOfMultipleInstanceTemplatePerInstance(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+		$formDef = "{{{for template|PFTestUnhMulti|multiple}}}\n{{{field|Name}}}\n{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+		$pageContent = "{{PFTestUnhMulti|Name=a|Legacy=one}}\n{{PFTestUnhMulti|Name=b|Legacy=two}}\n"
+			. "{{PFTestUnhMulti|Name=c}}";
+
+		[ $formText ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, true, null, $pageContent, 'PFTestUnhMultiPage', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertSame( 1, substr_count( $formText, 'value="one" name="PFTestUnhMulti[0a][_unhandled][Legacy]"' ) );
+		$this->assertSame( 1, substr_count( $formText, 'value="two" name="PFTestUnhMulti[1a][_unhandled][Legacy]"' ) );
+		$this->assertSame( 2, substr_count( $formText, '[_unhandled][Legacy]' ) );
+	}
+
+	/**
 	 * preparePreloadData() must return no template fields when the page does
 	 * not call the template defined in the form, but must still return the
 	 * page content as pf_free_text.

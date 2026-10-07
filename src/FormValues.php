@@ -50,8 +50,23 @@ class FormValues {
 		$this->templates[$templateKey][$instance] = [];
 	}
 
-	public function setUnhandled( string $templateKey, string $parameter, string $value ): void {
-		$this->unhandled['_unhandled_' . $templateKey . '_' . urlencode( $parameter )] = $value;
+	/**
+	 * Set a template parameter the form does not define.
+	 *
+	 * @param string $templateKey
+	 * @param string $parameter
+	 * @param string $value
+	 * @param string|null $instance Instance key ("0a", ...) of a multiple-instance template, so that
+	 *   the parameter stays with its instance; null for a single-instance template
+	 */
+	public function setUnhandled(
+		string $templateKey, string $parameter, string $value, ?string $instance = null
+	): void {
+		if ( $instance === null ) {
+			$this->unhandled['_unhandled_' . $templateKey . '_' . urlencode( $parameter )] = $value;
+		} else {
+			$this->templates[$templateKey][$instance]['_unhandled'][urlencode( $parameter )] = $value;
+		}
 	}
 
 	public function hasUnhandled( string $templateKey, string $parameter ): bool {

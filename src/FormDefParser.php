@@ -129,17 +129,17 @@ class FormDefParser {
 			$result->setMappedFields( $template_key, $mappedFields );
 
 			// Whatever else the page's template call carries is "unhandled" (see
-			// FormUtils::unhandledFieldsHTML()).
+			// FormUtils::unhandledFieldsHTML()). Positional parameters are not carried over.
 			$handledFields = $templateSpec->getFieldNames();
-			foreach ( $instances ?? [ $tif->getValuesFromPage() ] as $values ) {
+			foreach ( $instances ?? [ $tif->getValuesFromPage() ] as $i => $values ) {
 				foreach ( $values as $name => $value ) {
-					// Positional parameters are not carried over, and neither
-					// formHTML() nor the later page assembly distinguishes the
-					// instances of a multiple-instance template here: the first
-					// instance that has the parameter provides its value.
-					if ( !is_numeric( $name ) && !in_array( $name, $handledFields, true )
-						&& !$result->hasUnhandled( $template_key, (string)$name )
-					) {
+					if ( is_numeric( $name ) || in_array( $name, $handledFields, true ) ) {
+						continue;
+					}
+					if ( $instances !== null ) {
+						// Each instance keeps its own parameters.
+						$result->setUnhandled( $template_key, (string)$name, $value, $i . 'a' );
+					} elseif ( !$result->hasUnhandled( $template_key, (string)$name ) ) {
 						$result->setUnhandled( $template_key, (string)$name, $value );
 					}
 				}

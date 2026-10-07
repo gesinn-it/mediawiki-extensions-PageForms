@@ -296,20 +296,26 @@ class FormDefParserTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [ 'pf_free_text' ], array_keys( $absent ) );
 	}
 
-	public function testMultipleInstanceTemplateReturnsUnhandledParameterOfFirstInstanceThatHasIt(): void {
-		// formHTML() emits the hidden "_unhandled_" inputs once per instance and the
-		// extractor keeps the first one, so the first instance that has the parameter wins.
+	public function testMultipleInstanceTemplateKeepsUnhandledParametersWithTheirInstance(): void {
 		$formDef = "{{{for template|PFTestFDPUnh05|multiple}}}\n"
 			. "{{{field|Name}}}\n"
 			. "{{{end template}}}";
 
-		$pageContent = "{{PFTestFDPUnh05|Name=a}}\n{{PFTestFDPUnh05|Name=b|Legacy=second}}"
+		$pageContent = "{{PFTestFDPUnh05|Name=a}}\n{{PFTestFDPUnh05|Name=b|Legacy=second|Other=o}}"
 			. "\n{{PFTestFDPUnh05|Name=c|Legacy=third}}";
 
 		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
 
-		$this->assertSame( 'second', $data['_unhandled_PFTestFDPUnh05_Legacy'] );
-		$this->assertArrayNotHasKey( 'Legacy', $data['PFTestFDPUnh05']['1a'] );
+		$this->assertSame( [ 'Name' => 'a' ], $data['PFTestFDPUnh05']['0a'] );
+		$this->assertSame(
+			[ 'Name' => 'b', '_unhandled' => [ 'Legacy' => 'second', 'Other' => 'o' ] ],
+			$data['PFTestFDPUnh05']['1a']
+		);
+		$this->assertSame(
+			[ 'Name' => 'c', '_unhandled' => [ 'Legacy' => 'third' ] ],
+			$data['PFTestFDPUnh05']['2a']
+		);
+		$this->assertArrayNotHasKey( '_unhandled_PFTestFDPUnh05_Legacy', $data );
 	}
 
 	// ------------------------------------------------------------------ splitFormDefIntoSections
