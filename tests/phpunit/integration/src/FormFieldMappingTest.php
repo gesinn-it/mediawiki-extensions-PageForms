@@ -61,6 +61,31 @@ class FormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
+	 * Many values are expanded in one parser call; every value still gets its own label,
+	 * including values with markup that are expanded on their own.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormField::setValuesWithMappingTemplate
+	 */
+	public function testSetValuesWithMappingTemplateGivesEachOfManyValuesItsOwnLabel(): void {
+		$templateName = 'PFTestMappingTplBatch01';
+		$this->editPage( "Template:$templateName", 'L-{{{1}}}' );
+
+		$values = [ '{{{x}}}', '[[A]]' ];
+		for ( $i = 1; $i <= 250; $i++ ) {
+			$values[] = "v$i";
+		}
+		$field = $this->makeFieldForMappingTemplate( $templateName, $values );
+		$field->setValuesWithMappingTemplate();
+		$labels = $field->getPossibleValues();
+
+		$this->assertCount( 252, $labels );
+		$this->assertSame( 'L-v1', $labels['v1'] );
+		$this->assertSame( 'L-v137', $labels['v137'] );
+		$this->assertSame( 'L-v250', $labels['v250'] );
+		$this->assertStringContainsString( 'L-', $labels['[[A]]'] );
+	}
+
+	/**
 	 * Labels are remembered per template revision: a second field using the same
 	 * template gets the same labels, and an edited template is read again.
 	 *

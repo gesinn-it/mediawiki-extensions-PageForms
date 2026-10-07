@@ -7,7 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Changed
-- Forms with several fields that use the same `values from ...` source, or the same `mapping template` in the instances of a multiple-instance template, open faster: each source is counted and each mapped label looked up once per request instead of once per field [#221](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/221), [#222](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/222)
+- Forms with several fields that use the same `values from ...` source, or the same `mapping template` in the instances of a multiple-instance template, open faster: each source is counted and each mapped label looked up once per request instead of once per field, and the labels of one field are looked up together instead of one by one [#221](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/221), [#222](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/222)
 
 ### Fixed
 - Fixed `#autoedit` and the `pfautoedit` API reporting an edit conflict ("Modifying ... failed") for every change made to the target page since the page containing `#autoedit` was rendered, for example by another `#autoedit` or when that page was served from the parser cache. The save is now based on the revision that is current when the page text is read, so a change made at the same time is merged or reported as a conflict instead of being overwritten ([#219](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/219))

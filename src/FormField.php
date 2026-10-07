@@ -855,26 +855,69 @@ class FormField {
 		$parser = PFUtils::ensureParserReadyForTagParse(
 			PFUtils::getParser(), RequestContext::getMain()->getUser(), RequestContext::getMain()->getTitle()
 		);
+		$prefix = '';
+		$keys = [];
 		foreach ( $this->mPossibleValues as $index => $value ) {
-			if ( $this->mUseDisplayTitle ) {
-				$value = $index;
-			}
-			if ( $templateExists ) {
-				// The label of a value is the same for every field mapped by this version of the
-				// template, such as the instances of a multiple-instance template.
-				$cacheKey = $templateName . "\0" . $title->getLatestRevID() . "\0" . $value;
-				$label = self::$mappingTemplateLabels[$cacheKey]
-					??= trim( $parser->recursiveTagParse( '{{' . $templateName . '|' . $value . '}}' ) );
-				if ( $label == '' ) {
-					$labels[$value] = $value;
-				} else {
-					$labels[$value] = $label;
+			$keys[] = $this->mUseDisplayTitle ? $index : $value;
+		}
+		if ( $templateExists ) {
+			// The label of a value is the same for every field mapped by this version of the
+			// template, such as the instances of a multiple-instance template.
+			$prefix = $templateName . "\0" . $title->getLatestRevID() . "\0";
+			$missing = [];
+			foreach ( $keys as $value ) {
+				if ( !isset( self::$mappingTemplateLabels[$prefix . $value] ) ) {
+					$missing[$value] = true;
 				}
-			} else {
-				$labels[$value] = $value;
 			}
+			self::parseMappingLabels( $parser, $templateName, $prefix, array_map( 'strval', array_keys( $missing ) ) );
+		}
+		foreach ( $keys as $value ) {
+			$label = $templateExists ? self::$mappingTemplateLabels[$prefix . $value] : '';
+			$labels[$value] = $label == '' ? $value : $label;
 		}
 		$this->mPossibleValues = $labels;
+	}
+
+	/**
+	 * Fills the label memo for the given values. Values that are plain text are expanded
+	 * together, many per parser call, because the call overhead dominates for long lists.
+	 * Anything that could affect its neighbours (markup, braces) is expanded on its own,
+	 * as is every value if a batch does not come back in the expected pieces.
+	 *
+	 * @param \Parser $parser
+	 * @param string $templateName
+	 * @param string $prefix Memo key prefix (template, revision)
+	 * @param string[] $values
+	 */
+	private static function parseMappingLabels( $parser, string $templateName, string $prefix, array $values ): void {
+		$separator = '@@PFMAPSEP@@';
+		$batchable = [];
+		foreach ( $values as $value ) {
+			if ( preg_match( '/[{}\[\]<>~\n@&]/', $value ) ) {
+				self::$mappingTemplateLabels[$prefix . $value] =
+					trim( $parser->recursiveTagParse( '{{' . $templateName . '|' . $value . '}}' ) );
+			} else {
+				$batchable[] = $value;
+			}
+		}
+		foreach ( array_chunk( $batchable, 100 ) as $chunk ) {
+			$wikitext = '';
+			foreach ( $chunk as $value ) {
+				$wikitext .= '{{' . $templateName . '|' . $value . "}}\n" . $separator . "\n";
+			}
+			$pieces = explode( $separator, $parser->recursiveTagParse( $wikitext ) );
+			array_pop( $pieces );
+			if ( count( $pieces ) !== count( $chunk ) ) {
+				$pieces = [];
+				foreach ( $chunk as $value ) {
+					$pieces[] = $parser->recursiveTagParse( '{{' . $templateName . '|' . $value . '}}' );
+				}
+			}
+			foreach ( $chunk as $i => $value ) {
+				self::$mappingTemplateLabels[$prefix . $value] = trim( $pieces[$i] );
+			}
+		}
 	}
 
 	/**
