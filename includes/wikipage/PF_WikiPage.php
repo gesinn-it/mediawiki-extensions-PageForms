@@ -184,6 +184,8 @@ class PFWikiPage {
 			} elseif ( $component instanceof PFWikiPageFreeText ) {
 				$freeText = $component->getText();
 				if ( $this->mFreeTextOnlyInclude ) {
+					// Wrapped even when the free text is empty: transcluding the page
+					// then yields nothing, rather than the template calls it contains.
 					$freeText = "<onlyinclude>$freeText</onlyinclude>";
 				}
 				$pageText .= "$freeText\n";
