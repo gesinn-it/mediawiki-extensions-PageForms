@@ -5,7 +5,9 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use Html;
-use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
+use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
+use MediaWiki\Extension\PageForms\FormDefinition\SectionSpec;
+use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
 use PFPageSection;
 use PFTextAreaInput;
 use PFWikiPage;
@@ -17,18 +19,12 @@ use WebRequest;
  */
 class FormSectionHtmlBuilder {
 
-	private FormDefinitionReader $reader;
-
-	public function __construct( ?FormDefinitionReader $reader = null ) {
-		$this->reader = $reader ?? new FormDefinitionReader();
-	}
-
 	/**
 	 * Builds the HTML input for a single section tag and updates $existing_page_content in-place.
 	 *
 	 * @param array $tag_components Parsed components of the section tag
-	 * @param string $form_def_section The current form-definition section string (used for look-ahead)
-	 * @param int $brackets_end_loc Current '}}}' position in $form_def_section
+	 * @param list<FormElement> $following_elements The elements of the form definition that come after
+	 *   this tag (used for look-ahead)
 	 * @param bool $source_is_page Whether the form is being pre-populated from an existing page
 	 * @param string|null &$existing_page_content Remaining page wikitext; mutated to remove the extracted section
 	 * @param WebRequest $request Current HTTP request
@@ -39,8 +35,7 @@ class FormSectionHtmlBuilder {
 	 */
 	public function buildHtml(
 		array $tag_components,
-		string $form_def_section,
-		int $brackets_end_loc,
+		array $following_elements,
 		bool $source_is_page,
 		?string &$existing_page_content,
 		WebRequest $request,
@@ -60,8 +55,7 @@ class FormSectionHtmlBuilder {
 			$section_text = $this->extractSectionFromPageContent(
 				$section_name,
 				$page_section_in_form,
-				$form_def_section,
-				$brackets_end_loc,
+				$following_elements,
 				$existing_page_content,
 				$user
 			);
@@ -103,8 +97,7 @@ class FormSectionHtmlBuilder {
 	private function extractSectionFromPageContent(
 		string $section_name,
 		PFPageSection $page_section_in_form,
-		string $form_def_section,
-		int $brackets_end_loc,
+		array $following_elements,
 		string &$existing_page_content,
 		User $user
 	): string {
@@ -130,8 +123,7 @@ class FormSectionHtmlBuilder {
 		}
 
 		$section_end_loc = $this->findSectionEndLoc(
-			$form_def_section,
-			$brackets_end_loc,
+			$following_elements,
 			$existing_page_content,
 			$section_start_loc,
 			$user
@@ -154,50 +146,37 @@ class FormSectionHtmlBuilder {
 	/**
 	 * Looks ahead in the form definition to find where the current section ends in the page content.
 	 *
+	 * @param list<FormElement> $following_elements
 	 * @return int|false Position of section end in $existing_page_content, or -1 if end of content
 	 */
 	private function findSectionEndLoc(
-		string $form_def_section,
-		int $brackets_end_loc,
+		array $following_elements,
 		string $existing_page_content,
 		int $section_start_loc,
 		User $user
 	) {
-		$section_end_loc = -1;
-		$previous_brackets_end_loc = $brackets_end_loc;
-		$next_section_found = false;
-
-		while ( !$next_section_found ) {
-			$nextTag = $this->reader->findNextTag( $form_def_section, $previous_brackets_end_loc );
-			if ( $nextTag === null ) {
-				$section_end_loc = strpos( $existing_page_content, '{{', $section_start_loc );
-				$next_section_found = true;
-			} else {
-				$next_bracket_end_loc = $nextTag['end'] - 3;
-				$tag_components_next_section = $nextTag['components'];
-				$page_next_section_in_form =
-					PFPageSection::newFromFormTag( $tag_components_next_section, $user );
-				$tag_title_next_section = trim( $tag_components_next_section[0] );
-				if ( $tag_title_next_section == 'section' ) {
-					if ( preg_match(
-						'/(^={1,6}[ ]*?' . preg_quote( $tag_components_next_section[1], '/' )
-							. '[ ]*?={1,6}\s*?$)/m',
-						$existing_page_content, $matches, PREG_OFFSET_CAPTURE
-					) ) {
-						$section_end_loc = $matches[0][1];
-						$next_section_found = true;
-					} elseif ( $page_next_section_in_form->isHideIfEmpty() ) {
-						$previous_brackets_end_loc = $next_bracket_end_loc;
-					} else {
-						break;
-					}
-				} else {
-					$next_section_found = true;
-				}
+		foreach ( $following_elements as $element ) {
+			if ( !$element instanceof TagSpec ) {
+				continue;
+			}
+			if ( !$element instanceof SectionSpec ) {
+				// Any other tag ends the look-ahead.
+				return -1;
+			}
+			$components = $element->getComponents();
+			$page_next_section_in_form = PFPageSection::newFromFormTag( $components, $user );
+			if ( preg_match(
+				'/(^={1,6}[ ]*?' . preg_quote( $components[1], '/' ) . '[ ]*?={1,6}\s*?$)/m',
+				$existing_page_content, $matches, PREG_OFFSET_CAPTURE
+			) ) {
+				return $matches[0][1];
+			}
+			if ( !$page_next_section_in_form->isHideIfEmpty() ) {
+				return -1;
 			}
 		}
-
-		return $section_end_loc;
+		// No further tag: the section ends at the next template call.
+		return strpos( $existing_page_content, '{{', $section_start_loc );
 	}
 
 	/**

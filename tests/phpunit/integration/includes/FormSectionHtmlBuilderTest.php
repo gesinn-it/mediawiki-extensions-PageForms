@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\Extension\PageForms\FormSectionHtmlBuilder;
 use OOUI\BlankTheme;
 
@@ -27,8 +28,7 @@ class FormSectionHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 
 	private function buildHtml(
 		array $tagComponents,
-		string $formDefSection = '',
-		int $bracketsEndLoc = 0,
+		array $followingElements = [],
 		bool $sourceIsPage = false,
 		?string &$existingContent = null,
 		array $requestData = [],
@@ -39,8 +39,7 @@ class FormSectionHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		$ref = &$existingContent;
 		return $this->builder->buildHtml(
 			$tagComponents,
-			$formDefSection,
-			$bracketsEndLoc,
+			$followingElements,
 			$sourceIsPage,
 			$ref,
 			$request,
@@ -48,6 +47,13 @@ class FormSectionHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 			$formIsDisabled,
 			$this->user
 		);
+	}
+
+	/**
+	 * @return list<\MediaWiki\Extension\PageForms\FormDefinition\FormElement>
+	 */
+	private function elementsAfterFirstTag( string $formDef ): array {
+		return array_slice( ( new FormDefinitionReader() )->read( $formDef )->getElements(), 2 );
 	}
 
 	// ── Request path (source_is_page = false) ─────────────────────────────────
@@ -108,8 +114,7 @@ class FormSectionHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 
 		$html = $this->builder->buildHtml(
 			[ 'section', 'Private', 'level=2', 'restricted' ],
-			'',
-			0,
+			[],
 			false,
 			$existingContent,
 			$request,
@@ -147,16 +152,14 @@ class FormSectionHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		// Two sections in both page content and form definition so the look-ahead
 		// can find the boundary and stop extraction before "Other".
 		$existingContent = "== Background ==\nBackground text.\n== Other ==\nOther text.\n";
-		$formDef = ' {{{section|Background|level=2}}}{{{section|Other|level=2}}}';
-		$firstTagEnd = strpos( $formDef, '}}}' ) + 3;
+		$following = $this->elementsAfterFirstTag( ' {{{section|Background|level=2}}}{{{section|Other|level=2}}}' );
 
 		$request = new FauxRequest();
 		$wikiPage = new PFWikiPage();
 
 		$this->builder->buildHtml(
 			[ 'section', 'Background', 'level=2' ],
-			$formDef,
-			$firstTagEnd,
+			$following,
 			true,
 			$existingContent,
 			$request,
@@ -205,17 +208,14 @@ class FormSectionHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		$existingContent = "== Intro ==\nIntro text.\n== Details ==\nDetails text.\n";
 
 		// form_def_section contains both section tags after the current one
-		$formDef = ' {{{section|Intro|level=2}}}{{{section|Details|level=2}}}';
-		// brackets_end_loc points past the end of the first tag
-		$firstTagEnd = strpos( $formDef, '}}}' ) + 3;
+		$following = $this->elementsAfterFirstTag( ' {{{section|Intro|level=2}}}{{{section|Details|level=2}}}' );
 
 		$request = new FauxRequest();
 		$wikiPage = new PFWikiPage();
 
 		$html = $this->builder->buildHtml(
 			[ 'section', 'Intro', 'level=2' ],
-			$formDef,
-			$firstTagEnd,
+			$following,
 			true,
 			$existingContent,
 			$request,
@@ -229,21 +229,19 @@ class FormSectionHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testLookAheadFindsNextSectionTagAtOffsetZero(): void {
-		// The next '{{{' tag starts at offset 0 of $form_def_section (brackets_end_loc = 0).
-		// strpos() returns int 0 for this match; a loose `== false` comparison would
-		// misinterpret this as "not found" and fall through to end-of-content handling,
-		// swallowing "Details text." into the "Intro" section instead of stopping before it.
+		// The next tag is the very first element of what follows. It must be found as such
+		// and not mistaken for "no further tag", which would fall through to end-of-content
+		// handling and swallow "Details text." into the "Intro" section.
 		$existingContent = "== Intro ==\nIntro text.\n== Details ==\nDetails text.\n";
 
-		$formDef = '{{{section|Details|level=2}}}';
+		$following = ( new FormDefinitionReader() )->read( '{{{section|Details|level=2}}}' )->getElements();
 
 		$request = new FauxRequest();
 		$wikiPage = new PFWikiPage();
 
 		$html = $this->builder->buildHtml(
 			[ 'section', 'Intro', 'level=2' ],
-			$formDef,
-			0,
+			$following,
 			true,
 			$existingContent,
 			$request,

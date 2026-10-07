@@ -9,6 +9,10 @@ use FatalError;
 use Html;
 use LogEventsList;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
+use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
+use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
+use MediaWiki\Extension\PageForms\FormDefinition\TextSpec;
+use MediaWiki\Extension\PageForms\FormDefinition\UnknownTagSpec;
 use MediaWiki\MediaWikiServices;
 use MWException;
 use OutputPage;
@@ -100,7 +104,7 @@ class FormPrinter {
 		$this->spreadsheetHtmlBuilder = new SpreadsheetHtmlBuilder();
 		$this->standardInputHtmlBuilder = new StandardInputHtmlBuilder();
 		$this->formDefReader = new FormDefinitionReader();
-		$this->formSectionHtmlBuilder = new FormSectionHtmlBuilder( $this->formDefReader );
+		$this->formSectionHtmlBuilder = new FormSectionHtmlBuilder();
 		$this->fieldValueResolver = new FieldValueResolver();
 
 		$this->standardInputsIncluded = false;
@@ -612,8 +616,7 @@ class FormPrinter {
 	 * Increments the tab-index/field-num globals (and $this->counters) before delegating.
 	 *
 	 * @param array $tag_components
-	 * @param string $section
-	 * @param int $brackets_end_loc
+	 * @param list<FormElement> $following_elements
 	 * @param bool $source_is_page
 	 * @param string|null $existing_page_content
 	 * @param WebRequest $request
@@ -625,7 +628,7 @@ class FormPrinter {
 	 * @return string
 	 */
 	private function buildSectionTagHtml(
-		array $tag_components, $section, $brackets_end_loc, $source_is_page, $existing_page_content,
+		array $tag_components, array $following_elements, $source_is_page, $existing_page_content,
 		$request, $wiki_page, $form_is_disabled, $user, &$fieldNum, &$tabIndex
 	): string {
 		$fieldNum++;
@@ -635,8 +638,7 @@ class FormPrinter {
 
 		return $this->formSectionHtmlBuilder->buildHtml(
 			$tag_components,
-			$section,
-			$brackets_end_loc,
+			$following_elements,
 			$source_is_page,
 			$existing_page_content,
 			$request,
@@ -858,19 +860,21 @@ class FormPrinter {
 		$info_tag_seen = false;
 
 		for ( $section_num = 0; $section_num < count( $form_def_sections ); $section_num++ ) {
-			$start_position = 0;
-			// the append is there to ensure that the original
-			// array doesn't get modified; is it necessary?
-			$section = " " . $form_def_sections[$section_num];
+			// The section's text and tags, in order. The HTML for the section is
+			// assembled from them in $section.
+			$section_elements = $this->formDefReader->read( " " . $form_def_sections[$section_num] )
+				->getElements();
+			$section = '';
 
-			while ( true ) {
-				$tag = $this->formDefReader->findNextTag( $section, $start_position );
-				if ( $tag === null || count( $tag['components'] ) == 0 ) {
-					break;
+			foreach ( $section_elements as $element_num => $element ) {
+				if ( $element instanceof TextSpec ) {
+					$section .= $element->getText();
+					continue;
 				}
-				$brackets_loc = $tag['start'];
-				$brackets_end_loc = $tag['end'] - 3;
-				$tag_components = $tag['components'];
+				if ( !$element instanceof TagSpec ) {
+					continue;
+				}
+				$tag_components = $element->getComponents();
 				$tag_title = trim( $tag_components[0] );
 				// Checks for forbidden characters
 				if ( $tag_title != 'info' ) {
@@ -911,8 +915,7 @@ class FormPrinter {
 						$template = Template::newFromName( $template_name );
 						$tif = TemplateInForm::newFromFormTag( $tag_components, $parser );
 					}
-					// Remove template tag.
-					$section = substr_replace( $section, '', $brackets_loc, $brackets_end_loc + 3 - $brackets_loc );
+					// The template tag itself produces no output.
 					// If we are editing a page, and this
 					// template can be found more than
 					// once in that page, and multiple
@@ -970,8 +973,7 @@ class FormPrinter {
 						// in the page as hidden variables.
 						$form_text .= FormUtils::unhandledFieldsHTML( $tif );
 					}
-					// Remove this tag from the $section variable.
-					$section = substr_replace( $section, '', $brackets_loc, $brackets_end_loc + 3 - $brackets_loc );
+					// The tag itself produces no output.
 					$template = null;
 					$tif = null;
 				// =====================================================
@@ -1115,9 +1117,7 @@ END;
 					}
 
 					if ( $tif->getTemplateName() === '' || $field_name == '#freetext#' ) {
-						$section = substr_replace(
-							$section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
-						);
+						$section .= $new_text;
 					} else {
 						if ( $form_field->holdsTemplate() ) {
 							// If this field holds an embedded template and the value is not
@@ -1216,12 +1216,7 @@ END;
 							$wiki_page->addTemplateParam(
 								$template_name, $tif->getInstanceNum(), $field_name, $cur_value_in_template
 							);
-							$section = substr_replace(
-								$section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
-							);
-							$start_position = $brackets_loc + strlen( $new_text );
-						} else {
-							$start_position = $brackets_end_loc;
+							$section .= $new_text;
 						}
 					}
 
@@ -1257,9 +1252,6 @@ END;
 					// if it's a query, ignore all standard inputs except run query
 					if ( ( $is_query && $input_name != 'run query' )
 						|| ( !$is_query && $input_name == 'run query' ) ) {
-						$section = substr_replace(
-							$section, "", $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
-						);
 						continue;
 					}
 					// set a flag so that the standard 'form bottom' won't get displayed
@@ -1269,21 +1261,18 @@ END;
 						$input_name, $tag_components, $form_is_disabled, $form_submitted, $request, $parser,
 						$page_name
 					);
-					$section = substr_replace(
-						$section, $new_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
-					);
+					$section .= $new_text;
 				// =====================================================
 				// for section processing
 				// =====================================================
 				} elseif ( $tag_title == 'section' ) {
 					$form_section_text = $this->buildSectionTagHtml(
-						$tag_components, $section, $brackets_end_loc, $source_is_page, $existing_page_content,
-						$request, $wiki_page, $form_is_disabled, $user, $wgPageFormsFieldNum, $wgPageFormsTabIndex
+						$tag_components, array_slice( $section_elements, $element_num + 1 ), $source_is_page,
+						$existing_page_content, $request, $wiki_page, $form_is_disabled, $user,
+						$wgPageFormsFieldNum, $wgPageFormsTabIndex
 					);
 
-					$section = substr_replace(
-						$section, $form_section_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
-					);
+					$section .= $form_section_text;
 				// =====================================================
 				// page info processing
 				// =====================================================
@@ -1300,27 +1289,18 @@ END;
 					);
 					// Replace the {{{info}}} tag with a hidden span, instead of a blank, to avoid a
 					// potential security issue.
-					$section = substr_replace(
-					$section, '<span style="visibility: hidden;"></span>',
-					$brackets_loc, $brackets_end_loc + 3 - $brackets_loc
-					);
+					$section .= '<span style="visibility: hidden;"></span>';
 				// =====================================================
 				// default outer level processing
 				// =====================================================
 				} else {
 					// Tag is not one of the allowed values -
 					// ignore it, other than to HTML-escape it.
-					$form_section_text = htmlspecialchars(
-						substr( $section, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc )
-					);
-					$section = substr_replace(
-						$section, $form_section_text, $brackets_loc, $brackets_end_loc + 3 - $brackets_loc
-					);
-					$start_position = $brackets_end_loc;
+					$section .= htmlspecialchars( $element instanceof UnknownTagSpec ? $element->getRaw() : '' );
 				}
 				// end if
 			}
-			// end while
+			// end foreach
 
 			if ( $tif && ( !$tif->allowsMultiple() || $tif->allInstancesPrinted() ) ) {
 				$template_text = $wiki_page->createTemplateCallsForTemplateName( $tif->getTemplateName(), $request );
