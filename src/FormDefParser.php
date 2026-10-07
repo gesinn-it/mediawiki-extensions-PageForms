@@ -96,9 +96,6 @@ class FormDefParser {
 			}
 
 			foreach ( $templateSpec->getFields() as $field ) {
-				if ( $field->isFreeText() ) {
-					continue;
-				}
 				$field_name = $field->getName();
 				if ( $instances !== null ) {
 					// Multiple-instance template: instances are keyed "0a", "1a", ... exactly

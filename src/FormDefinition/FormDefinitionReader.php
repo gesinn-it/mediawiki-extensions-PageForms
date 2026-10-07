@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\FormDefinition;
 
+use MWException;
 use PFUtils;
 
 /**
@@ -16,53 +17,70 @@ class FormDefinitionReader {
 	 * @param string $formDef Form definition wikitext, with the tags still in place
 	 *   (as returned by FormCache::getFormDefinition())
 	 * @return FormDefinition
+	 * @throws MWException If a tag is missing its closing braces
 	 */
 	public function read( string $formDef ): FormDefinition {
 		$definition = new FormDefinition();
-		$template = null;
+		$position = 0;
 
-		foreach ( $this->tokenize( $formDef ) as $components ) {
-			$tagTitle = trim( $components[0] );
-
-			if ( $tagTitle === 'for template' ) {
-				// A new "for template" closes a block that was never ended.
-				$template = new TemplateSpec( $components );
-				$definition->addTemplate( $template );
-			} elseif ( $tagTitle === 'end template' ) {
-				$template = null;
-			} elseif ( $tagTitle === 'field' && count( $components ) > 1 ) {
-				// Fields outside a template have nothing to be read into.
-				$template?->addField( new FieldSpec( $components ) );
-			} elseif ( $tagTitle === 'standard input' && trim( $components[1] ?? '' ) === 'free text' ) {
-				$definition->setHasFreeText( true );
-				$template?->addField( FieldSpec::freeText() );
+		while ( true ) {
+			$open = strpos( $formDef, '{{{', $position );
+			if ( $open === false ) {
+				break;
 			}
+			$close = strpos( $formDef, '}}}', $open );
+			if ( $close === false ) {
+				throw new MWException(
+					'<div class="error">Error in form definition!'
+					. ' The following tag is missing its closing \'}}}\':</div>'
+					. "\n<pre>" . htmlspecialchars( substr( $formDef, $open ) ) . "</pre>"
+				);
+			}
+			// For cases with more than 3 ending brackets, take the last 3 ones as the tag end.
+			while ( ( $formDef[$close + 3] ?? '' ) === '}' ) {
+				$close++;
+			}
+			$components = PFUtils::getFormTagComponents( substr( $formDef, $open + 3, $close - ( $open + 3 ) ) );
+			if ( count( $components ) === 0 ) {
+				break;
+			}
+
+			if ( $open > $position ) {
+				$definition->addElement( new TextSpec( substr( $formDef, $position, $open - $position ) ) );
+			}
+			$definition->addElement(
+				$this->newTag( $components, substr( $formDef, $open, $close + 3 - $open ) )
+			);
+			$position = $close + 3;
 		}
 
+		if ( $position < strlen( $formDef ) ) {
+			$definition->addElement( new TextSpec( substr( $formDef, $position ) ) );
+		}
 		return $definition;
 	}
 
 	/**
-	 * @param string $formDef
-	 * @return iterable<list<string>> The components of each tag, in order of appearance
+	 * @param list<string> $components
+	 * @param string $raw
+	 * @return TagSpec
 	 */
-	private function tokenize( string $formDef ): iterable {
-		$start = 0;
-		while ( true ) {
-			$open = strpos( $formDef, '{{{', $start );
-			if ( $open === false ) {
-				return;
-			}
-			$close = strpos( $formDef, '}}}', $open );
-			if ( $close === false ) {
-				return;
-			}
-			$components = PFUtils::getFormTagComponents( substr( $formDef, $open + 3, $close - ( $open + 3 ) ) );
-			if ( count( $components ) === 0 ) {
-				return;
-			}
-			yield $components;
-			$start = $open + 1;
+	private function newTag( array $components, string $raw ): TagSpec {
+		switch ( trim( $components[0] ) ) {
+			case TemplateSpec::TYPE:
+				return new TemplateSpec( $components );
+			case EndTemplateSpec::TYPE:
+				return new EndTemplateSpec( $components );
+			case FieldSpec::TYPE:
+				return new FieldSpec( $components );
+			case SectionSpec::TYPE:
+				return new SectionSpec( $components );
+			case StandardInputSpec::TYPE:
+				return new StandardInputSpec( $components );
+			case InfoSpec::TYPE:
+				return new InfoSpec( $components );
+			default:
+				return new UnknownTagSpec( $components, $raw );
 		}
 	}
 }
