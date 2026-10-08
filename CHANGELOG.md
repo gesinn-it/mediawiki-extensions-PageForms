@@ -32,6 +32,18 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - Fixed the property of a `values from wikidata` filter (the part before the `=`) being put into the Wikidata query unchecked, which let a form editor inject their own query. Only property ids such as `P31` are accepted now; other filters are ignored, as are filters without a value.
 - Fixed a `checkboxes` field with a `mapping template` showing no box checked when an existing page is edited; the values stored on the page are checked again, as they were before 2.1.6.
 
+### Behaviour changes
+These fixes change what existing wikis get. Each says who is affected and what was left as it was.
+- **Wikidata filters** (1f9d5835): in `values from wikidata`, only a property id such as `P31` is accepted as the key of a filter; any other key, and a filter without `=`, is ignored. Affects forms whose filters use something else before the `=`, which stop filtering. Filter values and the rest of the query are unchanged.
+- **Restricted fields in the API** (2cbc140a): `#autoedit` and the `pfautoedit` API ignore the values sent for a `restricted` field, section or free text that the user may not edit. Affects automated edits and `#autoedit` links that used to overwrite such fields as a user without the right. Forms in the browser already showed these inputs disabled, and users who may edit them are not affected.
+- **Save based on the revision read** (cb84c411): `pfautoedit` saves on top of the revision that is current when the page text is read, instead of the one embedded when the `#autoedit` page was rendered. Affects `#autoedit` on a page whose target changed since rendering: it is merged instead of reported as an edit conflict. Saves from a form (`wpSave`) are unchanged, and a change made during the save is still reported as a conflict.
+- **Checkboxes with a mapping** (dc2bb042): a `checkboxes` field with `mapping template` or `mapping property` has the boxes of the stored values checked again when an existing page is edited. Affects wikis since 2.1.6 whose pages showed no box checked. Other input types and fields without a mapping are unchanged.
+- **Labels of a mapped value** (e4670b38): only a single text value is replaced by its label for a field with a mapping; a value that is already a list is shown as it is, as it was before. Fields without a mapping are unchanged.
+
+### Upgrade notes
+- A form that relied on a Wikidata filter key other than a property id (1f9d5835) now gets unfiltered or fewer results; change the key to a property id such as `P31`.
+- Automated edits through `#autoedit` or `pfautoedit` that set a `restricted` field (2cbc140a) are ignored for users without the right, and the page keeps its value; run them as a user who may edit the field, or remove `restricted` from the form.
+
 ### Removed
 - `FormPrinter::strReplaceFirst()`, deprecated for a long time; custom code that calls it should use `PFUtils::strReplaceFirst()`.
 - `FormUtils::getFormDefinition()` (also called as `PFFormUtils::getFormDefinition()`), deprecated for a long time, and `PFAutoeditAPI::addToArray()`. Custom code that calls them should use `FormCache::getFormDefinition()` (`PFFormCache::getFormDefinition()`) and `NestedInputValues::addToArray()` (formerly `HtmlFormDataExtractor`) instead; the arguments and results are the same [#230](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/230)
