@@ -530,7 +530,7 @@ class FormPrinter {
 			return '';
 		}
 		if ( $context->request->isQuery ) {
-			return FormButtons::queryFormBottom();
+			return (string)FormButtons::queryFormBottom();
 		}
 		return FormButtons::formBottom( $context->request->formSubmitted, $context->formIsDisabled );
 	}
