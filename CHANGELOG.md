@@ -7,7 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
-- With Semantic MediaWiki, opening or saving a form (`#autoedit`, `pfautoedit`, form edit) right after the page was purged or edited without changes no longer removes the page's properties from the store
+- With Semantic MediaWiki, opening or saving a form (`#autoedit`, `pfautoedit`, form edit) right after the page was purged or edited without changes no longer removes the page's properties from the store [`80cac9f1`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/80cac9f1)
 
 ## [2.3.0] - 2026-10-08
 
