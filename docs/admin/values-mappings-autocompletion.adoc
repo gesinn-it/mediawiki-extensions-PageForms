@@ -140,6 +140,14 @@ You can change the default by adding something like the following to `LocalSetti
 $wgPageFormsMaxLocalAutocompleteValues = 200;
 ----
 
+For a field that uses `remote autocompletion` together with `values from category`, `values from namespace` or `values from concept` (or `values from property`), the form does not read the complete list of values when it opens; it only looks up the field's current value.
+This keeps forms with large sources fast.
+
+This does not apply to a field that also has a `mapping template` or `mapping property`, or `values dependent on`, or that is part of a template with `display=spreadsheet`.
+A mapping needs the complete list of values to turn values into labels, so the list is read when the form opens, as if `remote autocompletion` were not set.
+Such a field still works, but `remote autocompletion` gives no speed advantage for it.
+The autocompletion request of such a field returns the labels from the mapping, not the values.
+
 === Matching on every character
 
 By default, Page Forms autocompletion matches on the beginning of every word in the set of possible values.

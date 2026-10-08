@@ -1839,6 +1839,32 @@ class FormFieldTest extends TestCase {
 	}
 
 	/**
+	 * The same as for 'mapping property': with a 'mapping template' the field is
+	 * not deferred and keeps its possible values (#245).
+	 */
+	public function testRemoteAutocompletionWithMappingTemplateDoesNotDefer(): void {
+		if ( defined( 'SMW_VERSION' ) ) {
+			$this->markTestSkipped( 'SMW is installed; this test requires SMW to be absent.' );
+		}
+
+		$tag_components = [
+			'', '', 'values from category=PFTestFormFieldRemoteCat05', 'remote autocompletion',
+			'mapping template=PFTestFormFieldRemoteMapTpl01'
+		];
+
+		$formField = FormField::newFromFormFieldTag(
+			new FieldSpec( $tag_components ),
+			$this->mockTemplate,
+			$this->mockTemplateInForm,
+			false,
+			$this->mockUser,
+			$this->mockParser
+		);
+
+		$this->assertFalse( $formField->hasDeferredPossibleValues() );
+	}
+
+	/**
 	 * A field combining 'remote autocompletion' with 'mapping property' must
 	 * not defer - mapping needs the complete source to translate raw values
 	 * to labels, so the full eager fetch must still run.

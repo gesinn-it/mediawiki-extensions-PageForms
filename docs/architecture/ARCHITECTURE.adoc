@@ -436,4 +436,6 @@ Deliberately left open for now:
   `formHTML()` and `NestedInputValues`. Moving it to `readPageValues()` would change which
   values `mOptions` holds (defaults, query values, mapping labels) and is a change in
   behaviour, not only in structure.
-* `remote autocompletion` together with a `mapping template` still returns labels from the API.
+* `remote autocompletion` together with a `mapping template` or `mapping property` reads the complete
+  source when the form opens and returns labels from the API (decided in #245: the combination keeps
+  working and is documented as having no speed advantage; see `FormField::canDeferAutocompleteFetch()`).
