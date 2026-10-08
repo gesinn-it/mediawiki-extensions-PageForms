@@ -2,6 +2,7 @@
 
 declare( strict_types=1 );
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
 use MediaWiki\Extension\PageForms\TemplateField;
@@ -27,8 +28,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	public function testFormFieldHtmlHiddenFieldReturnsHiddenInput(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$formField = $this->makeHiddenFormField( 'input_foo', 'hello' );
 		$builder = new FormFieldHtmlBuilder( [], [] );
@@ -41,8 +41,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testFormFieldHtmlHiddenFieldWithClassArg(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$formField = $this->makeHiddenFormField( 'input_bar', 'val', [ 'class' => 'myClass' ] );
 		$builder = new FormFieldHtmlBuilder( [], [] );
@@ -57,8 +56,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	public function testFormFieldHtmlUsesInputTypeHookClass(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 1;
+		FormCounters::current()->fieldNum = 1;
 
 		$formField = $this->makeVisibleFormField( 'text', '', 'input_t' );
 		$inputTypeHooks = [ 'text' => [ StubFormInput::class, [] ] ];
@@ -74,8 +72,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	public function testFormFieldHtmlListFieldGetsSizeDefault(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 1;
+		FormCounters::current()->fieldNum = 1;
 
 		$formField = $this->makeListFormField( 'input_list' );
 		$builder = new FormFieldHtmlBuilder( [], [] );
@@ -95,8 +92,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	public function testFormFieldHtmlUsesSemanticTypeHookClass(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 1;
+		FormCounters::current()->fieldNum = 1;
 
 		// No inputType hook, but a property-type hook for '_str'
 		$formField = $this->makeVisibleFormField( '', '_str', 'input_s' );
@@ -109,8 +105,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testFormFieldHtmlFallsBackToPFTextInputWhenNoHookMatches(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 1;
+		FormCounters::current()->fieldNum = 1;
 
 		// Neither inputType nor semanticType hook → PFTextInput
 		$formField = $this->makeVisibleFormField( '', '', 'input_f' );
@@ -122,8 +117,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testFormFieldHtmlWithNullInputTypeDoesNotMatchEmptyStringHook(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 1;
+		FormCounters::current()->fieldNum = 1;
 
 		// getInputType() === null is the genuine "no input type set" default
 		// (FormField::create() sets mInputType = null). A hook incidentally
@@ -144,8 +138,8 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	public function testFormFieldHtmlWrapsInputInRegExpInputWhenRegexDefined(): void {
-		global $wgPageFormsFieldNum, $wgPageFormsFormPrinter;
-		$wgPageFormsFieldNum = 1;
+		global $wgPageFormsFormPrinter;
+		FormCounters::current()->fieldNum = 1;
 
 		// PFRegExpInput constructor reads $wgPageFormsFormPrinter->getAllInputTypes()
 		// and ->getInputType() when resolving the base type — stub both.
@@ -251,8 +245,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	public function testFormFieldHtmlEmitsHiddenTranslateTagInputForBracketedInputName(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		// A hidden field whose field args carry 'translatable' + 'translate_number_tag'.
 		// The input name uses bracket notation so the name-rewrite branch (line 168) fires.
@@ -271,8 +264,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testFormFieldHtmlEmitsHiddenTranslateTagInputForPlainInputName(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		// Plain (non-bracketed) input name → the else-branch appends _translate_number_tag.
 		$tag = '<!--T:3--> ';
@@ -290,8 +282,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testFormFieldHtmlEscapesTranslateTagContainingSingleQuote(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		// Malicious translate tag containing a single quote and an onmouseover handler.
 		// If the hidden input were built via raw string concatenation with '...' attribute

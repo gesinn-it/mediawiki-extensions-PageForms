@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 use MediaWiki\MediaWikiServices;
@@ -21,7 +22,8 @@ class PFComboBoxInput extends PFFormInput {
 	}
 
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum, $wgPageFormsEDSettings;
+		global $wgPageFormsEDSettings;
+		$counters = FormCounters::current();
 
 		$className = 'pfComboBox';
 		if ( $is_mandatory ) {
@@ -82,13 +84,13 @@ class PFComboBoxInput extends PFFormInput {
 			$autocompleteSettings = str_replace( "'", "\'", $autocompleteSettings ?? '' );
 		}
 
-		$input_id = 'input_' . $wgPageFormsFieldNum;
+		$input_id = 'input_' . $counters->fieldNum;
 
 		$inputAttrs = [
 			'id' => $input_id,
 			'name' => $input_name,
 			'class' => $className,
-			'tabindex' => $wgPageFormsTabIndex,
+			'tabindex' => $counters->tabIndex,
 			'autocompletesettings' => $autocompleteSettings,
 			'value' => $cur_value,
 			'data-size' => $size * 6,
@@ -183,7 +185,7 @@ class PFComboBoxInput extends PFFormInput {
 			);
 		}
 
-		$spanID = 'span_' . $wgPageFormsFieldNum;
+		$spanID = 'span_' . $counters->fieldNum;
 		$spanClass = self::buildSpanClass( 'comboboxSpan', $is_mandatory );
 
 		if ( array_key_exists( 'show on select', $other_args ) ) {

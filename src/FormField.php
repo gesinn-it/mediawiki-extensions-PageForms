@@ -983,27 +983,27 @@ class FormField {
 		}
 
 		if ( $this->hasFieldArg( 'unique' ) ) {
-			global $wgPageFormsFieldNum;
+			$counters = FormCounters::current();
 
 			$semantic_property = $this->template_field->getSemanticProperty();
 			if ( $semantic_property != null ) {
-				$text .= Html::hidden( 'input_' . $wgPageFormsFieldNum . '_unique_property', $semantic_property );
+				$text .= Html::hidden( 'input_' . $counters->fieldNum . '_unique_property', $semantic_property );
 			}
 			if ( $this->hasFieldArg( 'unique_for_category' ) ) {
 				$text .= Html::hidden(
-					'input_' . $wgPageFormsFieldNum . '_unique_for_category',
+					'input_' . $counters->fieldNum . '_unique_for_category',
 					$this->getFieldArg( 'unique_for_category' )
 				);
 			}
 			if ( $this->hasFieldArg( 'unique_for_namespace' ) ) {
 				$text .= Html::hidden(
-					'input_' . $wgPageFormsFieldNum . '_unique_for_namespace',
+					'input_' . $counters->fieldNum . '_unique_for_namespace',
 					$this->getFieldArg( 'unique_for_namespace' )
 				);
 			}
 			if ( $this->hasFieldArg( 'unique_for_concept' ) ) {
 				$text .= Html::hidden(
-					'input_' . $wgPageFormsFieldNum . '_unique_for_concept',
+					'input_' . $counters->fieldNum . '_unique_for_concept',
 					$this->getFieldArg( 'unique_for_concept' )
 				);
 			}

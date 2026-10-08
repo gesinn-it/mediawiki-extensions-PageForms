@@ -2,6 +2,8 @@
 
 declare( strict_types=1 );
 
+use MediaWiki\Extension\PageForms\FormCounters;
+
 /**
  * @covers \PFSFSelectInput
  * @group Database
@@ -11,9 +13,9 @@ class PFSFSelectInputTest extends MediaWikiIntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum, $wgPageFormsSFSelectConfig;
-		$wgPageFormsTabIndex = 1;
-		$wgPageFormsFieldNum = 1;
+		global $wgPageFormsSFSelectConfig;
+		FormCounters::current()->tabIndex = 1;
+		FormCounters::current()->fieldNum = 1;
 		$wgPageFormsSFSelectConfig = null;
 	}
 

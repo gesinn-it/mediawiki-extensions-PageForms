@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 
@@ -26,7 +27,7 @@ class PFDropdownInput extends PFEnumInput {
 	}
 
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum;
+		$counters = FormCounters::current();
 
 		// Standardize $cur_value
 		if ( $cur_value === null ) {
@@ -37,7 +38,7 @@ class PFDropdownInput extends PFEnumInput {
 		if ( array_key_exists( 'class', $other_args ) ) {
 			$className .= ' ' . $other_args['class'];
 		}
-		$input_id = "input_$wgPageFormsFieldNum";
+		$input_id = "input_$counters->fieldNum";
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$className .= ' pfShowIfSelected';
 			FormUtils::setShowOnSelect( $other_args['show on select'], $input_id );
@@ -88,7 +89,7 @@ class PFDropdownInput extends PFEnumInput {
 		}
 		$selectAttrs = [
 			'id' => $input_id,
-			'tabindex' => $wgPageFormsTabIndex,
+			'tabindex' => $counters->tabIndex,
 			'name' => $input_name,
 			'class' => $className
 		];

@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\FormInstanceField;
@@ -459,8 +460,7 @@ class FormFieldTest extends TestCase {
 	}
 
 	public function testAdditionalHTMLForInput() {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		// Create the FormField object
 		$field = FormField::create( $this->mockTemplateField );
@@ -1721,8 +1721,7 @@ class FormFieldTest extends TestCase {
 	}
 
 	public function testAdditionalHTMLForInputUniqueWithSemanticProperty() {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$this->mockTemplateField->method( 'getSemanticProperty' )->willReturn( 'PFTestFormFieldUniqueSemProp01' );
 
@@ -1749,8 +1748,7 @@ class FormFieldTest extends TestCase {
 	}
 
 	public function testAdditionalHTMLForInputUniqueForConcept() {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$field = FormField::create( $this->mockTemplateField );
 		$field->setFieldArg( 'unique', true );

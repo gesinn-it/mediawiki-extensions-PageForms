@@ -6,6 +6,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\PageValue;
 use MediaWiki\MediaWikiServices;
 
@@ -776,9 +777,9 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			$autocompleteFieldType = 'wikidata';
 			$autocompletionSource = $field_args['values from wikidata'];
 		} elseif ( array_key_exists( 'values', $field_args ) ) {
-			global $wgPageFormsFieldNum;
+			$counters = FormCounters::current();
 			$autocompleteFieldType = 'values';
-			$autocompletionSource = "values-$wgPageFormsFieldNum";
+			$autocompletionSource = "values-$counters->fieldNum";
 		} elseif ( array_key_exists( 'autocomplete field type', $field_args ) ) {
 			$autocompleteFieldType = $field_args['autocomplete field type'];
 			$autocompletionSource = $field_args['autocompletion source'];

@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -13,7 +14,6 @@ class PFValuesUtilsTest extends TestCase {
 	private $oldMaxLocalAutocompleteValues;
 	private $oldAutocompleteValues;
 	private $oldCapitalLinks;
-	private $oldPageFormsFieldNum;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -30,9 +30,6 @@ class PFValuesUtilsTest extends TestCase {
 		$this->oldCapitalLinks = array_key_exists( 'wgCapitalLinks', $GLOBALS )
 			? $GLOBALS['wgCapitalLinks']
 			: self::GLOBAL_UNSET;
-		$this->oldPageFormsFieldNum = array_key_exists( 'wgPageFormsFieldNum', $GLOBALS )
-			? $GLOBALS['wgPageFormsFieldNum']
-			: self::GLOBAL_UNSET;
 
 		$GLOBALS['wgPageFormsUseDisplayTitle'] = true;
 		$GLOBALS['wgPageFormsMaxLocalAutocompleteValues'] = 100;
@@ -45,7 +42,7 @@ class PFValuesUtilsTest extends TestCase {
 		$this->restoreGlobal( 'wgPageFormsMaxLocalAutocompleteValues', $this->oldMaxLocalAutocompleteValues );
 		$this->restoreGlobal( 'wgPageFormsAutocompleteValues', $this->oldAutocompleteValues );
 		$this->restoreGlobal( 'wgCapitalLinks', $this->oldCapitalLinks );
-		$this->restoreGlobal( 'wgPageFormsFieldNum', $this->oldPageFormsFieldNum );
+		FormCounters::resetStandalone();
 
 		parent::tearDown();
 	}
@@ -338,7 +335,7 @@ class PFValuesUtilsTest extends TestCase {
 	 * @covers \PFValuesUtils::getAutocompletionTypeAndSource
 	 */
 	public function testGetAutocompletionTypeAndSourceForValues(): void {
-		$GLOBALS['wgPageFormsFieldNum'] = 7;
+		FormCounters::current()->fieldNum = 7;
 		$fieldArgs = [ 'values' => 'a,b,c' ];
 		$this->assertSame( [ 'values', 'values-7' ], PFValuesUtils::getAutocompletionTypeAndSource( $fieldArgs ) );
 	}

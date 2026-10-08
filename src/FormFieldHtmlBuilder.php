@@ -37,8 +37,10 @@ class FormFieldHtmlBuilder {
 	public function formFieldHTML(
 		FormField $form_field, ?string $cur_value, Parser $parser, ?FormCounters $counters = null
 	): string {
-		global $wgPageFormsFieldNum;
-		$fieldNum = $counters !== null ? $counters->fieldNum : $wgPageFormsFieldNum;
+		$counters ??= FormCounters::current();
+		$fieldNum = $counters->fieldNum;
+		// External input classes may still read the legacy globals while the input is built.
+		$counters->mirrorToGlobals();
 
 		// If the eager 'values from ...' fetch was deferred (see #187), this
 		// is the earliest point the field's current value is known - resolve

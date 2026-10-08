@@ -3,6 +3,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
+
 /**
  * @ingroup PFFormInput
  */
@@ -43,7 +45,7 @@ class PFRatingInput extends PFFormInput {
 	 * @return string
 	 */
 	public function getHtmlText(): string {
-		global $wgPageFormsFieldNum;
+		$counters = FormCounters::current();
 
 		$className = 'pfRating';
 		if ( $this->mIsMandatory ) {
@@ -52,12 +54,12 @@ class PFRatingInput extends PFFormInput {
 		if ( array_key_exists( 'class', $this->mOtherArgs ) ) {
 			$className .= ' ' . $this->mOtherArgs['class'];
 		}
-		$input_id = "input_$wgPageFormsFieldNum";
+		$input_id = "input_$counters->fieldNum";
 		$ratingAttrs = [
 			'class' => $className,
 			// Not useful, since the rating can't be modified
 			// via the keyboard.
-			// 'tabindex' => $wgPageFormsTabIndex,
+			// 'tabindex' => $counters->tabIndex,
 			'data-curvalue' => $this->mCurrentValue
 
 		];

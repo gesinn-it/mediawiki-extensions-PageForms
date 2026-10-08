@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\Extension\PageForms\FormSectionHtmlBuilder;
 use OOUI\BlankTheme;
@@ -19,9 +20,8 @@ class FormSectionHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		$this->builder = new FormSectionHtmlBuilder();
 		$this->user = $this->getTestUser()->getUser();
 
-		global $wgPageFormsFieldNum, $wgPageFormsTabIndex;
-		$wgPageFormsFieldNum = 1;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->fieldNum = 1;
+		FormCounters::current()->tabIndex = 1;
 	}
 
 	// ── Helper ────────────────────────────────────────────────────────────────

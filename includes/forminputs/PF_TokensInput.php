@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 use MediaWiki\MediaWikiServices;
@@ -47,7 +48,8 @@ class PFTokensInput extends PFFormInput {
 	}
 
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum, $wgPageFormsEDSettings;
+		global $wgPageFormsEDSettings;
+		$counters = FormCounters::current();
 
 		$other_args['is_list'] = true;
 
@@ -103,7 +105,7 @@ class PFTokensInput extends PFFormInput {
 		if ( array_key_exists( 'class', $other_args ) ) {
 			$className .= ' ' . $other_args['class'];
 		}
-		$input_id = 'input_' . $wgPageFormsFieldNum;
+		$input_id = 'input_' . $counters->fieldNum;
 
 		// >>>> Specific fork setup (DO NOT MODIFY)
 		if ( array_key_exists( 'size', $other_args ) ) {
@@ -124,7 +126,7 @@ class PFTokensInput extends PFFormInput {
 			'multiple' => 'multiple',
 			'size' => 1,
 			'data-size' => $size * 6 . 'px',
-			'tabindex' => $wgPageFormsTabIndex,
+			'tabindex' => $counters->tabIndex,
 			'autocompletesettings' => $autocompleteSettings,
 		];
 		if ( array_key_exists( 'origName', $other_args ) ) {
@@ -208,7 +210,7 @@ class PFTokensInput extends PFFormInput {
 			$text .= PFTextInput::uploadableHTML( $input_id, $delimiter, $default_filename, $cur_value, $other_args );
 		}
 
-		$spanID = 'span_' . $wgPageFormsFieldNum;
+		$spanID = 'span_' . $counters->fieldNum;
 		$spanClass = self::buildSpanClass( 'inputSpan', $is_mandatory );
 
 		if ( array_key_exists( 'show on select', $other_args ) ) {

@@ -606,7 +606,7 @@ class FormPrinter {
 
 	/**
 	 * Build the HTML for a {{{section}}} form-definition tag, as used by formHTML().
-	 * Increments the tab-index/field-num globals (and $context->counters) before delegating.
+	 * Increments the tab index and field number before delegating.
 	 *
 	 * @param array $tag_components
 	 * @param list<FormElement> $following_elements
@@ -616,19 +616,15 @@ class FormPrinter {
 	 * @param PFWikiPage $wiki_page
 	 * @param bool $form_is_disabled
 	 * @param User $user
-	 * @param int &$fieldNum
-	 * @param int &$tabIndex
 	 * @param FormRenderContext $context
 	 * @return string
 	 */
 	private function buildSectionTagHtml(
 		array $tag_components, array $following_elements, $source_is_page, $existing_page_content,
-		$request, $wiki_page, $form_is_disabled, $user, &$fieldNum, &$tabIndex, FormRenderContext $context
+		$request, $wiki_page, $form_is_disabled, $user, FormRenderContext $context
 	): string {
-		$fieldNum++;
-		$tabIndex++;
-		$context->counters->fieldNum = $fieldNum;
-		$context->counters->tabIndex = $tabIndex;
+		$context->counters->fieldNum++;
+		$context->counters->tabIndex++;
 
 		return $this->formSectionHtmlBuilder->buildHtml(
 			$tag_components,
@@ -779,21 +775,63 @@ class FormPrinter {
 		$user = null,
 		$request = null
 	): FormRenderResult {
+		$context = new FormRenderContext();
+		FormCounters::begin( $context->counters );
+		try {
+			return $this->renderInContext(
+				$form_def, $form_submitted, $source_is_page, $form_id, $existing_page_content, $page_name,
+				$page_name_formula, $is_query, $is_embedded, $is_autocreate, $autocreate_query, $user, $request,
+				$context
+			);
+		} finally {
+			$context->counters->mirrorToGlobals();
+			FormCounters::end();
+		}
+	}
+
+	/**
+	 * The body of render(), run with the counters of $context as the current ones.
+	 *
+	 * @param string $form_def
+	 * @param bool $form_submitted
+	 * @param bool $source_is_page
+	 * @param string|null $form_id
+	 * @param string|null $existing_page_content
+	 * @param string|null $page_name
+	 * @param string|null $page_name_formula
+	 * @param bool $is_query
+	 * @param bool $is_embedded
+	 * @param bool $is_autocreate
+	 * @param array $autocreate_query
+	 * @param User|null $user
+	 * @param WebRequest|null $request
+	 * @param FormRenderContext $context
+	 * @return FormRenderResult
+	 */
+	private function renderInContext(
+		$form_def,
+		$form_submitted,
+		$source_is_page,
+		$form_id,
+		$existing_page_content,
+		$page_name,
+		$page_name_formula,
+		$is_query,
+		$is_embedded,
+		$is_autocreate,
+		$autocreate_query,
+		$user,
+		$request,
+		FormRenderContext $context
+	): FormRenderResult {
 		if ( $request === null ) {
 			$request = RequestContext::getMain()->getRequest();
 		}
-		// used to represent the current tab index in the form
-		global $wgPageFormsTabIndex;
-		// used for setting various HTML IDs
-		global $wgPageFormsFieldNum;
 		global $wgPageFormsShowExpandAllLink;
 		global $wgOut;
 
 		// Initialize some variables.
 		$wiki_page = new PFWikiPage();
-		$wgPageFormsTabIndex = 0;
-		$wgPageFormsFieldNum = 0;
-		$context = new FormRenderContext();
 		$runQueryFormAtTop = false;
 		$source_page_matches_this_form = false;
 		$form_page_title = null;
@@ -1085,10 +1123,8 @@ class FormPrinter {
 						if ( $form_field->isHidden() ) {
 							$new_text = Html::hidden( 'pf_free_text', '!free_text!' );
 						} else {
-							$wgPageFormsTabIndex++;
-							$wgPageFormsFieldNum++;
-							$context->counters->tabIndex = $wgPageFormsTabIndex;
-							$context->counters->fieldNum = $wgPageFormsFieldNum;
+							$context->counters->tabIndex++;
+							$context->counters->fieldNum++;
 							if ( $cur_value === '' || $cur_value === null ) {
 								$default_value = '!free_text!';
 							} else {
@@ -1178,14 +1214,12 @@ END;
 							);
 						}
 						// if this is not part of a 'multiple' template, increment the
-						// global tab index (used for correct tabbing)
+						// tab index (used for correct tabbing)
 						if ( !$form_field->hasFieldArg( 'part_of_multiple' ) ) {
-							$wgPageFormsTabIndex++;
+							$context->counters->tabIndex++;
 						}
-						// increment the global field number regardless
-						$wgPageFormsFieldNum++;
-						$context->counters->tabIndex = $wgPageFormsTabIndex;
-						$context->counters->fieldNum = $wgPageFormsFieldNum;
+						// increment the field number regardless
+						$context->counters->fieldNum++;
 						if ( $source_is_page && !$tif->allInstancesPrinted() ) {
 							// If the source is a page, don't use the default
 							// values - except for newly-added instances of a
@@ -1271,8 +1305,7 @@ END;
 				} elseif ( $tag_title == 'section' ) {
 					$form_section_text = $this->buildSectionTagHtml(
 						$tag_components, array_slice( $section_elements, $element_num + 1 ), $source_is_page,
-						$existing_page_content, $request, $wiki_page, $form_is_disabled, $user,
-						$wgPageFormsFieldNum, $wgPageFormsTabIndex, $context
+						$existing_page_content, $request, $wiki_page, $form_is_disabled, $user, $context
 					);
 
 					$section .= $form_section_text;

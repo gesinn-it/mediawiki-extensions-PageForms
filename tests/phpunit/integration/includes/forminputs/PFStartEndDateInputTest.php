@@ -2,6 +2,8 @@
 
 declare( strict_types=1 );
 
+use MediaWiki\Extension\PageForms\FormCounters;
+
 /**
  * @covers \PFStartDateInput
  * @covers \PFEndDateInput
@@ -12,9 +14,9 @@ class PFStartEndDateInputTest extends MediaWikiIntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum, $wgAmericanDates;
-		$wgPageFormsTabIndex = 1;
-		$wgPageFormsFieldNum = 1;
+		global $wgAmericanDates;
+		FormCounters::current()->tabIndex = 1;
+		FormCounters::current()->fieldNum = 1;
 		$wgAmericanDates = false;
 	}
 

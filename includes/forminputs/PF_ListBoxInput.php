@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 
@@ -30,13 +31,13 @@ class PFListBoxInput extends PFMultiEnumInput {
 	 * @return string
 	 */
 	public function getHtmlText(): string {
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum;
+		$counters = FormCounters::current();
 
 		$className = ( $this->mIsMandatory ) ? 'mandatoryField' : 'createboxInput';
 		if ( array_key_exists( 'class', $this->mOtherArgs ) ) {
 			$className .= ' ' . $this->mOtherArgs['class'];
 		}
-		$input_id = "input_$wgPageFormsFieldNum";
+		$input_id = "input_$counters->fieldNum";
 		// get list delimiter - default is comma
 		if ( array_key_exists( 'delimiter', $this->mOtherArgs ) ) {
 			$delimiter = $this->mOtherArgs['delimiter'];
@@ -80,7 +81,7 @@ class PFListBoxInput extends PFMultiEnumInput {
 
 		$selectAttrs = [
 			'id' => $input_id,
-			'tabindex' => $wgPageFormsTabIndex,
+			'tabindex' => $counters->tabIndex,
 			'name' => $this->mInputName . '[]',
 			'class' => $className,
 			'multiple' => 'multiple'

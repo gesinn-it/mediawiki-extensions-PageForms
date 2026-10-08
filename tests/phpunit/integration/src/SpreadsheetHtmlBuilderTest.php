@@ -73,8 +73,7 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	public function testTableHtmlReturnsFormtable(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$tif = $this->makeTifForTable( 'MyTemplate', [], [] );
 		$html = $this->builder->tableHTML( $tif, 0, static fn ( $f, $v ) => '<input/>' );
@@ -83,8 +82,7 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testTableHtmlHiddenFieldIsHiddenInput(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$formField = $this->makeHiddenFormField( 'HiddenField', 'input_hidden' );
 		$tif = $this->makeTifForTable( 'T', [ $formField ], [ 0 => [ 'HiddenField' => 'hiddenValue' ] ] );
@@ -95,8 +93,7 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testTableHtmlVisibleFieldUsesCallback(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$formField = $this->makeVisibleFormField( 'MyField', 'MyField: ', 'input_my_field' );
 		$tif = $this->makeTifForTable( 'T', [ $formField ], [] );
@@ -107,8 +104,7 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testTableHtmlPassesInstanceValues(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$formField = $this->makeVisibleFormField( 'Color', 'Color: ', 'input_color' );
 		$tif = $this->makeTifForTable( 'T', [ $formField ], [ 1 => [ 'Color' => 'blue' ] ] );
@@ -123,8 +119,7 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testTableHtmlTemplateFieldClosesAndReopensTable(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$formField = $this->makeTemplateHoldingFormField( 'PFTestSHBSubTemplateField01', 'input_sub_template', [] );
 		$tif = $this->makeTifForTable( 'PFTestSHBOuterTemplate01', [ $formField ], [] );
@@ -137,8 +132,7 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testTableHtmlTemplateFieldUsesClassAttribute(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$formField = $this->makeTemplateHoldingFormField(
 			'PFTestSHBSubTemplateField02', 'input_sub_template2', [ 'class' => 'pfTemplateFieldClass' ]
@@ -151,8 +145,7 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testTableHtmlHiddenFieldUsesClassAttribute(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$formField = $this->makeHiddenFormField(
 			'PFTestSHBHiddenField01', 'input_hidden_with_class', [ 'class' => 'pfHiddenFieldClass' ]
@@ -165,9 +158,6 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testTableHtmlUsesFormCountersWhenProvided(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
-
 		$formField = $this->makeVisibleFormField(
 			'PFTestSHBCounterField01', 'PFTestSHBCounterField01: ', 'input_counter_field'
 		);
@@ -177,12 +167,10 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		$this->builder->tableHTML( $tif, 0, static fn ( $f, $v ) => '', $counters );
 
 		$this->assertSame( 6, $counters->fieldNum );
-		$this->assertSame( 6, $wgPageFormsFieldNum );
 	}
 
 	public function testTableHtmlUsesLabelMsgWhenLabelIsNull(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getFieldName' )->willReturn( 'PFTestSHBLabelMsgField01' );
@@ -205,8 +193,7 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testTableHtmlUsesTemplateFieldLabelWhenFieldLabelAndMsgAreNull(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getFieldName' )->willReturn( 'PFTestSHBTemplateFieldLabel01' );
@@ -229,8 +216,7 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testTableHtmlFallsBackToFieldNameWhenNoLabelAvailable(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getFieldName' )->willReturn( 'PFTestSHBFallbackFieldName01' );
@@ -253,8 +239,7 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testTableHtmlUsesTooltipDataAttribute(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$templateField = $this->createMock( TemplateField::class );
 		$templateField->method( 'getFieldName' )->willReturn( 'PFTestSHBTooltipField01' );
@@ -282,8 +267,7 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testTableHtmlNullValueWhenInstanceNumAbsent(): void {
-		global $wgPageFormsFieldNum;
-		$wgPageFormsFieldNum = 0;
+		FormCounters::current()->fieldNum = 0;
 
 		$formField = $this->makeVisibleFormField( 'Color', 'Color: ', 'input_color' );
 		$tif = $this->makeTifForTable( 'T', [ $formField ], [] );

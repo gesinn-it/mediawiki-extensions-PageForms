@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 
 /**
@@ -172,7 +173,7 @@ class PFTextInput extends PFFormInput {
 	}
 
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum;
+		$counters = FormCounters::current();
 
 		$className = 'createboxInput';
 		if ( $is_mandatory ) {
@@ -184,7 +185,7 @@ class PFTextInput extends PFFormInput {
 		if ( array_key_exists( 'unique', $other_args ) ) {
 			$className .= ' uniqueField';
 		}
-		$input_id = "input_$wgPageFormsFieldNum";
+		$input_id = "input_$counters->fieldNum";
 		// Set size based on pre-set size, or field type - if field
 		// type is set, possibly add validation too.
 		// (This special handling should only be done if the field
@@ -213,7 +214,7 @@ class PFTextInput extends PFFormInput {
 
 		$inputAttrs = [
 			'id' => $input_id,
-			'tabindex' => $wgPageFormsTabIndex,
+			'tabindex' => $counters->tabIndex,
 			'class' => $className,
 			'size' => $size
 		];

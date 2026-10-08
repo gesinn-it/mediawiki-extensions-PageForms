@@ -113,8 +113,8 @@ class FormRenderResultTest extends MediaWikiIntegrationTestCase {
 		$renderOuter = static fn () => $printer->render(
 			$outerDef, false, false, null, null, 'PFNestedOuterPage', null, false, false, false, [], $user
 		);
-		// The hidden start time is the only part that differs between two renders.
-		$stable = static fn ( string $html ) => preg_replace( "/<input[^>]*wpStarttime[^>]*>/", '', $html );
+		// The hidden start and edit times are the only parts that differ between two renders.
+		$stable = static fn ( string $html ) => preg_replace( "/<input[^>]*wp(Starttime|Edittime)[^>]*>/", '', $html );
 		$expectedOuter = $stable( $renderOuter()->getFormText() );
 
 		$inner = null;

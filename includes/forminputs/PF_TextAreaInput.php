@@ -4,6 +4,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 
 /**
@@ -174,12 +175,12 @@ class PFTextAreaInput extends PFFormInput {
 	}
 
 	protected function getTextAreaAttributes() {
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum;
+		$counters = FormCounters::current();
 
 		// Use a special ID for the free text field -
 		// this was originally done for FCKeditor, but maybe it's
 		// useful for other stuff too.
-		$input_id = $this->mInputName == 'pf_free_text' ? 'pf_free_text' : "input_$wgPageFormsFieldNum";
+		$input_id = $this->mInputName == 'pf_free_text' ? 'pf_free_text' : "input_$counters->fieldNum";
 
 		if ( $this->mEditor == 'wikieditor' ) {
 			global $wgOut;
@@ -225,7 +226,7 @@ class PFTextAreaInput extends PFFormInput {
 		}
 
 		$textarea_attrs = [
-			'tabindex' => $wgPageFormsTabIndex,
+			'tabindex' => $counters->tabIndex,
 			'name' => $this->mInputName,
 			'id' => $input_id,
 			'class' => $className,

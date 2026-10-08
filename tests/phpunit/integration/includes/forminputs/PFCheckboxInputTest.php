@@ -2,6 +2,7 @@
 
 declare( strict_types=1 );
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use OOUI\BlankTheme;
 
 /**
@@ -14,9 +15,8 @@ class PFCheckboxInputTest extends MediaWikiIntegrationTestCase {
 		parent::setUp();
 		\OOUI\Theme::setSingleton( new BlankTheme() );
 
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum;
-		$wgPageFormsTabIndex = 1;
-		$wgPageFormsFieldNum = 1;
+		FormCounters::current()->tabIndex = 1;
+		FormCounters::current()->fieldNum = 1;
 	}
 
 	private function getHtml(

@@ -2,6 +2,8 @@
 
 declare( strict_types=1 );
 
+use MediaWiki\Extension\PageForms\FormCounters;
+
 /**
  * @covers \PFTokensInput
  * @group Database
@@ -10,9 +12,9 @@ class PFTokensInputTest extends MediaWikiIntegrationTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum, $wgPageFormsEDSettings;
-		$wgPageFormsTabIndex = 1;
-		$wgPageFormsFieldNum = 1;
+		global $wgPageFormsEDSettings;
+		FormCounters::current()->tabIndex = 1;
+		FormCounters::current()->fieldNum = 1;
 		$wgPageFormsEDSettings = [];
 	}
 

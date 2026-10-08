@@ -2,6 +2,7 @@
 
 declare( strict_types=1 );
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use OOUI\BlankTheme;
 
 /**
@@ -14,9 +15,9 @@ class PFOpenLayersInputMapLookupHtmlTest extends MediaWikiIntegrationTestCase {
 		parent::setUp();
 		\OOUI\Theme::setSingleton( new BlankTheme() );
 
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum, $wgPageFormsMapsWithFeeders;
-		$wgPageFormsTabIndex = 1;
-		$wgPageFormsFieldNum = 1;
+		global $wgPageFormsMapsWithFeeders;
+		FormCounters::current()->tabIndex = 1;
+		FormCounters::current()->fieldNum = 1;
 		$wgPageFormsMapsWithFeeders = [];
 	}
 

@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormUtils;
 
 /**
@@ -19,7 +20,7 @@ class PFCheckboxInput extends PFFormInput {
 	}
 
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum;
+		$counters = FormCounters::current();
 
 		// ==== GESINN PATCH BEGIN ====
 		// Add base class for checkbox and append mandatoryFieldSpan if field is mandatory
@@ -32,7 +33,7 @@ class PFCheckboxInput extends PFFormInput {
 		$className = self::buildSpanClass( $className, $is_mandatory );
 		 // ==== GESINN PATCH END ====
 
-		$inputID = "input_$wgPageFormsFieldNum";
+		$inputID = "input_$counters->fieldNum";
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$className .= ' pfShowIfCheckedCheckbox';
 			FormUtils::setShowOnSelect( $other_args['show on select'], $inputID, true );
@@ -67,7 +68,7 @@ class PFCheckboxInput extends PFFormInput {
 			'selected' => $isChecked,
 			'id' => $inputID,
 			'classes' => [ $className ],
-			'tabIndex' => $wgPageFormsTabIndex,
+			'tabIndex' => $counters->tabIndex,
 			'name' => "{$input_name}[value]"
 		];
 		if ( $is_disabled ) {

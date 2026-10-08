@@ -24,7 +24,7 @@ class SpreadsheetHtmlBuilder {
 	public function tableHTML(
 		TemplateInForm $tif, int $instanceNum, callable $fieldHtmlCallback, ?FormCounters $counters = null
 	): string {
-		global $wgPageFormsFieldNum;
+		$counters ??= FormCounters::current();
 
 		$allGridValues = $tif->getGridValues();
 		$gridValues = $allGridValues[$instanceNum] ?? null;
@@ -55,12 +55,7 @@ class SpreadsheetHtmlBuilder {
 				continue;
 			}
 
-			if ( $counters !== null ) {
-				$counters->fieldNum++;
-				$wgPageFormsFieldNum = $counters->fieldNum;
-			} else {
-				$wgPageFormsFieldNum++;
-			}
+			$counters->fieldNum++;
 			if ( $formField->getLabel() !== null ) {
 				$labelText = $formField->getLabel();
 				// @HACK - for a checkbox within display=table, 'label' is used for two
@@ -75,7 +70,7 @@ class SpreadsheetHtmlBuilder {
 				$labelText = $fieldName . ': ';
 			}
 			$label = Html::element( 'label',
-				[ 'for' => "input_$wgPageFormsFieldNum" ],
+				[ 'for' => "input_$counters->fieldNum" ],
 				$labelText );
 
 			$labelCellAttrs = [];

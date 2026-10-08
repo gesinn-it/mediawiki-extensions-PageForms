@@ -2,6 +2,7 @@
 
 declare( strict_types=1 );
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\MultipleTemplateHtmlBuilder;
 use MediaWiki\Extension\PageForms\TemplateInForm;
 
@@ -139,8 +140,7 @@ class MultipleTemplateHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	// -----------------------------------------------------------------------
 
 	public function testEndHtmlContainsClosingStructure(): void {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		\OOUI\Theme::setSingleton( new \OOUI\BlankTheme() );
 
@@ -154,8 +154,7 @@ class MultipleTemplateHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testEndHtmlContainsAdderButton(): void {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		\OOUI\Theme::setSingleton( new \OOUI\BlankTheme() );
 

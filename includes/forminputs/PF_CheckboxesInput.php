@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\Extension\PageForms\PossibleValue;
 use MediaWiki\Extension\PageForms\PossibleValueList;
@@ -27,13 +28,13 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 	}
 
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum;
+		$counters = FormCounters::current();
 
 		$labelClass = 'checkboxLabel';
 		if ( array_key_exists( 'class', $other_args ) ) {
 			$labelClass .= ' ' . $other_args['class'];
 		}
-		$input_id = "input_$wgPageFormsFieldNum";
+		$input_id = "input_$counters->fieldNum";
 		// get list delimiter - default is comma
 		if ( array_key_exists( 'delimiter', $other_args ) ) {
 			$delimiter = $other_args['delimiter'];
@@ -57,7 +58,7 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 				'name' => $cur_input_name,
 				'value' => $possible_value,
 				'id' => $input_id,
-				'tabIndex' => $wgPageFormsTabIndex,
+				'tabIndex' => $counters->tabIndex,
 				'label' => 'checkbox'
 			];
 			if ( self::isChecked( $possibleValue, $cur_values, $possibleValueList ) ) {
@@ -75,8 +76,8 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 				[ 'class' => $labelClass ],
 				$checkbox_input . '&nbsp;' . $label
 			) . " ";
-			$wgPageFormsTabIndex++;
-			$wgPageFormsFieldNum++;
+			$counters->tabIndex++;
+			$counters->fieldNum++;
 		}
 
 		// A checked value that sorted outside a truncated 'values from ...'
@@ -98,7 +99,7 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 				'name' => $cur_input_name,
 				'value' => $current_value,
 				'id' => $input_id,
-				'tabIndex' => $wgPageFormsTabIndex,
+				'tabIndex' => $counters->tabIndex,
 				'label' => 'checkbox',
 				'checked' => 'checked',
 				'selected' => true
@@ -112,11 +113,11 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 				[ 'class' => $labelClass ],
 				$checkbox_input . '&nbsp;' . $label
 			) . " ";
-			$wgPageFormsTabIndex++;
-			$wgPageFormsFieldNum++;
+			$counters->tabIndex++;
+			$counters->fieldNum++;
 		}
 
-		$outerSpanID = "span_$wgPageFormsFieldNum";
+		$outerSpanID = "span_$counters->fieldNum";
 		$outerSpanClass = self::buildSpanClass( 'checkboxesSpan', $is_mandatory );
 
 		// @HACK! The current "select all/none" JS code doesn't work

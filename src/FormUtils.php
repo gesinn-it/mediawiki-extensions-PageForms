@@ -61,15 +61,15 @@ class FormUtils {
 	}
 
 	public static function summaryInputHTML( $is_disabled, $label = null, $attr = [], $value = '' ) {
-		global $wgPageFormsTabIndex;
+		$counters = FormCounters::current();
 
 		if ( $label == null ) {
 			$label = wfMessage( 'summary' )->text();
 		}
 
-		$wgPageFormsTabIndex++;
+		$counters->tabIndex++;
 		$attr += [
-			'tabIndex' => $wgPageFormsTabIndex,
+			'tabIndex' => $counters->tabIndex,
 			'value' => $value,
 			'name' => 'wpSummary',
 			'id' => 'wpSummary',
@@ -98,9 +98,9 @@ class FormUtils {
 	public static function minorEditInputHTML(
 		$form_submitted, $is_disabled, $is_checked, $label = null, $attrs = []
 	) {
-		global $wgPageFormsTabIndex;
+		$counters = FormCounters::current();
 
-		$wgPageFormsTabIndex++;
+		$counters->tabIndex++;
 		if ( !$form_submitted ) {
 			$user = RequestContext::getMain()->getUser();
 			$is_checked = MediaWikiServices::getInstance()->getUserOptionsLookup()->getOption( $user, 'minordefault' );
@@ -114,7 +114,7 @@ class FormUtils {
 			'id' => 'wpMinoredit',
 			'name' => 'wpMinoredit',
 			'accessKey' => wfMessage( 'accesskey-minoredit' )->text(),
-			'tabIndex' => $wgPageFormsTabIndex,
+			'tabIndex' => $counters->tabIndex,
 		];
 		if ( $is_checked ) {
 			$attrs['selected'] = true;
@@ -144,10 +144,10 @@ class FormUtils {
 	public static function watchInputHTML(
 		$form_submitted, $is_disabled, $is_checked = false, $label = null, $attrs = []
 	) {
-		global $wgPageFormsTabIndex;
+		$counters = FormCounters::current();
 		$titleGlobal = RequestContext::getMain()->getTitle();
 
-		$wgPageFormsTabIndex++;
+		$counters->tabIndex++;
 		// figure out if the checkbox should be checked -
 		// this code borrowed from /includes/EditPage.php
 		if ( !$form_submitted ) {
@@ -173,7 +173,7 @@ class FormUtils {
 			'id' => 'wpWatchthis',
 			'name' => 'wpWatchthis',
 			'accessKey' => wfMessage( 'accesskey-watch' )->text(),
-			'tabIndex' => $wgPageFormsTabIndex,
+			'tabIndex' => $counters->tabIndex,
 		];
 		if ( $is_checked ) {
 			$attrs['selected'] = true;
@@ -227,15 +227,15 @@ class FormUtils {
 	}
 
 	public static function saveButtonHTML( $is_disabled, $label = null, $attr = [] ) {
-		global $wgPageFormsTabIndex;
+		$counters = FormCounters::current();
 
-		$wgPageFormsTabIndex++;
+		$counters->tabIndex++;
 		if ( $label == null ) {
 			$label = wfMessage( 'savearticle' )->text();
 		}
 		$temp = $attr + [
 			'id'        => 'wpSave',
-			'tabIndex'  => $wgPageFormsTabIndex,
+			'tabIndex'  => $counters->tabIndex,
 			'accessKey' => wfMessage( 'accesskey-save' )->text(),
 			'title'     => wfMessage( 'tooltip-save' )->text(),
 			'flags'     => [ 'primary', 'progressive' ]
@@ -247,9 +247,9 @@ class FormUtils {
 	}
 
 	public static function saveAndContinueButtonHTML( $is_disabled, $label = null, $attr = [] ) {
-		global $wgPageFormsTabIndex;
+		$counters = FormCounters::current();
 
-		$wgPageFormsTabIndex++;
+		$counters->tabIndex++;
 
 		if ( $label == null ) {
 			$label = wfMessage( 'pf_formedit_saveandcontinueediting' )->text();
@@ -257,7 +257,7 @@ class FormUtils {
 
 		$temp = $attr + [
 			'id'        => 'wpSaveAndContinue',
-			'tabIndex'  => $wgPageFormsTabIndex,
+			'tabIndex'  => $counters->tabIndex,
 			'disabled'  => true,
 			'accessKey' => wfMessage( 'pf_formedit_accesskey_saveandcontinueediting' )->text(),
 			'title'     => wfMessage( 'pf_formedit_tooltip_saveandcontinueediting' )->text(),
@@ -273,15 +273,15 @@ class FormUtils {
 	}
 
 	public static function showPreviewButtonHTML( $is_disabled, $label = null, $attr = [] ) {
-		global $wgPageFormsTabIndex;
+		$counters = FormCounters::current();
 
-		$wgPageFormsTabIndex++;
+		$counters->tabIndex++;
 		if ( $label == null ) {
 			$label = wfMessage( 'showpreview' )->text();
 		}
 		$temp = $attr + [
 			'id'        => 'wpPreview',
-			'tabIndex'  => $wgPageFormsTabIndex,
+			'tabIndex'  => $counters->tabIndex,
 			'accessKey' => wfMessage( 'accesskey-preview' )->text(),
 			'title'     => wfMessage( 'tooltip-preview' )->text(),
 		];
@@ -292,15 +292,15 @@ class FormUtils {
 	}
 
 	public static function showChangesButtonHTML( $is_disabled, $label = null, $attr = [] ) {
-		global $wgPageFormsTabIndex;
+		$counters = FormCounters::current();
 
-		$wgPageFormsTabIndex++;
+		$counters->tabIndex++;
 		if ( $label == null ) {
 			$label = wfMessage( 'showdiff' )->text();
 		}
 		$temp = $attr + [
 			'id'        => 'wpDiff',
-			'tabIndex'  => $wgPageFormsTabIndex,
+			'tabIndex'  => $counters->tabIndex,
 			'accessKey' => wfMessage( 'accesskey-diff' )->text(),
 			'title'     => wfMessage( 'tooltip-diff' )->text(),
 		];
@@ -341,16 +341,16 @@ class FormUtils {
 
 	public static function runQueryButtonHTML( $is_disabled = false, $label = null, $attr = [] ) {
 		// is_disabled is currently ignored
-		global $wgPageFormsTabIndex;
+		$counters = FormCounters::current();
 
-		$wgPageFormsTabIndex++;
+		$counters->tabIndex++;
 		if ( $label == null ) {
 			$label = wfMessage( 'runquery' )->text();
 		}
 		$buttonHTML = self::buttonHTML( 'wpRunQuery', $label, 'submit',
 			$attr + [
 			'id' => 'wpRunQuery',
-			'tabIndex' => $wgPageFormsTabIndex,
+			'tabIndex' => $counters->tabIndex,
 			'title' => $label,
 			'flags' => [ 'primary', 'progressive' ],
 			'icon' => 'search'
@@ -480,9 +480,9 @@ class FormUtils {
 	 * @return string
 	 */
 	public static function headerHTML( $header_name, $header_level = 2 ) {
-		global $wgPageFormsTabIndex;
+		$counters = FormCounters::current();
 
-		$wgPageFormsTabIndex++;
+		$counters->tabIndex++;
 		$text = "";
 
 		if ( !is_numeric( $header_level ) ) {

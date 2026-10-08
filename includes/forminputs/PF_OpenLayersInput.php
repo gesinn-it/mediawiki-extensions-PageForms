@@ -3,6 +3,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
+
 /**
  * @ingroup PFFormInput
  */
@@ -60,7 +62,7 @@ class PFOpenLayersInput extends PFFormInput {
 		$cur_value, $input_name, $is_mandatory, $is_disabled, $other_args, $height, $width,
 		$includeAddressLookup = true
 	) {
-		global $wgPageFormsFieldNum, $wgPageFormsTabIndex;
+		$counters = FormCounters::current();
 		global $wgPageFormsMapsWithFeeders;
 
 		$addressLookupInput = '';
@@ -70,7 +72,7 @@ class PFOpenLayersInput extends PFFormInput {
 			if ( !array_key_exists( $input_name, $wgPageFormsMapsWithFeeders ) ) {
 				$addressLookupInputAttrs = [
 					'type' => 'text',
-					'tabIndex' => $wgPageFormsTabIndex++,
+					'tabIndex' => $counters->tabIndex++,
 					'classes' => [ 'pfAddressInput' ],
 					'size' => 40,
 					'placeholder' => wfMessage( 'pf-maps-enteraddress' )->parse()
@@ -78,7 +80,7 @@ class PFOpenLayersInput extends PFFormInput {
 				$addressLookupInput = new OOUI\TextInputWidget( $addressLookupInputAttrs );
 			}
 			$addressLookupButtonAttrs = [
-				'tabIndex' => $wgPageFormsTabIndex++,
+				'tabIndex' => $counters->tabIndex++,
 				'classes' => [ 'pfLookUpAddress' ],
 				'label' => wfMessage( 'pf-maps-lookupcoordinates' )->parse(),
 				'flags' => [ 'progressive' ],
@@ -111,7 +113,7 @@ class PFOpenLayersInput extends PFFormInput {
 
 		$coordsInputAttrs = [
 			'type' => 'text',
-			'tabindex' => $wgPageFormsTabIndex++,
+			'tabindex' => $counters->tabIndex++,
 			'class' => self::buildSpanClass( $className, $is_mandatory ),
 			'name' => $input_name,
 			'value' => self::parseCoordinatesString( $cur_value ),
@@ -138,7 +140,7 @@ class PFOpenLayersInput extends PFFormInput {
 
 		$mapCanvas = Html::element( 'div', [
 			'class' => 'pfMapCanvas',
-			'id' => 'pfMapCanvas' . $wgPageFormsFieldNum,
+			'id' => 'pfMapCanvas' . $counters->fieldNum,
 			'style' => "height: $height; width: $width;"
 		], '' );
 

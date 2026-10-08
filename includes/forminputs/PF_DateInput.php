@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormUtils;
 
 /**
@@ -19,7 +20,8 @@ class PFDateInput extends PFFormInput {
 	}
 
 	public static function monthDropdownHTML( $cur_month, $input_name, $is_disabled ) {
-		global $wgPageFormsTabIndex, $wgAmericanDates;
+		global $wgAmericanDates;
+		$counters = FormCounters::current();
 
 		$optionsText = '';
 		$month_names = FormUtils::getMonthNames();
@@ -41,7 +43,7 @@ class PFDateInput extends PFFormInput {
 		$selectAttrs = [
 			'class' => 'monthInput',
 			'name' => $input_name . '[month]',
-			'tabindex' => $wgPageFormsTabIndex
+			'tabindex' => $counters->tabIndex
 		];
 		if ( $is_disabled ) {
 			$selectAttrs['disabled'] = 'disabled';
@@ -159,7 +161,8 @@ class PFDateInput extends PFFormInput {
 	}
 
 	public static function getMainHTML( $date, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
-		global $wgPageFormsTabIndex, $wgAmericanDates;
+		global $wgAmericanDates;
+		$counters = FormCounters::current();
 
 		$year = $month = $day = null;
 
@@ -180,7 +183,7 @@ class PFDateInput extends PFFormInput {
 		$text = "";
 		$disabled_text = ( $is_disabled ) ? 'disabled' : '';
 		$monthInput = self::monthDropdownHTML( $month, $input_name, $is_disabled );
-		$dayInput = '<input tabindex="' . $wgPageFormsTabIndex .
+		$dayInput = '<input tabindex="' . $counters->tabIndex .
 			'" class="dayInput" name="' . $input_name .
 			'[day]" type="text" value="' . $day . '" size="2" ' . $disabled_text . '/>';
 		if ( $wgAmericanDates ) {
@@ -188,7 +191,7 @@ class PFDateInput extends PFFormInput {
 		} else {
 			$text .= "$dayInput\n$monthInput\n";
 		}
-		$text .= '<input tabindex="' . $wgPageFormsTabIndex .
+		$text .= '<input tabindex="' . $counters->tabIndex .
 			'" class="yearInput" name="' . $input_name .
 			'[year]" type="text" value="' . $year .
 			'" size="4" ' . $disabled_text . '/>' . "\n";

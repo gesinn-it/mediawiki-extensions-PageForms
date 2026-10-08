@@ -13,6 +13,7 @@
  * @ingroup PFFormInput
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -40,7 +41,8 @@ class PFSFSelectInput extends PFFormInput {
 	 * @return string
 	 */
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
-		global $wgPageFormsFieldNum, $wgPageFormsSFSelectConfig;
+		global $wgPageFormsSFSelectConfig;
+		$counters = FormCounters::current();
 
 		// See PFUtils::ensureParserReadyForTagParse() for why the global Parser
 		// singleton needs both initialization and an output-type/title reset
@@ -100,7 +102,7 @@ class PFSFSelectInput extends PFFormInput {
 			$extraAttr .= ' class="' . htmlspecialchars( implode( ' ', $classes ) ) . '"';
 		}
 
-		$inputId = "input_$wgPageFormsFieldNum";
+		$inputId = "input_$counters->fieldNum";
 		$inputName = $isList ? $input_name . '[]' : $input_name;
 
 		$spanClass = 'inputSpan select-sfs';
@@ -124,7 +126,7 @@ class PFSFSelectInput extends PFFormInput {
 		}
 
 		$ret .= '</select></span>';
-		$ret .= "<span id=\"info_$wgPageFormsFieldNum\" class=\"errorMessage\"></span>";
+		$ret .= "<span id=\"info_$counters->fieldNum\" class=\"errorMessage\"></span>";
 
 		if ( $isList ) {
 			$hiddenName = $input_name . '[is_list]';

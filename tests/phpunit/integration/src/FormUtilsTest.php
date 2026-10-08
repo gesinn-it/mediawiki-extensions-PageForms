@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\Extension\PageForms\TemplateInForm;
 use MediaWiki\MediaWikiServices;
@@ -110,8 +111,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::minorEditInputHTML
 	 */
 	public function testMinorEditInputHTML() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = FormUtils::minorEditInputHTML( false, false, false, "Test" );
 
@@ -129,8 +129,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::watchInputHTML
 	 */
 	public function testWatchInputHTML() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = FormUtils::watchInputHTML( false, false, false, "Watch this" );
 
@@ -149,8 +148,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::saveAndContinueButtonHTML
 	 */
 	public function testSaveAndContinueButtonHTML() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = FormUtils::saveAndContinueButtonHTML( false, "Save and continue editing" );
 
@@ -171,8 +169,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::saveAndContinueButtonHTML
 	 */
 	public function testSaveAndContinueButtonHTMLWithDisabled() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = FormUtils::saveAndContinueButtonHTML( true, "Save and continue editing" );
 
@@ -290,8 +287,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::summaryInputHTML
 	 */
 	public function testSummaryInputHTMLDisabledWithClassAttribute() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = FormUtils::summaryInputHTML( true, "Summary", [ 'class' => 'pf-test-summary-class' ] );
 
@@ -302,8 +298,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::minorEditInputHTML
 	 */
 	public function testMinorEditInputHTMLDefaultLabelCheckedDisabledWithClass() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = FormUtils::minorEditInputHTML(
 			true, true, true, null, [ 'class' => 'pf-test-minoredit-class' ]
@@ -318,8 +313,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::watchInputHTML
 	 */
 	public function testWatchInputHTMLDefaultLabelDisabledWithClass() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = FormUtils::watchInputHTML(
 			true, true, false, null, [ 'class' => 'pf-test-watch-class' ]
@@ -333,8 +327,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::watchInputHTML
 	 */
 	public function testWatchInputHTMLWatchCreationsForNonExistentPage() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$originalTitle = RequestContext::getMain()->getTitle();
 		$originalUser = RequestContext::getMain()->getUser();
@@ -359,8 +352,7 @@ class FormUtilsTest extends TestCase {
 	 * @group Database
 	 */
 	public function testWatchInputHTMLAlreadyWatchedPage() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$originalTitle = RequestContext::getMain()->getTitle();
 		$originalUser = RequestContext::getMain()->getUser();
@@ -387,8 +379,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::buttonHTML
 	 */
 	public function testSaveButtonHTMLDisabledWithClassAttribute() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = FormUtils::saveButtonHTML( true, "Save", [ 'class' => 'pf-test-save-class' ] );
 
@@ -400,8 +391,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::saveAndContinueButtonHTML
 	 */
 	public function testSaveAndContinueButtonHTMLDefaultLabel() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = FormUtils::saveAndContinueButtonHTML( false );
 
@@ -413,8 +403,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::showPreviewButtonHTML
 	 */
 	public function testShowPreviewButtonHTMLDisabled() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = FormUtils::showPreviewButtonHTML( true );
 
@@ -425,8 +414,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::showChangesButtonHTML
 	 */
 	public function testShowChangesButtonHTMLDisabled() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = FormUtils::showChangesButtonHTML( true );
 
@@ -474,8 +462,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::runQueryButtonHTML
 	 */
 	public function testRunQueryButtonHTMLDefaultLabel() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = (string)FormUtils::runQueryButtonHTML();
 
@@ -486,8 +473,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::queryFormBottom
 	 */
 	public function testQueryFormBottom() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$output = (string)FormUtils::queryFormBottom();
 
@@ -499,8 +485,7 @@ class FormUtilsTest extends TestCase {
 	 * @group Database
 	 */
 	public function testFormBottomWithRegisteredUser() {
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 1;
+		FormCounters::current()->tabIndex = 1;
 
 		$originalUser = RequestContext::getMain()->getUser();
 		$originalTitle = RequestContext::getMain()->getTitle();

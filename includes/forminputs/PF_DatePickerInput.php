@@ -11,6 +11,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Widget\DateInputWidget;
 
 class PFDatePickerInput extends PFFormInput {
@@ -241,7 +242,7 @@ class PFDatePickerInput extends PFFormInput {
 	public static function genericTextHTML(
 		$currentValue, $inputName, $isDisabled, $otherArgs, $inputId = null, $tabIndex = null, $class = ''
 	) {
-		global $wgPageFormsTabIndex;
+		$counters = FormCounters::current();
 
 		// array of attributes to pass to the input field
 		$attribs = [
@@ -277,7 +278,7 @@ class PFDatePickerInput extends PFFormInput {
 		}
 
 		if ( $tabIndex == null ) {
-			$attribs['tabindex'] = $wgPageFormsTabIndex;
+			$attribs['tabindex'] = $counters->tabIndex;
 		} else {
 			$attribs['tabindex'] = $tabIndex;
 		}

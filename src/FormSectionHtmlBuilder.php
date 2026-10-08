@@ -44,8 +44,7 @@ class FormSectionHtmlBuilder {
 		User $user,
 		?FormCounters $counters = null
 	): string {
-		global $wgPageFormsFieldNum;
-		$fieldNum = $counters !== null ? $counters->fieldNum : $wgPageFormsFieldNum;
+		$fieldNum = ( $counters ?? FormCounters::current() )->fieldNum;
 
 		$section_name = trim( $tag_components[1] );
 		$page_section_in_form = PFPageSection::newFromFormTag( $tag_components, $user );

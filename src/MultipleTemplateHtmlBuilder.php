@@ -131,8 +131,7 @@ END;
 		string $section,
 		?FormCounters $counters = null
 	): string {
-		global $wgPageFormsTabIndex;
-		$tabIndex = $counters !== null ? $counters->tabIndex : $wgPageFormsTabIndex;
+		$tabIndex = ( $counters ?? FormCounters::current() )->tabIndex;
 
 		$text = "\t\t" . Html::rawElement( 'div',
 			[

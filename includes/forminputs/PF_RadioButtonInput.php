@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 
@@ -16,7 +17,7 @@ class PFRadioButtonInput extends PFEnumInput {
 	}
 
 	public static function getHTML( $cur_value, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
-		global $wgPageFormsTabIndex, $wgPageFormsFieldNum;
+		$counters = FormCounters::current();
 
 		if ( array_key_exists( 'possible_values', $other_args ) && ( count( $other_args['possible_values'] ) > 0 ) ) {
 			$possible_values = $other_args['possible_values'];
@@ -59,14 +60,14 @@ class PFRadioButtonInput extends PFEnumInput {
 		}
 
 		foreach ( $possible_values as $originalValue => $value ) {
-			$wgPageFormsTabIndex++;
-			$wgPageFormsFieldNum++;
-			$input_id = "input_$wgPageFormsFieldNum";
+			$counters->tabIndex++;
+			$counters->fieldNum++;
+			$input_id = "input_$counters->fieldNum";
 
 			$radiobutton_attrs = [
 				'value' => $value,
 				'id' => $input_id,
-				'tabindex' => $wgPageFormsTabIndex,
+				'tabindex' => $counters->tabIndex,
 				'data-original-value' => $originalValue
 			];
 			if ( array_key_exists( 'origName', $other_args ) ) {
@@ -103,7 +104,7 @@ class PFRadioButtonInput extends PFEnumInput {
 		}
 		$spanClass = self::buildSpanClass( $spanClass, $is_mandatory );
 
-		$spanID = "span_$wgPageFormsFieldNum";
+		$spanID = "span_$counters->fieldNum";
 
 		// Do the 'show on select' handling.
 		if ( array_key_exists( 'show on select', $other_args ) ) {

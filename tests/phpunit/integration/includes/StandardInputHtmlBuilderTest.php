@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
 use FauxRequest;
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\StandardInputHtmlBuilder;
 use MediaWikiIntegrationTestCase;
 use OOUI\BlankTheme;
@@ -20,8 +21,7 @@ class StandardInputHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
-		global $wgPageFormsTabIndex;
-		$wgPageFormsTabIndex = 0;
+		FormCounters::current()->tabIndex = 0;
 		\OOUI\Theme::setSingleton( new BlankTheme() );
 		$this->builder = new StandardInputHtmlBuilder();
 	}
