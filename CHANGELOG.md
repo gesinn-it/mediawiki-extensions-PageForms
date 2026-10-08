@@ -13,6 +13,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - Rendering a form while another form is still being rendered (for example a form inside a parser function that is evaluated during rendering) no longer mixes up the two: each form keeps its own page, tab order and standard buttons. `FormPrinter::$mPageTitle` and `FormPrinter::$standardInputsIncluded` no longer exist, and `FormPrinter::showDeletionLog()`, `tableHTML()`, `multipleTemplateEndHTML()` and `formFieldHTML()` take the title or counters as an optional argument instead.
 - The tab index and field number of a form are now kept per rendered form instead of in the global variables `$wgPageFormsTabIndex` and `$wgPageFormsFieldNum`. The globals still hold the current values for custom code that reads them, but are deprecated and will be removed; custom input types that change them no longer influence the numbering and should use `FormCounters::current()` instead.
 - An input type registered with `FormPrinter::registerInputType()` after the form printer was created is now used for fields as well; before, only the types known when the printer was created were. `FormPrinter::setInputTypeHook()`, `setSemanticTypeHook()`, `$mInputTypeHooks` and `$mSemanticTypeHooks` are deprecated in favour of `registerInputType()`.
+- A form definition tag that contains both `<` and `>` (except in `default filename`) is now rejected whenever the form definition is read, not only when the form is shown. Errors in a form definition are thrown as `FormDefinitionException`, which is an `MWException` with the same message as before. `FormPrinter::placeholderFormat()` and `FormPrinter::makePlaceholderInFormHTML()` are deprecated in favour of `FormPlaceholder::format()` and `FormPlaceholder::toHtmlMarker()`.
 
 ### Fixed
 - Fixed the template text that _Create Template_ generates for a field with a namespace (for example a file field): the field value was written with the number of the namespace in front (`6:`), which MediaWiki does not read as a namespace, instead of its name (`File:`).
@@ -20,6 +21,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - Fixed a `checkboxes` field with a `mapping template` showing no box checked when an existing page is edited; the values stored on the page are checked again, as they were before 2.1.6.
 
 ### Removed
+- `FormPrinter::strReplaceFirst()`, deprecated for a long time; custom code that calls it should use `PFUtils::strReplaceFirst()`.
 - `FormUtils::getFormDefinition()` (also called as `PFFormUtils::getFormDefinition()`), deprecated for a long time, and `PFAutoeditAPI::addToArray()`. Custom code that calls them should use `FormCache::getFormDefinition()` (`PFFormCache::getFormDefinition()`) and `HtmlFormDataExtractor::addToArray()` instead; the arguments and results are the same [#230](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/230)
 
 ### Fixed
