@@ -26,7 +26,7 @@ class InfoHandler implements ElementHandler {
 	 */
 	public function handle( FormElement $element, FormRenderContext $context ): void {
 		if ( !$element instanceof TagSpec ) {
-			return;
+			throw ElementHandlerException::wrongElement( $this, $element );
 		}
 		if ( $context->infoTagSeen ) {
 			throw new FormDefinitionException(

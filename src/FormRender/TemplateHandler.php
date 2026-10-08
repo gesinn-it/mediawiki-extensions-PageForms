@@ -26,7 +26,7 @@ class TemplateHandler implements ElementHandler {
 	 */
 	public function handle( FormElement $element, FormRenderContext $context ): void {
 		if ( !$element instanceof TemplateSpec ) {
-			return;
+			throw ElementHandlerException::wrongElement( $this, $element );
 		}
 		$tag_components = $element->getComponents();
 		if ( count( $tag_components ) < 2 ) {

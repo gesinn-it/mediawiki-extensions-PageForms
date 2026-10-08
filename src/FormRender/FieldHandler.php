@@ -66,7 +66,7 @@ class FieldHandler implements ElementHandler {
 	 */
 	public function handle( FormElement $element, FormRenderContext $context ): void {
 		if ( !$element instanceof FieldSpec ) {
-			return;
+			throw ElementHandlerException::wrongElement( $this, $element );
 		}
 		// If the template is null, that (hopefully)
 		// means we're handling the free text field.

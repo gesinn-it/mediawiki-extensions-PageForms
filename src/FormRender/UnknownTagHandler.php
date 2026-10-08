@@ -14,7 +14,10 @@ use MediaWiki\Extension\PageForms\FormRenderContext;
 class UnknownTagHandler implements ElementHandler {
 
 	public function handle( FormElement $element, FormRenderContext $context ): void {
+		if ( !$element instanceof UnknownTagSpec ) {
+			throw ElementHandlerException::wrongElement( $this, $element );
+		}
 		// Ignore the tag, other than to HTML-escape it.
-		$context->section .= htmlspecialchars( $element instanceof UnknownTagSpec ? $element->getRaw() : '' );
+		$context->section .= htmlspecialchars( $element->getRaw() );
 	}
 }

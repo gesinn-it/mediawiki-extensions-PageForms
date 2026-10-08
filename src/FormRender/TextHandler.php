@@ -14,8 +14,9 @@ use MediaWiki\Extension\PageForms\FormRenderContext;
 class TextHandler implements ElementHandler {
 
 	public function handle( FormElement $element, FormRenderContext $context ): void {
-		if ( $element instanceof TextSpec ) {
-			$context->section .= $element->getText();
+		if ( !$element instanceof TextSpec ) {
+			throw ElementHandlerException::wrongElement( $this, $element );
 		}
+		$context->section .= $element->getText();
 	}
 }

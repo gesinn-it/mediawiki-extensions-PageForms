@@ -29,7 +29,7 @@ class SectionHandler implements ElementHandler {
 	 */
 	public function handle( FormElement $element, FormRenderContext $context ): void {
 		if ( !$element instanceof TagSpec ) {
-			return;
+			throw ElementHandlerException::wrongElement( $this, $element );
 		}
 		$context->counters->fieldNum++;
 		$context->counters->tabIndex++;

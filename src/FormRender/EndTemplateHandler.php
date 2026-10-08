@@ -22,7 +22,7 @@ class EndTemplateHandler implements ElementHandler {
 	 */
 	public function handle( FormElement $element, FormRenderContext $context ): void {
 		if ( !$element instanceof TagSpec ) {
-			return;
+			throw ElementHandlerException::wrongElement( $this, $element );
 		}
 		if ( count( $element->getComponents() ) > 1 ) {
 			throw new FormDefinitionException(

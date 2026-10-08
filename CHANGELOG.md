@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Changed
+- A form definition element that the form printer has no handler for now stops the form with an error that names the element class instead of silently disappearing from the form [#248](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/248)
 - `#autoedit` links with `link type=instant` are now sent one after the other instead of all at once when the page loads, and a save that the database rolled back (for example `DBTransactionStateError`) is sent once more. The documentation names MediaWiki's rate limit (90 edits per 60 seconds by default) as the limit for such pages [#220](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/220)
 - Forms with several fields that use the same `values from ...` source, or the same `mapping template` in the instances of a multiple-instance template, open faster: each source is counted and each mapped label looked up once per request instead of once per field, and the labels of one field are looked up together instead of one by one [#221](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/221), [#222](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/222)
 - `FormPrinter::render()` returns a `FormRenderResult` with named values (form HTML, page text, form title, generated page name, parser output, query form at top). `FormPrinter::formHTML()` keeps returning the list as before and is deprecated; custom code that calls it can switch to `render()`.

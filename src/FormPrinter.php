@@ -19,6 +19,7 @@ use MediaWiki\Extension\PageForms\FormDefinition\TemplateSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TextSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\UnknownTagSpec;
 use MediaWiki\Extension\PageForms\FormRender\ElementHandler;
+use MediaWiki\Extension\PageForms\FormRender\ElementHandlerException;
 use MediaWiki\Extension\PageForms\FormRender\EndTemplateHandler;
 use MediaWiki\Extension\PageForms\FormRender\FieldHandler;
 use MediaWiki\Extension\PageForms\FormRender\InfoHandler;
@@ -577,12 +578,20 @@ class FormPrinter {
 
 		foreach ( $context->sectionElements as $element_num => $element ) {
 			$context->elementNum = $element_num;
-			$handler = $this->elementHandlers[get_class( $element )] ?? null;
-			$handler?->handle( $element, $context );
+			$this->getElementHandler( $element )->handle( $element, $context );
 		}
 
 		$this->pageTextAssembler->insertTemplateCalls( $context );
 		$this->sectionLayout->finish( $context );
+	}
+
+	/**
+	 * @param FormElement $element
+	 * @return ElementHandler
+	 * @throws ElementHandlerException if the type of the element has no handler
+	 */
+	private function getElementHandler( FormElement $element ): ElementHandler {
+		return $this->elementHandlers[get_class( $element )] ?? throw ElementHandlerException::noHandler( $element );
 	}
 
 	/**
