@@ -1,6 +1,5 @@
 <?php
 
-use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\MediaWikiServices;
 use OOUI\BlankTheme;

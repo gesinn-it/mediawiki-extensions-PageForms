@@ -1,6 +1,5 @@
 <?php
 
-use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Extension\PageForms\FormRenderResult;
 use MediaWiki\MediaWikiServices;
