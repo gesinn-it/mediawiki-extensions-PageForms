@@ -6,8 +6,12 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-10-09
+
+Fixes forms removing a page's Semantic MediaWiki properties after a purge.
+
 ### Fixed
-- With Semantic MediaWiki, opening or saving a form (`#autoedit`, `pfautoedit`, form edit) right after the page was purged or edited without changes no longer removes the page's properties from the store [`80cac9f1`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/80cac9f1)
+- With Semantic MediaWiki, opening or saving a form (`#autoedit`, `pfautoedit`, form edit) right after the page was purged or edited without changes no longer removes the page's properties from the store [`80cac9f1`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/80cac9f1), [`d2c1344c`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/d2c1344c)
 
 ## [2.3.0] - 2026-10-08
 
@@ -344,7 +348,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.0...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.1...HEAD
+[2.3.1]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.12...2.2.0
 [2.1.12]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.11...2.1.12
