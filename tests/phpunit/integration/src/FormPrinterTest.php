@@ -685,63 +685,72 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'unknown tag type', $formHtml );
 	}
 
-	public function testFormHTMLEndTemplateWithExtraParamThrowsMWException(): void {
+	/**
+	 * A malformed form definition is a user error, which must be reported with a message that
+	 * tells the form author what is wrong - not silently ignored or turned into some other error.
+	 *
+	 * @dataProvider provideMalformedFormDefinitions
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
+	 */
+	public function testFormHTMLRejectsAMalformedFormDefinition( string $formDef, string $messagePattern ): void {
 		global $wgPageFormsFormPrinter, $wgOut;
 
 		$wgOut->getContext()->setTitle( $this->getTitle() );
 
-		$formDef = "{{{for template|PFTestFieldTpl12}}}\n"
-			. "{{{field|Name}}}\n"
-			. "{{{end template|extra}}}\n"
-			. "{{{standard input|save}}}";
-
 		$this->expectException( \MWException::class );
+		$this->expectExceptionMessageMatches( $messagePattern );
 		$wgPageFormsFormPrinter->formHTML(
 			$formDef, false, false, null, null,
-			'PFTestFieldPage12', null, false, false, false, [],
+			'PFTestMalformedFormPage01', null, false, false, false, [],
 			self::getTestUser()->getUser()
 		);
 	}
 
 	/**
-	 * A form definition with more than one {{{info}}} tag is a user error;
-	 * the second tag must not silently overwrite the first.
-	 *
-	 * @see https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/94
+	 * @return array<string, array{0: string, 1: string}>
 	 */
-	public function testFormHTMLDuplicateInfoTagThrowsMWException(): void {
-		global $wgPageFormsFormPrinter, $wgOut;
-
-		$wgOut->getContext()->setTitle( $this->getTitle() );
-
-		$formDef = "{{{info|create title=First Title}}}\n"
-			. "{{{info|create title=Second Title}}}\n"
-			. "{{{standard input|save}}}";
-
-		$this->expectException( \MWException::class );
-		$wgPageFormsFormPrinter->formHTML(
-			$formDef, false, false, null, null,
-			'PFTestDuplicateInfoTagPage01', null, false, false, false, [],
-			self::getTestUser()->getUser()
-		);
-	}
-
-	public function testFormHTMLForbiddenCharactersInFieldTagThrowsMWException(): void {
-		global $wgPageFormsFormPrinter, $wgOut;
-
-		$wgOut->getContext()->setTitle( $this->getTitle() );
-
-		$formDef = "{{{for template|PFTestFieldTpl13}}}\n"
-			. "{{{field|Name|bad=<script>alert(1)</script>}}}\n"
-			. "{{{end template}}}\n"
-			. "{{{standard input|save}}}";
-
-		$this->expectException( \MWException::class );
-		$wgPageFormsFormPrinter->formHTML(
-			$formDef, false, false, null, null,
-			'PFTestFieldPage13', null, false, false, false, [],
-			self::getTestUser()->getUser()
-		);
+	public static function provideMalformedFormDefinitions(): array {
+		return [
+			'end template tag with an extra parameter' => [
+				"{{{for template|PFTestFieldTpl12}}}\n{{{field|Name}}}\n{{{end template|extra}}}\n"
+					. "{{{standard input|save}}}",
+				"/'end template' tag cannot contain any additional parameters/",
+			],
+			// The second tag must not silently overwrite the first, see
+			// https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/94
+			'more than one info tag' => [
+				"{{{info|create title=First Title}}}\n{{{info|create title=Second Title}}}\n"
+					. "{{{standard input|save}}}",
+				"/only one 'info' tag is allowed per form/",
+			],
+			'forbidden characters in a field tag' => [
+				"{{{for template|PFTestFieldTpl13}}}\n{{{field|Name|bad=<script>alert(1)</script>}}}\n"
+					. "{{{end template}}}\n{{{standard input|save}}}",
+				"/field tag contains forbidden characters/",
+			],
+			// An unclosed tag (no matching }}} anywhere in the section) must throw instead of being
+			// misparsed through PHP's false + 3 === 3 coercion, which drops the tag from the output
+			// without any error, issue #119.
+			'tag that is never closed' => [
+				"{{{field|Unclosed",
+				"/tag is missing its closing '\\}\\}\\}'/",
+			],
+			// Malformed tag guards, issue #23: a tag without its name
+			'for template tag without a template name' => [
+				"{{{for template}}}\n{{{end template}}}\n{{{standard input|save}}}",
+				"/'for template' tag is missing the template name/",
+			],
+			'field tag without a field name' => [
+				"{{{for template|PFTestMalformedTpl02}}}\n{{{field}}}\n{{{end template}}}\n"
+					. "{{{standard input|save}}}",
+				"/'field' tag is missing the field name/",
+			],
+			'standard input tag without an input name' => [
+				"{{{for template|PFTestMalformedTpl03}}}\n{{{field|Name}}}\n{{{end template}}}\n"
+					. "{{{standard input}}}\n{{{standard input|save}}}",
+				"/'standard input' tag is missing the input name/",
+			],
+		];
 	}
 
 	public function testFormHTMLFreeTextFromRequestPopulatesPageText(): void {
@@ -840,85 +849,6 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertNotEmpty( $html );
 		// The HTML marker must embed the placeholder string somewhere
 		$this->assertStringContainsString( 'T', $html );
-	}
-
-	// -------------------------------------------------------------------------
-	// Malformed tag guards — issue #23
-	// -------------------------------------------------------------------------
-
-	/**
-	 * A bare {{{for template}}} tag (no template name) must throw an MWException
-	 * with an actionable error message so form authors can diagnose the mistake.
-	 *
-	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
-	 */
-	public function testFormHTMLForTemplateTagWithoutNameThrowsMWException(): void {
-		global $wgPageFormsFormPrinter, $wgOut;
-
-		$wgOut->getContext()->setTitle( $this->getTitle() );
-
-		$formDef = "{{{for template}}}\n"
-			. "{{{end template}}}\n"
-			. "{{{standard input|save}}}";
-
-		$this->expectException( \MWException::class );
-		$this->expectExceptionMessageMatches( "/'for template' tag is missing the template name/" );
-		$wgPageFormsFormPrinter->formHTML(
-			$formDef, false, false, null, null,
-			'PFTestMalformedPage01', null, false, false, false, [],
-			self::getTestUser()->getUser()
-		);
-	}
-
-	/**
-	 * A bare {{{field}}} tag (no field name) must throw an MWException with an
-	 * actionable error message so form authors can diagnose the mistake.
-	 *
-	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
-	 */
-	public function testFormHTMLFieldTagWithoutNameThrowsMWException(): void {
-		global $wgPageFormsFormPrinter, $wgOut;
-
-		$wgOut->getContext()->setTitle( $this->getTitle() );
-
-		$formDef = "{{{for template|PFTestMalformedTpl02}}}\n"
-			. "{{{field}}}\n"
-			. "{{{end template}}}\n"
-			. "{{{standard input|save}}}";
-
-		$this->expectException( \MWException::class );
-		$this->expectExceptionMessageMatches( "/'field' tag is missing the field name/" );
-		$wgPageFormsFormPrinter->formHTML(
-			$formDef, false, false, null, null,
-			'PFTestMalformedPage02', null, false, false, false, [],
-			self::getTestUser()->getUser()
-		);
-	}
-
-	/**
-	 * A bare {{{standard input}}} tag (no input name) must throw an MWException
-	 * with an actionable error message so form authors can diagnose the mistake.
-	 *
-	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
-	 */
-	public function testFormHTMLStandardInputTagWithoutNameThrowsMWException(): void {
-		global $wgPageFormsFormPrinter, $wgOut;
-
-		$wgOut->getContext()->setTitle( $this->getTitle() );
-
-		$formDef = "{{{for template|PFTestMalformedTpl03}}}\n"
-			. "{{{field|Name}}}\n"
-			. "{{{end template}}}\n"
-			. "{{{standard input}}}\n"
-			. "{{{standard input|save}}}";
-
-		$this->expectException( \MWException::class );
-		$this->expectExceptionMessageMatches( "/'standard input' tag is missing the input name/" );
-		$wgPageFormsFormPrinter->formHTML(
-			$formDef, false, false, null, null,
-			'PFTestMalformedPage03', null, false, false, false, [],
-			self::getTestUser()->getUser()
-		);
 	}
 
 	// -------------------------------------------------------------------------
@@ -1053,34 +983,6 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Out-of-bounds string offset / unclosed tag guards — issue #119
-	// -------------------------------------------------------------------------
-
-	/**
-	 * An unclosed {{{ tag (no matching }}} anywhere in the section) must
-	 * throw an actionable MWException instead of silently misparsing via
-	 * PHP's false + 3 === 3 coercion, which corrupts the substr() extraction
-	 * of the bracketed string and drops the tag from the output entirely
-	 * with no error raised.
-	 *
-	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
-	 */
-	public function testFormHTMLWithUnclosedTagThrowsMWException(): void {
-		global $wgPageFormsFormPrinter, $wgOut;
-
-		$wgOut->getContext()->setTitle( $this->getTitle() );
-
-		$formDef = "{{{field|Unclosed";
-
-		$this->expectException( \MWException::class );
-		$wgPageFormsFormPrinter->formHTML(
-			$formDef, false, false, null, null,
-			'PFTestUnclosedTagPage01', null, false, false, false, [],
-			self::getTestUser()->getUser()
-		);
-	}
-
-	// -------------------------------------------------------------------------
 	// Empty {{{}}} tag must not hang formHTML() — issue #118
 	// -------------------------------------------------------------------------
 
@@ -1154,122 +1056,60 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	// Multiple-instance display modes: table / spreadsheet / calendar — #237-297, #1314-1405
 	// -------------------------------------------------------------------------
 
-	public function testFormHTMLMultipleTemplateWithTableDisplayRendersTableHTML(): void {
+	/**
+	 * The arguments of a "for template" tag that choose how its fields are laid out must show in the
+	 * form: the markup of the display mode, and the fieldset a label wraps the template in.
+	 *
+	 * @dataProvider provideTemplateTagLayouts
+	 * @param string $tagArguments The arguments of the "for template" tag, after the "for template" part
+	 * @param string[] $expectedInHtml
+	 */
+	public function testFormHTMLRendersTheLayoutOfATemplateTag( string $tagArguments, array $expectedInHtml ): void {
 		global $wgPageFormsFormPrinter, $wgOut;
 
 		$wgOut->getContext()->setTitle( $this->getTitle() );
 
-		$formDef = "{{{for template|PFTestMultiTableTpl01|multiple|display=table}}}\n"
+		$formDef = "{{{for template|$tagArguments}}}\n"
 			. "{{{field|Name}}}\n"
 			. "{{{end template}}}\n"
 			. "{{{standard input|save}}}";
 
 		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
 			$formDef, false, false, null, null,
-			'PFTestMultiTablePage01', null, false, false, false, [],
+			'PFTestTemplateLayoutPage01', null, false, false, false, [],
 			self::getTestUser()->getUser()
 		);
 
-		$this->assertStringContainsString( 'formtable', $formHtml );
-		$this->assertStringContainsString( 'multipleTemplateWrapper', $formHtml );
+		foreach ( $expectedInHtml as $expected ) {
+			$this->assertStringContainsString( $expected, $formHtml );
+		}
 	}
 
-	public function testFormHTMLMultipleTemplateWithSpreadsheetDisplayRendersSpreadsheetHTML(): void {
-		global $wgPageFormsFormPrinter, $wgOut;
-
-		$wgOut->getContext()->setTitle( $this->getTitle() );
-
-		$formDef = "{{{for template|PFTestMultiSpreadsheetTpl01|multiple|display=spreadsheet|label=Items}}}\n"
-			. "{{{field|Name}}}\n"
-			. "{{{end template}}}\n"
-			. "{{{standard input|save}}}";
-
-		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
-			$formDef, false, false, null, null,
-			'PFTestMultiSpreadsheetPage01', null, false, false, false, [],
-			self::getTestUser()->getUser()
-		);
-
-		$this->assertStringContainsString( 'pfSpreadsheet', $formHtml );
-		$this->assertStringContainsString( '</fieldset>', $formHtml );
-	}
-
-	public function testFormHTMLMultipleTemplateWithCalendarDisplayRendersCalendarHTML(): void {
-		global $wgPageFormsFormPrinter, $wgOut;
-
-		$wgOut->getContext()->setTitle( $this->getTitle() );
-
-		$formDef = "{{{for template|PFTestMultiCalendarTpl01|multiple|display=calendar}}}\n"
-			. "{{{field|Name}}}\n"
-			. "{{{end template}}}\n"
-			. "{{{standard input|save}}}";
-
-		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
-			$formDef, false, false, null, null,
-			'PFTestMultiCalendarPage01', null, false, false, false, [],
-			self::getTestUser()->getUser()
-		);
-
-		$this->assertStringContainsString( 'pfFullCalendarJS', $formHtml );
-		$this->assertStringContainsString( '</fieldset>', $formHtml );
-	}
-
-	public function testFormHTMLMultipleTemplateWithLabelWrapsInFieldset(): void {
-		global $wgPageFormsFormPrinter, $wgOut;
-
-		$wgOut->getContext()->setTitle( $this->getTitle() );
-
-		$formDef = "{{{for template|PFTestMultiLabelTpl01|multiple|label=My Group Label}}}\n"
-			. "{{{field|Name}}}\n"
-			. "{{{end template}}}\n"
-			. "{{{standard input|save}}}";
-
-		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
-			$formDef, false, false, null, null,
-			'PFTestMultiLabelPage01', null, false, false, false, [],
-			self::getTestUser()->getUser()
-		);
-
-		$this->assertStringContainsString( 'My Group Label', $formHtml );
-	}
-
-	public function testFormHTMLNonMultipleTemplateWithLabelAppendsClosingFieldset(): void {
-		global $wgPageFormsFormPrinter, $wgOut;
-
-		$wgOut->getContext()->setTitle( $this->getTitle() );
-
-		$formDef = "{{{for template|PFTestSingleLabelTpl01|label=Single Group}}}\n"
-			. "{{{field|Name}}}\n"
-			. "{{{end template}}}\n"
-			. "{{{standard input|save}}}";
-
-		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
-			$formDef, false, false, null, null,
-			'PFTestSingleLabelPage01', null, false, false, false, [],
-			self::getTestUser()->getUser()
-		);
-
-		$this->assertStringContainsString( 'Single Group', $formHtml );
-		$this->assertStringContainsString( '</fieldset>', $formHtml );
-	}
-
-	public function testFormHTMLNonMultipleTemplateWithTableDisplayRendersTableHTML(): void {
-		global $wgPageFormsFormPrinter, $wgOut;
-
-		$wgOut->getContext()->setTitle( $this->getTitle() );
-
-		$formDef = "{{{for template|PFTestSingleTableTpl01|display=table}}}\n"
-			. "{{{field|Name}}}\n"
-			. "{{{end template}}}\n"
-			. "{{{standard input|save}}}";
-
-		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
-			$formDef, false, false, null, null,
-			'PFTestSingleTablePage01', null, false, false, false, [],
-			self::getTestUser()->getUser()
-		);
-
-		$this->assertStringContainsString( 'formtable', $formHtml );
+	/**
+	 * @return array<string, array{0: string, 1: string[]}>
+	 */
+	public static function provideTemplateTagLayouts(): array {
+		return [
+			'multiple instances as a table' => [
+				'PFTestMultiTableTpl01|multiple|display=table', [ 'formtable', 'multipleTemplateWrapper' ]
+			],
+			'multiple instances as a spreadsheet, with a label' => [
+				'PFTestMultiSpreadsheetTpl01|multiple|display=spreadsheet|label=Items',
+				[ 'pfSpreadsheet', '</fieldset>' ]
+			],
+			'multiple instances as a calendar' => [
+				'PFTestMultiCalendarTpl01|multiple|display=calendar', [ 'pfFullCalendarJS', '</fieldset>' ]
+			],
+			'multiple instances with a label' => [
+				'PFTestMultiLabelTpl01|multiple|label=My Group Label', [ 'My Group Label' ]
+			],
+			'a single instance with a label' => [
+				'PFTestSingleLabelTpl01|label=Single Group', [ 'Single Group', '</fieldset>' ]
+			],
+			'a single instance as a table' => [
+				'PFTestSingleTableTpl01|display=table', [ 'formtable' ]
+			],
+		];
 	}
 
 	// -------------------------------------------------------------------------
@@ -1843,7 +1683,9 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 			self::getTestUser()->getUser()
 		);
 
-		$this->assertNotEmpty( $formHtml );
+		// A query form ends with the button that runs the query, not with the buttons that save the page.
+		$this->assertStringContainsString( 'wpRunQuery', $formHtml );
+		$this->assertStringNotContainsString( 'wpSave', $formHtml );
 	}
 
 	// -------------------------------------------------------------------------
