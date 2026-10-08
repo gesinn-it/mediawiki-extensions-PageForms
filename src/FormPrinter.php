@@ -12,12 +12,15 @@ use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormDefinition\InfoSpec;
+use MediaWiki\Extension\PageForms\FormDefinition\SectionSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\StandardInputSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TextSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\UnknownTagSpec;
 use MediaWiki\Extension\PageForms\FormRender\ElementHandler;
 use MediaWiki\Extension\PageForms\FormRender\InfoHandler;
+use MediaWiki\Extension\PageForms\FormRender\SectionHandler;
+use MediaWiki\Extension\PageForms\FormRender\StandardInputHandler;
 use MediaWiki\MediaWikiServices;
 use MWException;
 use OutputPage;
@@ -25,7 +28,6 @@ use Parser;
 use ParserOptions;
 use PFTextAreaInput;
 use PFUtils;
-use PFWikiPage;
 use RequestContext;
 use Sanitizer;
 use Title;
@@ -73,10 +75,6 @@ class FormPrinter {
 
 	private FormDefinitionReader $formDefReader;
 
-	private StandardInputHtmlBuilder $standardInputHtmlBuilder;
-
-	private FormSectionHtmlBuilder $formSectionHtmlBuilder;
-
 	private FieldValueResolver $fieldValueResolver;
 
 	/** @var array<class-string, ElementHandler> The handler of each type of form definition element */
@@ -94,12 +92,12 @@ class FormPrinter {
 		$this->calendarHtmlBuilder = new CalendarHtmlBuilder();
 		$this->multipleTemplateHtmlBuilder = new MultipleTemplateHtmlBuilder();
 		$this->spreadsheetHtmlBuilder = new SpreadsheetHtmlBuilder();
-		$this->standardInputHtmlBuilder = new StandardInputHtmlBuilder();
 		$this->formDefReader = new FormDefinitionReader();
-		$this->formSectionHtmlBuilder = new FormSectionHtmlBuilder();
 		$this->fieldValueResolver = new FieldValueResolver();
 		$this->elementHandlers = [
 			InfoSpec::class => new InfoHandler(),
+			StandardInputSpec::class => new StandardInputHandler(),
+			SectionSpec::class => new SectionHandler(),
 		];
 
 		$this->registerInputType( 'PFTextInput' );
@@ -575,72 +573,6 @@ class FormPrinter {
 		}
 
 		return [ $form_text, $page_text, $form_page_title, $parserOutput ];
-	}
-
-	/**
-	 * Build the HTML for a {{{standard input}}} form-definition tag, as used by formHTML().
-	 * Caller is responsible for the "ignore this tag" early-exit (query vs. non-query
-	 * 'run query' handling) and for setting $context->standardInputsIncluded.
-	 *
-	 * @param string $input_name
-	 * @param array $tag_components
-	 * @param bool $form_is_disabled
-	 * @param bool $form_submitted
-	 * @param WebRequest $request
-	 * @param Parser $parser
-	 * @param string|null $page_name
-	 * @param FormRenderContext $context
-	 * @return string
-	 */
-	private function buildStandardInputTagHtml(
-		$input_name, array $tag_components, $form_is_disabled, $form_submitted, $request, $parser, $page_name,
-		FormRenderContext $context
-	): string {
-		return $this->standardInputHtmlBuilder->buildHtml(
-			$input_name,
-			$tag_components,
-			$form_is_disabled,
-			(bool)$form_submitted,
-			$request,
-			$parser,
-			$context->pageTitle,
-			$page_name
-		);
-	}
-
-	/**
-	 * Build the HTML for a {{{section}}} form-definition tag, as used by formHTML().
-	 * Increments the tab index and field number before delegating.
-	 *
-	 * @param array $tag_components
-	 * @param list<FormElement> $following_elements
-	 * @param bool $source_is_page
-	 * @param string|null $existing_page_content
-	 * @param WebRequest $request
-	 * @param PFWikiPage $wiki_page
-	 * @param bool $form_is_disabled
-	 * @param User $user
-	 * @param FormRenderContext $context
-	 * @return string
-	 */
-	private function buildSectionTagHtml(
-		array $tag_components, array $following_elements, $source_is_page, $existing_page_content,
-		$request, $wiki_page, $form_is_disabled, $user, FormRenderContext $context
-	): string {
-		$context->counters->fieldNum++;
-		$context->counters->tabIndex++;
-
-		return $this->formSectionHtmlBuilder->buildHtml(
-			$tag_components,
-			$following_elements,
-			$source_is_page,
-			$existing_page_content,
-			$request,
-			$wiki_page,
-			$form_is_disabled,
-			$user,
-			$context->counters
-		);
 	}
 
 	/**
@@ -1243,43 +1175,6 @@ END;
 						$context->tif->addGridValue( $field_name, $cur_value );
 					}
 
-				// =====================================================
-				// standard input processing
-				// =====================================================
-				} elseif ( $tag_title == 'standard input' ) {
-					if ( count( $tag_components ) < 2 ) {
-						throw new MWException(
-							'<div class="error">Error in form definition:' .
-							' \'standard input\' tag is missing the input name.</div>'
-						);
-					}
-					$input_name = $tag_components[1];
-
-					// if it's a query, ignore all standard inputs except run query
-					if ( ( $context->isQuery && $input_name != 'run query' )
-						|| ( !$context->isQuery && $input_name == 'run query' ) ) {
-						continue;
-					}
-					// set a flag so that the standard 'form bottom' won't get displayed
-					$context->standardInputsIncluded = true;
-
-					$new_text = $this->buildStandardInputTagHtml(
-						$input_name, $tag_components, $context->formIsDisabled, $context->formSubmitted,
-						$context->request, $context->parser,
-						$context->pageName, $context
-					);
-					$context->section .= $new_text;
-				// =====================================================
-				// for section processing
-				// =====================================================
-				} elseif ( $tag_title == 'section' ) {
-					$form_section_text = $this->buildSectionTagHtml(
-						$tag_components, array_slice( $section_elements, $element_num + 1 ), $context->sourceIsPage,
-						$context->existingPageContent, $context->request, $context->wikiPage,
-						$context->formIsDisabled, $context->user, $context
-					);
-
-					$context->section .= $form_section_text;
 				// =====================================================
 				// default outer level processing
 				// =====================================================
