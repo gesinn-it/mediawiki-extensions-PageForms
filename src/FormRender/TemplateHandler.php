@@ -49,7 +49,7 @@ class TemplateHandler implements ElementHandler {
 		$tif = $context->tif;
 		// If we are editing a page, and this template can be found more than once in that page,
 		// and multiple values are allowed, repeat this section.
-		if ( $context->sourceIsPage ) {
+		if ( $context->request->sourceIsPage ) {
 			// Get the first instance of this template on the page being edited, even if there
 			// are more, and remove it from the text being edited.
 			$context->existingPageContent = $tif->readFirstCallFromPage( $context->existingPageContent );
@@ -63,11 +63,11 @@ class TemplateHandler implements ElementHandler {
 		// We get values from the request, regardless of whether the source is the page or a form
 		// submit, because even if the source is a page, values can still come from a query string.
 		// (Unless it's called from #formredlink.)
-		if ( !$context->isAutocreate ) {
-			$tif->setFieldValuesFromSubmit( $context->request );
+		if ( !$context->request->isAutocreate ) {
+			$tif->setFieldValuesFromSubmit( $context->request->webRequest );
 		}
 
-		$tif->checkIfAllInstancesPrinted( $context->formSubmitted, $context->sourceIsPage );
+		$tif->checkIfAllInstancesPrinted( $context->request->formSubmitted, $context->request->sourceIsPage );
 
 		if ( !$tif->allInstancesPrinted() ) {
 			$context->wikiPage->addTemplate( $tif );

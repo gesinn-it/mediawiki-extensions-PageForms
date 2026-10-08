@@ -41,17 +41,17 @@ class InfoHandler implements ElementHandler {
 			$tag = strtolower( $sub_components[0] );
 			if ( $tag == 'create title' || $tag == 'add title' ) {
 				// Handle this only if we're adding a page.
-				if ( !$context->isQuery && !$context->pageTitle->exists() ) {
+				if ( !$context->request->isQuery && !$context->pageTitle->exists() ) {
 					$context->formPageTitle = $sub_components[1];
 				}
 			} elseif ( $tag == 'edit title' ) {
 				// Handle this only if we're editing a page.
-				if ( !$context->isQuery && $context->pageTitle->exists() ) {
+				if ( !$context->request->isQuery && $context->pageTitle->exists() ) {
 					$context->formPageTitle = $sub_components[1];
 				}
 			} elseif ( $tag == 'query title' ) {
 				// Handle this only if we're in 'RunQuery'.
-				if ( $context->isQuery ) {
+				if ( $context->request->isQuery ) {
 					$context->formPageTitle = $sub_components[1];
 				}
 			} elseif ( $tag == 'includeonly free text' || $tag == 'onlyinclude free text' ) {

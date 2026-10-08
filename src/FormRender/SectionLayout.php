@@ -71,7 +71,7 @@ class SectionLayout {
 	}
 
 	private function finishMultiple( TemplateInForm $tif, FormRenderContext $context ): void {
-		if ( $context->sourceIsPage && !$tif->allInstancesPrinted() ) {
+		if ( $context->request->sourceIsPage && !$tif->allInstancesPrinted() ) {
 			// The parameters of this instance's template call that the form does not define,
 			// as hidden inputs of the instance. (The "end template" tag is only handled once
 			// for all instances, so it cannot do this.)
@@ -117,7 +117,9 @@ class SectionLayout {
 		if ( !$tif->allInstancesPrinted() ) {
 			return '';
 		}
-		$html = (string)$this->spreadsheetHtmlBuilder->spreadsheetHTML( $tif, $context->out, $context->scriptPath );
+		$html = (string)$this->spreadsheetHtmlBuilder->spreadsheetHTML(
+			$tif, $context->request->out, $context->request->scriptPath
+		);
 		if ( $tif->getLabel() != null ) {
 			$html .= "</fieldset>\n";
 		}
@@ -131,7 +133,7 @@ class SectionLayout {
 		if ( !$tif->allInstancesPrinted() ) {
 			return '';
 		}
-		return $this->calendarHtmlBuilder->calendarHTML( $tif, $context->scriptPath ) . "</fieldset>\n";
+		return $this->calendarHtmlBuilder->calendarHTML( $tif, $context->request->scriptPath ) . "</fieldset>\n";
 	}
 
 	/**

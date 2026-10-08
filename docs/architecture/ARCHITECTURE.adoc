@@ -146,9 +146,10 @@ Rendering of forms is handled primarily by:
 FormPrinter
 ----
 
-`FormPrinter::render()` creates a `FormRenderContext` (the request, the page title, the counters
-and everything the elements build up while they are processed) and goes through the elements of
-the form definition. One `ElementHandler` in `src/FormRender/` handles each type of element
+`FormPrinter::render()` collects what the caller asked for in a read-only `FormRenderRequest`,
+resolves the page title and the edit permissions, and creates a `FormRenderContext` from them (the
+request, the page title, the parser, the counters and everything the elements build up while they
+are processed). It then goes through the elements of the form definition. One `ElementHandler` in `src/FormRender/` handles each type of element
 (`TemplateHandler`, `FieldHandler`, `EndTemplateHandler`, `StandardInputHandler`, `SectionHandler`,
 `InfoHandler`, `TextHandler`, `UnknownTagHandler`). `SectionLayout` adds the HTML of a section to the
 form, once per instance for a template that allows multiple instances, and `PageTextAssembler`

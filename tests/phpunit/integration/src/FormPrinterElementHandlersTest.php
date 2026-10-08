@@ -1,10 +1,12 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\FormRender\ElementHandlerException;
 use MediaWiki\Extension\PageForms\FormRender\TextHandler;
 use MediaWiki\Extension\PageForms\FormRenderContext;
+use MediaWiki\Extension\PageForms\FormRenderRequest;
 
 /**
  * @covers \MediaWiki\Extension\PageForms\FormPrinter
@@ -67,11 +69,23 @@ class FormPrinterElementHandlersTest extends MediaWikiIntegrationTestCase {
 		$method->invoke( $printer, $element );
 	}
 
+	private function newContext(): FormRenderContext {
+		$main = RequestContext::getMain();
+		$request = new FormRenderRequest(
+			false, false, false, false, false, [], null, null, null, null,
+			$main->getRequest(), $main->getUser(), $main->getOutput(), ''
+		);
+		$parser = $this->getServiceContainer()->getParserFactory()->create();
+		return new FormRenderContext(
+			$request, Title::makeTitle( NS_MAIN, 'Test' ), $parser, false, new FormCounters()
+		);
+	}
+
 	public function testHandlerRejectsAnElementOfAnotherType(): void {
 		$element = $this->newForeignElement();
 
 		$this->expectException( ElementHandlerException::class );
 		$this->expectExceptionMessage( TextHandler::class );
-		( new TextHandler() )->handle( $element, new FormRenderContext() );
+		( new TextHandler() )->handle( $element, $this->newContext() );
 	}
 }

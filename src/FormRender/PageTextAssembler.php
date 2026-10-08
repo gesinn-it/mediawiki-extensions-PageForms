@@ -31,7 +31,7 @@ class PageTextAssembler {
 		$tif = $context->tif;
 		if ( $tif && ( !$tif->allowsMultiple() || $tif->allInstancesPrinted() ) ) {
 			$template_text = $context->wikiPage->createTemplateCallsForTemplateName(
-				$tif->getTemplateName(), $context->request
+				$tif->getTemplateName(), $context->request->webRequest
 			);
 			// Escape the '$' characters for the preg_replace() call.
 			$template_text = str_replace( '$', '\$', $template_text );
@@ -59,16 +59,16 @@ class PageTextAssembler {
 	 */
 	public function createPageText( FormRenderContext $context ): array {
 		$existing_page_content = $context->existingPageContent;
-		$request = $context->request;
+		$request = $context->request->webRequest;
 		$wiki_page = $context->wikiPage;
 
-		if ( $context->sourceIsPage ) {
+		if ( $context->request->sourceIsPage ) {
 			// If the page is the source, free_text will just be
 			// whatever in the page hasn't already been inserted
 			// into the form.
 			$free_text = trim( $existing_page_content );
 		// ...or get it from the form submission, if it's not called from #formredlink
-		} elseif ( !$context->isAutocreate && $request->getCheck( 'pf_free_text' ) ) {
+		} elseif ( !$context->request->isAutocreate && $request->getCheck( 'pf_free_text' ) ) {
 			$free_text = $request->getVal( 'pf_free_text' );
 			if ( !$context->freeTextWasIncluded ) {
 				$wiki_page->addFreeTextSection();

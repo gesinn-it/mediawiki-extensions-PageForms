@@ -29,7 +29,7 @@ class EndTemplateHandler implements ElementHandler {
 				"Error in form definition: 'end template' tag cannot contain any additional parameters."
 			);
 		}
-		if ( $context->sourceIsPage && $context->tif && !$context->tif->allowsMultiple() ) {
+		if ( $context->request->sourceIsPage && $context->tif && !$context->tif->allowsMultiple() ) {
 			// Add any unhandled template fields
 			// in the page as hidden variables.
 			$context->formText .= FormMarkup::unhandledFieldsHTML( $context->tif );

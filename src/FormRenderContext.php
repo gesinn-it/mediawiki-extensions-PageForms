@@ -5,12 +5,9 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
-use OutputPage;
 use Parser;
 use PFWikiPage;
 use Title;
-use User;
-use WebRequest;
 
 /**
  * State of a single FormPrinter::render() call.
@@ -19,41 +16,26 @@ use WebRequest;
  * lives here instead: a nested or re-entrant render gets its own context and cannot
  * overwrite the state of the render that is still in progress.
  *
- * The first group is what the caller asked for and does not change during the render,
- * the second is the state the elements of the form definition build up while the
- * definition is processed in order.
+ * What the caller asked for is in $request and does not change. The title, the parser and
+ * whether the form is disabled are known before the first element is processed and are
+ * passed to the constructor, so none of them can be read before it is set. The rest is the
+ * state the elements of the form definition build up while the definition is processed in order.
  */
 class FormRenderContext {
 
-	// What the render was asked to do.
-
-	public bool $formSubmitted = false;
-	public bool $sourceIsPage = false;
-	public bool $isQuery = false;
-	public bool $isEmbedded = false;
-	/** True when called by #formredlink with "create page". */
-	public bool $isAutocreate = false;
-	/** @var array Query parameters from #formredlink */
-	public array $autocreateQuery = [];
-	public ?string $pageName = null;
-	public ?string $pageNameFormula = null;
-	public ?int $formId = null;
-	public WebRequest $request;
-	public User $user;
-	public OutputPage $out;
-	/** The URL path of the extension's files. */
-	public string $scriptPath = '';
+	/** What the render was asked to do. */
+	public readonly FormRenderRequest $request;
 	/** The fresh parser the form definition and the field values are parsed with. */
-	public Parser $parser;
+	public readonly Parser $parser;
+	/** The page being edited, or a placeholder title used for permission checks. */
+	public readonly Title $pageTitle;
 	/** True if the user may not edit the page; all inputs are then disabled. */
-	public bool $formIsDisabled = false;
+	public readonly bool $formIsDisabled;
+	/** Tab index and field number of this render. */
+	public readonly FormCounters $counters;
 
 	// State built up while the elements are processed.
 
-	/** Tab index and field number of this render. */
-	public FormCounters $counters;
-	/** The page being edited, or a placeholder title used for permission checks. */
-	public ?Title $pageTitle = null;
 	/** Whether the form definition has its own "standard input" tag (save, watch, ...). */
 	public bool $standardInputsIncluded = false;
 
@@ -70,24 +52,36 @@ class FormRenderContext {
 	/** The name of the template of the last {{{for template}}} tag. */
 	public ?string $templateName = null;
 	/** The page text that has not been taken over into the form yet. */
-	public ?string $existingPageContent = null;
+	public ?string $existingPageContent;
 	/** @var list<string> The replaced @<name>@ strings of fields that hold a template. */
 	public array $placeholderFields = [];
 	public bool $infoTagSeen = false;
 	public bool $freeTextWasIncluded = false;
 	public ?string $preloadedFreeText = null;
 	public bool $sourcePageMatchesThisForm = false;
-	public ?string $generatedPageName = null;
+	public ?string $generatedPageName;
 	public ?string $formPageTitle = null;
 	public bool $runQueryFormAtTop = false;
-	public PFWikiPage $wikiPage;
+	public readonly PFWikiPage $wikiPage;
 	/** @var list<string> Modules registered by parser tag hooks while the definition was parsed. */
 	public array $formDefParserModules = [];
 	/** @var list<string> */
 	public array $formDefParserModuleStyles = [];
 
-	public function __construct() {
-		$this->counters = new FormCounters();
+	public function __construct(
+		FormRenderRequest $request,
+		Title $pageTitle,
+		Parser $parser,
+		bool $formIsDisabled,
+		FormCounters $counters
+	) {
+		$this->request = $request;
+		$this->pageTitle = $pageTitle;
+		$this->parser = $parser;
+		$this->formIsDisabled = $formIsDisabled;
+		$this->counters = $counters;
+		$this->existingPageContent = $request->existingPageContent;
+		$this->generatedPageName = $request->pageNameFormula;
 		$this->wikiPage = new PFWikiPage();
 	}
 }

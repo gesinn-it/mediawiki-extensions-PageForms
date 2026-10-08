@@ -40,8 +40,8 @@ class StandardInputHandler implements ElementHandler {
 		$input_name = $tag_components[1];
 
 		// if it's a query, ignore all standard inputs except run query
-		if ( ( $context->isQuery && $input_name != 'run query' )
-			|| ( !$context->isQuery && $input_name == 'run query' ) ) {
+		if ( ( $context->request->isQuery && $input_name != 'run query' )
+			|| ( !$context->request->isQuery && $input_name == 'run query' ) ) {
 			return;
 		}
 		// set a flag so that the standard 'form bottom' won't get displayed
@@ -51,11 +51,11 @@ class StandardInputHandler implements ElementHandler {
 			$input_name,
 			$tag_components,
 			$context->formIsDisabled,
-			$context->formSubmitted,
-			$context->request,
+			$context->request->formSubmitted,
+			$context->request->webRequest,
 			$context->parser,
 			$context->pageTitle,
-			$context->pageName
+			$context->request->pageName
 		);
 	}
 }

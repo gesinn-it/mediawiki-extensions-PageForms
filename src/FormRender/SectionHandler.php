@@ -42,12 +42,12 @@ class SectionHandler implements ElementHandler {
 		$context->section .= $this->htmlBuilder->buildHtml(
 			$element->getComponents(),
 			array_slice( $context->sectionElements, $context->elementNum + 1 ),
-			$context->sourceIsPage,
+			$context->request->sourceIsPage,
 			$existingPageContent,
-			$context->request,
+			$context->request->webRequest,
 			$context->wikiPage,
 			$context->formIsDisabled,
-			$context->user,
+			$context->request->user,
 			$context->counters
 		);
 	}

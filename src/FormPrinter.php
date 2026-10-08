@@ -348,48 +348,47 @@ class FormPrinter {
 	}
 
 	/**
-	 * Resolve $context->pageTitle (needed for permission testing even when the real
+	 * Resolve the title of the page (needed for permission testing even when the real
 	 * page name isn't known yet) and compute the edit-permission errors for formHTML().
 	 *
 	 * Also shows the page's previous deletion log, as a side effect, matching the
 	 * original inline behavior in formHTML().
 	 *
-	 * @param FormRenderContext $context
-	 * @return array [ array $permissionErrors, bool $userCanEditPage ]
+	 * @param FormRenderRequest $request
+	 * @return array [ Title $pageTitle, array $permissionErrors, bool $userCanEditPage ]
 	 */
-	private function resolvePageTitleAndPermissions( FormRenderContext $context ): array {
+	private function resolvePageTitleAndPermissions( FormRenderRequest $request ): array {
 		// Disable all form elements if user doesn't have edit
 		// permission - two different checks are needed, because
 		// editing permissions can be set in different ways.
 		// HACK - sometimes we don't know the page name in advance, but
 		// we still need to set a title here for testing permissions.
-		if ( $context->isEmbedded || $context->isQuery ) {
+		$placeholderTitle = static fn (): Title => Title::newFromText(
+			$request->webRequest->getVal( 'namespace' ) . ":Page Forms permissions test"
+		) ?? Title::makeTitle( NS_MAIN, 'Page Forms permissions test' );
+		if ( $request->isEmbedded || $request->isQuery ) {
 			// If this is an embedded form (probably a 'RunQuery') or we're in Special:RunQuery,
 			// just use the name of the actual page we're on.
-			$titleGlobal = RequestContext::getMain()->getTitle();
-			$context->pageTitle = $titleGlobal;
-		} elseif ( $context->pageName === '' || $context->pageName === null ) {
-			$context->pageTitle = Title::newFromText(
-				$context->request->getVal( 'namespace' ) . ":Page Forms permissions test" );
+			$pageTitle = RequestContext::getMain()->getTitle() ?? $placeholderTitle();
+		} elseif ( $request->pageName === '' || $request->pageName === null ) {
+			$pageTitle = $placeholderTitle();
 		} else {
-			// $context->pageName may not be a syntactically valid title (e.g. it was
+			// $request->pageName may not be a syntactically valid title (e.g. it was
 			// generated from a page name formula, or came from an untrusted
-			// request value); fall back to the same placeholder title used
-			// above for permission-testing purposes rather than leaving
-			// $context->pageTitle null, which fatals in getPermissionErrors()
-			// and other unguarded uses below.
-			$context->pageTitle = Title::newFromText( $context->pageName ) ?? Title::newFromText(
-				$context->request->getVal( 'namespace' ) . ":Page Forms permissions test" );
+			// request value); fall back to the placeholder title used above for
+			// permission-testing purposes, which would otherwise fatal in
+			// getPermissionErrors() and other unguarded uses below.
+			$pageTitle = Title::newFromText( $request->pageName ) ?? $placeholderTitle();
 		}
 
 		global $wgOut;
 		// Show previous set of deletions for this page, if it's been
 		// deleted before.
-		if ( !$context->formSubmitted &&
-			( $context->pageTitle && !$context->pageTitle->exists() &&
-			$context->pageNameFormula === null )
+		if ( !$request->formSubmitted &&
+			( $pageTitle && !$pageTitle->exists() &&
+			$request->pageNameFormula === null )
 		) {
-			$this->showDeletionLog( $wgOut, $context->pageTitle );
+			$this->showDeletionLog( $wgOut, $pageTitle );
 		}
 
 		$permissionErrors = [];
@@ -399,20 +398,20 @@ class FormPrinter {
 		// "$wgEmailConfirmToEdit = true;". Instead, we'll just get the
 		// permission errors from the start, and use those to determine
 		// whether the page is editable.
-		if ( !$context->isQuery ) {
+		if ( !$request->isQuery ) {
 			$permissionErrors = MediaWikiServices::getInstance()->getPermissionManager()
-					->getPermissionErrors( 'edit', $context->user, $context->pageTitle );
+					->getPermissionErrors( 'edit', $request->user, $pageTitle );
 			if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
 				$permissionErrors = [ [ 'readonlytext',
 					[ MediaWikiServices::getInstance()->getReadOnlyMode()->getReason() ] ] ];
 			}
 			$userCanEditPage = count( $permissionErrors ) == 0;
 			MediaWikiServices::getInstance()->getHookContainer()->run(
-				'PageForms::UserCanEditPage', [ $context->pageTitle, &$userCanEditPage ]
+				'PageForms::UserCanEditPage', [ $pageTitle, &$userCanEditPage ]
 			);
 		}
 
-		return [ $permissionErrors, $userCanEditPage ];
+		return [ $pageTitle, $permissionErrors, $userCanEditPage ];
 	}
 
 	/**
@@ -429,7 +428,7 @@ class FormPrinter {
 		$existing_page_content = $context->existingPageContent;
 		$request = $context->request;
 		$wiki_page = $context->wikiPage;
-		$user = $context->user;
+		$user = $request->user;
 		$parser = $context->parser;
 		$form_page_title = $context->formPageTitle;
 
@@ -456,25 +455,25 @@ class FormPrinter {
 
 		// Add a warning in, if we're editing an existing page and that
 		// page appears to not have been created with this form.
-		if ( !$context->isQuery && $context->pageNameFormula === null &&
+		if ( !$request->isQuery && $request->pageNameFormula === null &&
 			$context->pageTitle->exists() && $existing_page_content !== ''
 			&& !$context->sourcePageMatchesThisForm ) {
 			$form_text = "\t" . '<div class="warningbox">' .
 				// Prepend with a colon in case it's a file or category page.
-				wfMessage( 'pf_formedit_formwarning', ':' . $context->pageName )->parse() .
+				wfMessage( 'pf_formedit_formwarning', ':' . $request->pageName )->parse() .
 				"</div>\n<br clear=\"both\" />\n" . $form_text;
 		}
 
 		// Add form bottom, if no custom "standard inputs" have been defined.
 		if ( !$context->standardInputsIncluded ) {
-			if ( $context->isQuery ) {
+			if ( $request->isQuery ) {
 				$form_text .= FormButtons::queryFormBottom();
 			} else {
-				$form_text .= FormButtons::formBottom( $context->formSubmitted, $context->formIsDisabled );
+				$form_text .= FormButtons::formBottom( $request->formSubmitted, $context->formIsDisabled );
 			}
 		}
 
-		if ( !$context->isQuery ) {
+		if ( !$request->isQuery ) {
 			$form_text .= Html::hidden( 'wpStarttime', wfTimestampNow() );
 			// This variable is called $mwWikiPage and not
 			// something simpler, to avoid confusion with the
@@ -510,7 +509,7 @@ class FormPrinter {
 		// mappings of which values should apply to which fields.
 		// If doing a replace, the page text is actually the modified
 		// original page.
-		if ( !$context->isEmbedded ) {
+		if ( !$request->isEmbedded ) {
 			$form_page_title = $parser->recursiveTagParse( str_replace( "{{!}}", "|", $form_page_title ?? '' ) );
 		} else {
 			$form_page_title = null;
@@ -521,47 +520,47 @@ class FormPrinter {
 
 	/**
 	 * Start the HTML of the form: the loading spinner and the warnings for the user. If the user
-	 * may not edit the page, all inputs are disabled and the reason is shown above the form.
+	 * may not edit the page, the reason is shown above the form.
 	 *
-	 * @param FormRenderContext $context
+	 * @param FormRenderRequest $request
 	 * @param array $permissionErrors
-	 * @param bool $userCanEditPage
+	 * @param bool $formIsDisabled
+	 * @return string The start of the HTML of the form.
 	 */
-	private function openForm( FormRenderContext $context, array $permissionErrors, bool $userCanEditPage ): void {
-		global $wgPageFormsShowExpandAllLink, $wgOut;
+	private function openForm( FormRenderRequest $request, array $permissionErrors, bool $formIsDisabled ): string {
+		global $wgPageFormsShowExpandAllLink;
 
 		// Start off with a loading spinner - this will be removed by
 		// the JavaScript once everything has finished loading.
-		$context->formText = FormMarkup::displayLoadingImage();
-		if ( $context->isQuery || $userCanEditPage ) {
-			$context->formIsDisabled = false;
+		$formText = FormMarkup::displayLoadingImage();
+		if ( !$formIsDisabled ) {
 			// Show "Your IP address will be recorded" warning if
 			// user is anonymous, and it's not a query.
-			if ( $context->user->isAnon() && !$context->isQuery ) {
+			if ( $request->user->isAnon() && !$request->isQuery ) {
 				// Based on code in MediaWiki's EditPage.php.
 				$anonEditWarning = wfMessage( 'anoneditwarning',
 					// Log-in link
 					'{{fullurl:Special:UserLogin|returnto={{FULLPAGENAMEE}}}}',
 					// Sign-up link
 					'{{fullurl:Special:UserLogin/signup|returnto={{FULLPAGENAMEE}}}}' )->parse();
-				$context->formText .= Html::rawElement(
+				$formText .= Html::rawElement(
 					'div', [ 'id' => 'mw-anon-edit-warning', 'class' => 'warningbox' ], $anonEditWarning
 				);
 			}
-		} else {
-			$context->formIsDisabled = true;
-			if ( $wgOut->getTitle() != null ) {
-				$wgOut->setPageTitle( wfMessage( 'badaccess' )->text() );
-				$wgOut->addWikiTextAsInterface( $wgOut->formatPermissionsErrorMessage( $permissionErrors, 'edit' ) );
-				$wgOut->addHTML( "\n<hr />\n" );
-			}
+		} elseif ( $request->out->getTitle() != null ) {
+			$request->out->setPageTitle( wfMessage( 'badaccess' )->text() );
+			$request->out->addWikiTextAsInterface(
+				$request->out->formatPermissionsErrorMessage( $permissionErrors, 'edit' )
+			);
+			$request->out->addHTML( "\n<hr />\n" );
 		}
 
 		if ( $wgPageFormsShowExpandAllLink ) {
-			$context->formText .= Html::rawElement( 'p', [ 'id' => 'pf-expand-all' ],
+			$formText .= Html::rawElement( 'p', [ 'id' => 'pf-expand-all' ],
 				// @TODO - add an i18n message for this.
 				Html::element( 'a', [ 'href' => '#' ], 'Expand all collapsed parts of the form' ) ) . "\n";
 		}
+		return $formText;
 	}
 
 	/**
@@ -610,13 +609,13 @@ class FormPrinter {
 	}
 
 	/**
-	 * Create a fresh Parser instance for use by formHTML(), titled at $context->pageTitle.
+	 * Create a fresh Parser instance for use by formHTML(), titled at $pageTitle.
 	 *
 	 * @param User $user
-	 * @param FormRenderContext $context
+	 * @param Title $pageTitle
 	 * @return Parser
 	 */
-	private function createFreshParser( $user, FormRenderContext $context ) {
+	private function createFreshParser( $user, Title $pageTitle ) {
 		// getFreshParser() was removed in MW 1.43; use the factory on newer versions.
 		$globalParser = PFUtils::getParser();
 		if ( method_exists( $globalParser, 'getFreshParser' ) ) {
@@ -631,7 +630,7 @@ class FormPrinter {
 			$parser = MediaWikiServices::getInstance()->getParserFactory()->create();
 			$parser->setOptions( ParserOptions::newFromUser( $user ) );
 		}
-		$parser->setTitle( $context->pageTitle );
+		$parser->setTitle( $pageTitle );
 		// This is needed in order to make sure $parser->mLinkHolders
 		// is set.
 		$parser->clearState();
@@ -679,82 +678,57 @@ class FormPrinter {
 		$user = null,
 		$request = null
 	): FormRenderResult {
-		$context = new FormRenderContext();
-		FormCounters::begin( $context->counters );
+		global $wgOut, $wgPageFormsScriptPath;
+
+		$renderRequest = new FormRenderRequest(
+			(bool)$form_submitted,
+			(bool)$source_is_page,
+			(bool)$is_query,
+			(bool)$is_embedded,
+			(bool)$is_autocreate,
+			$autocreate_query,
+			$page_name,
+			$page_name_formula,
+			$form_id !== null ? (int)$form_id : null,
+			$existing_page_content,
+			$request ?? RequestContext::getMain()->getRequest(),
+			$user ?? RequestContext::getMain()->getUser(),
+			$wgOut,
+			(string)$wgPageFormsScriptPath
+		);
+		$counters = new FormCounters();
+		FormCounters::begin( $counters );
 		try {
-			return $this->renderInContext(
-				$form_def, $form_submitted, $source_is_page, $form_id, $existing_page_content, $page_name,
-				$page_name_formula, $is_query, $is_embedded, $is_autocreate, $autocreate_query, $user, $request,
-				$context
-			);
+			return $this->renderInContext( $form_def, $renderRequest, $counters );
 		} finally {
-			$context->counters->mirrorToGlobals();
+			$counters->mirrorToGlobals();
 			FormCounters::end();
 		}
 	}
 
 	/**
-	 * The body of render(), run with the counters of $context as the current ones.
+	 * The body of render(), run with $counters as the current counters.
 	 *
 	 * @param string $form_def
-	 * @param bool $form_submitted
-	 * @param bool $source_is_page
-	 * @param int|null $form_id
-	 * @param string|null $existing_page_content
-	 * @param string|null $page_name
-	 * @param string|null $page_name_formula
-	 * @param bool $is_query
-	 * @param bool $is_embedded
-	 * @param bool $is_autocreate
-	 * @param array $autocreate_query
-	 * @param User|null $user
-	 * @param WebRequest|null $request
-	 * @param FormRenderContext $context
+	 * @param FormRenderRequest $request
+	 * @param FormCounters $counters
 	 * @return FormRenderResult
 	 */
 	private function renderInContext(
-		$form_def,
-		$form_submitted,
-		$source_is_page,
-		$form_id,
-		$existing_page_content,
-		$page_name,
-		$page_name_formula,
-		$is_query,
-		$is_embedded,
-		$is_autocreate,
-		$autocreate_query,
-		$user,
-		$request,
-		FormRenderContext $context
+		$form_def, FormRenderRequest $request, FormCounters $counters
 	): FormRenderResult {
-		global $wgOut, $wgPageFormsScriptPath;
-
-		$context->formSubmitted = (bool)$form_submitted;
-		$context->sourceIsPage = (bool)$source_is_page;
-		$context->isQuery = (bool)$is_query;
-		$context->isEmbedded = (bool)$is_embedded;
-		$context->isAutocreate = (bool)$is_autocreate;
-		$context->autocreateQuery = $autocreate_query;
-		$context->pageName = $page_name;
-		$context->pageNameFormula = $page_name_formula;
-		$context->formId = $form_id !== null ? (int)$form_id : null;
-		$context->existingPageContent = $existing_page_content;
-		$context->generatedPageName = $page_name_formula;
-		$context->request = $request ?? RequestContext::getMain()->getRequest();
-		$context->out = $wgOut;
-		$context->scriptPath = (string)$wgPageFormsScriptPath;
-		$context->user = $user ?? RequestContext::getMain()->getUser();
-
 		// Disable all form elements if user doesn't have edit permission.
-		// Also resolves $context->pageTitle as a side effect (needed below).
-		[ $permissionErrors, $userCanEditPage ] = $this->resolvePageTitleAndPermissions( $context );
+		[ $pageTitle, $permissionErrors, $userCanEditPage ] = $this->resolvePageTitleAndPermissions( $request );
+		$formIsDisabled = !( $request->isQuery || $userCanEditPage );
 
-		$this->openForm( $context, $permissionErrors, $userCanEditPage );
+		$formText = $this->openForm( $request, $permissionErrors, $formIsDisabled );
 
-		$context->parser = $this->createFreshParser( $context->user, $context );
+		$context = new FormRenderContext(
+			$request, $pageTitle, $this->createFreshParser( $request->user, $pageTitle ), $formIsDisabled, $counters
+		);
+		$context->formText = $formText;
 
-		$form_definition = FormCache::getFormDefinitionModel( $context->parser, $form_def, $context->formId );
+		$form_definition = FormCache::getFormDefinitionModel( $context->parser, $form_def, $request->formId );
 		// Snapshot RL modules registered by parser tag hooks during form-definition
 		// parsing. FormField calls $context->parser->clearState() during field rendering,
 		// which resets $context->parser->mOutput and discards these modules. We save them
@@ -762,19 +736,12 @@ class FormPrinter {
 		$context->formDefParserModules = $context->parser->getOutput()->getModules();
 		$context->formDefParserModuleStyles = $context->parser->getOutput()->getModuleStyles();
 
-		$context->freeTextWasIncluded = false;
-		$context->preloadedFreeText = null;
 		$form_def_sections = $this->formDefParser->splitIntoSections( $form_definition );
 
 		// Cycle through the form definition file, and possibly an
 		// existing article as well, finding template and field
 		// declarations and replacing them with form elements, either
 		// blank or pre-populated, as appropriate.
-		$context->template = null;
-		$context->tif = null;
-		// This array will keep track of all the replaced @<name>@ strings
-		$context->placeholderFields = [];
-		$context->infoTagSeen = false;
 
 		foreach ( $form_def_sections as $section_elements ) {
 			$this->renderSection( $section_elements, $context );

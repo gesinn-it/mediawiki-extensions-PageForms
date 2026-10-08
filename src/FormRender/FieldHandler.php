@@ -87,7 +87,7 @@ class FieldHandler implements ElementHandler {
 		$field_name = trim( $element->getComponents()[1] );
 		$form_field = FormField::newFromFormFieldTag(
 			$element,
-			$context->template, $context->tif, $context->formIsDisabled, $context->user, $context->parser,
+			$context->template, $context->tif, $context->formIsDisabled, $context->request->user, $context->parser,
 			$this->mappingLabels
 		);
 		$this->registerFieldForSpecialDisplay( $form_field, $context );
@@ -213,7 +213,7 @@ class FieldHandler implements ElementHandler {
 	private function substituteInPageNameFormula(
 		FormField $form_field, $cur_value_in_template, FormRenderContext $context
 	): void {
-		if ( !$context->formSubmitted || $context->generatedPageName === '' ) {
+		if ( !$context->request->formSubmitted || $context->generatedPageName === '' ) {
 			return;
 		}
 		$context->generatedPageName = str_replace( ' ', '_', $context->generatedPageName ?? '' );
@@ -266,7 +266,7 @@ class FieldHandler implements ElementHandler {
 		FormField $form_field, &$cur_value, &$cur_value_in_template, FormRenderContext $context
 	): void {
 		$hookContainer = MediaWikiServices::getInstance()->getHookContainer();
-		if ( $context->formSubmitted ) {
+		if ( $context->request->formSubmitted ) {
 			$hookContainer->run( 'PageForms::CreateFormField', [ &$form_field, &$cur_value_in_template, true ] );
 		} else {
 			$this->formFieldHtmlBuilder->createFormFieldTranslateTag(
@@ -289,14 +289,14 @@ class FieldHandler implements ElementHandler {
 	private function applyDefaultValue(
 		FormField $form_field, $cur_value, $cur_value_in_template, FormRenderContext $context
 	): array {
-		if ( $context->sourceIsPage && !$context->tif->allInstancesPrinted() ) {
+		if ( $context->request->sourceIsPage && !$context->tif->allInstancesPrinted() ) {
 			// If the source is a page, don't use the default
 			// values - except for newly-added instances of a
 			// multiple-instance template.
 		} elseif ( $form_field->getDefaultValue() !== null ) {
 			[ $cur_value, $cur_value_in_template ] = $this->fieldValueResolver->resolveDefaultValue(
 				$form_field, (string)$cur_value, (string)$cur_value_in_template,
-				(bool)$context->tif->allowsMultiple(), $context->formSubmitted, $context->user
+				(bool)$context->tif->allowsMultiple(), $context->request->formSubmitted, $context->request->user
 			);
 		}
 
@@ -336,13 +336,13 @@ class FieldHandler implements ElementHandler {
 	private function setUpFreeTextTemplate( FormRenderContext $context ): void {
 		$context->template = new Template( null, [] );
 		// Get free text from the query string, if it was set.
-		if ( $context->request->getCheck( 'free_text' ) ) {
-			$standard_input = $context->request->getArray( 'standard_input', [] );
-			$standard_input['#freetext#'] = $context->request->getVal( 'free_text' );
-			$context->request->setVal( 'standard_input', $standard_input );
+		if ( $context->request->webRequest->getCheck( 'free_text' ) ) {
+			$standard_input = $context->request->webRequest->getArray( 'standard_input', [] );
+			$standard_input['#freetext#'] = $context->request->webRequest->getVal( 'free_text' );
+			$context->request->webRequest->setVal( 'standard_input', $standard_input );
 		}
 		$context->tif = TemplateInForm::create( 'standard_input', null, null, null, [] );
-		$context->tif->setFieldValuesFromSubmit( $context->request );
+		$context->tif->setFieldValuesFromSubmit( $context->request->webRequest );
 	}
 
 	/**
@@ -358,15 +358,15 @@ class FieldHandler implements ElementHandler {
 	 */
 	private function currentValue( FormField $form_field, string $field_name, FormRenderContext $context ) {
 		$val_modifier = null;
-		if ( $context->isAutocreate ) {
-			$values_from_query = $context->autocreateQuery[$context->tif->getTemplateName()] ?? [];
+		if ( $context->request->isAutocreate ) {
+			$values_from_query = $context->request->autocreateQuery[$context->tif->getTemplateName()] ?? [];
 			$cur_value = $form_field->getCurrentValue(
-				$values_from_query, $context->formSubmitted, $context->sourceIsPage,
+				$values_from_query, $context->request->formSubmitted, $context->request->sourceIsPage,
 				$context->tif->allInstancesPrinted(), $val_modifier
 			);
 		} else {
 			$cur_value = $form_field->getCurrentValue(
-				$context->tif->getValuesFromSubmit(), $context->formSubmitted, $context->sourceIsPage,
+				$context->tif->getValuesFromSubmit(), $context->request->formSubmitted, $context->request->sourceIsPage,
 				$context->tif->allInstancesPrinted(), $val_modifier
 			);
 		}
@@ -387,8 +387,8 @@ class FieldHandler implements ElementHandler {
 		// If the user is editing a page, and that page contains a call to
 		// the template being processed, get the current field's value
 		// from the template call
-		if ( $context->sourceIsPage && ( $context->tif->getFullTextInPage() != '' )
-			&& !$context->formSubmitted ) {
+		if ( $context->request->sourceIsPage && ( $context->tif->getFullTextInPage() != '' )
+			&& !$context->request->formSubmitted ) {
 			if ( $context->tif->hasValueFromPageForField( $field_name ) ) {
 				// Get value, and remove it,
 				// so that at the end we
