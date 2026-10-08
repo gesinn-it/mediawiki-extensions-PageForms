@@ -8,6 +8,7 @@ declare( strict_types=1 );
 
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Extension\PageForms\FormLinker;
+use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Extension\PageForms\NestedInputValues;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
@@ -766,6 +767,7 @@ class PFAutoeditAPI extends ApiBase {
 		if ( $this->mStatus === 200 ) {
 			if ( array_key_exists( 'ok text', $this->mOptions ) ) {
 				$targetTitle = Title::newFromText( $this->mOptions['target'] );
+				// @phan-suppress-next-line SecurityCheck-DoubleEscaped -- the text is wikitext, parsed here once
 				$responseText = $this->getMessageCache()->parse(
 					$this->mOptions['ok text'], $targetTitle
 				)->getText();
@@ -782,6 +784,7 @@ class PFAutoeditAPI extends ApiBase {
 			// get errortext (or use default)
 			if ( array_key_exists( 'error text', $this->mOptions ) ) {
 				$targetTitle = Title::newFromText( $this->mOptions['target'] );
+				// @phan-suppress-next-line SecurityCheck-DoubleEscaped -- the text is wikitext, parsed here once
 				$responseText = $this->getMessageCache()->parse(
 					$this->mOptions['error text'], $targetTitle
 				)->getText();
@@ -964,7 +967,7 @@ class PFAutoeditAPI extends ApiBase {
 	 * @throws MWException
 	 */
 	public function doAction() {
-		$formPrinter = $this->getConfig()->get( 'PageFormsFormPrinter' );
+		$formPrinter = FormPrinterFactory::get();
 
 		// If the wiki is read-only, do not save.
 		if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
@@ -1068,7 +1071,7 @@ class PFAutoeditAPI extends ApiBase {
 
 			if ( $preloadTitle !== null && $preloadTitle->exists() ) {
 				// the content of the page that was specified to be used for preloading
-				$preloadContent = PFUtils::getPageText( $preloadTitle, RevisionRecord::RAW );
+				$preloadContent = PFUtils::getPageText( $preloadTitle, RevisionRecord::RAW ) ?? '';
 
 				$pageExists = true;
 
@@ -1118,7 +1121,7 @@ class PFAutoeditAPI extends ApiBase {
 				$formHTML = $result->getFormText();
 				$targetContent = $result->getPageText();
 				$form_page_title = $result->getFormPageTitle();
-				$generatedTargetNameFormula = $result->getGeneratedPageName();
+				$generatedTargetNameFormula = $result->getGeneratedPageName() ?? '';
 				$formParserOutput = $result->getParserOutput();
 			}
 		}
@@ -1146,7 +1149,7 @@ class PFAutoeditAPI extends ApiBase {
 			$formHTML = $result->getFormText();
 			$targetContent = $result->getPageText();
 			$generatedFormName = $result->getFormPageTitle();
-			$generatedTargetNameFormula = $result->getGeneratedPageName();
+			$generatedTargetNameFormula = $result->getGeneratedPageName() ?? '';
 			$formParserOutput = $result->getParserOutput();
 		} else {
 			$generatedFormName = $form_page_title;

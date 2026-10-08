@@ -6,6 +6,8 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormPrinterFactory;
+
 /**
  * @ingroup PFSpecialPages
  */
@@ -28,7 +30,7 @@ class PFRunQuery extends IncludableSpecialPage {
 	}
 
 	public function printPage( $form_name, $embedded = false ) {
-		$formPrinter = $this->getConfig()->get( 'PageFormsFormPrinter' );
+		$formPrinter = FormPrinterFactory::get();
 
 		$out = $this->getOutput();
 		$req = $this->getRequest();
@@ -203,9 +205,7 @@ END;
 			// parser's, since FormField::clearState() resets the latter during
 			// field rendering and drops ResourceLoader modules registered by
 			// parser tag hooks (e.g. ext.headertabs from <headertabs />).
-			if ( $formParserOutput ) {
-				$out->addParserOutputMetadata( $formParserOutput );
-			}
+			$out->addParserOutputMetadata( $formParserOutput );
 			// Likewise, forward the ParserOutput from parsing the query
 			// results ($data_text) - on some SMW versions, modules/styles
 			// required by the query result (e.g. the tooltip stylesheet for

@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Changed
+- Custom code can get the form printer with `FormPrinterFactory::get()` instead of reading `$wgPageFormsFormPrinter`, which is kept for existing code. The `FormPrinter` constructor takes its collaborators as optional arguments [#241](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/241)
 - The `PageForms::FormPrinterSetup` hook now runs when the form printer is completely built; before, the printer was only partly set up while the hook ran, so a handler that used it for more than registering input types could fail [#241](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/241)
 - A form definition element that the form printer has no handler for now stops the form with an error that names the element class instead of silently disappearing from the form [#248](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/248)
 - `#autoedit` links with `link type=instant` are now sent one after the other instead of all at once when the page loads, and a save that the database rolled back (for example `DBTransactionStateError`) is sent once more. The documentation names MediaWiki's rate limit (90 edits per 60 seconds by default) as the limit for such pages [#220](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/220)

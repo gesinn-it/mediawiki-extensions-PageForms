@@ -12,6 +12,7 @@ use MediaWiki\Extension\PageForms\FormCache;
 use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\FormPrinter;
+use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateField;
@@ -68,7 +69,7 @@ class PFHooks {
 		// This global variable is needed so that other
 		// extensions can hook into it to add their own
 		// input types.
-		$GLOBALS['wgPageFormsFormPrinter'] = new FormPrinter();
+		FormPrinterFactory::initialize();
 	}
 
 	/**
@@ -252,7 +253,7 @@ class PFHooks {
 	}
 
 	public static function showFormPreview( EditPage $editpage, WebRequest $request ) {
-		global $wgOut, $wgPageFormsFormPrinter;
+		global $wgOut;
 
 		wfDebug( __METHOD__ . ": enter.\n" );
 
@@ -275,7 +276,7 @@ class PFHooks {
 			'<div id="pfForm" class="previewnote" style="font-weight: bold">' . $previewNote . "</div>\n<hr />\n";
 
 		$form_definition = StringUtils::delimiterReplace( '<noinclude>', '</noinclude>', '', $editpage->textbox1 );
-		$result = $wgPageFormsFormPrinter->render(
+		$result = FormPrinterFactory::get()->render(
 			$form_definition, false, false, null, null, "Page Forms form preview dummy title", null,
 			false, false, false, [], null, $request
 		);

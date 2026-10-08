@@ -1,6 +1,7 @@
 <?php
 
 use MediaWiki\Extension\PageForms\FormPrinter;
+use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\MediaWikiServices;
 use OOUI\BlankTheme;
 
@@ -1855,6 +1856,20 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		new FormPrinter();
 
 		$this->assertSame( [], $uninitialized );
+	}
+
+	public function testFactoryGetReturnsThePrinterInTheGlobalAndCreatesOneIfThereIsNone(): void {
+		global $wgPageFormsFormPrinter;
+		$existing = new FormPrinter();
+		$wgPageFormsFormPrinter = $existing;
+
+		$this->assertSame( $existing, FormPrinterFactory::get() );
+
+		$wgPageFormsFormPrinter = null;
+		$created = FormPrinterFactory::get();
+
+		$this->assertInstanceOf( FormPrinter::class, $created );
+		$this->assertSame( $created, $wgPageFormsFormPrinter );
 	}
 
 }

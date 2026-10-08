@@ -61,8 +61,7 @@ class FormLinker {
 	}
 
 	public static function createPageWithForm( $title, $formName, $inQueryArr ) {
-		/** @var FormPrinter $wgPageFormsFormPrinter */
-		global $wgPageFormsFormPrinter, $wgOut;
+		global $wgOut;
 
 		$wgOut->enableOOUI();
 
@@ -75,7 +74,7 @@ class FormLinker {
 			'PageForms::EditFormPreloadText', [ &$preloadContent, $title, $formTitle ]
 		);
 
-		$result = $wgPageFormsFormPrinter->render(
+		$result = FormPrinterFactory::get()->render(
 			$formDefinition, false, false, null, $preloadContent,
 			'Some very long page name that will hopefully never get created ABCDEF123',
 			null, false, false, true, $inQueryArr, null, RequestContext::getMain()->getRequest()
