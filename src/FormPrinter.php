@@ -91,13 +91,6 @@ class FormPrinter {
 		$this->formDefReader = new FormDefinitionReader();
 		$this->fieldValueResolver = new FieldValueResolver();
 
-		// All-purpose setup hook.
-		// Avoid PHP 7.1 warning from passing $this by reference.
-		$formPrinterRef = $this;
-		MediaWikiServices::getInstance()->getHookContainer()->run(
-			'PageForms::FormPrinterSetup', [ &$formPrinterRef ]
-		);
-
 		$this->formFieldHtmlBuilder = new FormFieldHtmlBuilder( $this->inputTypeRegistry );
 		$this->formDefParser = new FormDefParser(
 			MediaWikiServices::getInstance()->getParserFactory(), $this->formDefReader
@@ -121,6 +114,13 @@ class FormPrinter {
 			StandardInputSpec::class => new StandardInputHandler(),
 			SectionSpec::class => new SectionHandler(),
 		];
+
+		// All-purpose setup hook, run last so that it sees a fully built printer.
+		// Avoid PHP 7.1 warning from passing $this by reference.
+		$formPrinterRef = $this;
+		MediaWikiServices::getInstance()->getHookContainer()->run(
+			'PageForms::FormPrinterSetup', [ &$formPrinterRef ]
+		);
 	}
 
 	/**

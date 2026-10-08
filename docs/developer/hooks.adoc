@@ -565,7 +565,7 @@ MediaWikiServices::getInstance()->getHookContainer()->run(
 
 == PageForms::FormPrinterSetup
 
-Called at the end of `FormPrinter::__construct()`, after all built-in input types have been registered. Use this hook to register custom form input types with the form printer, making them available for use in Page Forms form definitions via the `input type=` parameter.
+Called at the end of `FormPrinter::__construct()`, after all built-in input types have been registered and all collaborators of the printer have been created, so the printer is fully built when the hook runs. Use this hook to register custom form input types with the form printer, making them available for use in Page Forms form definitions via the `input type=` parameter.
 
 === Parameters
 

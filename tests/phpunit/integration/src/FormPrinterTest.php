@@ -1838,4 +1838,23 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 'PFTextInput', $printer->mInputTypeHooks['text'][0] );
 	}
 
+	public function testSetupHookSeesAFullyBuiltPrinter(): void {
+		$uninitialized = null;
+		$this->setTemporaryHook(
+			'PageForms::FormPrinterSetup',
+			static function ( FormPrinter $printer ) use ( &$uninitialized ) {
+				$uninitialized = [];
+				foreach ( ( new ReflectionClass( FormPrinter::class ) )->getProperties() as $property ) {
+					if ( !$property->isStatic() && !$property->isInitialized( $printer ) ) {
+						$uninitialized[] = $property->getName();
+					}
+				}
+			}
+		);
+
+		new FormPrinter();
+
+		$this->assertSame( [], $uninitialized );
+	}
+
 }
