@@ -17,7 +17,17 @@ function freshRequire() {
 	require( SCRIPT );
 }
 
+// jQuery(document).ready() defers to a macrotask even when the document is
+// already "complete".
 function flushReady() {
+	return new Promise( ( resolve ) => {
+		setTimeout( resolve, 30 );
+	} );
+}
+
+// The Google Maps click handler delays marker placement by 200ms (to keep the
+// default behavior for double clicks), so a test that clicks the map waits this long.
+function flushMarkerDelay() {
 	return new Promise( ( resolve ) => {
 		setTimeout( resolve, 250 );
 	} );
@@ -101,7 +111,7 @@ asyncTest( 'clicking the map places a marker and fills in the coords input', ( a
 	return flushReady().then( () => {
 		const map = global.google.maps.instances.maps[ 0 ];
 		global.google.maps.event.trigger( map, 'click', { latLng: new global.google.maps.LatLng( 12.3456789, 45.6789012 ) } );
-		return flushReady();
+		return flushMarkerDelay();
 	} ).then( () => {
 		assert.strictEqual( $coordsInput.val(), '12.34568, 45.6789' );
 		assert.strictEqual( global.google.maps.instances.markers.length, 1 );
@@ -114,11 +124,11 @@ asyncTest( 'dragging an existing marker moves it instead of creating a new one',
 	return flushReady().then( () => {
 		const map = global.google.maps.instances.maps[ 0 ];
 		global.google.maps.event.trigger( map, 'click', { latLng: new global.google.maps.LatLng( 1, 1 ) } );
-		return flushReady();
+		return flushMarkerDelay();
 	} ).then( () => {
 		const map = global.google.maps.instances.maps[ 0 ];
 		global.google.maps.event.trigger( map, 'click', { latLng: new global.google.maps.LatLng( 2, 2 ) } );
-		return flushReady();
+		return flushMarkerDelay();
 	} ).then( () => {
 		assert.strictEqual( global.google.maps.instances.markers.length, 1 );
 		assert.strictEqual( $coordsInput.val(), '2, 2' );
