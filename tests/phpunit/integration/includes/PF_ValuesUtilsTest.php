@@ -572,6 +572,42 @@ class PFValuesUtilsTest extends TestCase {
 	}
 
 	/**
+	 * The filter key is spliced into the query as a property reference ("wdt:P31"), so
+	 * anything but a Wikidata property id would let a Form editor inject query structure
+	 * through it. Such filters are dropped; the valid ones are kept.
+	 *
+	 * @covers \PFValuesUtils::buildWikidataSparqlQuery
+	 */
+	public function testWikidataQueryDropsFiltersWithAnInvalidPropertyKey(): void {
+		$injectedKey = 'P31 wd:Q1 . } UNION { BIND("INJECTED-MARKER" AS ?valueLabel) } #';
+
+		$sparql = $this->withGlobals( [ 'wgLanguageCode' => 'en' ], static function () use ( $injectedKey ) {
+			return PFValuesUtils::buildWikidataSparqlQuery(
+				urlencode( $injectedKey . '=Q6256&P17=Q183' )
+			);
+		} );
+
+		$this->assertStringNotContainsString( 'INJECTED-MARKER', $sparql );
+		$this->assertStringNotContainsString( 'UNION', $sparql );
+		$this->assertStringContainsString( '?value wdt:P17 wd:Q183 .', $sparql );
+	}
+
+	/**
+	 * A filter without a value ("P31") has nothing to compare with and is dropped
+	 * instead of raising an undefined array key warning.
+	 *
+	 * @covers \PFValuesUtils::buildWikidataSparqlQuery
+	 */
+	public function testWikidataQueryDropsFiltersWithoutAValue(): void {
+		$sparql = $this->withGlobals( [ 'wgLanguageCode' => 'en' ], static function () {
+			return PFValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31&P17=Q183' ) );
+		} );
+
+		$this->assertStringNotContainsString( 'wdt:P31', $sparql );
+		$this->assertStringContainsString( '?value wdt:P17 wd:Q183 .', $sparql );
+	}
+
+	/**
 	 * A numeric (item) filter is used as a plain wd: reference, a text filter
 	 * becomes a label match, and the autocomplete limits only apply with a substring.
 	 *

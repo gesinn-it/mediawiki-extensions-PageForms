@@ -268,6 +268,11 @@ class PFValuesUtils {
 
 		foreach ( $filter_strings as $filter ) {
 			$temp = explode( "=", $filter );
+			// The key is placed into the query as a property reference, so only
+			// Wikidata property ids are accepted.
+			if ( count( $temp ) < 2 || !preg_match( '/^P\d+$/', $temp[ 0 ] ) ) {
+				continue;
+			}
 			$filters[ $temp[ 0 ] ] = $temp[ 1 ];
 		}
 
