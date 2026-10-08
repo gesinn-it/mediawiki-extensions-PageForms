@@ -68,13 +68,14 @@
 		"phan": "php -d memory_limit=3G vendor/bin/phan --allow-polyfill-parser",
 		"audit": "composer audit",
 		"phpunit": [
-			"@phpunit-quick",
-			"@phpunit-jsonscript"
+			"Composer\\Config::disableProcessTimeout",
+			"bash -c 'cd ${MW_INSTALL_PATH:-../..} && { [ -f tests/phpunit/generatePHPUnitConfig.php ] && { php tests/phpunit/generatePHPUnitConfig.php >/dev/null 2>&1 || true; [ -f phpunit.xml ] || printf \"%s\" \"<phpunit><!-- generatePHPUnitConfig --></phpunit>\" > phpunit.xml; } || true; } && MEDIAWIKI_HAS_INTEGRATION_TESTS=1 php -d memory_limit=512M vendor/bin/phpunit -c extensions/PageForms/phpunit.xml.dist --bootstrap tests/phpunit/bootstrap.php --testsuite extension-page-forms-unit ${PF_FILTER:+--filter $PF_FILTER} --testdox'",
+			"bash -c 'cd ${MW_INSTALL_PATH:-../..} && MEDIAWIKI_HAS_INTEGRATION_TESTS=1 php -d memory_limit=512M vendor/bin/phpunit -c extensions/PageForms/phpunit.xml.dist --bootstrap tests/phpunit/bootstrap.php --testsuite extension-page-forms-integration ${PF_FILTER:+--filter $PF_FILTER} --testdox'"
 		],
 		"phpunit-quick": [
 			"Composer\\Config::disableProcessTimeout",
 			"bash -c 'cd ${MW_INSTALL_PATH:-../..} && { [ -f tests/phpunit/generatePHPUnitConfig.php ] && { php tests/phpunit/generatePHPUnitConfig.php >/dev/null 2>&1 || true; [ -f phpunit.xml ] || printf \"%s\" \"<phpunit><!-- generatePHPUnitConfig --></phpunit>\" > phpunit.xml; } || true; } && MEDIAWIKI_HAS_INTEGRATION_TESTS=1 php -d memory_limit=512M vendor/bin/phpunit -c extensions/PageForms/phpunit.xml.dist --bootstrap tests/phpunit/bootstrap.php --testsuite extension-page-forms-unit ${PF_FILTER:+--filter $PF_FILTER} --testdox'",
-			"bash -c 'cd ${MW_INSTALL_PATH:-../..} && MEDIAWIKI_HAS_INTEGRATION_TESTS=1 php -d memory_limit=512M vendor/bin/phpunit -c extensions/PageForms/phpunit.xml.dist --bootstrap tests/phpunit/bootstrap.php --testsuite extension-page-forms-integration ${PF_FILTER:+--filter $PF_FILTER} --testdox'"
+			"bash -c 'cd ${MW_INSTALL_PATH:-../..} && MEDIAWIKI_HAS_INTEGRATION_TESTS=1 php -d memory_limit=512M vendor/bin/phpunit -c extensions/PageForms/phpunit.xml.dist --bootstrap tests/phpunit/bootstrap.php --testsuite extension-page-forms-integration-quick ${PF_FILTER:+--filter $PF_FILTER} --testdox'"
 		],
 		"phpunit-jsonscript": [
 			"Composer\\Config::disableProcessTimeout",
@@ -82,7 +83,7 @@
 		],
 		"phpunit-coverage": [
 			"Composer\\Config::disableProcessTimeout",
-			"bash -c 'cd ${MW_INSTALL_PATH:-../..} && { [ -f tests/phpunit/generatePHPUnitConfig.php ] && { php tests/phpunit/generatePHPUnitConfig.php >/dev/null 2>&1 || true; [ -f phpunit.xml ] || printf \"%s\" \"<phpunit><!-- generatePHPUnitConfig --></phpunit>\" > phpunit.xml; } || true; } && status=0; for suite in ${PF_COVERAGE_SUITES:-unit integration jsonscript}; do MEDIAWIKI_HAS_INTEGRATION_TESTS=1 php -d memory_limit=512M vendor/bin/phpunit -c extensions/PageForms/phpunit.xml.dist --bootstrap tests/phpunit/bootstrap.php --testsuite extension-page-forms-$suite --testdox --coverage-php extensions/PageForms/coverage/php/$suite.cov || status=$?; done; cd extensions/PageForms && [ -x .phpcov-tool/phpcov ] || composer create-project --no-interaction --quiet phpunit/phpcov .phpcov-tool ^8.2; .phpcov-tool/phpcov merge coverage/php --html coverage/php --clover coverage/php/coverage.xml --text coverage/php/coverage.txt; exit $status'"
+			"bash -c 'cd ${MW_INSTALL_PATH:-../..} && { [ -f tests/phpunit/generatePHPUnitConfig.php ] && { php tests/phpunit/generatePHPUnitConfig.php >/dev/null 2>&1 || true; [ -f phpunit.xml ] || printf \"%s\" \"<phpunit><!-- generatePHPUnitConfig --></phpunit>\" > phpunit.xml; } || true; } && status=0; for suite in ${PF_COVERAGE_SUITES:-unit integration}; do MEDIAWIKI_HAS_INTEGRATION_TESTS=1 php -d memory_limit=512M vendor/bin/phpunit -c extensions/PageForms/phpunit.xml.dist --bootstrap tests/phpunit/bootstrap.php --testsuite extension-page-forms-$suite --testdox --coverage-php extensions/PageForms/coverage/php/$suite.cov || status=$?; done; cd extensions/PageForms && [ -x .phpcov-tool/phpcov ] || composer create-project --no-interaction --quiet phpunit/phpcov .phpcov-tool ^8.2; .phpcov-tool/phpcov merge coverage/php --html coverage/php --clover coverage/php/coverage.xml --text coverage/php/coverage.txt; exit $status'"
 		],
 		"minus-x": "minus-x check ."
 	},

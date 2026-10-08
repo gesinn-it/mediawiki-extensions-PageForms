@@ -84,7 +84,7 @@ ci-coverage-jsonscript: install composer-test-coverage-jsonscript
 composer-test-coverage-quick: .init
 ifdef COMPOSER_EXT
 	$(show-current-target)
-	$(compose-exec-wiki-ci) bash -c "cd $(EXTENSION_FOLDER) && composer analyze && PF_COVERAGE_SUITES='unit integration' composer phpunit-coverage $(COMPOSER_PARAMS) && composer post-test-coverage > /dev/null 2>&1 || true"
+	$(compose-exec-wiki-ci) bash -c "cd $(EXTENSION_FOLDER) && composer analyze && PF_COVERAGE_SUITES='unit integration-quick' composer phpunit-coverage $(COMPOSER_PARAMS) && composer post-test-coverage > /dev/null 2>&1 || true"
 endif
 
 .PHONY: composer-test-coverage-jsonscript

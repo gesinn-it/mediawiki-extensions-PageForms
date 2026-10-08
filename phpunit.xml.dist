@@ -16,7 +16,14 @@
         <testsuite name="extension-page-forms-unit">
             <directory>tests/phpunit/unit</directory>
         </testsuite>
+        <!-- All integration tests. The JSONScript tests run first, in the same process: the SMW test base class
+             switches the test database to normal tables, which tests after it rely on (on MySQL a temporary
+             table cannot be used twice in a query, as the display title query does). -->
         <testsuite name="extension-page-forms-integration">
+            <directory>tests/phpunit/integration</directory>
+        </testsuite>
+        <!-- The same without the JSONScript tests, for a quick run while developing -->
+        <testsuite name="extension-page-forms-integration-quick">
             <directory>tests/phpunit/integration</directory>
             <exclude>tests/phpunit/integration/JSONScript</exclude>
         </testsuite>
