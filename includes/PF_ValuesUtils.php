@@ -233,6 +233,32 @@ class PFValuesUtils {
 	 */
 	public static function getAllValuesFromWikidata( $query, $substring = null ) {
 		$endpointUrl = "https://query.wikidata.org/sparql";
+		$sparqlQueryString = self::buildWikidataSparqlQuery( $query, $substring );
+		$opts = [
+			'http' => [
+				'method' => 'GET',
+				'header' => [
+					'Accept: application/sparql-results+json',
+					'User-Agent: PageForms_API PHP/8.0'
+				],
+			],
+		];
+		$context = stream_context_create( $opts );
+
+		$url = $endpointUrl . '?query=' . urlencode( $sparqlQueryString );
+		$response = file_get_contents( $url, false, $context );
+		return self::parseWikidataResponse( $response );
+	}
+
+	/**
+	 * Builds the SPARQL query for a "values from wikidata" annotation.
+	 *
+	 * @internal Only public so that the query can be tested without calling the endpoint.
+	 * @param string $query The urlencoded filters, e.g. "P31=Q6256"
+	 * @param string|null $substring
+	 * @return string
+	 */
+	public static function buildWikidataSparqlQuery( $query, $substring = null ) {
 		global $wgLanguageCode;
 
 		$query = urldecode( $query );
@@ -284,19 +310,17 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			global $wgPageFormsMaxAutocompleteValues;
 			$sparqlQueryString .= "LIMIT " . $wgPageFormsMaxAutocompleteValues;
 		}
-		$opts = [
-			'http' => [
-				'method' => 'GET',
-				'header' => [
-					'Accept: application/sparql-results+json',
-					'User-Agent: PageForms_API PHP/8.0'
-				],
-			],
-		];
-		$context = stream_context_create( $opts );
+		return $sparqlQueryString;
+	}
 
-		$url = $endpointUrl . '?query=' . urlencode( $sparqlQueryString );
-		$response = file_get_contents( $url, false, $context );
+	/**
+	 * Extracts the values from the JSON response of the Wikidata SPARQL endpoint.
+	 *
+	 * @internal Only public so that the parsing can be tested without calling the endpoint.
+	 * @param string|false $response
+	 * @return string[]
+	 */
+	public static function parseWikidataResponse( $response ) {
 		$apiResults = json_decode( $response, true );
 		$results = [];
 		if ( $apiResults != null ) {
