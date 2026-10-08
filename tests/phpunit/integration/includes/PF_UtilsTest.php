@@ -6,122 +6,41 @@
  */
 class PFUtilsTest extends MediaWikiIntegrationTestCase {
 
-	public function testConvertBackToPipesReplacesControlChar() {
-		$this->assertSame( 'a|b|c', PFUtils::convertBackToPipes( "a\1b\1c" ) );
+	// The functions that only work on strings and arrays are tested in PFUtilsFunctionsTest, which needs no wiki.
+
+	/**
+	 * @dataProvider provideIgnoreFormNameCases
+	 * @param array|string $patterns The value of $wgPageFormsIgnoreTitlePattern
+	 * @param string $formName
+	 * @param bool $expected
+	 */
+	public function testIgnoreFormName( $patterns, string $formName, bool $expected ) {
+		$this->setMwGlobals( 'wgPageFormsIgnoreTitlePattern', $patterns );
+		$this->assertSame( $expected, PFUtils::ignoreFormName( $formName ) );
 	}
 
-	public function testConvertBackToPipesNoopWhenNothingToReplace() {
-		$this->assertSame( 'abc', PFUtils::convertBackToPipes( 'abc' ) );
+	/**
+	 * @return array<string, array{0: array|string, 1: string, 2: bool}>
+	 */
+	public static function provideIgnoreFormNameCases(): array {
+		return [
+			'no patterns set' => [ [], 'MyForm', false ],
+			'a matching pattern' => [ [ 'Test.*' ], 'TestForm', true ],
+			'a pattern that does not match' => [ [ 'Test.*' ], 'ProductionForm', false ],
+			// When the global is set to a plain string (not an array), the code wraps it.
+			'a plain string as the pattern' => [ 'Ignore', 'IgnoreMe', true ],
+		];
 	}
 
-	public function testSmartSplitFormTagEmptyStringReturnsEmptyArray() {
-		$this->assertSame( [], PFUtils::smartSplitFormTag( '' ) );
-	}
+	public function testGetWordForYesOrNoReturnsAWordThatDiffersForTrueAndFalse() {
+		$yes = PFUtils::getWordForYesOrNo( true );
+		$no = PFUtils::getWordForYesOrNo( false );
 
-	public function testSmartSplitFormTagSingleToken() {
-		$this->assertSame( [ 'foo' ], PFUtils::smartSplitFormTag( 'foo' ) );
-	}
-
-	public function testSmartSplitFormTagSimpleSplit() {
-		$this->assertSame( [ 'foo', 'bar', 'baz' ], PFUtils::smartSplitFormTag( 'foo|bar|baz' ) );
-	}
-
-	public function testSmartSplitFormTagDoesNotSplitInsideCurlyBrackets() {
-		$this->assertSame(
-			[ '{{tmpl|arg}}', 'after' ],
-			PFUtils::smartSplitFormTag( '{{tmpl|arg}}|after' )
-		);
-	}
-
-	public function testSmartSplitFormTagTrimsWhitespace() {
-		$this->assertSame( [ 'foo', 'bar' ], PFUtils::smartSplitFormTag( ' foo | bar ' ) );
-	}
-
-	public function testSmartSplitFormTagNestedCurlyBrackets() {
-		$this->assertSame(
-			[ '{{outer|{{inner|x}}}}', 'y' ],
-			PFUtils::smartSplitFormTag( '{{outer|{{inner|x}}}}|y' )
-		);
-	}
-
-	public function testGetFormTagComponentsSimple() {
-		$this->assertSame( [ 'a', 'b', 'c' ], PFUtils::getFormTagComponents( 'a|b|c' ) );
-	}
-
-	public function testGetFormTagComponentsPreservesPipeInsideTemplate() {
-		$result = PFUtils::getFormTagComponents( 'field|default={{tmpl|arg}}|label=test' );
-		$this->assertSame( [ 'field', 'default={{tmpl|arg}}', 'label=test' ], $result );
-	}
-
-	public function testGetFormTagComponentsNestedTemplateCall() {
-		$result = PFUtils::getFormTagComponents( 'x|{{f|{{g|y}}}}|z' );
-		$this->assertSame( [ 'x', '{{f|{{g|y}}}}', 'z' ], $result );
-	}
-
-	public function testArrayMergeRecursiveDistinctOverwritesScalar() {
-		$a = [ 'key' => 'old' ];
-		$b = [ 'key' => 'new' ];
-		$this->assertSame( [ 'key' => 'new' ], PFUtils::arrayMergeRecursiveDistinct( $a, $b ) );
-	}
-
-	public function testArrayMergeRecursiveDistinctMergesNestedArrays() {
-		$a = [ 'sub' => [ 'x' => 1, 'y' => 2 ] ];
-		$b = [ 'sub' => [ 'y' => 99, 'z' => 3 ] ];
-		$expected = [ 'sub' => [ 'x' => 1, 'y' => 99, 'z' => 3 ] ];
-		$this->assertSame( $expected, PFUtils::arrayMergeRecursiveDistinct( $a, $b ) );
-	}
-
-	public function testArrayMergeRecursiveDistinctAddsNewKeys() {
-		$a = [ 'a' => 1 ];
-		$b = [ 'b' => 2 ];
-		$result = PFUtils::arrayMergeRecursiveDistinct( $a, $b );
-		$this->assertSame( [ 'a' => 1, 'b' => 2 ], $result );
-	}
-
-	public function testArrayMergeRecursiveDistinctEmptySecond() {
-		$a = [ 'a' => 1 ];
-		$b = [];
-		$this->assertSame( [ 'a' => 1 ], PFUtils::arrayMergeRecursiveDistinct( $a, $b ) );
-	}
-
-	public function testIgnoreFormNameReturnsFalseWhenNoPatternsSet() {
-		$this->setMwGlobals( 'wgPageFormsIgnoreTitlePattern', [] );
-		$this->assertFalse( PFUtils::ignoreFormName( 'MyForm' ) );
-	}
-
-	public function testIgnoreFormNameReturnsTrueOnMatchingPattern() {
-		$this->setMwGlobals( 'wgPageFormsIgnoreTitlePattern', [ 'Test.*' ] );
-		$this->assertTrue( PFUtils::ignoreFormName( 'TestForm' ) );
-	}
-
-	public function testIgnoreFormNameReturnsFalseOnNonMatchingPattern() {
-		$this->setMwGlobals( 'wgPageFormsIgnoreTitlePattern', [ 'Test.*' ] );
-		$this->assertFalse( PFUtils::ignoreFormName( 'ProductionForm' ) );
-	}
-
-	public function testIgnoreFormNameHandlesStringPatternDirectly() {
-		// When the global is set to a plain string (not array), the code wraps it.
-		$this->setMwGlobals( 'wgPageFormsIgnoreTitlePattern', 'Ignore' );
-		$this->assertTrue( PFUtils::ignoreFormName( 'IgnoreMe' ) );
-	}
-
-	public function testGetWordForYesOrNoReturnsNonEmptyStringForTrue() {
-		$result = PFUtils::getWordForYesOrNo( true );
-		$this->assertIsString( $result );
-		$this->assertNotEmpty( $result );
-	}
-
-	public function testGetWordForYesOrNoReturnsNonEmptyStringForFalse() {
-		$result = PFUtils::getWordForYesOrNo( false );
-		$this->assertIsString( $result );
-		$this->assertNotEmpty( $result );
-	}
-
-	public function testGetWordForYesOrNoDiffersForTrueAndFalse() {
-		$this->assertNotSame(
-			PFUtils::getWordForYesOrNo( true ),
-			PFUtils::getWordForYesOrNo( false )
-		);
+		$this->assertIsString( $yes );
+		$this->assertNotEmpty( $yes );
+		$this->assertIsString( $no );
+		$this->assertNotEmpty( $no );
+		$this->assertNotSame( $yes, $no );
 	}
 
 	public function testLinkTextWithoutExplicitText() {
@@ -145,15 +64,10 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( $invalidName, $result );
 	}
 
-	public function testGetNsTextReturnsStringForMainNs() {
+	public function testGetNsText() {
 		// NS_MAIN (0) typically returns empty string in content language
-		$result = PFUtils::getNsText( NS_MAIN );
-		$this->assertIsString( $result );
-	}
-
-	public function testGetNsTextReturnsNonEmptyForUserNs() {
-		$result = PFUtils::getNsText( NS_USER );
-		$this->assertNotEmpty( $result );
+		$this->assertIsString( PFUtils::getNsText( NS_MAIN ) );
+		$this->assertNotEmpty( PFUtils::getNsText( NS_USER ) );
 	}
 
 	/**
