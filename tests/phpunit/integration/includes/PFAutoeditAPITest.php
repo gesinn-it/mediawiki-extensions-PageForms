@@ -254,51 +254,31 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * The button that was used to submit the form chooses the action; without one it is the form editor.
+	 * Whichever it is, preparing the action leaves the status at 200.
+	 *
 	 * @covers \PFAutoeditAPI::prepareAction
+	 * @dataProvider provideActionRequests
+	 * @param array $requestParams
+	 * @param int $expectedAction
 	 */
-	public function testPrepareActionDefaultsToFormedit(): void {
-		[ $module ] = $this->newModule( [ 'form' => 'TestForm', 'target' => 'TestPage' ] );
+	public function testPrepareActionChoosesTheActionOfTheRequest( array $requestParams, int $expectedAction ): void {
+		[ $module ] = $this->newModule( [ 'form' => 'TestForm', 'target' => 'TestPage' ] + $requestParams );
 		$module->prepareAction();
-		$this->assertSame( PFAutoeditAPI::ACTION_FORMEDIT, $module->getAction() );
+		$this->assertSame( $expectedAction, $module->getAction() );
+		$this->assertSame( 200, $module->getStatus() );
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::prepareAction
+	 * @return array<string, array{0: array, 1: int}>
 	 */
-	public function testPrepareActionWpSaveSetsActionSave(): void {
-		[ $module ] = $this->newModule( [
-			'form'   => 'TestForm',
-			'target' => 'TestPage',
-			'wpSave' => '1',
-		] );
-		$module->prepareAction();
-		$this->assertSame( PFAutoeditAPI::ACTION_SAVE, $module->getAction() );
-	}
-
-	/**
-	 * @covers \PFAutoeditAPI::prepareAction
-	 */
-	public function testPrepareActionWpPreviewSetsActionPreview(): void {
-		[ $module ] = $this->newModule( [
-			'form'      => 'TestForm',
-			'target'    => 'TestPage',
-			'wpPreview' => '1',
-		] );
-		$module->prepareAction();
-		$this->assertSame( PFAutoeditAPI::ACTION_PREVIEW, $module->getAction() );
-	}
-
-	/**
-	 * @covers \PFAutoeditAPI::prepareAction
-	 */
-	public function testPrepareActionWpDiffSetsActionDiff(): void {
-		[ $module ] = $this->newModule( [
-			'form'   => 'TestForm',
-			'target' => 'TestPage',
-			'wpDiff' => '1',
-		] );
-		$module->prepareAction();
-		$this->assertSame( PFAutoeditAPI::ACTION_DIFF, $module->getAction() );
+	public static function provideActionRequests(): array {
+		return [
+			'no button defaults to the form editor' => [ [], PFAutoeditAPI::ACTION_FORMEDIT ],
+			'save button' => [ [ 'wpSave' => '1' ], PFAutoeditAPI::ACTION_SAVE ],
+			'preview button' => [ [ 'wpPreview' => '1' ], PFAutoeditAPI::ACTION_PREVIEW ],
+			'show changes button' => [ [ 'wpDiff' => '1' ], PFAutoeditAPI::ACTION_DIFF ],
+		];
 	}
 
 	/**
@@ -349,15 +329,6 @@ class PFAutoeditAPITest extends ApiTestCase {
 		$opts = $module->getOptions();
 		$this->assertArrayNotHasKey( 'query', $opts, "'query' key must be removed after unpacking" );
 		$this->assertSame( 'qval', $opts['MyTpl']['field'] );
-	}
-
-	/**
-	 * @covers \PFAutoeditAPI::prepareAction
-	 */
-	public function testPrepareActionSetsStatusTo200(): void {
-		[ $module ] = $this->newModule( [ 'form' => 'TestForm', 'target' => 'TestPage' ] );
-		$module->prepareAction();
-		$this->assertSame( 200, $module->getStatus() );
 	}
 
 	/**
