@@ -22,6 +22,16 @@ use PFUtils;
 
 /**
  * The {{{field}}} tag: finds the current value of the field and adds its input.
+ *
+ * Two values of a field are kept while it is handled:
+ * - $cur_value is what the input shows. It starts as the value from the request, from
+ *   #formredlink or from the template call on the page being edited (a string, an array for a
+ *   list, '' or null if there is none). For a field with a mapping or display titles it is then
+ *   turned into labels, for a default value it is replaced, and in the starter instance of a
+ *   multiple-instance template it is null.
+ * - $cur_value_in_template is what is written into the template call of the page: the same value
+ *   before it is turned into labels, null for a field that holds an embedded template, and what the
+ *   PageForms::CreateFormField hook leaves of it when the form was submitted.
  */
 class FieldHandler implements ElementHandler {
 
@@ -55,15 +65,7 @@ class FieldHandler implements ElementHandler {
 		// means we're handling the free text field.
 		// Make the template a dummy variable.
 		if ( $context->tif == null ) {
-			$context->template = new Template( null, [] );
-			// Get free text from the query string, if it was set.
-			if ( $context->request->getCheck( 'free_text' ) ) {
-				$standard_input = $context->request->getArray( 'standard_input', [] );
-				$standard_input['#freetext#'] = $context->request->getVal( 'free_text' );
-				$context->request->setVal( 'standard_input', $standard_input );
-			}
-			$context->tif = TemplateInForm::create( 'standard_input', null, null, null, [] );
-			$context->tif->setFieldValuesFromSubmit( $context->request );
+			$this->setUpFreeTextTemplate( $context );
 		}
 		// We get the field name both here
 		// and in the FormField constructor,
@@ -93,49 +95,7 @@ class FieldHandler implements ElementHandler {
 				&& $context->tif->allowsMultiple() && $context->tif->getInstanceNum() == 0 ) ) {
 			$context->tif->addField( $form_field );
 		}
-		$val_modifier = null;
-		if ( $context->isAutocreate ) {
-			$values_from_query = $context->autocreateQuery[$context->tif->getTemplateName()] ?? [];
-			$cur_value = $form_field->getCurrentValue(
-				$values_from_query, $context->formSubmitted, $context->sourceIsPage,
-				$context->tif->allInstancesPrinted(), $val_modifier
-			);
-		} else {
-			$cur_value = $form_field->getCurrentValue(
-				$context->tif->getValuesFromSubmit(), $context->formSubmitted, $context->sourceIsPage,
-				$context->tif->allInstancesPrinted(), $val_modifier
-			);
-		}
-		$delimiter = $form_field->getFieldArg( 'delimiter' );
-		if ( $form_field->holdsTemplate() ) {
-			$context->placeholderFields[] = FormPlaceholder::format(
-				$context->tif->getTemplateName(), $field_name
-			);
-		}
-
-		if ( $val_modifier !== null ) {
-			$page_value = $context->tif->getValuesFromPage()[$field_name] ?? '';
-			$cur_value = $this->fieldValueResolver->applyValModifier(
-				(string)$cur_value, $val_modifier, (string)$page_value, $delimiter
-			);
-			$context->tif->changeFieldValues( $field_name, $cur_value, $delimiter );
-		}
-		// If the user is editing a page, and that page contains a call to
-		// the template being processed, get the current field's value
-		// from the template call
-		if ( $context->sourceIsPage && ( $context->tif->getFullTextInPage() != '' )
-			&& !$context->formSubmitted ) {
-			if ( $context->tif->hasValueFromPageForField( $field_name ) ) {
-				// Get value, and remove it,
-				// so that at the end we
-				// can have a list of all
-				// the fields that weren't
-				// handled by the form.
-				$cur_value = $context->tif->takeValueFromPage(
-					$field_name, $form_field->holdsTemplate(), $context->existingPageContent
-				);
-			}
-		}
+		$cur_value = $this->currentValue( $form_field, $field_name, $context );
 
 		// Handle the free text field.
 		if ( $field_name == '#freetext#' ) {
@@ -147,33 +107,7 @@ class FieldHandler implements ElementHandler {
 			if ( $form_field->isHidden() ) {
 				$new_text = Html::hidden( 'pf_free_text', '!free_text!' );
 			} else {
-				$context->counters->tabIndex++;
-				$context->counters->fieldNum++;
-				if ( $cur_value === '' || $cur_value === null ) {
-					$default_value = '!free_text!';
-				} else {
-					$default_value = $cur_value;
-				}
-				$freeTextInput = new PFTextAreaInput(
-					$input_number = null, $default_value, 'pf_free_text',
-					( $context->formIsDisabled || $form_field->isRestricted() ),
-					$form_field->getFieldArgs()
-				);
-				$freeTextInput->addJavaScript();
-				$new_text = $freeTextInput->getHtmlText();
-				if ( $form_field->hasFieldArg( 'edittools' ) ) {
-					// borrowed from EditPage::showEditTools()
-					$edittools_text = $context->parser->recursiveTagParse(
-						wfMessage( 'edittools', [ 'content' ] )->text()
-					);
-
-					$new_text .= <<<END
-		<div class="mw-editTools">
-		$edittools_text
-		</div>
-
-END;
-				}
+				$new_text = $this->freeTextInputHtml( $form_field, $cur_value, $context );
 			}
 			$context->freeTextWasIncluded = true;
 			$context->wikiPage->addFreeTextSection();
@@ -207,6 +141,7 @@ END;
 				// with spaces.
 				$context->generatedPageName = str_replace( '_', ' ', $context->generatedPageName );
 			}
+			$delimiter = $form_field->getFieldArg( 'delimiter' );
 			if ( $cur_value !== '' &&
 				( $form_field->hasFieldArg( 'mapping template' ) ||
 				$form_field->hasFieldArg( 'mapping property' ) ||
@@ -303,5 +238,123 @@ END;
 			&& ( !$context->tif->allowsMultiple() || !$context->tif->allInstancesPrinted() ) ) {
 			$context->tif->addGridValue( $field_name, $cur_value );
 		}
+	}
+
+	/**
+	 * A field outside of any template is the free text field: use a dummy template for it, and
+	 * take the free text from the query string if it was set.
+	 *
+	 * @param FormRenderContext $context
+	 */
+	private function setUpFreeTextTemplate( FormRenderContext $context ): void {
+		$context->template = new Template( null, [] );
+		// Get free text from the query string, if it was set.
+		if ( $context->request->getCheck( 'free_text' ) ) {
+			$standard_input = $context->request->getArray( 'standard_input', [] );
+			$standard_input['#freetext#'] = $context->request->getVal( 'free_text' );
+			$context->request->setVal( 'standard_input', $standard_input );
+		}
+		$context->tif = TemplateInForm::create( 'standard_input', null, null, null, [] );
+		$context->tif->setFieldValuesFromSubmit( $context->request );
+	}
+
+	/**
+	 * The value the field has when the form is shown, from the sources in order of priority:
+	 * the values of the request (or of #formredlink) with a val_modifier applied to them,
+	 * and, when a page is edited, the value of the field in the template call on that page.
+	 * The value is '' or null if there is none, a string, or an array for a list.
+	 *
+	 * @param FormField $form_field
+	 * @param string $field_name
+	 * @param FormRenderContext $context
+	 * @return string|array|null
+	 */
+	private function currentValue( FormField $form_field, string $field_name, FormRenderContext $context ) {
+		$val_modifier = null;
+		if ( $context->isAutocreate ) {
+			$values_from_query = $context->autocreateQuery[$context->tif->getTemplateName()] ?? [];
+			$cur_value = $form_field->getCurrentValue(
+				$values_from_query, $context->formSubmitted, $context->sourceIsPage,
+				$context->tif->allInstancesPrinted(), $val_modifier
+			);
+		} else {
+			$cur_value = $form_field->getCurrentValue(
+				$context->tif->getValuesFromSubmit(), $context->formSubmitted, $context->sourceIsPage,
+				$context->tif->allInstancesPrinted(), $val_modifier
+			);
+		}
+		$delimiter = $form_field->getFieldArg( 'delimiter' );
+		if ( $form_field->holdsTemplate() ) {
+			$context->placeholderFields[] = FormPlaceholder::format(
+				$context->tif->getTemplateName(), $field_name
+			);
+		}
+
+		if ( $val_modifier !== null ) {
+			$page_value = $context->tif->getValuesFromPage()[$field_name] ?? '';
+			$cur_value = $this->fieldValueResolver->applyValModifier(
+				(string)$cur_value, $val_modifier, (string)$page_value, $delimiter
+			);
+			$context->tif->changeFieldValues( $field_name, $cur_value, $delimiter );
+		}
+		// If the user is editing a page, and that page contains a call to
+		// the template being processed, get the current field's value
+		// from the template call
+		if ( $context->sourceIsPage && ( $context->tif->getFullTextInPage() != '' )
+			&& !$context->formSubmitted ) {
+			if ( $context->tif->hasValueFromPageForField( $field_name ) ) {
+				// Get value, and remove it,
+				// so that at the end we
+				// can have a list of all
+				// the fields that weren't
+				// handled by the form.
+				$cur_value = $context->tif->takeValueFromPage(
+					$field_name, $form_field->holdsTemplate(), $context->existingPageContent
+				);
+			}
+		}
+
+		return $cur_value;
+	}
+
+	/**
+	 * The input of the free text field: a text area that shows the free text once it is known,
+	 * which is not the case until all of the form definition is processed.
+	 *
+	 * @param FormField $form_field
+	 * @param string|array|null $cur_value
+	 * @param FormRenderContext $context
+	 * @return string
+	 */
+	private function freeTextInputHtml( FormField $form_field, $cur_value, FormRenderContext $context ): string {
+		$context->counters->tabIndex++;
+		$context->counters->fieldNum++;
+		if ( $cur_value === '' || $cur_value === null ) {
+			$default_value = '!free_text!';
+		} else {
+			$default_value = $cur_value;
+		}
+		$freeTextInput = new PFTextAreaInput(
+			$input_number = null, $default_value, 'pf_free_text',
+			( $context->formIsDisabled || $form_field->isRestricted() ),
+			$form_field->getFieldArgs()
+		);
+		$freeTextInput->addJavaScript();
+		$new_text = $freeTextInput->getHtmlText();
+		if ( $form_field->hasFieldArg( 'edittools' ) ) {
+			// borrowed from EditPage::showEditTools()
+			$edittools_text = $context->parser->recursiveTagParse(
+				wfMessage( 'edittools', [ 'content' ] )->text()
+			);
+
+			$new_text .= <<<END
+<div class="mw-editTools">
+$edittools_text
+</div>
+
+END;
+		}
+
+		return $new_text;
 	}
 }

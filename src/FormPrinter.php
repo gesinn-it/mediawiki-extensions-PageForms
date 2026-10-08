@@ -23,7 +23,9 @@ use MediaWiki\Extension\PageForms\FormRender\ElementHandler;
 use MediaWiki\Extension\PageForms\FormRender\EndTemplateHandler;
 use MediaWiki\Extension\PageForms\FormRender\FieldHandler;
 use MediaWiki\Extension\PageForms\FormRender\InfoHandler;
+use MediaWiki\Extension\PageForms\FormRender\PageTextAssembler;
 use MediaWiki\Extension\PageForms\FormRender\SectionHandler;
+use MediaWiki\Extension\PageForms\FormRender\SectionLayout;
 use MediaWiki\Extension\PageForms\FormRender\StandardInputHandler;
 use MediaWiki\Extension\PageForms\FormRender\TemplateHandler;
 use MediaWiki\Extension\PageForms\FormRender\TextHandler;
@@ -82,6 +84,10 @@ class FormPrinter {
 	private FormDefinitionReader $formDefReader;
 
 	private FieldValueResolver $fieldValueResolver;
+
+	private SectionLayout $sectionLayout;
+
+	private PageTextAssembler $pageTextAssembler;
 
 	/** @var array<class-string, ElementHandler> The handler of each type of form definition element */
 	private array $elementHandlers;
@@ -148,6 +154,11 @@ class FormPrinter {
 		$this->formDefParser = new FormDefParser(
 			MediaWikiServices::getInstance()->getParserFactory(), $this->formDefReader
 		);
+		$this->sectionLayout = new SectionLayout(
+			$this->multipleTemplateHtmlBuilder, $this->spreadsheetHtmlBuilder, $this->calendarHtmlBuilder,
+			$this->formFieldHtmlBuilder
+		);
+		$this->pageTextAssembler = new PageTextAssembler();
 		$this->elementHandlers = [
 			FieldSpec::class => new FieldHandler(
 				$this->formFieldHtmlBuilder, $this->mappingLabels, $this->fieldValueResolver
@@ -378,50 +389,40 @@ class FormPrinter {
 	 * Also shows the page's previous deletion log, as a side effect, matching the
 	 * original inline behavior in formHTML().
 	 *
-	 * @param bool $is_embedded
-	 * @param bool $is_query
-	 * @param string|null $page_name
-	 * @param string|null $page_name_formula
-	 * @param WebRequest $request
-	 * @param User $user
-	 * @param bool $form_submitted
 	 * @param FormRenderContext $context
 	 * @return array [ array $permissionErrors, bool $userCanEditPage ]
 	 */
-	private function resolvePageTitleAndPermissions(
-		$is_embedded, $is_query, $page_name, $page_name_formula, $request, $user, $form_submitted,
-		FormRenderContext $context
-	): array {
+	private function resolvePageTitleAndPermissions( FormRenderContext $context ): array {
 		// Disable all form elements if user doesn't have edit
 		// permission - two different checks are needed, because
 		// editing permissions can be set in different ways.
 		// HACK - sometimes we don't know the page name in advance, but
 		// we still need to set a title here for testing permissions.
-		if ( $is_embedded || $is_query ) {
+		if ( $context->isEmbedded || $context->isQuery ) {
 			// If this is an embedded form (probably a 'RunQuery') or we're in Special:RunQuery,
 			// just use the name of the actual page we're on.
 			$titleGlobal = RequestContext::getMain()->getTitle();
 			$context->pageTitle = $titleGlobal;
-		} elseif ( $page_name === '' || $page_name === null ) {
+		} elseif ( $context->pageName === '' || $context->pageName === null ) {
 			$context->pageTitle = Title::newFromText(
-				$request->getVal( 'namespace' ) . ":Page Forms permissions test" );
+				$context->request->getVal( 'namespace' ) . ":Page Forms permissions test" );
 		} else {
-			// $page_name may not be a syntactically valid title (e.g. it was
+			// $context->pageName may not be a syntactically valid title (e.g. it was
 			// generated from a page name formula, or came from an untrusted
 			// request value); fall back to the same placeholder title used
 			// above for permission-testing purposes rather than leaving
 			// $context->pageTitle null, which fatals in getPermissionErrors()
 			// and other unguarded uses below.
-			$context->pageTitle = Title::newFromText( $page_name ) ?? Title::newFromText(
-				$request->getVal( 'namespace' ) . ":Page Forms permissions test" );
+			$context->pageTitle = Title::newFromText( $context->pageName ) ?? Title::newFromText(
+				$context->request->getVal( 'namespace' ) . ":Page Forms permissions test" );
 		}
 
 		global $wgOut;
 		// Show previous set of deletions for this page, if it's been
 		// deleted before.
-		if ( !$form_submitted &&
+		if ( !$context->formSubmitted &&
 			( $context->pageTitle && !$context->pageTitle->exists() &&
-			$page_name_formula === null )
+			$context->pageNameFormula === null )
 		) {
 			$this->showDeletionLog( $wgOut, $context->pageTitle );
 		}
@@ -433,9 +434,9 @@ class FormPrinter {
 		// "$wgEmailConfirmToEdit = true;". Instead, we'll just get the
 		// permission errors from the start, and use those to determine
 		// whether the page is editable.
-		if ( !$is_query ) {
+		if ( !$context->isQuery ) {
 			$permissionErrors = MediaWikiServices::getInstance()->getPermissionManager()
-					->getPermissionErrors( 'edit', $user, $context->pageTitle );
+					->getPermissionErrors( 'edit', $context->user, $context->pageTitle );
 			if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
 				$permissionErrors = [ [ 'readonlytext',
 					[ MediaWikiServices::getInstance()->getReadOnlyMode()->getReason() ] ] ];
@@ -481,43 +482,8 @@ class FormPrinter {
 		if ( !$context->freeTextWasIncluded ) {
 			$form_text .= Html::hidden( 'pf_free_text', '!free_text!' );
 		}
-		// Get free text, and add to page data, as well as retroactively
-		// inserting it into the form.
-
-		if ( $context->sourceIsPage ) {
-			// If the page is the source, free_text will just be
-			// whatever in the page hasn't already been inserted
-			// into the form.
-			$free_text = trim( $existing_page_content );
-		// ...or get it from the form submission, if it's not called from #formredlink
-		} elseif ( !$context->isAutocreate && $request->getCheck( 'pf_free_text' ) ) {
-			$free_text = $request->getVal( 'pf_free_text' );
-			if ( !$context->freeTextWasIncluded ) {
-				$wiki_page->addFreeTextSection();
-			}
-		} elseif ( $context->preloadedFreeText != null ) {
-			$free_text = $context->preloadedFreeText;
-		} else {
-			$free_text = null;
-		}
-
-		if ( $free_text !== null && $wiki_page->freeTextOnlyInclude() ) {
-			$free_text = str_replace( "<onlyinclude>", '', $free_text );
-			$free_text = str_replace( "</onlyinclude>", '', $free_text );
-			$free_text = trim( $free_text );
-		}
-
-		$page_text = '';
-
-		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::BeforeFreeTextSubst',
-			[ &$free_text, $existing_page_content, &$page_text ] );
-
-		// Now that we have the free text, we can create the full page
-		// text.
-		// The page text needs to be created whether or not the form
-		// was submitted, in case this is called from #formredlink.
-		$wiki_page->setFreeText( $free_text );
-		$page_text = $wiki_page->createPageText( $request );
+		// Get the free text and the page text. The free text is also inserted into the form.
+		[ $free_text, $page_text ] = $this->pageTextAssembler->createPageText( $context );
 
 		// Also substitute the free text into the form.
 		$escaped_free_text = Sanitizer::safeEncodeAttribute( $free_text ?? '' );
@@ -586,6 +552,77 @@ class FormPrinter {
 		}
 
 		return [ $form_text, $page_text, $form_page_title, $parserOutput ];
+	}
+
+	/**
+	 * Start the HTML of the form: the loading spinner and the warnings for the user. If the user
+	 * may not edit the page, all inputs are disabled and the reason is shown above the form.
+	 *
+	 * @param FormRenderContext $context
+	 * @param array $permissionErrors
+	 * @param bool $userCanEditPage
+	 */
+	private function openForm( FormRenderContext $context, array $permissionErrors, bool $userCanEditPage ): void {
+		global $wgPageFormsShowExpandAllLink, $wgOut;
+
+		// Start off with a loading spinner - this will be removed by
+		// the JavaScript once everything has finished loading.
+		$context->formText = FormUtils::displayLoadingImage();
+		if ( $context->isQuery || $userCanEditPage ) {
+			$context->formIsDisabled = false;
+			// Show "Your IP address will be recorded" warning if
+			// user is anonymous, and it's not a query.
+			if ( $context->user->isAnon() && !$context->isQuery ) {
+				// Based on code in MediaWiki's EditPage.php.
+				$anonEditWarning = wfMessage( 'anoneditwarning',
+					// Log-in link
+					'{{fullurl:Special:UserLogin|returnto={{FULLPAGENAMEE}}}}',
+					// Sign-up link
+					'{{fullurl:Special:UserLogin/signup|returnto={{FULLPAGENAMEE}}}}' )->parse();
+				$context->formText .= Html::rawElement(
+					'div', [ 'id' => 'mw-anon-edit-warning', 'class' => 'warningbox' ], $anonEditWarning
+				);
+			}
+		} else {
+			$context->formIsDisabled = true;
+			if ( $wgOut->getTitle() != null ) {
+				$wgOut->setPageTitle( wfMessage( 'badaccess' )->text() );
+				$wgOut->addWikiTextAsInterface( $wgOut->formatPermissionsErrorMessage( $permissionErrors, 'edit' ) );
+				$wgOut->addHTML( "\n<hr />\n" );
+			}
+		}
+
+		if ( $wgPageFormsShowExpandAllLink ) {
+			$context->formText .= Html::rawElement( 'p', [ 'id' => 'pf-expand-all' ],
+				// @TODO - add an i18n message for this.
+				Html::element( 'a', [ 'href' => '#' ], 'Expand all collapsed parts of the form' ) ) . "\n";
+		}
+	}
+
+	/**
+	 * Render one section of the form definition (the elements between two template tags, in
+	 * order) and add it to the form.
+	 *
+	 * @param list<FormElement> $elements
+	 * @param FormRenderContext $context
+	 * @return bool True if the section has to be rendered again for the next instance of its template
+	 */
+	private function renderSection( array $elements, FormRenderContext $context ): bool {
+		// The HTML for the section is assembled from the elements in $context->section.
+		$context->sectionElements = array_map( [ $this, 'freeTextAsField' ], $elements );
+		$context->section = ' ';
+
+		foreach ( $context->sectionElements as $element_num => $element ) {
+			$context->elementNum = $element_num;
+			if ( $element instanceof TagSpec && !$element instanceof InfoSpec ) {
+				$this->assertNoForbiddenCharacters( $element );
+			}
+			$handler = $this->elementHandlers[get_class( $element )] ?? null;
+			$handler?->handle( $element, $context );
+		}
+
+		$this->pageTextAssembler->insertTemplateCalls( $context );
+		return $this->sectionLayout->finish( $context );
 	}
 
 	/**
@@ -745,9 +782,6 @@ class FormPrinter {
 		$request,
 		FormRenderContext $context
 	): FormRenderResult {
-		global $wgPageFormsShowExpandAllLink;
-		global $wgOut;
-
 		$context->formSubmitted = (bool)$form_submitted;
 		$context->sourceIsPage = (bool)$source_is_page;
 		$context->isQuery = (bool)$is_query;
@@ -764,43 +798,9 @@ class FormPrinter {
 
 		// Disable all form elements if user doesn't have edit permission.
 		// Also resolves $context->pageTitle as a side effect (needed below).
-		[ $permissionErrors, $userCanEditPage ] = $this->resolvePageTitleAndPermissions(
-			$context->isEmbedded, $context->isQuery, $context->pageName, $context->pageNameFormula,
-			$context->request, $context->user, $context->formSubmitted, $context
-		);
+		[ $permissionErrors, $userCanEditPage ] = $this->resolvePageTitleAndPermissions( $context );
 
-		// Start off with a loading spinner - this will be removed by
-		// the JavaScript once everything has finished loading.
-		$context->formText = FormUtils::displayLoadingImage();
-		if ( $context->isQuery || $userCanEditPage ) {
-			$context->formIsDisabled = false;
-			// Show "Your IP address will be recorded" warning if
-			// user is anonymous, and it's not a query.
-			if ( $context->user->isAnon() && !$context->isQuery ) {
-				// Based on code in MediaWiki's EditPage.php.
-				$anonEditWarning = wfMessage( 'anoneditwarning',
-					// Log-in link
-					'{{fullurl:Special:UserLogin|returnto={{FULLPAGENAMEE}}}}',
-					// Sign-up link
-					'{{fullurl:Special:UserLogin/signup|returnto={{FULLPAGENAMEE}}}}' )->parse();
-				$context->formText .= Html::rawElement(
-					'div', [ 'id' => 'mw-anon-edit-warning', 'class' => 'warningbox' ], $anonEditWarning
-				);
-			}
-		} else {
-			$context->formIsDisabled = true;
-			if ( $wgOut->getTitle() != null ) {
-				$wgOut->setPageTitle( wfMessage( 'badaccess' )->text() );
-				$wgOut->addWikiTextAsInterface( $wgOut->formatPermissionsErrorMessage( $permissionErrors, 'edit' ) );
-				$wgOut->addHTML( "\n<hr />\n" );
-			}
-		}
-
-		if ( $wgPageFormsShowExpandAllLink ) {
-			$context->formText .= Html::rawElement( 'p', [ 'id' => 'pf-expand-all' ],
-				// @TODO - add an i18n message for this.
-				Html::element( 'a', [ 'href' => '#' ], 'Expand all collapsed parts of the form' ) ) . "\n";
-		}
+		$this->openForm( $context, $permissionErrors, $userCanEditPage );
 
 		$context->parser = $this->createFreshParser( $context->user, $context );
 
@@ -820,156 +820,18 @@ class FormPrinter {
 		// existing article as well, finding template and field
 		// declarations and replacing them with form elements, either
 		// blank or pre-populated, as appropriate.
-		$new_text = '';
 		$context->template = null;
 		$context->tif = null;
 		// This array will keep track of all the replaced @<name>@ strings
 		$context->placeholderFields = [];
 		$context->infoTagSeen = false;
 
-		for ( $section_num = 0; $section_num < count( $form_def_sections ); $section_num++ ) {
-			// The section's text and tags, in order. The HTML for the section is
-			// assembled from them in $context->section.
-			$section_elements = $context->sectionElements = array_map(
-				[ $this, 'freeTextAsField' ], $form_def_sections[$section_num]
-			);
-			$context->section = ' ';
-
-			foreach ( $section_elements as $element_num => $element ) {
-				$context->elementNum = $element_num;
-				if ( $element instanceof TagSpec && !$element instanceof InfoSpec ) {
-					$this->assertNoForbiddenCharacters( $element );
-				}
-				$handler = $this->elementHandlers[get_class( $element )] ?? null;
-				if ( $handler !== null ) {
-					$handler->handle( $element, $context );
-					continue;
-				}
-			}
-			// end foreach
-
-			$tif = $context->tif;
-			if ( $tif && ( !$tif->allowsMultiple() || $tif->allInstancesPrinted() ) ) {
-				$template_text = $context->wikiPage->createTemplateCallsForTemplateName(
-					$tif->getTemplateName(), $context->request
-				);
-				// Escape the '$' characters for the preg_replace() call.
-				$template_text = str_replace( '$', '\$', $template_text );
-
-				// If there is a placeholder in the text, we
-				// know that we are doing a replace.
-				if ( $context->existingPageContent
-					&& str_contains( $context->existingPageContent, '{{{insertionpoint}}}' ) ) {
-					$context->existingPageContent = preg_replace( '/\{\{\{insertionpoint\}\}\}(\r?\n?)/',
-						preg_replace( '/\}\}/m', '}�',
-							preg_replace( '/\{\{/m', '�{', $template_text ) ) .
-						"{{{insertionpoint}}}",
-						$context->existingPageContent );
-				}
-			}
-
-			if ( $context->sourceIsPage && $tif && $tif->allowsMultiple()
-				&& !$tif->allInstancesPrinted() ) {
-				// The parameters of this instance's template call that the form does not define,
-				// as hidden inputs of the instance. (The "end template" tag is only handled once
-				// for all instances, so it cannot do this.)
-				$context->section .= FormUtils::unhandledFieldsHTML( $tif );
-			}
-
-			$multipleTemplateHTML = '';
-			if ( $tif ) {
-				if ( $tif->getLabel() != null ) {
-					$fieldsetStartHTML = "<fieldset>\n"
-						. Html::element( 'legend', [], $tif->getLabel() ) . "\n";
-					$fieldsetStartHTML .= $tif->getIntro();
-					if ( !$tif->allowsMultiple() ) {
-						$context->formText .= $fieldsetStartHTML;
-					} elseif ( $tif->allowsMultiple() && $tif->getInstanceNum() == 0 ) {
-						$multipleTemplateHTML .= $fieldsetStartHTML;
-					}
-				} else {
-					if ( !$tif->allowsMultiple() ) {
-						$context->formText .= $tif->getIntro();
-					}
-					if ( $tif->allowsMultiple() && $tif->getInstanceNum() == 0 ) {
-						$multipleTemplateHTML .= $tif->getIntro();
-					}
-				}
-			}
-			if ( $tif && $tif->allowsMultiple() ) {
-				if ( $tif->getDisplay() == 'spreadsheet' ) {
-					if ( $tif->allInstancesPrinted() ) {
-						$multipleTemplateHTML .= $this->spreadsheetHTML( $tif );
-						// For spreadsheets, this needs
-						// to be specially inserted.
-						if ( $tif->getLabel() != null ) {
-							$multipleTemplateHTML .= "</fieldset>\n";
-						}
-					}
-				} elseif ( $tif->getDisplay() == 'calendar' ) {
-					if ( $tif->allInstancesPrinted() ) {
-						$multipleTemplateHTML .= $this->calendarHTML( $tif );
-						$multipleTemplateHTML .= "</fieldset>\n";
-					}
-				} else {
-					if ( $tif->getDisplay() == 'table' ) {
-						$context->section = $this->tableHTML(
-							$tif, $tif->getInstanceNum(), $context->parser, $context->counters
-						);
-					}
-					if ( $tif->getInstanceNum() == 0 ) {
-						$multipleTemplateHTML .= $this->multipleTemplateStartHTML( $tif );
-					}
-					if ( !$tif->allInstancesPrinted() ) {
-						$multipleTemplateHTML .= $this->multipleTemplateInstanceHTML(
-							$tif, $context->formIsDisabled, $context->section
-						);
-					} else {
-						$multipleTemplateHTML .= $this->multipleTemplateEndHTML(
-							$tif, $context->formIsDisabled, $context->section, $context->counters
-						);
-					}
-				}
-				$placeholder = $tif->getPlaceholder();
-				if ( $placeholder == null ) {
-					// The normal process.
-					$context->formText .= $multipleTemplateHTML;
-				} else {
-					// The template text won't be appended
-					// at the end of the template like for
-					// usual multiple template forms.
-					// The HTML text will instead be stored in
-					// the $multipleTemplateHTML variable,
-					// and then added in the right
-					// @insertHTML_".$placeHolderField."@"; position
-					// Optimization: actually, instead of
-					// separating the processes, the usual
-					// multiple template forms could also be
-					// handled this way if a fitting
-					// placeholder tag was added.
-					// We replace the HTML into the current
-					// placeholder tag, but also add another
-					// placeholder tag, to keep track of it.
-					$multipleTemplateHTML .= self::makePlaceholderInFormHTML( $placeholder );
-					$context->formText = str_replace(
-						self::makePlaceholderInFormHTML( $placeholder ), $multipleTemplateHTML, $context->formText
-					);
-				}
-				if ( !$tif->allInstancesPrinted() ) {
-					// This will cause the section to be
-					// re-parsed on the next go.
-					$section_num--;
-					$tif->incrementInstanceNum();
-				}
-			} elseif ( $tif && $tif->getDisplay() == 'table' ) {
-				$context->formText .= $this->tableHTML( $tif, 0, $context->parser, $context->counters );
-			} elseif ( $tif && !$tif->allowsMultiple() && $tif->getLabel() != null ) {
-				$context->formText .= $context->section . "\n</fieldset>";
-			} else {
-				$context->formText .= $context->section;
-			}
+		foreach ( $form_def_sections as $section_elements ) {
+			// A section of a template that allows multiple instances is rendered once per instance.
+			do {
+				$repeatSection = $this->renderSection( $section_elements, $context );
+			} while ( $repeatSection );
 		}
-		// end for
 
 		[ $context->formText, $page_text, $context->formPageTitle, $parserOutput ] =
 			$this->finalizeFormAndPageText( $context );
