@@ -233,6 +233,7 @@ class FieldHandler implements ElementHandler {
 	 * @param FormField $form_field
 	 * @param string|array|null $cur_value
 	 * @return string|array|null
+	 * @return-taint none
 	 */
 	private function valueAsLabels( FormField $form_field, $cur_value ) {
 		if ( $cur_value === '' ||
@@ -241,10 +242,14 @@ class FieldHandler implements ElementHandler {
 			$form_field->getUseDisplayTitle() ) ) {
 			return $cur_value;
 		}
+		if ( is_array( $cur_value ) ) {
+			// Only a string can be mapped to labels.
+			return $cur_value;
+		}
 		$delimiter = $form_field->getFieldArg( 'delimiter' );
 		// If the input type is "tokens', the value is not
 		// an array, but the delimiter still needs to be set.
-		if ( !is_array( $cur_value ) && !$form_field->isList() ) {
+		if ( !$form_field->isList() ) {
 			$delimiter = null;
 		}
 
