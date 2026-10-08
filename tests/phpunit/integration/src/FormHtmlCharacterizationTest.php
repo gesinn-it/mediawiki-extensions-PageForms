@@ -14,6 +14,12 @@ use OOUI\BlankTheme;
  * changing what it produces. A difference is not necessarily a bug in the change, but it has to
  * be looked at.
  *
+ * These are characterization tests, not a specification: a snapshot says what the code did when it
+ * was recorded, not that this is right, and it can hold behaviour that was wrong at the time (the
+ * snapshot of a mapped checkboxes field on an existing page first had no box checked, until it was
+ * fixed in dc2bb042). A case that is known to record a defect gets a 'known defect' key with the
+ * issue or commit; none is marked at the moment. See docs/developer/code-structure.adoc.
+ *
  * To record the snapshots again after an intended change, run the tests with the environment
  * variable PF_UPDATE_GOLDEN=1 and review the diff of the snapshot files.
  *

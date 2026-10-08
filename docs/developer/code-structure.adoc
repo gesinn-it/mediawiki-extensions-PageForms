@@ -45,3 +45,26 @@ target layout and conventions.
 
 `tests/`::
 PHPUnit and QUnit test suites.
+
+== Characterization tests of the form printer
+
+`tests/phpunit/integration/src/FormHtmlCharacterizationTest.php` renders form definitions with
+`FormPrinter::formHTML()` and compares everything it returns with a snapshot in
+`tests/phpunit/integration/golden/formhtml/`.
+
+The snapshots are a safety net for refactoring, not a specification. They record what the code
+produced when they were written, so that a change of structure can be shown to leave the output as
+it was. They do not say that the output is right: a snapshot can hold behaviour that was wrong at
+the time. For example, the snapshot of a `checkboxes` field with a `mapping template` on an existing
+page first recorded that no box was checked; that was fixed later and the snapshot changed with the
+fix. To find out what a form should do, read the documentation and the tests of the input type, not
+the snapshot.
+
+A case that is known to record a defect carries a `known defect` key naming the issue or commit, and
+its snapshot is updated in the commit that fixes the defect. At the moment no case is marked: the
+only one so far was the checkboxes case above.
+
+To update a snapshot deliberately, run the test with `PF_UPDATE_GOLDEN=1`, review the diff of the
+files in `golden/formhtml/` (every changed line has to be explained by the change you made) and
+commit them together with that change. Never record the snapshots again just to make a failing run
+green.
