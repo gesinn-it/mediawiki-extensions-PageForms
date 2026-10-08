@@ -106,7 +106,9 @@ class FormPrinter {
 			$this->multipleTemplateHtmlBuilder, $this->spreadsheetHtmlBuilder, $this->calendarHtmlBuilder,
 			$this->formFieldHtmlBuilder
 		);
-		$this->pageTextAssembler = new PageTextAssembler();
+		$this->pageTextAssembler = new PageTextAssembler(
+			MediaWikiServices::getInstance()->getHookContainer()
+		);
 		$this->elementHandlers = [
 			FieldSpec::class => new FieldHandler(
 				$this->formFieldHtmlBuilder, $this->mappingLabels, $this->fieldValueResolver
@@ -471,7 +473,9 @@ class FormPrinter {
 			$form_text .= Html::hidden( 'pf_free_text', '!free_text!' );
 		}
 		// Get the free text and the page text. The free text is also inserted into the form.
-		[ $free_text, $page_text ] = $this->pageTextAssembler->createPageText( $context );
+		$pageTextResult = $this->pageTextAssembler->createPageText( $context );
+		$free_text = $pageTextResult->getFreeText();
+		$page_text = $pageTextResult->getPageText();
 
 		// Also substitute the free text into the form.
 		$escaped_free_text = Sanitizer::safeEncodeAttribute( $free_text ?? '' );
@@ -604,7 +608,6 @@ class FormPrinter {
 			$this->getElementHandler( $element )->handle( $element, $context );
 		}
 
-		$this->pageTextAssembler->insertTemplateCalls( $context );
 		$this->sectionLayout->finish( $context );
 	}
 

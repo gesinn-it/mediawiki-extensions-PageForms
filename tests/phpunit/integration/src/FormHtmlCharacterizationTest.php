@@ -302,14 +302,6 @@ class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 				'source_is_page' => true,
 				'existing' => "{{PFCharParent|Name=P|Items={{PFCharChild|Label=One}}{{PFCharChild|Label=Two}}}}\n",
 			],
-			'insertion point in existing page text, submitted' => [
-				'form_def' => $tpl( 'PFCharSingle', '', "{{{field|Title}}}\n" )
-					. "{{{standard input|free text}}}\n" . $save,
-				'source_is_page' => true,
-				'submitted' => true,
-				'existing' => "Intro text\n{{{insertionpoint}}}\nOutro text",
-				'request' => [ 'PFCharSingle' => [ 'Title' => 'Inserted' ] ],
-			],
 			'custom standard inputs' => [
 				'form_def' => $tpl( 'PFCharSingle', '', "{{{field|Title}}}\n" )
 					. "{{{standard input|summary}}}\n{{{standard input|minor edit}}}\n{{{standard input|watch}}}\n"

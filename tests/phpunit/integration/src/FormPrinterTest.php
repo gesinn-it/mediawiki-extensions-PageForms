@@ -1314,53 +1314,6 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// {{{insertionpoint}}} placeholder replace mode — #1313-1318
-	// -------------------------------------------------------------------------
-
-	public function testFormHTMLWithInsertionPointPlaceholderInsertsTemplateCall(): void {
-		global $wgPageFormsFormPrinter, $wgOut;
-
-		$wgOut->getContext()->setTitle( $this->getTitle() );
-
-		$formDef = "{{{for template|PFTestInsertionPointTpl01}}}\n"
-			. "{{{field|Name}}}\n"
-			. "{{{end template}}}\n"
-			. "{{{standard input|free text}}}\n"
-			. "{{{standard input|save}}}";
-
-		// Mutated $existing_page_content only flows into the returned page
-		// text via the free-text component, which requires a 'free text'
-		// standard input (or #freetext# field) to register that component.
-		$existingPageContent = "Intro text\n{{{insertionpoint}}}\nOutro text";
-
-		$fauxRequest = new \FauxRequest(
-			[ 'PFTestInsertionPointTpl01' => [ 'Name' => 'PFTestInsertionPointValue01' ] ],
-			true
-		);
-
-		// source_is_page=true is required so that the mutated
-		// $existing_page_content (with the template call spliced in at the
-		// {{{insertionpoint}}} marker) flows into the returned page text via
-		// the free-text channel in finalizeFormAndPageText().
-		[ , $pageText ] = $wgPageFormsFormPrinter->formHTML(
-			$formDef,
-			$form_submitted = true,
-			$source_is_page = true,
-			$form_id = null,
-			$existingPageContent,
-			$page_name = 'PFTestInsertionPointPage01',
-			$page_name_formula = null,
-			$is_query = false, $is_embedded = false, $is_autocreate = false,
-			$autocreate_query = [],
-			self::getTestUser()->getUser(), $fauxRequest
-		);
-
-		$this->assertStringContainsString( 'Intro text', $pageText );
-		$this->assertStringContainsString( 'Outro text', $pageText );
-		$this->assertStringContainsString( 'PFTestInsertionPointTpl01', $pageText );
-	}
-
-	// -------------------------------------------------------------------------
 	// 'run query' standard input filtering — #1241-1244
 	// -------------------------------------------------------------------------
 

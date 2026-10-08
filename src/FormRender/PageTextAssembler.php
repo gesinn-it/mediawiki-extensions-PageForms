@@ -5,48 +5,17 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms\FormRender;
 
 use MediaWiki\Extension\PageForms\FormRenderContext;
-use MediaWiki\MediaWikiServices;
+use MediaWiki\HookContainer\HookContainer;
 
 /**
  * Puts the template calls the form produces into the text of the page.
  */
 class PageTextAssembler {
 
-	/**
-	 * Takes the place of one of the two braces of a template call that is inserted into the page
-	 * text, so that the call is not read as a template call again. This is the Unicode replacement
-	 * character; it is spelled out here because it was once written into the source as a literal
-	 * character that an editor or an encoding change can damage.
-	 */
-	private const BRACE_MARKER = "\u{FFFD}";
+	private HookContainer $hookContainer;
 
-	/**
-	 * Once all instances of the current template are printed, adds its template calls to the
-	 * page text that has not been used yet, if that text has a {{{insertionpoint}}} (which is
-	 * the case when the form replaces a part of a page instead of editing the whole page).
-	 *
-	 * @param FormRenderContext $context
-	 */
-	public function insertTemplateCalls( FormRenderContext $context ): void {
-		$tif = $context->tif;
-		if ( $tif && ( !$tif->allowsMultiple() || $tif->allInstancesPrinted() ) ) {
-			$template_text = $context->wikiPage->createTemplateCallsForTemplateName(
-				$tif->getTemplateName(), $context->request->webRequest
-			);
-			// Escape the '$' characters for the preg_replace() call.
-			$template_text = str_replace( '$', '\$', $template_text );
-
-			// If there is a placeholder in the text, we
-			// know that we are doing a replace.
-			if ( $context->existingPageContent
-				&& str_contains( $context->existingPageContent, '{{{insertionpoint}}}' ) ) {
-				$context->existingPageContent = preg_replace( '/\{\{\{insertionpoint\}\}\}(\r?\n?)/',
-					preg_replace( '/\}\}/m', '}' . self::BRACE_MARKER,
-						preg_replace( '/\{\{/m', self::BRACE_MARKER . '{', $template_text ) ) .
-					"{{{insertionpoint}}}",
-					$context->existingPageContent );
-			}
-		}
+	public function __construct( HookContainer $hookContainer ) {
+		$this->hookContainer = $hookContainer;
 	}
 
 	/**
@@ -55,9 +24,9 @@ class PageTextAssembler {
 	 * submitted, in case this is called from #formredlink.
 	 *
 	 * @param FormRenderContext $context
-	 * @return array [ string|null $freeText, string $pageText ]
+	 * @return PageTextResult
 	 */
-	public function createPageText( FormRenderContext $context ): array {
+	public function createPageText( FormRenderContext $context ): PageTextResult {
 		$existing_page_content = $context->existingPageContent;
 		$request = $context->request->webRequest;
 		$wiki_page = $context->wikiPage;
@@ -87,7 +56,7 @@ class PageTextAssembler {
 
 		$page_text = '';
 
-		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::BeforeFreeTextSubst',
+		$this->hookContainer->run( 'PageForms::BeforeFreeTextSubst',
 			[ &$free_text, $existing_page_content, &$page_text ] );
 
 		// Now that we have the free text, we can create the full page
@@ -97,6 +66,6 @@ class PageTextAssembler {
 		$wiki_page->setFreeText( $free_text );
 		$page_text = $wiki_page->createPageText( $request );
 
-		return [ $free_text, $page_text ];
+		return new PageTextResult( $free_text, $page_text );
 	}
 }

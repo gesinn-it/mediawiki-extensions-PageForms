@@ -18,6 +18,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - The helpers of `FormUtils` moved to `FormButtons`, `FormDateUtils`, `FormInputValues`, `FormMarkup`, `SpreadsheetGlobals` and `FormCache`. `FormUtils` (also available as `PFFormUtils`) still has every method as a deprecated forward, so custom code keeps working; it should switch to the new classes.
 - Opening an existing page in a form through the autoedit API (`action=pfautoedit` without a save) no longer reads the field values back out of the rendered form HTML, which nothing used. `HtmlFormDataExtractor::extract()` is removed; `PFAutoeditAPI::getOptions()` is unchanged for the target, form and form title.
 - The message of the error that a malformed form definition raises is now plain text instead of HTML, so logs and command line output no longer show markup. The error shown on the page is unchanged, and the text in it is now escaped [#252](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/252).
+- The `{{{insertionpoint}}}` placeholder in the text of a page edited with a form is no longer replaced by the template calls of the form; nothing has set it since the partial forms were removed [#253](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/253).
 
 ### Fixed
 - Fixed the template text that _Create Template_ generates for a field with a namespace (for example a file field): the field value was written with the number of the namespace in front (`6:`), which MediaWiki does not read as a namespace, instead of its name (`File:`).
