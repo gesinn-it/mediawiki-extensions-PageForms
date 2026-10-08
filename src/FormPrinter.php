@@ -11,10 +11,13 @@ use LogEventsList;
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
+use MediaWiki\Extension\PageForms\FormDefinition\InfoSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\StandardInputSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TextSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\UnknownTagSpec;
+use MediaWiki\Extension\PageForms\FormRender\ElementHandler;
+use MediaWiki\Extension\PageForms\FormRender\InfoHandler;
 use MediaWiki\MediaWikiServices;
 use MWException;
 use OutputPage;
@@ -76,6 +79,9 @@ class FormPrinter {
 
 	private FieldValueResolver $fieldValueResolver;
 
+	/** @var array<class-string, ElementHandler> The handler of each type of form definition element */
+	private array $elementHandlers;
+
 	private MappingLabels $mappingLabels;
 
 	public function __construct() {
@@ -92,6 +98,9 @@ class FormPrinter {
 		$this->formDefReader = new FormDefinitionReader();
 		$this->formSectionHtmlBuilder = new FormSectionHtmlBuilder();
 		$this->fieldValueResolver = new FieldValueResolver();
+		$this->elementHandlers = [
+			InfoSpec::class => new InfoHandler(),
+		];
 
 		$this->registerInputType( 'PFTextInput' );
 		$this->registerInputType( 'PFTextWithAutocompleteInput' );
@@ -679,57 +688,6 @@ class FormPrinter {
 	}
 
 	/**
-	 * Process the sub-components of a {{{info}}} form-definition tag, as used by formHTML().
-	 *
-	 * Reads 'create title'/'add title', 'edit title' and 'query title' (returning
-	 * whichever applies as $form_page_title), and applies the side effects of
-	 * 'includeonly free text'/'onlyinclude free text' (on $wiki_page) and
-	 * 'query form at top' (in $runQueryFormAtTop).
-	 *
-	 * @param array $tag_components
-	 * @param bool $is_query
-	 * @param PFWikiPage $wiki_page
-	 * @param string|null $form_page_title current value, returned unchanged if no title tag applies
-	 * @param bool &$runQueryFormAtTop set to true by the 'query form at top' tag
-	 * @param FormRenderContext $context
-	 * @return string|null
-	 */
-	private function processInfoTag(
-		array $tag_components, $is_query, PFWikiPage $wiki_page, $form_page_title, bool &$runQueryFormAtTop,
-		FormRenderContext $context
-	) {
-		foreach ( array_slice( $tag_components, 1 ) as $component ) {
-			$sub_components = array_map( 'trim', explode( '=', $component, 2 ) );
-			// Tag names are case-insensitive
-			$tag = strtolower( $sub_components[0] );
-			if ( $tag == 'create title' || $tag == 'add title' ) {
-				// Handle this only if
-				// we're adding a page.
-				if ( !$is_query && !$context->pageTitle->exists() ) {
-					$form_page_title = $sub_components[1];
-				}
-			} elseif ( $tag == 'edit title' ) {
-				// Handle this only if
-				// we're editing a page.
-				if ( !$is_query && $context->pageTitle->exists() ) {
-					$form_page_title = $sub_components[1];
-				}
-			} elseif ( $tag == 'query title' ) {
-				// Handle this only if
-				// we're in 'RunQuery'.
-				if ( $is_query ) {
-					$form_page_title = $sub_components[1];
-				}
-			} elseif ( $tag == 'includeonly free text' || $tag == 'onlyinclude free text' ) {
-				$wiki_page->makeFreeTextOnlyInclude();
-			} elseif ( $tag == 'query form at top' ) {
-				$runQueryFormAtTop = true;
-			}
-		}
-		return $form_page_title;
-	}
-
-	/**
 	 * This function is the real heart of the entire Page Forms
 	 * extension. It handles two main actions: (1) displaying a form on the
 	 * screen, given a form definition and possibly page contents (if an
@@ -905,12 +863,13 @@ class FormPrinter {
 		for ( $section_num = 0; $section_num < count( $form_def_sections ); $section_num++ ) {
 			// The section's text and tags, in order. The HTML for the section is
 			// assembled from them in $context->section.
-			$section_elements = array_map(
+			$section_elements = $context->sectionElements = array_map(
 				[ $this, 'freeTextAsField' ], $form_def_sections[$section_num]
 			);
 			$context->section = ' ';
 
 			foreach ( $section_elements as $element_num => $element ) {
+				$context->elementNum = $element_num;
 				if ( $element instanceof TextSpec ) {
 					$context->section .= $element->getText();
 					continue;
@@ -937,6 +896,11 @@ class FormPrinter {
 							);
 						}
 					}
+				}
+				$handler = $this->elementHandlers[get_class( $element )] ?? null;
+				if ( $handler !== null ) {
+					$handler->handle( $element, $context );
+					continue;
 				}
 				// =====================================================
 				// for template processing
@@ -1316,24 +1280,6 @@ END;
 					);
 
 					$context->section .= $form_section_text;
-				// =====================================================
-				// page info processing
-				// =====================================================
-				} elseif ( $tag_title == 'info' ) {
-					if ( $context->infoTagSeen ) {
-						throw new MWException(
-							'<div class="error">Error in form definition:'
-							. ' only one \'info\' tag is allowed per form.</div>'
-						);
-					}
-					$context->infoTagSeen = true;
-					$context->formPageTitle = $this->processInfoTag(
-						$tag_components, $context->isQuery, $context->wikiPage, $context->formPageTitle,
-						$context->runQueryFormAtTop, $context
-					);
-					// Replace the {{{info}}} tag with a hidden span, instead of a blank, to avoid a
-					// potential security issue.
-					$context->section .= '<span style="visibility: hidden;"></span>';
 				// =====================================================
 				// default outer level processing
 				// =====================================================

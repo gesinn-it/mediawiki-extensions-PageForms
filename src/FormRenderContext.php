@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use Parser;
 use PFWikiPage;
 use Title;
@@ -54,6 +55,10 @@ class FormRenderContext {
 
 	/** The HTML of the form so far. */
 	public string $formText = '';
+	/** @var list<FormElement> The elements of the section of the form definition that is being processed. */
+	public array $sectionElements = [];
+	/** The position of the element that is being processed within $sectionElements. */
+	public int $elementNum = 0;
 	/** The HTML of the section of the form definition that is being processed. */
 	public string $section = ' ';
 	public ?TemplateInForm $tif = null;
