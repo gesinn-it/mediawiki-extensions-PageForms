@@ -81,6 +81,29 @@ ifdef COMPOSER_EXT
 	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && $(if $(FILTER),PF_FILTER='$(FILTER)' ,)composer phpunit"
 endif
 
+# Fast PHP development cycle: like php-test, but without the JSONScript suite
+# (the slowest part, about half of the PHPUnit run time). Use it while working on code
+# that does not change what a form, parser function or API call outputs as a whole.
+# Optional:
+#   FILTER=PFFormCacheTest   restricts phpunit via --filter
+.PHONY: php-test-quick
+php-test-quick: .git-safe-dir
+ifdef COMPOSER_EXT
+	$(show-current-target)
+	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && composer lint"
+	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && $(if $(FILTER),PF_FILTER='$(FILTER)' ,)composer phpunit-quick"
+endif
+
+# Only the JSONScript suite (end-to-end tests through special pages, parser functions and APIs)
+# Optional:
+#   FILTER=forminput-year   restricts phpunit via --filter
+.PHONY: php-test-jsonscript
+php-test-jsonscript: .git-safe-dir
+ifdef COMPOSER_EXT
+	$(show-current-target)
+	$(compose-exec-wiki) bash -c "cd $(EXTENSION_FOLDER) && $(if $(FILTER),PF_FILTER='$(FILTER)' ,)composer phpunit-jsonscript"
+endif
+
 # JS development cycle: eslint + banana-checker + qunit
 # Optional:
 #   FILE=libs/PF_formInput.js   restricts eslint to one file;
