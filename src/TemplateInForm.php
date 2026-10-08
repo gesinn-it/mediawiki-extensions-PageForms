@@ -89,7 +89,7 @@ class TemplateInForm {
 		if ( array_key_exists( $tif->mTemplateName, $wgPageFormsEmbeddedTemplates ) ) {
 			[ $tif->mEmbedInTemplate, $tif->mEmbedInField ] =
 				$wgPageFormsEmbeddedTemplates[$tif->mTemplateName];
-			$tif->mPlaceholder = FormPrinter::placeholderFormat( $tif->mEmbedInTemplate, $tif->mEmbedInField );
+			$tif->mPlaceholder = FormPlaceholder::format( $tif->mEmbedInTemplate, $tif->mEmbedInField );
 		}
 
 		if ( $spec->isMultiple() ) {
@@ -121,7 +121,7 @@ class TemplateInForm {
 		$embedInField = $spec->getEmbedInField();
 		if ( $embedInField !== null ) {
 			[ $tif->mEmbedInTemplate, $tif->mEmbedInField ] = $embedInField;
-			$tif->mPlaceholder = FormPrinter::placeholderFormat(
+			$tif->mPlaceholder = FormPlaceholder::format(
 				$tif->mEmbedInTemplate, $tif->mEmbedInField
 			);
 		}

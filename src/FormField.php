@@ -952,8 +952,8 @@ class FormField {
 		// locate where the multiple-templates HTML, stored in
 		// $multipleTemplateString, should be inserted.
 		if ( $this->mHoldsTemplate ) {
-			$text .= FormPrinter::makePlaceholderInFormHTML(
-				FormPrinter::placeholderFormat( $template_name, $field_name )
+			$text .= FormPlaceholder::toHtmlMarker(
+				FormPlaceholder::format( $template_name, $field_name )
 			);
 		}
 

@@ -816,12 +816,6 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertIsArray( $result );
 	}
 
-	public function testStrReplaceFirstDelegates(): void {
-		global $wgPageFormsFormPrinter;
-		$result = $wgPageFormsFormPrinter->strReplaceFirst( 'a', 'X', 'a b a' );
-		$this->assertSame( 'X b a', $result );
-	}
-
 	public function testShowDeletionLogReturnsFalseWithoutPageTitle(): void {
 		$formPrinter = new FormPrinter();
 		$result = $formPrinter->showDeletionLog( RequestContext::getMain()->getOutput() );

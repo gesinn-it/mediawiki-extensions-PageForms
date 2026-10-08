@@ -207,20 +207,20 @@ class FormPrinter {
 	}
 
 	/**
-	 * @deprecated since PageForms 5.x — use PFUtils::strReplaceFirst() instead.
-	 * @param string $search
-	 * @param string $replace
-	 * @param string $subject
+	 * @deprecated use FormPlaceholder::format()
+	 * @param string $templateName
+	 * @param string $fieldName
 	 * @return string
 	 */
-	public function strReplaceFirst( $search, $replace, $subject ) {
-		return PFUtils::strReplaceFirst( $search, $replace, $subject );
-	}
-
 	public static function placeholderFormat( $templateName, $fieldName ) {
 		return FormPlaceholder::format( $templateName, $fieldName );
 	}
 
+	/**
+	 * @deprecated use FormPlaceholder::toHtmlMarker()
+	 * @param string $str
+	 * @return string
+	 */
 	public static function makePlaceholderInFormHTML( $str ) {
 		return FormPlaceholder::toHtmlMarker( $str );
 	}
@@ -439,7 +439,7 @@ class FormPrinter {
 		foreach ( $context->placeholderFields as $stringToReplace ) {
 			// Remove the @<insertHTML>@ tags from the generated
 			// HTML form.
-			$form_text = str_replace( self::makePlaceholderInFormHTML( $stringToReplace ), '', $form_text );
+			$form_text = str_replace( FormPlaceholder::toHtmlMarker( $stringToReplace ), '', $form_text );
 		}
 
 		// If it wasn't included in the form definition, add the
