@@ -356,7 +356,7 @@ class TemplateField {
 			} elseif ( $this->mNamespace == 0 ) {
 				$text .= "$fieldProperty::$var]]";
 			} else {
-				$text .= $this->mNamespace . ":$var]] {{#set:" . $fieldProperty . "=$var}} ";
+				$text .= $this->mNSText . ":$var]] {{#set:" . $fieldProperty . "=$var}} ";
 			}
 			// If the delimiter isn't a comma, use that as the "new delimiter" as well.
 			if ( $this->mDelimiter !== ',' ) {
@@ -372,7 +372,7 @@ class TemplateField {
 		if ( $this->mNamespace == 0 ) {
 			$fieldString = $fieldParam;
 		} else {
-			$fieldString = $this->mNamespace . ':' . $fieldParam;
+			$fieldString = $this->mNSText . ':' . $fieldParam;
 		}
 
 		if ( $fieldProperty == '' ) {

@@ -469,7 +469,8 @@ class TemplateFieldTest extends MediaWikiIntegrationTestCase {
 		$field = TemplateField::create( 'PFTemplateFieldEdgeCaseField03', null, 'PFTemplateFieldEdgeCaseProp03' );
 		$field->setNamespace( NS_FILE );
 		$fieldParam = '{{{PFTemplateFieldEdgeCaseField03|}}}';
-		$fieldString = NS_FILE . ':' . $fieldParam;
+		// The namespace is written by its name, as a link needs it - not by its number.
+		$fieldString = 'File:' . $fieldParam;
 		$expected = "[[$fieldString]] {{#set:PFTemplateFieldEdgeCaseProp03=$fieldString}}";
 		$this->assertSame( $expected, $field->createText() );
 	}
@@ -478,7 +479,7 @@ class TemplateFieldTest extends MediaWikiIntegrationTestCase {
 		$field = TemplateField::create( 'PFTemplateFieldEdgeCaseField04', null );
 		$field->setNamespace( NS_FILE );
 		$fieldParam = '{{{PFTemplateFieldEdgeCaseField04|}}}';
-		$this->assertSame( NS_FILE . ':' . $fieldParam, $field->createText() );
+		$this->assertSame( 'File:' . $fieldParam, $field->createText() );
 	}
 
 	public function testCreateTextListWithPropertyDefaultNamespaceAndCommaDelimiter() {
@@ -504,7 +505,7 @@ class TemplateFieldTest extends MediaWikiIntegrationTestCase {
 			'PFTemplateFieldEdgeCaseField07', null, 'PFTemplateFieldEdgeCaseProp07', true
 		);
 		$field->setNamespace( NS_FILE );
-		$expected = '{{#arraymap:{{{PFTemplateFieldEdgeCaseField07|}}}|,|x|[[' . NS_FILE
+		$expected = '{{#arraymap:{{{PFTemplateFieldEdgeCaseField07|}}}|,|x|[[File'
 			. ':x]] {{#set:PFTemplateFieldEdgeCaseProp07=x}} }}' . "\n";
 		$this->assertSame( $expected, $field->createText() );
 	}

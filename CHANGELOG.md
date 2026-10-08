@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - The tab index and field number of a form are now kept per rendered form instead of in the global variables `$wgPageFormsTabIndex` and `$wgPageFormsFieldNum`. The globals still hold the current values for custom code that reads them, but are deprecated and will be removed; custom input types that change them no longer influence the numbering and should use `FormCounters::current()` instead.
 
 ### Fixed
+- Fixed the template text that _Create Template_ generates for a field with a namespace (for example a file field): the field value was written with the number of the namespace in front (`6:`), which MediaWiki does not read as a namespace, instead of its name (`File:`).
 - Fixed the property of a `values from wikidata` filter (the part before the `=`) being put into the Wikidata query unchecked, which let a form editor inject their own query. Only property ids such as `P31` are accepted now; other filters are ignored, as are filters without a value.
 - Fixed a `checkboxes` field with a `mapping template` showing no box checked when an existing page is edited; the values stored on the page are checked again, as they were before 2.1.6.
 
