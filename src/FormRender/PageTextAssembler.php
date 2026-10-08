@@ -13,6 +13,14 @@ use MediaWiki\MediaWikiServices;
 class PageTextAssembler {
 
 	/**
+	 * Takes the place of one of the two braces of a template call that is inserted into the page
+	 * text, so that the call is not read as a template call again. This is the Unicode replacement
+	 * character; it is spelled out here because it was once written into the source as a literal
+	 * character that an editor or an encoding change can damage.
+	 */
+	private const BRACE_MARKER = "\u{FFFD}";
+
+	/**
 	 * Once all instances of the current template are printed, adds its template calls to the
 	 * page text that has not been used yet, if that text has a {{{insertionpoint}}} (which is
 	 * the case when the form replaces a part of a page instead of editing the whole page).
@@ -33,8 +41,8 @@ class PageTextAssembler {
 			if ( $context->existingPageContent
 				&& str_contains( $context->existingPageContent, '{{{insertionpoint}}}' ) ) {
 				$context->existingPageContent = preg_replace( '/\{\{\{insertionpoint\}\}\}(\r?\n?)/',
-					preg_replace( '/\}\}/m', '}�',
-						preg_replace( '/\{\{/m', '�{', $template_text ) ) .
+					preg_replace( '/\}\}/m', '}' . self::BRACE_MARKER,
+						preg_replace( '/\{\{/m', self::BRACE_MARKER . '{', $template_text ) ) .
 					"{{{insertionpoint}}}",
 					$context->existingPageContent );
 			}
