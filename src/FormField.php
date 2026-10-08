@@ -823,96 +823,17 @@ class FormField {
 		// it's there, and if it's not an array.
 		$field_name = $this->template_field->getFieldName();
 		$delimiter = $this->mFieldArgs['delimiter'];
-		$escaped_field_name = str_replace( "'", "\'", $field_name );
 
 		if ( PFUtils::isTranslateEnabled() &&
 			$this->hasFieldArg( 'translatable' ) && $this->getFieldArg( 'translatable' ) ) {
-			// If this is a translatable field, and both it and its
-			// corresponding translate ID tag are passed in, we add it.
-			$fieldName = $this->getTemplateField()->getFieldName();
-			$fieldNameTag = $fieldName . '_translate_number_tag';
-			if ( isset( $template_instance_query_values[$fieldName] ) &&
-				isset( $template_instance_query_values[$fieldNameTag] ) ) {
-				$tag = $template_instance_query_values[$fieldNameTag];
-				if ( !preg_match( '/( |\n)$/', $tag ) ) {
-					$tag .= "\n";
-				}
-				if ( trim( $template_instance_query_values[$fieldName] ) ) {
-					// Don't add the tag if field content has been removed.
-					$template_instance_query_values[$fieldName] = $tag . $template_instance_query_values[$fieldName];
-				}
-			}
-			// If user has deleted some content, and there is some translate tag
-			// ("<!--T:X-->") with no content, remove the tag.
-			if ( isset( $template_instance_query_values[$fieldName] ) ) {
-				$this->cleanupTranslateTags( $template_instance_query_values[$fieldName] );
-			}
+			$this->addTranslateTagToQueryValue( $template_instance_query_values );
 		}
 
 		if ( is_array( $template_instance_query_values ) ) {
-			// If the field name contains an apostrophe, the array
-			// sometimes has the apostrophe escaped, and sometimes
-			// not. For now, just check for both versions.
-			// @TODO - figure this out.
-			$field_query_val = null;
-			if ( array_key_exists( $escaped_field_name, $template_instance_query_values ) ) {
-				$field_query_val = $template_instance_query_values[$escaped_field_name];
-			} elseif ( array_key_exists( $field_name, $template_instance_query_values ) ) {
-				$field_query_val = $template_instance_query_values[$field_name];
-			} else {
-				// The next checks are to allow for support for adding a value to ("+") and removing
-				// one from ("-") the existing values with autoedit.
-				if ( array_key_exists( "$field_name+", $template_instance_query_values ) ) {
-					$field_query_val = $template_instance_query_values["$field_name+"];
-					$val_modifier = '+';
-				} elseif ( array_key_exists( "$field_name-", $template_instance_query_values ) ) {
-					$field_query_val = $template_instance_query_values["$field_name-"];
-					$val_modifier = '-';
-				}
-			}
+			$field_query_val = $this->findQueryValue( $template_instance_query_values, $val_modifier );
 
 			if ( $form_submitted && $field_query_val != '' ) {
-				$map_field = false;
-				if ( array_key_exists( 'map_field', $template_instance_query_values ) &&
-					array_key_exists( $field_name, $template_instance_query_values['map_field'] ) ) {
-					$map_field = true;
-				}
-				if ( is_array( $field_query_val ) ) {
-					$cur_values = [];
-					if ( $map_field && $this->mPossibleValues !== null ) {
-						foreach ( $field_query_val as $key => $val ) {
-							$val = $this->autocapitalize( trim( $val ) );
-							if ( $key === 'is_list' ) {
-								$cur_values[$key] = $val;
-							} else {
-								$cur_values[] = $this->labelToValue( $val );
-							}
-						}
-					} else {
-						foreach ( $field_query_val as $key => $val ) {
-							$cur_values[$key] = $this->autocapitalize( $val );
-						}
-					}
-					return FormInputValues::getStringFromPassedInArray( $cur_values, $delimiter );
-				} else {
-					$field_query_val = $this->autocapitalize( trim( $field_query_val ) );
-					if ( $map_field && $this->mPossibleValues !== null ) {
-						// this should be replaced with an input type neutral way of
-						// figuring out if this scalar input type is a list
-						if ( $this->mInputType == "tokens" ) {
-							$this->mIsList = true;
-						}
-						if ( $this->mIsList ) {
-							$cur_values = array_map( 'trim', explode( $delimiter, $field_query_val ) );
-							foreach ( $cur_values as $key => $val ) {
-								$cur_values[$key] = $this->labelToValue( $val );
-							}
-							return implode( $delimiter, $cur_values );
-						}
-						return $this->labelToValue( $field_query_val );
-					}
-					return $field_query_val;
-				}
+				return $this->valueFromSubmittedForm( $field_query_val, $template_instance_query_values );
 			}
 			if ( !$form_submitted && $field_query_val != '' ) {
 				if ( is_array( $field_query_val ) ) {
@@ -925,6 +846,136 @@ class FormField {
 			}
 		}
 
+		return $this->defaultValue( $form_submitted, $source_is_page, $all_instances_printed );
+	}
+
+	/**
+	 * If this is a translatable field, and both it and its corresponding translate ID tag are
+	 * passed in, add the tag to the value.
+	 *
+	 * @param array|null &$template_instance_query_values
+	 */
+	private function addTranslateTagToQueryValue( &$template_instance_query_values ): void {
+		$fieldName = $this->getTemplateField()->getFieldName();
+		$fieldNameTag = $fieldName . '_translate_number_tag';
+		if ( isset( $template_instance_query_values[$fieldName] ) &&
+			isset( $template_instance_query_values[$fieldNameTag] ) ) {
+			$tag = $template_instance_query_values[$fieldNameTag];
+			if ( !preg_match( '/( |\n)$/', $tag ) ) {
+				$tag .= "\n";
+			}
+			if ( trim( $template_instance_query_values[$fieldName] ) ) {
+				// Don't add the tag if field content has been removed.
+				$template_instance_query_values[$fieldName] = $tag . $template_instance_query_values[$fieldName];
+			}
+		}
+		// If user has deleted some content, and there is some translate tag
+		// ("<!--T:X-->") with no content, remove the tag.
+		if ( isset( $template_instance_query_values[$fieldName] ) ) {
+			$this->cleanupTranslateTags( $template_instance_query_values[$fieldName] );
+		}
+	}
+
+	/**
+	 * The value the request has for the field.
+	 *
+	 * @param array $template_instance_query_values
+	 * @param string|null &$val_modifier Set to "+" or "-" if the value is to be added to or removed
+	 *   from the existing ones
+	 * @return string|array|null
+	 */
+	private function findQueryValue( array $template_instance_query_values, &$val_modifier ) {
+		$field_name = $this->template_field->getFieldName();
+		$escaped_field_name = str_replace( "'", "\'", $field_name );
+
+		// If the field name contains an apostrophe, the array
+		// sometimes has the apostrophe escaped, and sometimes
+		// not. For now, just check for both versions.
+		// @TODO - figure this out.
+		$field_query_val = null;
+		if ( array_key_exists( $escaped_field_name, $template_instance_query_values ) ) {
+			$field_query_val = $template_instance_query_values[$escaped_field_name];
+		} elseif ( array_key_exists( $field_name, $template_instance_query_values ) ) {
+			$field_query_val = $template_instance_query_values[$field_name];
+		} else {
+			// The next checks are to allow for support for adding a value to ("+") and removing
+			// one from ("-") the existing values with autoedit.
+			if ( array_key_exists( "$field_name+", $template_instance_query_values ) ) {
+				$field_query_val = $template_instance_query_values["$field_name+"];
+				$val_modifier = '+';
+			} elseif ( array_key_exists( "$field_name-", $template_instance_query_values ) ) {
+				$field_query_val = $template_instance_query_values["$field_name-"];
+				$val_modifier = '-';
+			}
+		}
+		return $field_query_val;
+	}
+
+	/**
+	 * The value of a field of a submitted form, with the labels turned back into values if the
+	 * field maps them.
+	 *
+	 * @param string|array $field_query_val
+	 * @param array $template_instance_query_values
+	 * @return string
+	 */
+	private function valueFromSubmittedForm( $field_query_val, array $template_instance_query_values ) {
+		$field_name = $this->template_field->getFieldName();
+		$delimiter = $this->mFieldArgs['delimiter'];
+
+		$map_field = false;
+		if ( array_key_exists( 'map_field', $template_instance_query_values ) &&
+			array_key_exists( $field_name, $template_instance_query_values['map_field'] ) ) {
+			$map_field = true;
+		}
+		if ( is_array( $field_query_val ) ) {
+			$cur_values = [];
+			if ( $map_field && $this->mPossibleValues !== null ) {
+				foreach ( $field_query_val as $key => $val ) {
+					$val = $this->autocapitalize( trim( $val ) );
+					if ( $key === 'is_list' ) {
+						$cur_values[$key] = $val;
+					} else {
+						$cur_values[] = $this->labelToValue( $val );
+					}
+				}
+			} else {
+				foreach ( $field_query_val as $key => $val ) {
+					$cur_values[$key] = $this->autocapitalize( $val );
+				}
+			}
+			return FormInputValues::getStringFromPassedInArray( $cur_values, $delimiter );
+		}
+
+		$field_query_val = $this->autocapitalize( trim( $field_query_val ) );
+		if ( $map_field && $this->mPossibleValues !== null ) {
+			// this should be replaced with an input type neutral way of
+			// figuring out if this scalar input type is a list
+			if ( $this->mInputType == "tokens" ) {
+				$this->mIsList = true;
+			}
+			if ( $this->mIsList ) {
+				$cur_values = array_map( 'trim', explode( $delimiter, $field_query_val ) );
+				foreach ( $cur_values as $key => $val ) {
+					$cur_values[$key] = $this->labelToValue( $val );
+				}
+				return implode( $delimiter, $cur_values );
+			}
+			return $this->labelToValue( $field_query_val );
+		}
+		return $field_query_val;
+	}
+
+	/**
+	 * The default or preloaded value of the field, if the form is not submitted and the page has
+	 * no value for it.
+	 *
+	 * @param bool $form_submitted
+	 * @param bool $source_is_page
+	 * @param bool $all_instances_printed
+	 * @return string|null
+	 */
+	private function defaultValue( $form_submitted, $source_is_page, $all_instances_printed ) {
 		// Default values in new instances of multiple-instance
 		// templates should always be set, even for existing pages.
 		$part_of_multiple = array_key_exists( 'part_of_multiple', $this->mFieldArgs );
