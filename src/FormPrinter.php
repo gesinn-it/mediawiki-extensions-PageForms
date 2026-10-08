@@ -57,14 +57,18 @@ use WebRequest;
 class FormPrinter {
 
 	/**
-	 * This property stores mSemanticTypeHooks values
+	 * A reference to the table of the input type registry that maps SMW property types to input
+	 * classes, kept for code that reads or fills it directly.
 	 *
+	 * @deprecated use registerInputType()
 	 * @var array
 	 */
 	public $mSemanticTypeHooks;
 	/**
-	 * This property stores mInputTypeHooks values
+	 * A reference to the table of the input type registry that maps input type names to input
+	 * classes, kept for code that reads or fills it directly.
 	 *
+	 * @deprecated use registerInputType()
 	 * @var array
 	 */
 	public $mInputTypeHooks;
@@ -95,52 +99,16 @@ class FormPrinter {
 	private MappingLabels $mappingLabels;
 
 	public function __construct() {
-		global $wgPageFormsDisableOutsideServices;
 		$this->mappingLabels = new MappingLabels();
-		// Initialize variables.
-		$this->mSemanticTypeHooks = [];
-		$this->mInputTypeHooks = [];
-		$this->inputTypeRegistry = new InputTypeRegistry();
+		$this->inputTypeRegistry = InputTypeRegistry::newWithBuiltInTypes();
+		// The public arrays are the tables of the registry, not copies.
+		$this->mSemanticTypeHooks = &$this->inputTypeRegistry->semanticTypeHooksReference();
+		$this->mInputTypeHooks = &$this->inputTypeRegistry->inputTypeHooksReference();
 		$this->calendarHtmlBuilder = new CalendarHtmlBuilder();
 		$this->multipleTemplateHtmlBuilder = new MultipleTemplateHtmlBuilder();
 		$this->spreadsheetHtmlBuilder = new SpreadsheetHtmlBuilder();
 		$this->formDefReader = new FormDefinitionReader();
 		$this->fieldValueResolver = new FieldValueResolver();
-
-		$this->registerInputType( 'PFTextInput' );
-		$this->registerInputType( 'PFTextWithAutocompleteInput' );
-		$this->registerInputType( 'PFTextAreaInput' );
-		$this->registerInputType( 'PFTextAreaWithAutocompleteInput' );
-		$this->registerInputType( 'PFDateInput' );
-		$this->registerInputType( 'PFStartDateInput' );
-		$this->registerInputType( 'PFEndDateInput' );
-		$this->registerInputType( 'PFDatePickerInput' );
-		$this->registerInputType( 'PFDateTimePicker' );
-		$this->registerInputType( 'PFDateTimeInput' );
-		$this->registerInputType( 'PFStartDateTimeInput' );
-		$this->registerInputType( 'PFEndDateTimeInput' );
-		$this->registerInputType( 'PFYearInput' );
-		$this->registerInputType( 'PFCheckboxInput' );
-		$this->registerInputType( 'PFDropdownInput' );
-		$this->registerInputType( 'PFRadioButtonInput' );
-		$this->registerInputType( 'PFCheckboxesInput' );
-		$this->registerInputType( 'PFListBoxInput' );
-		$this->registerInputType( 'PFComboBoxInput' );
-		$this->registerInputType( 'PFTreeInput' );
-		$this->registerInputType( 'PFTokensInput' );
-		$this->registerInputType( 'PFRegExpInput' );
-		$this->registerInputType( 'PFRatingInput' );
-		$this->registerInputType( 'PFSFSelectInput' );
-		// Add this if the Semantic Maps extension is not
-		// included, or if it's SM (really Maps) v4.0 or higher.
-		if ( !$wgPageFormsDisableOutsideServices ) {
-			// @phan-suppress-next-line PhanTypeMismatchArgumentNullableInternal SM_VERSION guarded by defined()
-			if ( !defined( 'SM_VERSION' ) || version_compare( SM_VERSION, '4.0', '>=' ) ) {
-				$this->registerInputType( 'PFGoogleMapsInput' );
-			}
-			$this->registerInputType( 'PFOpenLayersInput' );
-			$this->registerInputType( 'PFLeafletInput' );
-		}
 
 		// All-purpose setup hook.
 		// Avoid PHP 7.1 warning from passing $this by reference.
@@ -149,8 +117,7 @@ class FormPrinter {
 			'PageForms::FormPrinterSetup', [ &$formPrinterRef ]
 		);
 
-		// Build after all hooks are registered so the builder sees the full type maps.
-		$this->formFieldHtmlBuilder = new FormFieldHtmlBuilder( $this->mInputTypeHooks, $this->mSemanticTypeHooks );
+		$this->formFieldHtmlBuilder = new FormFieldHtmlBuilder( $this->inputTypeRegistry );
 		$this->formDefParser = new FormDefParser(
 			MediaWikiServices::getInstance()->getParserFactory(), $this->formDefReader
 		);
@@ -173,12 +140,25 @@ class FormPrinter {
 		];
 	}
 
+	/**
+	 * @deprecated use registerInputType(), which fills all lookup tables from the input class.
+	 * @param string $type
+	 * @param bool $is_list
+	 * @param string $class_name
+	 * @param array $default_args
+	 */
 	public function setSemanticTypeHook( $type, $is_list, $class_name, $default_args ) {
-		$this->mSemanticTypeHooks[$type][$is_list] = [ $class_name, $default_args ];
+		$this->inputTypeRegistry->setSemanticTypeHook( $type, (bool)$is_list, $class_name, $default_args );
 	}
 
+	/**
+	 * @deprecated use registerInputType(), which fills all lookup tables from the input class.
+	 * @param string $input_type
+	 * @param string $class_name
+	 * @param array $default_args
+	 */
 	public function setInputTypeHook( $input_type, $class_name, $default_args ) {
-		$this->mInputTypeHooks[$input_type] = [ $class_name, $default_args ];
+		$this->inputTypeRegistry->setInputTypeHook( $input_type, $class_name, $default_args );
 	}
 
 	/**
@@ -188,22 +168,7 @@ class FormPrinter {
 	 * Must be derived from PFFormInput.
 	 */
 	public function registerInputType( $inputTypeClass ) {
-		// Delegate the five private lookup tables to InputTypeRegistry.
 		$this->inputTypeRegistry->register( $inputTypeClass );
-
-		// Keep $mInputTypeHooks and $mSemanticTypeHooks in sync on FormPrinter
-		// for backward compatibility with external code that reads them directly.
-		$inputTypeName = call_user_func( [ $inputTypeClass, 'getName' ] );
-		$this->setInputTypeHook( $inputTypeName, $inputTypeClass, [] );
-
-		$defaultProperties = call_user_func( [ $inputTypeClass, 'getDefaultPropTypes' ] );
-		foreach ( $defaultProperties as $propertyType => $additionalValues ) {
-			$this->setSemanticTypeHook( $propertyType, false, $inputTypeClass, $additionalValues );
-		}
-		$defaultPropertyLists = call_user_func( [ $inputTypeClass, 'getDefaultPropTypeLists' ] );
-		foreach ( $defaultPropertyLists as $propertyType => $additionalValues ) {
-			$this->setSemanticTypeHook( $propertyType, true, $inputTypeClass, $additionalValues );
-		}
 	}
 
 	public function getInputType( $inputTypeName ) {

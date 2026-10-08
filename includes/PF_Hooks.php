@@ -319,7 +319,7 @@ class PFHooks {
 		// Have this take effect only if the save came from a form -
 		// we need to use a global variable to determine that.
 		global $wgPageFormsFormPrinter;
-		if ( $wgPageFormsFormPrinter === null || !property_exists( $wgPageFormsFormPrinter, 'mInputTypeHooks' ) ) {
+		if ( !$wgPageFormsFormPrinter instanceof FormPrinter ) {
 			return true;
 		}
 

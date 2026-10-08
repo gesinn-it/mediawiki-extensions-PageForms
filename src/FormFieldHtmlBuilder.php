@@ -14,15 +14,10 @@ use PFUtils;
  */
 class FormFieldHtmlBuilder {
 
-	/** @var array */
-	private array $inputTypeHooks;
+	private InputTypeRegistry $inputTypeRegistry;
 
-	/** @var array */
-	private array $semanticTypeHooks;
-
-	public function __construct( array $inputTypeHooks, array $semanticTypeHooks ) {
-		$this->inputTypeHooks = $inputTypeHooks;
-		$this->semanticTypeHooks = $semanticTypeHooks;
+	public function __construct( InputTypeRegistry $inputTypeRegistry ) {
+		$this->inputTypeRegistry = $inputTypeRegistry;
 	}
 
 	/**
@@ -63,23 +58,22 @@ class FormFieldHtmlBuilder {
 			$text = Html::hidden( $form_field->getInputName() ?? '', $cur_value, $attribs );
 			$other_args = [];
 		} elseif ( $input_type !== null && $input_type !== '' &&
-				array_key_exists( $input_type, $this->inputTypeHooks ) &&
-				$this->inputTypeHooks[$input_type] != null ) {
+				$this->inputTypeRegistry->getInputTypeHook( $input_type ) !== null ) {
 			// Last argument to constructor should be a hash,
 			// merging the default values for this input type with
 			// all other properties set in the form definition, plus
 			// some semantic-related arguments.
-			$hook_values = $this->inputTypeHooks[$input_type];
+			$hook_values = $this->inputTypeRegistry->getInputTypeHook( $input_type );
 			$class_name = $hook_values[0];
 			$other_args = $form_field->getArgumentsForInputCall( $parser, $hook_values[1] );
 		} else {
 			// The input type is not defined in the form.
 			$property_type = $template_field->getPropertyType();
 			$is_list = ( $form_field->isList() || $template_field->isList() );
-			if ( $property_type !== '' &&
-				array_key_exists( $property_type, $this->semanticTypeHooks ) &&
-				isset( $this->semanticTypeHooks[$property_type][$is_list] ) ) {
-				$hook_values = $this->semanticTypeHooks[$property_type][$is_list];
+			$hook_values = $property_type !== null && $property_type !== ''
+				? $this->inputTypeRegistry->getSemanticTypeHook( $property_type, $is_list )
+				: null;
+			if ( $hook_values !== null ) {
 				$class_name = $hook_values[0];
 				$other_args = $form_field->getArgumentsForInputCall( $parser, $hook_values[1] );
 			} else {

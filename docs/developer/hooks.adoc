@@ -578,10 +578,10 @@ A reference to the `FormPrinter` instance being initialised. Use the methods on 
 The preferred registration method. Registers a custom input class (which must extend `PFFormInput`) and automatically populates the input-type hook table and the SMW semantic-type hook tables from the class's `getName()`, `getDefaultPropTypes()`, and `getDefaultPropTypeLists()` static methods.
 
 `setInputTypeHook( string $input_type, string $class_name, array $default_args )`::
-Low-level method. Registers a class to handle a named input type string directly, without inspecting the class's static methods.
+Deprecated, use `registerInputType()`. Low-level method. Registers a class to handle a named input type string directly, without inspecting the class's static methods.
 
 `setSemanticTypeHook( string $type, bool $is_list, string $class_name, array $default_args )`::
-Low-level method. Maps a SMW property type (e.g. `_str`, `_dat`) to an input class, for both single-value (`$is_list = false`) and list (`$is_list = true`) contexts.
+Deprecated, use `registerInputType()`. Low-level method. Maps a SMW property type (e.g. `_str`, `_dat`) to an input class, for both single-value (`$is_list = false`) and list (`$is_list = true`) contexts.
 
 === Example Usage
 
@@ -610,7 +610,7 @@ class Hooks {
 === Notes
 
 * The hook fires once per MediaWiki request, during the construction of the global `FormPrinter` singleton.
-* `registerInputType()` is preferred over the two low-level setters because it keeps all three lookup tables (`mInputTypeHooks`, `mSemanticTypeHooks` for single values, `mSemanticTypeHooks` for lists) in sync automatically.
+* `registerInputType()` is preferred over the two low-level setters because it keeps all lookup tables of the input type registry in sync automatically. An input type registered later, after the hook has run, is used as well. `FormPrinter::$mInputTypeHooks` and `FormPrinter::$mSemanticTypeHooks` are deprecated; they are references to tables of the registry.
 * Custom input classes must extend `PFFormInput` and implement the required abstract static methods (`getName()`, `getDefaultPropTypes()`, `getDefaultPropTypeLists()`, `getHTML()`).
 
 

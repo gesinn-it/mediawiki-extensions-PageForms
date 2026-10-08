@@ -5,6 +5,7 @@ declare( strict_types=1 );
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
+use MediaWiki\Extension\PageForms\InputTypeRegistry;
 use MediaWiki\Extension\PageForms\TemplateField;
 
 require_once __DIR__ . '/StubFormInput.php';
@@ -31,7 +32,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		FormCounters::current()->fieldNum = 0;
 
 		$formField = $this->makeHiddenFormField( 'input_foo', 'hello' );
-		$builder = new FormFieldHtmlBuilder( [], [] );
+		$builder = new FormFieldHtmlBuilder( new InputTypeRegistry() );
 
 		$html = $builder->formFieldHTML( $formField, 'hello', $this->makeParser() );
 
@@ -44,7 +45,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		FormCounters::current()->fieldNum = 0;
 
 		$formField = $this->makeHiddenFormField( 'input_bar', 'val', [ 'class' => 'myClass' ] );
-		$builder = new FormFieldHtmlBuilder( [], [] );
+		$builder = new FormFieldHtmlBuilder( new InputTypeRegistry() );
 
 		$html = $builder->formFieldHTML( $formField, 'val', $this->makeParser() );
 
@@ -52,15 +53,16 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -----------------------------------------------------------------------
-	// formFieldHTML — input type resolved from inputTypeHooks
+	// formFieldHTML — input type resolved from the input type registry
 	// -----------------------------------------------------------------------
 
 	public function testFormFieldHtmlUsesInputTypeHookClass(): void {
 		FormCounters::current()->fieldNum = 1;
 
 		$formField = $this->makeVisibleFormField( 'text', '', 'input_t' );
-		$inputTypeHooks = [ 'text' => [ StubFormInput::class, [] ] ];
-		$builder = new FormFieldHtmlBuilder( $inputTypeHooks, [] );
+		$registry = new InputTypeRegistry();
+		$registry->setInputTypeHook( 'text', StubFormInput::class, [] );
+		$builder = new FormFieldHtmlBuilder( $registry );
 
 		$html = $builder->formFieldHTML( $formField, 'myval', $this->makeParser() );
 
@@ -75,7 +77,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		FormCounters::current()->fieldNum = 1;
 
 		$formField = $this->makeListFormField( 'input_list' );
-		$builder = new FormFieldHtmlBuilder( [], [] );
+		$builder = new FormFieldHtmlBuilder( new InputTypeRegistry() );
 
 		// FormFieldHtmlBuilder sets $other_args['size'] = 100 for list fields with
 		// no explicit size (src/FormFieldHtmlBuilder.php:76-85), which PFTextInput::getHtmlText()
@@ -96,8 +98,9 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 
 		// No inputType hook, but a property-type hook for '_str'
 		$formField = $this->makeVisibleFormField( '', '_str', 'input_s' );
-		$semanticTypeHooks = [ '_str' => [ false => [ StubFormInput::class, [] ] ] ];
-		$builder = new FormFieldHtmlBuilder( [], $semanticTypeHooks );
+		$registry = new InputTypeRegistry();
+		$registry->setSemanticTypeHook( '_str', false, StubFormInput::class, [] );
+		$builder = new FormFieldHtmlBuilder( $registry );
 
 		$html = $builder->formFieldHTML( $formField, 'smwval', $this->makeParser() );
 
@@ -109,7 +112,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 
 		// Neither inputType nor semanticType hook → PFTextInput
 		$formField = $this->makeVisibleFormField( '', '', 'input_f' );
-		$builder = new FormFieldHtmlBuilder( [], [] );
+		$builder = new FormFieldHtmlBuilder( new InputTypeRegistry() );
 
 		$html = $builder->formFieldHTML( $formField, '', $this->makeParser() );
 
@@ -124,8 +127,9 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		// registered under the '' key must not be picked up for it, and
 		// array_key_exists( null, ... ) must never be reached (PHP 8.1+ deprecation).
 		$formField = $this->makeVisibleFormField( null, '', 'input_n' );
-		$inputTypeHooks = [ '' => [ StubFormInput::class, [] ] ];
-		$builder = new FormFieldHtmlBuilder( $inputTypeHooks, [] );
+		$registry = new InputTypeRegistry();
+		$registry->setInputTypeHook( '', StubFormInput::class, [] );
+		$builder = new FormFieldHtmlBuilder( $registry );
 
 		$html = $builder->formFieldHTML( $formField, '', $this->makeParser() );
 
@@ -154,8 +158,9 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		};
 
 		$formField = $this->makeVisibleFormFieldWithRegex( 'text', 'input_re', '/^[a-z]+$/' );
-		$inputTypeHooks = [ 'text' => [ StubFormInput::class, [] ] ];
-		$builder = new FormFieldHtmlBuilder( $inputTypeHooks, [] );
+		$registry = new InputTypeRegistry();
+		$registry->setInputTypeHook( 'text', StubFormInput::class, [] );
+		$builder = new FormFieldHtmlBuilder( $registry );
 
 		$html = $builder->formFieldHTML( $formField, 'abc', $this->makeParser() );
 
@@ -173,7 +178,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 
 	public function testCreateFormFieldTranslateTagDoesNothingWhenNotTranslatable(): void {
 		$formField = $this->makeNonTranslatableFormField();
-		$builder = new FormFieldHtmlBuilder( [], [] );
+		$builder = new FormFieldHtmlBuilder( new InputTypeRegistry() );
 
 		$template = null;
 		$tif = null;
@@ -185,7 +190,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 
 	public function testCreateFormFieldTranslateTagDoesNothingWhenCurValueIsNull(): void {
 		$formField = $this->makeTranslatableFormField();
-		$builder = new FormFieldHtmlBuilder( [], [] );
+		$builder = new FormFieldHtmlBuilder( new InputTypeRegistry() );
 
 		$template = null;
 		$tif = null;
@@ -199,7 +204,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		// Translate extension disabled (default in tests): early-return NOT taken.
 		// cur_value wrapped in <translate>...</translate> on a single line → preg_match branch.
 		$formField = $this->makeTranslatableFormField();
-		$builder = new FormFieldHtmlBuilder( [], [] );
+		$builder = new FormFieldHtmlBuilder( new InputTypeRegistry() );
 
 		$template = null;
 		$tif = null;
@@ -213,7 +218,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		// Multi-line content: preg_match with $ does not match \n before </translate>,
 		// so the substr fallback branch is exercised.
 		$formField = $this->makeTranslatableFormField();
-		$builder = new FormFieldHtmlBuilder( [], [] );
+		$builder = new FormFieldHtmlBuilder( new InputTypeRegistry() );
 
 		$template = null;
 		$tif = null;
@@ -227,7 +232,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 	public function testCreateFormFieldTranslateTagExtractsTranslateNumberTag(): void {
 		// cur_value starts with <!--T:X --> — the tag is moved to a field arg.
 		$formField = $this->makeCapturingTranslatableFormField();
-		$builder = new FormFieldHtmlBuilder( [], [] );
+		$builder = new FormFieldHtmlBuilder( new InputTypeRegistry() );
 
 		$template = null;
 		$tif = null;
@@ -255,7 +260,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 			'some value',
 			$tag
 		);
-		$builder = new FormFieldHtmlBuilder( [], [] );
+		$builder = new FormFieldHtmlBuilder( new InputTypeRegistry() );
 
 		$html = $builder->formFieldHTML( $formField, 'some value', $this->makeParser() );
 
@@ -273,7 +278,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 			'val',
 			$tag
 		);
-		$builder = new FormFieldHtmlBuilder( [], [] );
+		$builder = new FormFieldHtmlBuilder( new InputTypeRegistry() );
 
 		$html = $builder->formFieldHTML( $formField, 'val', $this->makeParser() );
 
@@ -293,7 +298,7 @@ class FormFieldHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 			'val',
 			$tag
 		);
-		$builder = new FormFieldHtmlBuilder( [], [] );
+		$builder = new FormFieldHtmlBuilder( new InputTypeRegistry() );
 
 		$html = $builder->formFieldHTML( $formField, 'val', $this->makeParser() );
 

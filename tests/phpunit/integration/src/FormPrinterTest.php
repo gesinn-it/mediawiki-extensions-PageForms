@@ -1835,4 +1835,29 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertContains( 'ext.pageforms.test.sentinel.styles', $parserOutput->getModuleStyles() );
 	}
 
+	// -------------------------------------------------------------------------
+	// Input types registered after the printer was constructed
+	// -------------------------------------------------------------------------
+
+	public function testInputTypeRegisteredAfterConstructionIsUsedForFields(): void {
+		require_once __DIR__ . '/StubFormInput.php';
+		$title = Title::makeTitle( NS_MAIN, 'PFTestLateRegistrationPage' );
+		RequestContext::getMain()->setTitle( $title );
+		$formDef = "{{{for template|PFTestLateTpl}}}\n{{{field|Name|input type=text}}}\n{{{end template}}}";
+		$user = $this->getTestUser()->getUser();
+		$render = static fn ( FormPrinter $printer ) => $printer->render(
+			$formDef, false, false, null, null, 'PFTestLateRegistrationPage', null, false, false, false, [], $user
+		)->getFormText();
+		$printer = new FormPrinter();
+
+		$this->assertStringNotContainsString( StubFormInput::STUB_HTML, $render( $printer ) );
+
+		// Registers a class whose input type name is 'text', replacing the built-in one.
+		$printer->registerInputType( StubFormInput::class );
+
+		$this->assertStringContainsString( StubFormInput::STUB_HTML, $render( $printer ) );
+		$this->assertSame( StubFormInput::class, $printer->getInputType( 'text' ) );
+		$this->assertSame( StubFormInput::class, $printer->mInputTypeHooks['text'][0] );
+	}
+
 }

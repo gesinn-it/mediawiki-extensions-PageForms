@@ -168,10 +168,10 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 		}
 	}
 
-	public function testSetPostEditCookieReturnsTrueWhenFormPrinterHasNoInputTypeHooksProperty(): void {
+	public function testSetPostEditCookieReturnsTrueWhenGlobalIsNotAFormPrinter(): void {
 		global $wgPageFormsFormPrinter;
 		$savedFormPrinter = $wgPageFormsFormPrinter;
-		// A plain stdClass has no mInputTypeHooks property, matching the guard clause.
+		// A plain stdClass is not a FormPrinter, matching the guard clause.
 		$wgPageFormsFormPrinter = new stdClass();
 
 		try {
