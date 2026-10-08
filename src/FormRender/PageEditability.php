@@ -1,0 +1,41 @@
+<?php
+
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms\FormRender;
+
+use Title;
+
+/**
+ * The page a form is rendered for, and whether the user may edit it.
+ */
+class PageEditability {
+
+	private Title $pageTitle;
+	private array $permissionErrors;
+	private bool $userCanEdit;
+
+	public function __construct( Title $pageTitle, array $permissionErrors, bool $userCanEdit ) {
+		$this->pageTitle = $pageTitle;
+		$this->permissionErrors = $permissionErrors;
+		$this->userCanEdit = $userCanEdit;
+	}
+
+	/**
+	 * The page, which is a placeholder title if the real page name is not known yet.
+	 */
+	public function getPageTitle(): Title {
+		return $this->pageTitle;
+	}
+
+	/**
+	 * The errors that keep the user from editing the page, in the format of PermissionManager.
+	 */
+	public function getPermissionErrors(): array {
+		return $this->permissionErrors;
+	}
+
+	public function userCanEdit(): bool {
+		return $this->userCanEdit;
+	}
+}

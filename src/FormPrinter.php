@@ -22,7 +22,9 @@ use MediaWiki\Extension\PageForms\FormRender\ElementHandler;
 use MediaWiki\Extension\PageForms\FormRender\ElementHandlerException;
 use MediaWiki\Extension\PageForms\FormRender\EndTemplateHandler;
 use MediaWiki\Extension\PageForms\FormRender\FieldHandler;
+use MediaWiki\Extension\PageForms\FormRender\FinalizedForm;
 use MediaWiki\Extension\PageForms\FormRender\InfoHandler;
+use MediaWiki\Extension\PageForms\FormRender\PageEditability;
 use MediaWiki\Extension\PageForms\FormRender\PageTextAssembler;
 use MediaWiki\Extension\PageForms\FormRender\SectionHandler;
 use MediaWiki\Extension\PageForms\FormRender\SectionLayout;
@@ -36,6 +38,7 @@ use MWException;
 use OutputPage;
 use Parser;
 use ParserOptions;
+use ParserOutput;
 use PFUtils;
 use RequestContext;
 use Sanitizer;
@@ -446,9 +449,9 @@ class FormPrinter {
 	 * original inline behavior in formHTML().
 	 *
 	 * @param FormRenderRequest $request
-	 * @return array [ Title $pageTitle, array $permissionErrors, bool $userCanEditPage ]
+	 * @return PageEditability
 	 */
-	private function resolvePageTitleAndPermissions( FormRenderRequest $request ): array {
+	private function resolvePageTitleAndPermissions( FormRenderRequest $request ): PageEditability {
 		// Disable all form elements if user doesn't have edit
 		// permission - two different checks are needed, because
 		// editing permissions can be set in different ways.
@@ -502,7 +505,7 @@ class FormPrinter {
 			);
 		}
 
-		return [ $pageTitle, $permissionErrors, $userCanEditPage ];
+		return new PageEditability( $pageTitle, $permissionErrors, $userCanEditPage );
 	}
 
 	/**
@@ -512,20 +515,15 @@ class FormPrinter {
 	 * and finalize the ParserOutput to return to the caller.
 	 *
 	 * @param FormRenderContext $context
-	 * @return array [ string $form_text, string $page_text, string|null $form_page_title, ParserOutput $parserOutput ]
+	 * @return FinalizedForm
 	 */
-	private function finalizeFormAndPageText( FormRenderContext $context ): array {
-		$form_text = $context->formText;
-		$existing_page_content = $context->existingPageContent;
+	private function finalizeFormAndPageText( FormRenderContext $context ): FinalizedForm {
 		$request = $context->request;
-		$wiki_page = $context->wikiPage;
-		$user = $request->user;
-		$parser = $context->parser;
-		$form_page_title = $context->formPageTitle;
 
 		// Cleanup - everything has been browsed.
 		// Remove all the remaining placeholder
 		// tags in the HTML and wiki-text.
+		$form_text = $context->formText;
 		foreach ( $context->placeholderFields as $stringToReplace ) {
 			// Remove the @<insertHTML>@ tags from the generated
 			// HTML form.
@@ -539,56 +537,103 @@ class FormPrinter {
 		}
 		// Get the free text and the page text. The free text is also inserted into the form.
 		$pageTextResult = $this->pageTextAssembler->createPageText( $context );
-		$free_text = $pageTextResult->getFreeText();
-		$page_text = $pageTextResult->getPageText();
 
 		// Also substitute the free text into the form.
-		$escaped_free_text = Sanitizer::safeEncodeAttribute( $free_text ?? '' );
+		$escaped_free_text = Sanitizer::safeEncodeAttribute( $pageTextResult->getFreeText() ?? '' );
 		$form_text = str_replace( '!free_text!', $escaped_free_text, $form_text );
 
-		// Add a warning in, if we're editing an existing page and that
-		// page appears to not have been created with this form.
-		if ( !$request->isQuery && $request->pageNameFormula === null &&
-			$context->pageTitle->exists() && $existing_page_content !== ''
-			&& !$context->sourcePageMatchesThisForm ) {
-			$form_text = "\t" . '<div class="warningbox">' .
-				// Prepend with a colon in case it's a file or category page.
-				wfMessage( 'pf_formedit_formwarning', ':' . $request->pageName )->parse() .
-				"</div>\n<br clear=\"both\" />\n" . $form_text;
-		}
-
-		// Add form bottom, if no custom "standard inputs" have been defined.
-		if ( !$context->standardInputsIncluded ) {
-			if ( $request->isQuery ) {
-				$form_text .= FormButtons::queryFormBottom();
-			} else {
-				$form_text .= FormButtons::formBottom( $request->formSubmitted, $context->formIsDisabled );
-			}
-		}
-
-		if ( !$request->isQuery ) {
-			$form_text .= Html::hidden( 'wpStarttime', wfTimestampNow() );
-			// This variable is called $mwWikiPage and not
-			// something simpler, to avoid confusion with the
-			// variable $wiki_page, which is of type PFWikiPage.
-			$mwWikiPage = PFUtils::newWikiPageFromTitle( $context->pageTitle );
-			$form_text .= Html::hidden( 'wpEdittime', $mwWikiPage->getTimestamp() );
-			$form_text .= Html::hidden( 'editRevId', 0 );
-			$form_text .= Html::hidden( 'wpEditToken', $user->getEditToken() );
-			$form_text .= Html::hidden( 'wpUnicodeCheck', EditPage::UNICODE_CHECK );
-			$form_text .= Html::hidden( 'wpUltimateParam', true );
-		}
-
+		$form_text = $this->withSourcePageWarning( $form_text, $context );
+		$form_text .= $this->formBottomHtml( $context );
+		$form_text .= $this->hiddenEditInputsHtml( $context );
 		$form_text .= "\t</form>\n";
-		$parser->replaceLinkHolders( $form_text );
+
+		$context->parser->replaceLinkHolders( $form_text );
 		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::RenderingEnd', [ &$form_text ] );
 
-		// Capture the internal parser's output so callers can forward
-		// ResourceLoader modules (and other metadata) registered by parser
-		// tag hooks (e.g. <headertabs />) to the real OutputPage via
-		// addParserOutputMetadata(). This must be done by the caller because
-		// formHTML() has no handle on the caller's OutputPage instance.
-		$parserOutput = $parser->getOutput();
+		$parserOutput = $this->finalParserOutput( $context );
+
+		// Send the autocomplete values to the browser, along with the
+		// mappings of which values should apply to which fields.
+		// If doing a replace, the page text is actually the modified
+		// original page.
+		$form_page_title = null;
+		if ( !$request->isEmbedded ) {
+			$form_page_title = $context->parser->recursiveTagParse(
+				str_replace( "{{!}}", "|", $context->formPageTitle ?? '' )
+			);
+		}
+
+		return new FinalizedForm( $form_text, $pageTextResult->getPageText(), $form_page_title, $parserOutput );
+	}
+
+	/**
+	 * Add a warning in, if we're editing an existing page and that
+	 * page appears to not have been created with this form.
+	 *
+	 * @param string $form_text
+	 * @param FormRenderContext $context
+	 * @return string
+	 */
+	private function withSourcePageWarning( string $form_text, FormRenderContext $context ): string {
+		$request = $context->request;
+		if ( $request->isQuery || $request->pageNameFormula !== null ||
+			!$context->pageTitle->exists() || $context->existingPageContent === ''
+			|| $context->sourcePageMatchesThisForm ) {
+			return $form_text;
+		}
+		return "\t" . '<div class="warningbox">' .
+			// Prepend with a colon in case it's a file or category page.
+			wfMessage( 'pf_formedit_formwarning', ':' . $request->pageName )->parse() .
+			"</div>\n<br clear=\"both\" />\n" . $form_text;
+	}
+
+	/**
+	 * The form bottom (buttons), if no custom "standard inputs" have been defined.
+	 *
+	 * @param FormRenderContext $context
+	 * @return string
+	 */
+	private function formBottomHtml( FormRenderContext $context ): string {
+		if ( $context->standardInputsIncluded ) {
+			return '';
+		}
+		if ( $context->request->isQuery ) {
+			return FormButtons::queryFormBottom();
+		}
+		return FormButtons::formBottom( $context->request->formSubmitted, $context->formIsDisabled );
+	}
+
+	/**
+	 * The hidden inputs that MediaWiki's edit handling expects; a query form has none.
+	 *
+	 * @param FormRenderContext $context
+	 * @return string
+	 */
+	private function hiddenEditInputsHtml( FormRenderContext $context ): string {
+		if ( $context->request->isQuery ) {
+			return '';
+		}
+		$mwWikiPage = PFUtils::newWikiPageFromTitle( $context->pageTitle );
+		return Html::hidden( 'wpStarttime', wfTimestampNow() ) .
+			Html::hidden( 'wpEdittime', $mwWikiPage->getTimestamp() ) .
+			Html::hidden( 'editRevId', 0 ) .
+			Html::hidden( 'wpEditToken', $context->request->user->getEditToken() ) .
+			Html::hidden( 'wpUnicodeCheck', EditPage::UNICODE_CHECK ) .
+			Html::hidden( 'wpUltimateParam', true );
+	}
+
+	/**
+	 * Capture the internal parser's output so callers can forward
+	 * ResourceLoader modules (and other metadata) registered by parser
+	 * tag hooks (e.g. <headertabs />) to the real OutputPage via
+	 * addParserOutputMetadata(). This must be done by the caller because
+	 * formHTML() has no handle on the caller's OutputPage instance.
+	 *
+	 * @param FormRenderContext $context
+	 * @return ParserOutput
+	 */
+	private function finalParserOutput( FormRenderContext $context ): ParserOutput {
+		$parserOutput = $context->parser->getOutput();
 		// Restore modules that were registered during form-definition parsing
 		// but cleared by FormField::clearState() during field rendering.
 		if ( $context->formDefParserModules ) {
@@ -597,18 +642,7 @@ class FormPrinter {
 		if ( $context->formDefParserModuleStyles ) {
 			$parserOutput->addModuleStyles( $context->formDefParserModuleStyles );
 		}
-
-		// Send the autocomplete values to the browser, along with the
-		// mappings of which values should apply to which fields.
-		// If doing a replace, the page text is actually the modified
-		// original page.
-		if ( !$request->isEmbedded ) {
-			$form_page_title = $parser->recursiveTagParse( str_replace( "{{!}}", "|", $form_page_title ?? '' ) );
-		} else {
-			$form_page_title = null;
-		}
-
-		return [ $form_text, $page_text, $form_page_title, $parserOutput ];
+		return $parserOutput;
 	}
 
 	/**
@@ -810,10 +844,11 @@ class FormPrinter {
 		$form_def, FormRenderRequest $request, FormCounters $counters
 	): FormRenderResult {
 		// Disable all form elements if user doesn't have edit permission.
-		[ $pageTitle, $permissionErrors, $userCanEditPage ] = $this->resolvePageTitleAndPermissions( $request );
-		$formIsDisabled = !( $request->isQuery || $userCanEditPage );
+		$editability = $this->resolvePageTitleAndPermissions( $request );
+		$pageTitle = $editability->getPageTitle();
+		$formIsDisabled = !( $request->isQuery || $editability->userCanEdit() );
 
-		$formText = $this->openForm( $request, $permissionErrors, $formIsDisabled );
+		$formText = $this->openForm( $request, $editability->getPermissionErrors(), $formIsDisabled );
 
 		$context = new FormRenderContext(
 			$request, $pageTitle, $this->createFreshParser( $request->user, $pageTitle ), $formIsDisabled, $counters
@@ -844,12 +879,11 @@ class FormPrinter {
 			}
 		}
 
-		[ $context->formText, $page_text, $context->formPageTitle, $parserOutput ] =
-			$this->finalizeFormAndPageText( $context );
+		$finalized = $this->finalizeFormAndPageText( $context );
 
 		return new FormRenderResult(
-			$context->formText, $page_text, $context->formPageTitle, $context->generatedPageName, $parserOutput,
-			$context->runQueryFormAtTop
+			$finalized->getFormText(), $finalized->getPageText(), $finalized->getFormPageTitle(),
+			$context->generatedPageName, $finalized->getParserOutput(), $context->runQueryFormAtTop
 		);
 	}
 
