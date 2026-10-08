@@ -319,17 +319,7 @@ class FormField {
 		Parser $parser,
 		?MappingLabels $mappingLabels = null
 	) {
-		// MW 1.43 compat: Parser::$mStripState and $mOutputType are typed properties
-		// that are only initialised after clearState()/setOutputType() are called.
-		// $parser must already be titled by the caller (see FormPrinter::createFreshParser()) -
-		// wikitext evaluated below (e.g. a 'default=' value containing {{PAGENAME}}) is resolved
-		// against $parser->getTitle(), and an untitled parser resolves it against a "Badtitle"
-		// placeholder instead (see issue #189).
-		if ( !$parser->getOptions() ) {
-			$parser->setOptions( ParserOptions::newFromAnon() );
-		}
-		$parser->clearState();
-		$parser->setOutputType( Parser::OT_HTML );
+		self::prepareParser( $parser );
 
 		$f = new FormField();
 		if ( $mappingLabels !== null ) {
@@ -369,6 +359,24 @@ class FormField {
 		$f->setUpInputName( $template_in_form, $template_name, $field_name, $fullFieldName );
 
 		return $f;
+	}
+
+	/**
+	 * MW 1.43 compat: Parser::$mStripState and $mOutputType are typed properties
+	 * that are only initialised after clearState()/setOutputType() are called.
+	 * $parser must already be titled by the caller (see FormPrinter::createFreshParser()) -
+	 * wikitext evaluated while reading the field (e.g. a 'default=' value containing {{PAGENAME}})
+	 * is resolved against $parser->getTitle(), and an untitled parser resolves it against a
+	 * "Badtitle" placeholder instead (see issue #189).
+	 *
+	 * The state of the parser is cleared, which is a side effect on the parser of the caller.
+	 */
+	private static function prepareParser( Parser $parser ): void {
+		if ( !$parser->getOptions() ) {
+			$parser->setOptions( ParserOptions::newFromAnon() );
+		}
+		$parser->clearState();
+		$parser->setOutputType( Parser::OT_HTML );
 	}
 
 	/**
@@ -510,6 +518,11 @@ class FormField {
 	private function readArgument(
 		string $argName, $argValue, Parser $parser, User $user, string $fullFieldName, array &$args
 	): void {
+		if ( $this->readValuesSourceArgument( $argName, $argValue, $parser, $args ) ||
+			$this->readUniqueArgument( $argName, $argValue, $parser )
+		) {
+			return;
+		}
 		if ( $argName == 'autocapitalize' ) {
 			$this->mAutocapitalize = strtolower( $argValue );
 		} elseif ( $argName == 'input type' ) {
@@ -529,7 +542,33 @@ class FormField {
 			$this->mLabelMsg = $argValue;
 		} elseif ( $argName == 'show on select' ) {
 			$this->readShowOnSelect( $argValue, $parser, $args['show_on_select'] );
-		} elseif ( $argName == 'values' ) {
+		} elseif ( $argName == 'values dependent on' ) {
+			global $wgPageFormsDependentFields;
+			$wgPageFormsDependentFields[] = [ $argValue, $fullFieldName ];
+		} elseif ( $argName == 'property' ) {
+			$args['semantic_property'] = $argValue;
+		} elseif ( $argName == 'default filename' ) {
+			$this->mFieldArgs['default filename'] = $this->defaultFilename( $argValue, $parser );
+		} elseif ( $argName == 'restricted' ) {
+			$effectiveGroups = MediaWikiServices::getInstance()->getUserGroupManager()
+				->getUserEffectiveGroups( $user );
+			$this->mIsRestricted = !array_intersect(
+				$effectiveGroups, array_map( 'trim', explode( ',', $argValue ) )
+			);
+		}
+	}
+
+	/**
+	 * The arguments that say where the possible values come from, or give them.
+	 *
+	 * @param string $argName
+	 * @param string $argValue
+	 * @param Parser $parser
+	 * @param array &$args What readArguments() returns
+	 * @return bool Whether the argument is one of these
+	 */
+	private function readValuesSourceArgument( string $argName, $argValue, Parser $parser, array &$args ): bool {
+		if ( $argName == 'values' ) {
 			// Handle this one only after
 			// 'delimiter' has also been set.
 			$args['values'] = $parser->recursiveTagParse( $argValue );
@@ -555,29 +594,30 @@ class FormField {
 		} elseif ( $argName == 'values from namespace' ) {
 			$args['valuesSourceType'] = 'namespace';
 			$args['valuesSource'] = $parser->recursiveTagParse( $argValue );
-		} elseif ( $argName == 'values dependent on' ) {
-			global $wgPageFormsDependentFields;
-			$wgPageFormsDependentFields[] = [ $argValue, $fullFieldName ];
-		} elseif ( $argName == 'unique for category' ) {
-			$this->mFieldArgs['unique'] = true;
-			$this->mFieldArgs['unique_for_category'] = $parser->recursiveTagParse( $argValue );
-		} elseif ( $argName == 'unique for namespace' ) {
-			$this->mFieldArgs['unique'] = true;
-			$this->mFieldArgs['unique_for_namespace'] = $parser->recursiveTagParse( $argValue );
-		} elseif ( $argName == 'unique for concept' ) {
-			$this->mFieldArgs['unique'] = true;
-			$this->mFieldArgs['unique_for_concept'] = $parser->recursiveTagParse( $argValue );
-		} elseif ( $argName == 'property' ) {
-			$args['semantic_property'] = $argValue;
-		} elseif ( $argName == 'default filename' ) {
-			$this->mFieldArgs['default filename'] = $this->defaultFilename( $argValue, $parser );
-		} elseif ( $argName == 'restricted' ) {
-			$effectiveGroups = MediaWikiServices::getInstance()->getUserGroupManager()
-				->getUserEffectiveGroups( $user );
-			$this->mIsRestricted = !array_intersect(
-				$effectiveGroups, array_map( 'trim', explode( ',', $argValue ) )
-			);
+		} else {
+			return false;
 		}
+		return true;
+	}
+
+	/**
+	 * The arguments that make the field's values unique within a category, namespace or concept.
+	 *
+	 * @param string $argName
+	 * @param string $argValue
+	 * @param Parser $parser
+	 * @return bool Whether the argument is one of these
+	 */
+	private function readUniqueArgument( string $argName, $argValue, Parser $parser ): bool {
+		if ( $argName != 'unique for category' && $argName != 'unique for namespace' &&
+			$argName != 'unique for concept'
+		) {
+			return false;
+		}
+		$this->mFieldArgs['unique'] = true;
+		$scope = substr( $argName, strlen( 'unique for ' ) );
+		$this->mFieldArgs["unique_for_$scope"] = $parser->recursiveTagParse( $argValue );
+		return true;
 	}
 
 	/**
@@ -1063,50 +1103,24 @@ class FormField {
 	}
 
 	/**
-	 * Map a label back to a value.
+	 * The value that has the label, or the label itself if no value has it.
+	 *
 	 * @param string $label
 	 * @return string
 	 */
 	public function labelToValue( $label ) {
-		$value = array_search( $label, $this->mPossibleValues );
-		if ( $value === false ) {
-			return $label;
-		} else {
-			// array_search() returns the array key, which PHP auto-casts to int
-			// for numeric-looking keys (e.g. a 'mapping template' field whose
-			// possible values are '1', '2', ... - see setValuesWithMappingTemplate()).
-			// Callers (e.g. valueStringToLabels()) expect a string.
-			return (string)$value;
-		}
+		return MappingLabels::labelToValue( $this->mPossibleValues, $label );
 	}
 
 	/**
 	 * Map a template field value into display labels using mPossibleValues.
+	 *
 	 * @param string|null $valueString
 	 * @param string|null $delimiter
 	 * @return string|null
 	 */
 	public function valueStringToLabels( $valueString, $delimiter ): ?string {
-		if ( strlen( trim( $valueString ?? '' ) ) === 0 ||
-			$this->mPossibleValues === null ) {
-			return $valueString;
-		}
-		if ( $delimiter !== null ) {
-			$values = array_map( 'trim', explode( $delimiter, $valueString ) );
-		} else {
-			$values = [ $valueString ];
-		}
-		$labels = [];
-		foreach ( $values as $value ) {
-			if ( $value != '' ) {
-				if ( array_key_exists( $value, $this->mPossibleValues ) ) {
-					$labels[] = $this->mPossibleValues[$value];
-				} else {
-					$labels[] = $value;
-				}
-			}
-		}
-		return implode( $delimiter ?? ', ', $labels );
+		return MappingLabels::valueStringToLabels( $this->mPossibleValues, $valueString, $delimiter );
 	}
 
 	/**

@@ -128,4 +128,50 @@ class MappingLabels {
 		}
 		return $labels;
 	}
+
+	/**
+	 * Turn the values in a string, separated by the delimiter, into their labels. A value without
+	 * a label stays as it is.
+	 *
+	 * @param array<string|int, string>|null $possibleValues Label by value; null if the field has none
+	 * @param string|null $valueString
+	 * @param string|null $delimiter Null if the string holds a single value
+	 * @return string|null
+	 */
+	public static function valueStringToLabels( ?array $possibleValues, $valueString, $delimiter ): ?string {
+		if ( strlen( trim( $valueString ?? '' ) ) === 0 || $possibleValues === null ) {
+			return $valueString;
+		}
+		if ( $delimiter !== null ) {
+			$values = array_map( 'trim', explode( $delimiter, $valueString ) );
+		} else {
+			$values = [ $valueString ];
+		}
+		$labels = [];
+		foreach ( $values as $value ) {
+			if ( $value != '' ) {
+				$labels[] = array_key_exists( $value, $possibleValues ) ? $possibleValues[$value] : $value;
+			}
+		}
+		return implode( $delimiter ?? ', ', $labels );
+	}
+
+	/**
+	 * The value that has the label, or the label itself if no value has it.
+	 *
+	 * @param array<string|int, string>|null $possibleValues Label by value
+	 * @param string $label
+	 * @return string
+	 */
+	public static function labelToValue( ?array $possibleValues, $label ): string {
+		$value = array_search( $label, $possibleValues ?? [] );
+		if ( $value === false ) {
+			return $label;
+		}
+		// array_search() returns the array key, which PHP auto-casts to int
+		// for numeric-looking keys (e.g. a 'mapping template' field whose
+		// possible values are '1', '2', ... - see FormField::setValuesWithMappingTemplate()).
+		// Callers expect a string.
+		return (string)$value;
+	}
 }
