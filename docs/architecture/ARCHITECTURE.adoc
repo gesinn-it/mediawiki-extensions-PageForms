@@ -125,7 +125,8 @@ Form definition page
 FormCache: FormDefinition (read by FormDefinitionReader on a miss)
         │
         ▼
-FormPrinter::formHTML() walks the elements
+FormPrinter::render() walks the elements, each handled by the
+ElementHandler of its type (FormRender/)
         │
         ▼
 TemplateInForm / FormField objects created
@@ -144,6 +145,15 @@ Rendering of forms is handled primarily by:
 ----
 FormPrinter
 ----
+
+`FormPrinter::render()` creates a `FormRenderContext` (the request, the page title, the counters
+and everything the elements build up while they are processed) and goes through the elements of
+the form definition. One `ElementHandler` in `src/FormRender/` handles each type of element
+(`TemplateHandler`, `FieldHandler`, `EndTemplateHandler`, `StandardInputHandler`, `SectionHandler`,
+`InfoHandler`, `TextHandler`, `UnknownTagHandler`). `SectionLayout` adds the HTML of a section to the
+form, once per instance for a template that allows multiple instances, and `PageTextAssembler`
+creates the text of the page. Tab index and field number are kept in `FormCounters`; the global
+variables `$wgPageFormsTabIndex` and `$wgPageFormsFieldNum` only mirror them and are deprecated.
 
 Responsibilities include:
 
@@ -421,8 +431,6 @@ Examples include:
 Future refactoring could focus on improving separation of concerns and modularization.
 Deliberately left open for now:
 
-* `FormPrinter::render()` is about 690 lines and does the rendering of a whole form in one
-  method; splitting it is a refactoring of its own.
 * The FORMEDIT branch of `PFAutoeditAPI` still gets the values of an existing page from
   `formHTML()` and `HtmlFormDataExtractor`. Moving it to `readPageValues()` would change which
   values `mOptions` holds (defaults, query values, mapping labels) and is a change in
