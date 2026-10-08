@@ -498,116 +498,122 @@ class PFValuesUtilsTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// getAllValuesFromWikidata (SPARQL injection regression — live query.wikidata.org)
+	// buildWikidataSparqlQuery / parseWikidataResponse (SPARQL injection regression)
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Runs $callback with the given globals set and restores them afterwards.
+	 *
+	 * @param array $globals
+	 * @param callable $callback
+	 * @return mixed
+	 */
+	private function withGlobals( array $globals, callable $callback ) {
+		$previous = [];
+		foreach ( $globals as $name => $value ) {
+			$previous[$name] = $GLOBALS[$name] ?? null;
+			$GLOBALS[$name] = $value;
+		}
+		try {
+			return $callback();
+		} finally {
+			foreach ( $previous as $name => $value ) {
+				$GLOBALS[$name] = $value;
+			}
+		}
+	}
 
 	/**
 	 * Regression test for a SPARQL injection in getAllValuesFromWikidata(): a
 	 * "values from wikidata" filter value was spliced unescaped into a SPARQL
 	 * string literal, letting a Form editor break out of the literal and inject
-	 * arbitrary SPARQL sent to the public https://query.wikidata.org/sparql
-	 * endpoint. This test fires the adversarial payload at the real endpoint and
-	 * asserts the call completes without triggering a malformed-query error and
-	 * without leaking the injected marker into the result set.
+	 * arbitrary SPARQL. The payload must end up inside the label literal, with
+	 * its quotes escaped.
 	 *
-	 * @covers \PFValuesUtils::getAllValuesFromWikidata
+	 * @covers \PFValuesUtils::buildWikidataSparqlQuery
 	 */
-	public function testGetAllValuesFromWikidataEscapesInjectionInFilterValue(): void {
-		$this->skipIfWikidataUnreachable();
-
-		// Breaks out of the rdfs:label string literal, closes the surrounding
-		// triple pattern and group, and unions in a query that would surface a
-		// distinctive marker value if the injected SPARQL were executed.
+	public function testWikidataQueryEscapesInjectionInFilterValue(): void {
 		$payload = 'nomatch"@en . } UNION { BIND("INJECTED-MARKER" AS ?valueLabel) } #';
-		$query = urlencode( 'P31=' . $payload );
 
-		$result = $this->callWikidataOrSkip( $query );
+		$sparql = $this->withGlobals( [ 'wgLanguageCode' => 'en' ], static function () use ( $payload ) {
+			return PFValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=' . $payload ) );
+		} );
 
-		$this->assertIsArray( $result );
-		$this->assertNotContains(
-			'INJECTED-MARKER',
-			$result,
-			'Injected SPARQL must not be executed against the live endpoint'
+		$this->assertStringContainsString(
+			'rdfs:label "nomatch\\"@en . } UNION { BIND(\\"INJECTED-MARKER\\" AS ?valueLabel) } #"@en',
+			$sparql
 		);
+		$this->assertStringNotContainsString( 'BIND("INJECTED-MARKER"', $sparql );
 	}
 
 	/**
 	 * Same injection class, but via the $substring parameter (the autocomplete
 	 * search term), which is spliced into a REGEX() string literal.
 	 *
-	 * @covers \PFValuesUtils::getAllValuesFromWikidata
+	 * @covers \PFValuesUtils::buildWikidataSparqlQuery
 	 */
-	public function testGetAllValuesFromWikidataEscapesInjectionInSubstring(): void {
-		$this->skipIfWikidataUnreachable();
-
-		$GLOBALS['wgPageFormsMaxAutocompleteValues'] = 100;
-
-		$query = urlencode( 'P31=Q6256' );
+	public function testWikidataQueryEscapesInjectionInSubstring(): void {
 		$substringPayload = 'x")) } UNION { BIND("INJECTED-MARKER" AS ?valueLabel) } #';
 
-		$result = $this->callWikidataOrSkip( $query, $substringPayload );
+		$sparql = $this->withGlobals(
+			[ 'wgLanguageCode' => 'en', 'wgPageFormsMaxAutocompleteValues' => 100 ],
+			static function () use ( $substringPayload ) {
+				return PFValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=Q6256' ), $substringPayload );
+			}
+		);
 
-		$this->assertIsArray( $result );
-		$this->assertNotContains( 'INJECTED-MARKER', $result );
+		// The substring is lowercased, then escaped, and stays inside the REGEX() literal.
+		$this->assertStringContainsString(
+			'FILTER(REGEX(LCASE(?valueLabel), "\\\\bx\\")) } union { bind(\\"injected-marker\\" as ?valuelabel) } #"))',
+			$sparql
+		);
+		$this->assertStringNotContainsString( 'BIND("INJECTED-MARKER"', $sparql );
+		$this->assertStringNotContainsString( 'bind("injected-marker"', $sparql );
 	}
 
 	/**
-	 * A legitimate value containing a double quote must still work as literal
-	 * text (i.e. escaping does not just strip quotes, it round-trips them), and
-	 * a well-known real filter must still return the expected label.
+	 * A numeric (item) filter is used as a plain wd: reference, a text filter
+	 * becomes a label match, and the autocomplete limits only apply with a substring.
 	 *
-	 * @covers \PFValuesUtils::getAllValuesFromWikidata
+	 * @covers \PFValuesUtils::buildWikidataSparqlQuery
 	 */
-	public function testGetAllValuesFromWikidataReturnsRealValueForLegitimateFilter(): void {
-		$this->skipIfWikidataUnreachable();
+	public function testWikidataQueryBuildsItemAndLabelFiltersAndLimits(): void {
+		[ $itemOnly, $labelOnly, $withSubstring ] = $this->withGlobals(
+			[ 'wgLanguageCode' => 'en', 'wgPageFormsMaxAutocompleteValues' => 100 ],
+			static function () {
+				return [
+					PFValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=Q6256' ) ),
+					PFValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=Some "quoted" label' ) ),
+					PFValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=Q6256' ), 'Ger' ),
+				];
+			}
+		);
 
-		// wdt:P31 wd:Q6256 = "instance of: country" - Germany (Q183) is one match.
-		$query = urlencode( 'P31=Q6256' );
-
-		$result = $this->callWikidataOrSkip( $query );
-
-		$this->assertIsArray( $result );
-		$this->assertContains( 'Germany', $result );
-	}
-
-	private function skipIfWikidataUnreachable(): void {
-		set_error_handler( static function () {
-			return true;
-		} );
-		$reachable = fsockopen( 'query.wikidata.org', 443, $errno, $errstr, 5 );
-		restore_error_handler();
-		if ( $reachable === false ) {
-			$this->markTestSkipped( 'query.wikidata.org is not reachable from this environment' );
-		}
-		fclose( $reachable );
+		$this->assertStringContainsString( '?value wdt:P31 wd:Q6256 .', $itemOnly );
+		$this->assertStringContainsString( 'rdfs:label "Some \\"quoted\\" label"@en', $labelOnly );
+		$this->assertStringNotContainsString( 'LIMIT', $itemOnly );
+		$this->assertStringContainsString( 'LIMIT 110', $withSubstring );
+		$this->assertStringEndsWith( 'LIMIT 100', $withSubstring );
 	}
 
 	/**
-	 * Calls the live query.wikidata.org endpoint, treating any HTTP-level
-	 * failure (e.g. 429 Too Many Requests, a timeout, or any other
-	 * file_get_contents() failure inside getAllValuesFromWikidata()) as a
-	 * skip rather than a test error - reachability alone (see
-	 * skipIfWikidataUnreachable()) does not guarantee the public endpoint
-	 * will actually answer the request, and this is a live third-party
-	 * service this suite does not control.
-	 *
-	 * @param string $query
-	 * @param string|null $substring
-	 * @return string[]
+	 * @covers \PFValuesUtils::parseWikidataResponse
 	 */
-	private function callWikidataOrSkip( string $query, ?string $substring = null ): array {
-		$error = null;
-		set_error_handler( static function ( $errno, $errstr ) use ( &$error ) {
-			$error = $errstr;
-			return true;
-		}, E_WARNING );
-		$result = PFValuesUtils::getAllValuesFromWikidata( $query, $substring );
-		restore_error_handler();
+	public function testParseWikidataResponseReturnsTheLabelsOfAllBindings(): void {
+		$response = json_encode( [ 'results' => [ 'bindings' => [
+			[ 'valueLabel' => [ 'type' => 'literal', 'value' => 'Germany' ] ],
+			[ 'valueLabel' => [ 'type' => 'literal', 'value' => 'France' ] ],
+		] ] ] );
 
-		if ( $error !== null ) {
-			$this->markTestSkipped( "query.wikidata.org request failed: $error" );
-		}
-		return $result;
+		$this->assertSame( [ 'Germany', 'France' ], PFValuesUtils::parseWikidataResponse( $response ) );
+	}
+
+	/**
+	 * @covers \PFValuesUtils::parseWikidataResponse
+	 */
+	public function testParseWikidataResponseReturnsNothingForAnUnusableResponse(): void {
+		$this->assertSame( [], PFValuesUtils::parseWikidataResponse( false ) );
+		$this->assertSame( [], PFValuesUtils::parseWikidataResponse( 'not json' ) );
 	}
 
 	/**
