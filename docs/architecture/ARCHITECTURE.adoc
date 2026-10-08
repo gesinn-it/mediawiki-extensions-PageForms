@@ -104,12 +104,53 @@ Used by `FormPrinter::render()`; they mix structure, request state and values.
 * `FormField` — a field of the form for the current request: field configuration,
   input type selection, default values, value sources and the possible values
   (including the labels of `mapping template` and `mapping property`, which
-  `MappingLabels` provides).
+  `MappingLabels` provides). It does not build HTML and does not write form
+  definition wikitext. `FormField::newFromFormFieldTag()` reads a `FieldSpec` in named
+  steps (template field, flags, arguments, possible values, delimiter, semantic property,
+  mapping, input name); the one side effect on its arguments is that it clears the state of
+  the parser it is given.
+* `FormInstanceField` — what belongs to one instance of a field in the form being
+  rendered: the name of its input, whether it is disabled, and the possible values that are
+  fetched later for `remote autocompletion`.
 * `MappingLabels` — the labels a field shows for its values. The labels of a mapping
   template are expanded in batches and remembered per template revision; the memory
   belongs to the object, which `FormPrinter` creates once and hands to its fields.
 * `TemplateField` — a field defined in the underlying template: property mapping,
   field type, possible values, delimiter rules.
+
+Who owns what, for one field:
+
+[cols="1,3"]
+|===
+| Class | Owns
+
+| `FieldSpec`
+| What the form definition says about the field: its name and arguments, as text. No state, no MediaWiki.
+
+| `TemplateField`
+| What the template says about the field: property, type, allowed values, delimiter.
+
+| `FormField`
+| The field in a form: `FieldSpec` and `TemplateField` combined and resolved (input type, possible values, mapping, defaults), and reading the value of the field from a request.
+
+| `FormInstanceField`
+| The state of one instance of the field in a rendered form: input name, disabled, deferred possible values.
+|===
+
+The markup of a field is made by classes of their own, so the model classes do not render:
+
+* `FormFieldHtmlBuilder` builds the input, `FormFieldExtraHtmlBuilder` the hidden inputs and
+  markers next to it (embedded template, value of a disabled field, mapped field, unique
+  values).
+* `FormDefinitionWriter` writes the wikitext of a form definition for `Special:CreateForm`
+  (form, templates, sections, fields). The `createMarkup()` methods of the model classes are
+  deprecated forwards to it.
+* `MappingLabels::valueStringToLabels()` and `labelToValue()` translate between values and
+  labels.
+
+`FormField::getCurrentValue()` reads the value of a field from a request. It has one side
+effect on the field: for a scalar `tokens` input whose labels are mapped, it marks the field as
+a list (`mIsList`), as the value then is a delimited string.
 
 `Form` is only used by `Special:CreateForm`, to describe a form that is being
 created; it is not the model of a form definition.
