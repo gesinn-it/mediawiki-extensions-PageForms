@@ -283,6 +283,11 @@ class FormPrinter {
 		return FormPlaceholder::toHtmlMarker( $str );
 	}
 
+	/**
+	 * @deprecated use MultipleTemplateHtmlBuilder::multipleTemplateStartHTML()
+	 * @param TemplateInForm $tif
+	 * @return string
+	 */
 	public function multipleTemplateStartHTML( $tif ) {
 		return $this->multipleTemplateHtmlBuilder->multipleTemplateStartHTML( $tif );
 	}
@@ -290,6 +295,7 @@ class FormPrinter {
 	/**
 	 * Creates the HTML for the inner table for every instance of a
 	 * multiple-instance template in the form.
+	 * @deprecated use MultipleTemplateHtmlBuilder::multipleTemplateInstanceTableHTML()
 	 * @param bool $form_is_disabled
 	 * @param string $mainText
 	 * @return string
@@ -301,6 +307,7 @@ class FormPrinter {
 	/**
 	 * Creates the HTML for a single instance of a multiple-instance
 	 * template.
+	 * @deprecated use MultipleTemplateHtmlBuilder::multipleTemplateInstanceHTML()
 	 * @param TemplateInForm $template_in_form
 	 * @param bool $form_is_disabled
 	 * @param string &$section
@@ -315,6 +322,7 @@ class FormPrinter {
 	/**
 	 * Creates the end of the HTML for a multiple-instance template -
 	 * including the sections necessary for adding additional instances.
+	 * @deprecated use MultipleTemplateHtmlBuilder::multipleTemplateEndHTML()
 	 * @param TemplateInForm $template_in_form
 	 * @param bool $form_is_disabled
 	 * @param string $section
@@ -329,6 +337,14 @@ class FormPrinter {
 		);
 	}
 
+	/**
+	 * @deprecated use SpreadsheetHtmlBuilder::tableHTML()
+	 * @param TemplateInForm $tif
+	 * @param int $instanceNum
+	 * @param Parser $parser
+	 * @param FormCounters|null $counters
+	 * @return string
+	 */
 	public function tableHTML( $tif, $instanceNum, Parser $parser, ?FormCounters $counters = null ) {
 		return $this->spreadsheetHtmlBuilder->tableHTML(
 			$tif, $instanceNum,
@@ -337,15 +353,30 @@ class FormPrinter {
 		);
 	}
 
+	/**
+	 * @deprecated use SpreadsheetHtmlBuilder::getSpreadsheetAutocompleteAttributes()
+	 * @param array $formFieldArgs
+	 * @return array
+	 */
 	public function getSpreadsheetAutocompleteAttributes( $formFieldArgs ) {
 		return $this->spreadsheetHtmlBuilder->getSpreadsheetAutocompleteAttributes( $formFieldArgs );
 	}
 
+	/**
+	 * @deprecated use SpreadsheetHtmlBuilder::spreadsheetHTML()
+	 * @param TemplateInForm $tif
+	 * @return string|null
+	 */
 	public function spreadsheetHTML( $tif ) {
 		global $wgOut, $wgPageFormsScriptPath;
 		return $this->spreadsheetHtmlBuilder->spreadsheetHTML( $tif, $wgOut, $wgPageFormsScriptPath );
 	}
 
+	/**
+	 * @deprecated use CalendarHtmlBuilder::calendarHTML()
+	 * @param TemplateInForm $tif
+	 * @return string
+	 */
 	public function calendarHTML( $tif ) {
 		global $wgPageFormsScriptPath;
 		return $this->calendarHtmlBuilder->calendarHTML( $tif, $wgPageFormsScriptPath );
@@ -369,6 +400,7 @@ class FormPrinter {
 	 * read and keyed "0a", "1a", ... as NestedInputValues::addToArray() names them. For all
 	 * other templates only the first occurrence on the page is read.
 	 *
+	 * @deprecated use readPageValues(), or FormDefParser::preparePreloadData()
 	 * @param string $form_def Form definition wikitext (noinclude already stripped)
 	 * @param string $existing_page_content Wikitext of the existing page to preload from
 	 * @param int|null $form_id Form article ID (used for parser cache, may be null)

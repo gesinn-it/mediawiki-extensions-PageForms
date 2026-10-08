@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Changed
+- The `FormPrinter` methods that only forward to another class are deprecated and still work: `multipleTemplateStartHTML()`, `multipleTemplateInstanceTableHTML()`, `multipleTemplateInstanceHTML()` and `multipleTemplateEndHTML()` (use `MultipleTemplateHtmlBuilder`), `tableHTML()`, `spreadsheetHTML()` and `getSpreadsheetAutocompleteAttributes()` (use `SpreadsheetHtmlBuilder`), `calendarHTML()` (use `CalendarHtmlBuilder`) and `preparePreloadData()` (use `readPageValues()`) [#241](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/241)
 - Custom code can get the form printer with `FormPrinterFactory::get()` instead of reading `$wgPageFormsFormPrinter`, which is kept for existing code. The `FormPrinter` constructor takes its collaborators as optional arguments [#241](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/241)
 - The `PageForms::FormPrinterSetup` hook now runs when the form printer is completely built; before, the printer was only partly set up while the hook ran, so a handler that used it for more than registering input types could fail [#241](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/241)
 - A form definition element that the form printer has no handler for now stops the form with an error that names the element class instead of silently disappearing from the form [#248](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/248)
