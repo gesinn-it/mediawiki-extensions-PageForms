@@ -30,6 +30,7 @@ use MediaWiki\Extension\PageForms\FormRender\StandardInputHandler;
 use MediaWiki\Extension\PageForms\FormRender\TemplateHandler;
 use MediaWiki\Extension\PageForms\FormRender\TextHandler;
 use MediaWiki\Extension\PageForms\FormRender\UnknownTagHandler;
+use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\MediaWikiServices;
 use MWException;
 use OutputPage;
@@ -82,27 +83,58 @@ class FormPrinter {
 
 	private MappingLabels $mappingLabels;
 
-	public function __construct() {
-		$this->mappingLabels = new MappingLabels();
-		$this->inputTypeRegistry = InputTypeRegistry::newWithBuiltInTypes();
-		$this->calendarHtmlBuilder = new CalendarHtmlBuilder();
-		$this->multipleTemplateHtmlBuilder = new MultipleTemplateHtmlBuilder();
-		$this->spreadsheetHtmlBuilder = new SpreadsheetHtmlBuilder();
-		$this->formDefReader = new FormDefinitionReader();
-		$this->fieldValueResolver = new FieldValueResolver();
-
-		$this->formFieldHtmlBuilder = new FormFieldHtmlBuilder( $this->inputTypeRegistry );
-		$this->formDefParser = new FormDefParser(
+	/**
+	 * Every collaborator can be passed in; those left out are created with their defaults, which
+	 * is what the extension itself does. A test can pass in a fake for the one it needs and no
+	 * globals or services are touched for the others.
+	 *
+	 * @param InputTypeRegistry|null $inputTypeRegistry
+	 * @param CalendarHtmlBuilder|null $calendarHtmlBuilder
+	 * @param SpreadsheetHtmlBuilder|null $spreadsheetHtmlBuilder
+	 * @param MultipleTemplateHtmlBuilder|null $multipleTemplateHtmlBuilder
+	 * @param FormFieldHtmlBuilder|null $formFieldHtmlBuilder
+	 * @param FormDefParser|null $formDefParser
+	 * @param FormDefinitionReader|null $formDefReader
+	 * @param FieldValueResolver|null $fieldValueResolver
+	 * @param MappingLabels|null $mappingLabels
+	 * @param SectionLayout|null $sectionLayout
+	 * @param PageTextAssembler|null $pageTextAssembler
+	 * @param array<class-string, ElementHandler>|null $elementHandlers
+	 * @param HookContainer|null $hookContainer
+	 */
+	public function __construct(
+		?InputTypeRegistry $inputTypeRegistry = null,
+		?CalendarHtmlBuilder $calendarHtmlBuilder = null,
+		?SpreadsheetHtmlBuilder $spreadsheetHtmlBuilder = null,
+		?MultipleTemplateHtmlBuilder $multipleTemplateHtmlBuilder = null,
+		?FormFieldHtmlBuilder $formFieldHtmlBuilder = null,
+		?FormDefParser $formDefParser = null,
+		?FormDefinitionReader $formDefReader = null,
+		?FieldValueResolver $fieldValueResolver = null,
+		?MappingLabels $mappingLabels = null,
+		?SectionLayout $sectionLayout = null,
+		?PageTextAssembler $pageTextAssembler = null,
+		?array $elementHandlers = null,
+		?HookContainer $hookContainer = null
+	) {
+		$hookContainer ??= MediaWikiServices::getInstance()->getHookContainer();
+		$this->mappingLabels = $mappingLabels ?? new MappingLabels();
+		$this->inputTypeRegistry = $inputTypeRegistry ?? InputTypeRegistry::newWithBuiltInTypes();
+		$this->calendarHtmlBuilder = $calendarHtmlBuilder ?? new CalendarHtmlBuilder();
+		$this->multipleTemplateHtmlBuilder = $multipleTemplateHtmlBuilder ?? new MultipleTemplateHtmlBuilder();
+		$this->spreadsheetHtmlBuilder = $spreadsheetHtmlBuilder ?? new SpreadsheetHtmlBuilder();
+		$this->formDefReader = $formDefReader ?? new FormDefinitionReader();
+		$this->fieldValueResolver = $fieldValueResolver ?? new FieldValueResolver();
+		$this->formFieldHtmlBuilder = $formFieldHtmlBuilder ?? new FormFieldHtmlBuilder( $this->inputTypeRegistry );
+		$this->formDefParser = $formDefParser ?? new FormDefParser(
 			MediaWikiServices::getInstance()->getParserFactory(), $this->formDefReader
 		);
-		$this->sectionLayout = new SectionLayout(
+		$this->sectionLayout = $sectionLayout ?? new SectionLayout(
 			$this->multipleTemplateHtmlBuilder, $this->spreadsheetHtmlBuilder, $this->calendarHtmlBuilder,
 			$this->formFieldHtmlBuilder
 		);
-		$this->pageTextAssembler = new PageTextAssembler(
-			MediaWikiServices::getInstance()->getHookContainer()
-		);
-		$this->elementHandlers = [
+		$this->pageTextAssembler = $pageTextAssembler ?? new PageTextAssembler( $hookContainer );
+		$this->elementHandlers = $elementHandlers ?? [
 			FieldSpec::class => new FieldHandler(
 				$this->formFieldHtmlBuilder, $this->mappingLabels, $this->fieldValueResolver
 			),
@@ -118,7 +150,7 @@ class FormPrinter {
 		// All-purpose setup hook, run last so that it sees a fully built printer.
 		// Avoid PHP 7.1 warning from passing $this by reference.
 		$formPrinterRef = $this;
-		MediaWikiServices::getInstance()->getHookContainer()->run(
+		$hookContainer->run(
 			'PageForms::FormPrinterSetup', [ &$formPrinterRef ]
 		);
 	}
