@@ -11,7 +11,7 @@
  * @author Yaron Koren
  */
 
-use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\SpreadsheetGlobals;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Revision\RevisionRecord;
 
@@ -160,7 +160,7 @@ class PFMultiPageEdit extends QueryPage {
 
 		$GLOBALS['wgPageFormsGridParams'][$template_name] = $gridParams;
 
-		FormUtils::setGlobalVarsForSpreadsheet();
+		SpreadsheetGlobals::setGlobalVarsForSpreadsheet();
 
 		$text .= "<p><div id='selectLimit'></div></p>";
 

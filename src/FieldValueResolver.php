@@ -111,7 +111,7 @@ class FieldValueResolver {
 				( $inputType == '' &&
 					$formField->getTemplateField()->getPropertyType() == '_dat' )
 			) {
-				$curValue = $curValueInTemplate = FormUtils::getStringForCurrentTime(
+				$curValue = $curValueInTemplate = FormDateUtils::getStringForCurrentTime(
 					$inputType == 'datetime', $formField->hasFieldArg( 'include timezone' )
 				);
 			}
@@ -130,7 +130,7 @@ class FieldValueResolver {
 						: 'new-uuid'
 				);
 			} else {
-				$curValue = $curValueInTemplate = FormUtils::generateUUID();
+				$curValue = $curValueInTemplate = FormInputValues::generateUUID();
 			}
 		}
 

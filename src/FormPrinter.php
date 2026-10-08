@@ -467,9 +467,9 @@ class FormPrinter {
 		// Add form bottom, if no custom "standard inputs" have been defined.
 		if ( !$context->standardInputsIncluded ) {
 			if ( $context->isQuery ) {
-				$form_text .= FormUtils::queryFormBottom();
+				$form_text .= FormButtons::queryFormBottom();
 			} else {
-				$form_text .= FormUtils::formBottom( $context->formSubmitted, $context->formIsDisabled );
+				$form_text .= FormButtons::formBottom( $context->formSubmitted, $context->formIsDisabled );
 			}
 		}
 
@@ -531,7 +531,7 @@ class FormPrinter {
 
 		// Start off with a loading spinner - this will be removed by
 		// the JavaScript once everything has finished loading.
-		$context->formText = FormUtils::displayLoadingImage();
+		$context->formText = FormMarkup::displayLoadingImage();
 		if ( $context->isQuery || $userCanEditPage ) {
 			$context->formIsDisabled = false;
 			// Show "Your IP address will be recorded" warning if

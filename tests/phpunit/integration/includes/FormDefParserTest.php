@@ -252,7 +252,7 @@ class FormDefParserTest extends MediaWikiIntegrationTestCase {
 
 		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
 
-		// Same key format as FormUtils::unhandledFieldsHTML(), read back by
+		// Same key format as FormMarkup::unhandledFieldsHTML(), read back by
 		// PFWikiPageTemplate::addUnhandledParams().
 		$this->assertSame( 'keep', $data['_unhandled_PFTestFDPUnh01_Legacy'] );
 		$this->assertSame( [ 'Name' => 'Alice' ], $data['PFTestFDPUnh01'] );

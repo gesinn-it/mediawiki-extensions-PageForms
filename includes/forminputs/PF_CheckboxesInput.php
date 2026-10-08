@@ -4,7 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormCounters;
-use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\PossibleValue;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 
@@ -140,7 +140,7 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$outerSpanClass .= ' pfShowIfChecked';
-			FormUtils::setShowOnSelect( $other_args['show on select'], $outerSpanID );
+			FormMarkup::setShowOnSelect( $other_args['show on select'], $outerSpanID );
 		}
 
 		$text .= Html::hidden( $input_name . '[is_list]', 1 );

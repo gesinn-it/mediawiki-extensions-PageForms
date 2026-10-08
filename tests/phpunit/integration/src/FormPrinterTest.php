@@ -264,7 +264,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	 * Editing a page in the form keeps the template parameters the form does not define: for a
 	 * multiple-instance template as hidden inputs of the instance they belong to (issue #216).
 	 *
-	 * @covers \MediaWiki\Extension\PageForms\FormUtils::unhandledFieldsHTML
+	 * @covers \MediaWiki\Extension\PageForms\FormMarkup::unhandledFieldsHTML
 	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
 	 */
 	public function testFormHtmlCarriesUnhandledParametersOfMultipleInstanceTemplatePerInstance(): void {

@@ -4,7 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormCounters;
-use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 
 /**
@@ -109,7 +109,7 @@ class PFRadioButtonInput extends PFEnumInput {
 		// Do the 'show on select' handling.
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$spanClass .= ' pfShowIfChecked';
-			FormUtils::setShowOnSelect( $other_args['show on select'], $spanID );
+			FormMarkup::setShowOnSelect( $other_args['show on select'], $spanID );
 		}
 		$spanAttrs = [
 			'id' => $spanID,

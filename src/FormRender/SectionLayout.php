@@ -7,9 +7,9 @@ namespace MediaWiki\Extension\PageForms\FormRender;
 use Html;
 use MediaWiki\Extension\PageForms\CalendarHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
+use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\FormPlaceholder;
 use MediaWiki\Extension\PageForms\FormRenderContext;
-use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\Extension\PageForms\MultipleTemplateHtmlBuilder;
 use MediaWiki\Extension\PageForms\SpreadsheetHtmlBuilder;
 use MediaWiki\Extension\PageForms\TemplateInForm;
@@ -57,7 +57,7 @@ class SectionLayout {
 			// The parameters of this instance's template call that the form does not define,
 			// as hidden inputs of the instance. (The "end template" tag is only handled once
 			// for all instances, so it cannot do this.)
-			$context->section .= FormUtils::unhandledFieldsHTML( $tif );
+			$context->section .= FormMarkup::unhandledFieldsHTML( $tif );
 		}
 
 		$multipleTemplateHTML = '';

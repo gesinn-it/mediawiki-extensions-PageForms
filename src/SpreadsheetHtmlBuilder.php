@@ -115,7 +115,7 @@ class SpreadsheetHtmlBuilder {
 
 	/**
 	 * Creates the jspreadsheet container div and populates the global
-	 * variables consumed by FormUtils::setGlobalVarsForSpreadsheet().
+	 * variables consumed by SpreadsheetGlobals::setGlobalVarsForSpreadsheet().
 	 *
 	 * @param TemplateInForm $tif
 	 * @param \OutputPage $out
@@ -207,7 +207,7 @@ class SpreadsheetHtmlBuilder {
 		$wgPageFormsGridParams[$templateName] = $gridParams;
 		$wgPageFormsGridValues[$templateName] = $tif->getGridValues();
 
-		FormUtils::setGlobalVarsForSpreadsheet();
+		SpreadsheetGlobals::setGlobalVarsForSpreadsheet();
 
 		return $text;
 	}

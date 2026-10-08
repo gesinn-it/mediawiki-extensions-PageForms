@@ -4,7 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormCounters;
-use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 
 /**
@@ -41,7 +41,7 @@ class PFDropdownInput extends PFEnumInput {
 		$input_id = "input_$counters->fieldNum";
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$className .= ' pfShowIfSelected';
-			FormUtils::setShowOnSelect( $other_args['show on select'], $input_id );
+			FormMarkup::setShowOnSelect( $other_args['show on select'], $input_id );
 		}
 		$innerDropdown = '';
 		// Add a blank value at the beginning, unless this is a

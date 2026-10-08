@@ -4,7 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormCounters;
-use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 
 /**
@@ -76,7 +76,7 @@ class PFListBoxInput extends PFMultiEnumInput {
 
 		if ( array_key_exists( 'show on select', $this->mOtherArgs ) ) {
 			$className .= ' pfShowIfSelected';
-			FormUtils::setShowOnSelect( $this->mOtherArgs['show on select'], $input_id );
+			FormMarkup::setShowOnSelect( $this->mOtherArgs['show on select'], $input_id );
 		}
 
 		$selectAttrs = [

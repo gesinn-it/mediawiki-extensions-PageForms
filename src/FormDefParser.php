@@ -122,7 +122,7 @@ class FormDefParser {
 			$result->setMappedFields( $template_key, $mappedFields );
 
 			// Whatever else the page's template call carries is "unhandled" (see
-			// FormUtils::unhandledFieldsHTML()). Positional parameters are not carried over.
+			// FormMarkup::unhandledFieldsHTML()). Positional parameters are not carried over.
 			$handledFields = $templateSpec->getFieldNames();
 			foreach ( $instances ?? [ $pageValues->getValuesFromPage() ] as $i => $values ) {
 				foreach ( $values as $name => $value ) {

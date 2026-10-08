@@ -84,7 +84,7 @@ class CalendarHtmlBuilder {
 		$wgPageFormsCalendarParams[$templateName] = $params;
 		$wgPageFormsCalendarValues[$templateName] = $tif->getGridValues();
 
-		FormUtils::setGlobalVarsForSpreadsheet();
+		SpreadsheetGlobals::setGlobalVarsForSpreadsheet();
 
 		return $text;
 	}

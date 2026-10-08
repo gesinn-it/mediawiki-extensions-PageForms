@@ -218,7 +218,7 @@ class FormValues {
 					$field = substr( $key, 0, -1 );
 					$delimiter = $this->delimiters[$templateKey][$field] ?? ',';
 					if ( is_array( $value ) ) {
-						$value = FormUtils::getStringFromPassedInArray( $value, $delimiter );
+						$value = FormInputValues::getStringFromPassedInArray( $value, $delimiter );
 					}
 					$pageValue = $pageValues[$field] ?? '';
 					$result = $resolver->applyValModifier(

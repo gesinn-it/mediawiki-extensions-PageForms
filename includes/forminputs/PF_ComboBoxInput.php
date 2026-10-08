@@ -4,7 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormCounters;
-use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 use MediaWiki\MediaWikiServices;
 
@@ -190,7 +190,7 @@ class PFComboBoxInput extends PFFormInput {
 
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$spanClass .= ' pfShowIfSelected';
-			FormUtils::setShowOnSelect( $other_args['show on select'], $spanID );
+			FormMarkup::setShowOnSelect( $other_args['show on select'], $spanID );
 		}
 
 		$spanAttrs = [

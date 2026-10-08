@@ -17,7 +17,7 @@ use WikiPage;
 
 /**
  * Integration tests for FormCache — the form-definition caching subsystem
- * extracted from FormUtils.
+ * extracted from FormUtils (now only forwards).
  *
  * @group PF
  * @group Database

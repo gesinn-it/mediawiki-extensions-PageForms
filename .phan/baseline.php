@@ -61,8 +61,11 @@ return [
 				'\\MediaWiki\\Extension\\PageForms\\FormPrinter::renderInContext'
 			]
 		],
-		'src/FormUtils.php' => [
-			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormUtils::minorEditInputHTML', '\\MediaWiki\\Extension\\PageForms\\FormUtils::unhandledFieldsHTML', '\\MediaWiki\\Extension\\PageForms\\FormUtils::watchInputHTML']
+		'src/FormButtons.php' => [
+			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormButtons::minorEditInputHTML', '\\MediaWiki\\Extension\\PageForms\\FormButtons::watchInputHTML']
+		],
+		'src/FormMarkup.php' => [
+			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormMarkup::unhandledFieldsHTML']
 		],
 		'src/SpreadsheetHtmlBuilder.php' => [
 			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\SpreadsheetHtmlBuilder::spreadsheetHTML', '\\MediaWiki\\Extension\\PageForms\\SpreadsheetHtmlBuilder::tableHTML']

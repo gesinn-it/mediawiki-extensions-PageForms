@@ -787,7 +787,7 @@ class FormField {
 							$cur_values[$key] = $this->autocapitalize( $val );
 						}
 					}
-					return FormUtils::getStringFromPassedInArray( $cur_values, $delimiter );
+					return FormInputValues::getStringFromPassedInArray( $cur_values, $delimiter );
 				} else {
 					$field_query_val = $this->autocapitalize( trim( $field_query_val ) );
 					if ( $map_field && $this->mPossibleValues !== null ) {
@@ -810,7 +810,7 @@ class FormField {
 			}
 			if ( !$form_submitted && $field_query_val != '' ) {
 				if ( is_array( $field_query_val ) ) {
-					$str = FormUtils::getStringFromPassedInArray( $field_query_val, $delimiter );
+					$str = FormInputValues::getStringFromPassedInArray( $field_query_val, $delimiter );
 				} else {
 					$str = $field_query_val;
 				}
@@ -828,7 +828,7 @@ class FormField {
 				// Set to the default value specified in the form, if it's there.
 				return $this->mDefaultValue;
 			} elseif ( $this->mPreloadPage ) {
-				return FormUtils::getPreloadedText( $this->mPreloadPage );
+				return FormCache::getPreloadedText( $this->mPreloadPage );
 			}
 		}
 

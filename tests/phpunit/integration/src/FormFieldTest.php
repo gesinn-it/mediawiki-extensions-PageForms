@@ -1196,7 +1196,7 @@ class FormFieldTest extends TestCase {
 
 		// 'is_list' (a string, as it arrives from a real HTML form submission)
 		// marks this as a plain (non-checkbox) list for
-		// FormUtils::getStringFromPassedInArray() - without it, an array with
+		// FormInputValues::getStringFromPassedInArray() - without it, an array with
 		// exactly 2 elements is (mis)interpreted as a yes/no checkbox pair.
 		$template_instance_query_values = [
 			'PFTestFormFieldName01' => [ 'is_list' => 'true', 'Germany', 'France' ],
@@ -1280,7 +1280,7 @@ class FormFieldTest extends TestCase {
 		$field->setFieldArg( 'delimiter', ',' );
 
 		// 'is_list' avoids the 2-element "checkbox yes/no" special case in
-		// FormUtils::getStringFromPassedInArray().
+		// FormInputValues::getStringFromPassedInArray().
 		$template_instance_query_values = [
 			'PFTestFormFieldName04' => [ 'is_list' => true, '<b>x</b>', 'y' ],
 		];
@@ -1362,7 +1362,7 @@ class FormFieldTest extends TestCase {
 			$this->mockUser, $this->mockParser
 		);
 
-		// The preload page does not exist, so FormUtils::getPreloadedText()
+		// The preload page does not exist, so FormCache::getPreloadedText()
 		// returns an empty string rather than throwing.
 		$result = $field->getCurrentValue( [], false, false, false );
 		$this->assertSame( '', $result );

@@ -4,7 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormCounters;
-use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\FormMarkup;
 
 /**
  * @ingroup PFFormInput
@@ -36,7 +36,7 @@ class PFCheckboxInput extends PFFormInput {
 		$inputID = "input_$counters->fieldNum";
 		if ( array_key_exists( 'show on select', $other_args ) ) {
 			$className .= ' pfShowIfCheckedCheckbox';
-			FormUtils::setShowOnSelect( $other_args['show on select'], $inputID, true );
+			FormMarkup::setShowOnSelect( $other_args['show on select'], $inputID, true );
 		}
 
 		// Can show up here either as an array or a string, depending on

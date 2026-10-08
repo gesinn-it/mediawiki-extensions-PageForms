@@ -58,34 +58,34 @@ class StandardInputHtmlBuilder {
 
 		if ( $inputName == 'summary' ) {
 			$value = $request->getVal( 'wpSummary' );
-			return (string)FormUtils::summaryInputHTML( $formIsDisabled, $inputLabel, $attr, $value );
+			return (string)FormButtons::summaryInputHTML( $formIsDisabled, $inputLabel, $attr, $value );
 		} elseif ( $inputName == 'minor edit' ) {
 			$isChecked = $request->getCheck( 'wpMinoredit' );
-			return (string)FormUtils::minorEditInputHTML(
+			return (string)FormButtons::minorEditInputHTML(
 				$formSubmitted, $formIsDisabled, $isChecked, $inputLabel, $attr
 			);
 		} elseif ( $inputName == 'watch' ) {
 			$isChecked = $request->getCheck( 'wpWatchthis' );
-			return (string)FormUtils::watchInputHTML(
+			return (string)FormButtons::watchInputHTML(
 				$formSubmitted, $formIsDisabled, $isChecked, $inputLabel, $attr
 			);
 		} elseif ( $inputName == 'save' ) {
-			return (string)FormUtils::saveButtonHTML( $formIsDisabled, $inputLabel, $attr );
+			return (string)FormButtons::saveButtonHTML( $formIsDisabled, $inputLabel, $attr );
 		} elseif ( $inputName == 'save and continue' ) {
 			// Omit the button in one-step-process where the page title already matches
 			// the destination page name (embedded/query contexts set a different title).
 			if ( $pageTitle == $pageName ) {
-				return (string)FormUtils::saveAndContinueButtonHTML( $formIsDisabled, $inputLabel, $attr );
+				return (string)FormButtons::saveAndContinueButtonHTML( $formIsDisabled, $inputLabel, $attr );
 			}
 			return '';
 		} elseif ( $inputName == 'preview' ) {
-			return (string)FormUtils::showPreviewButtonHTML( $formIsDisabled, $inputLabel, $attr );
+			return (string)FormButtons::showPreviewButtonHTML( $formIsDisabled, $inputLabel, $attr );
 		} elseif ( $inputName == 'changes' ) {
-			return (string)FormUtils::showChangesButtonHTML( $formIsDisabled, $inputLabel, $attr );
+			return (string)FormButtons::showChangesButtonHTML( $formIsDisabled, $inputLabel, $attr );
 		} elseif ( $inputName == 'cancel' ) {
-			return (string)FormUtils::cancelLinkHTML( $formIsDisabled, $inputLabel, $attr );
+			return (string)FormButtons::cancelLinkHTML( $formIsDisabled, $inputLabel, $attr );
 		} elseif ( $inputName == 'run query' ) {
-			return (string)FormUtils::runQueryButtonHTML( $formIsDisabled, $inputLabel, $attr );
+			return (string)FormButtons::runQueryButtonHTML( $formIsDisabled, $inputLabel, $attr );
 		}
 
 		return '';

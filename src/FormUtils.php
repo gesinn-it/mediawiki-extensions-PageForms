@@ -4,388 +4,75 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use CommentStore;
-use Html;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RenderedRevision;
-use OOUI\ButtonInputWidget;
-use PFUtils;
-use RequestContext;
-use Title;
 use WikiPage;
 
 /**
- * Utilities for the display and retrieval of forms.
+ * Forwards to the classes that took over the helpers of this class.
  *
- * @author Yaron Koren
- * @author Jeffrey Stuckman
- * @author Harold Solbrig
- * @author Eugene Mednikov
+ * @deprecated since PageForms 6.x — use FormButtons, FormDateUtils, FormInputValues, FormMarkup,
+ *  SpreadsheetGlobals and FormCache instead.
  * @ingroup PF
  */
 class FormUtils {
 
-	/**
-	 * Add a hidden input for each field in the template call that's
-	 * not handled by the form itself.
-	 *
-	 * For a multiple-instance template, the inputs go into the instance's own request values
-	 * ("Template[num][_unhandled][param]", with "num" replaced by the instance like for any
-	 * other input of the instance), so each instance keeps its own parameters.
-	 *
-	 * @param TemplateInForm|null $template_in_form
-	 * @return string
-	 */
+	/** @deprecated since PageForms 6.x — use FormMarkup::unhandledFieldsHTML() instead. */
 	public static function unhandledFieldsHTML( $template_in_form ) {
-		// This shouldn't happen, but sometimes this value is null.
-		// @TODO - fix the code that calls this function so the
-		// value is never null.
-		if ( $template_in_form === null ) {
-			return '';
-		}
-
-		// HTML element names shouldn't contain spaces
-		$templateName = str_replace( ' ', '_', $template_in_form->getTemplateName() );
-		$text = "";
-		foreach ( $template_in_form->getValuesFromPage() as $key => $value ) {
-			if ( $key !== null && !is_numeric( $key ) ) {
-				$key = urlencode( $key );
-				if ( $template_in_form->allowsMultiple() ) {
-					$text .= Html::hidden( $templateName . '[num][_unhandled][' . $key . ']', $value );
-				} else {
-					$text .= Html::hidden( '_unhandled_' . $templateName . '_' . $key, $value );
-				}
-			}
-		}
-		return $text;
+		return FormMarkup::unhandledFieldsHTML( $template_in_form );
 	}
 
+	/** @deprecated since PageForms 6.x — use FormButtons::summaryInputHTML() instead. */
 	public static function summaryInputHTML( $is_disabled, $label = null, $attr = [], $value = '' ) {
-		$counters = FormCounters::current();
-
-		if ( $label == null ) {
-			$label = wfMessage( 'summary' )->text();
-		}
-
-		$counters->tabIndex++;
-		$attr += [
-			'tabIndex' => $counters->tabIndex,
-			'value' => $value,
-			'name' => 'wpSummary',
-			'id' => 'wpSummary',
-			'maxlength' => CommentStore::COMMENT_CHARACTER_LIMIT,
-			'title' => wfMessage( 'tooltip-summary' )->text(),
-			'accessKey' => wfMessage( 'accesskey-summary' )->text()
-		];
-		if ( $is_disabled ) {
-			$attr['disabled'] = true;
-		}
-		if ( array_key_exists( 'class', $attr ) ) {
-			$attr['classes'] = [ $attr['class'] ];
-		}
-
-		$text = new \OOUI\FieldLayout(
-			new \OOUI\TextInputWidget( $attr ),
-			[
-				'align' => 'top',
-				'label' => $label
-			]
-		);
-
-		return $text;
+		return FormButtons::summaryInputHTML( $is_disabled, $label, $attr, $value );
 	}
 
+	/** @deprecated since PageForms 6.x — use FormButtons::minorEditInputHTML() instead. */
 	public static function minorEditInputHTML(
 		$form_submitted, $is_disabled, $is_checked, $label = null, $attrs = []
 	) {
-		$counters = FormCounters::current();
-
-		$counters->tabIndex++;
-		if ( !$form_submitted ) {
-			$user = RequestContext::getMain()->getUser();
-			$is_checked = MediaWikiServices::getInstance()->getUserOptionsLookup()->getOption( $user, 'minordefault' );
-		}
-
-		if ( $label == null ) {
-			$label = wfMessage( 'minoredit' )->parse();
-		}
-
-		$attrs += [
-			'id' => 'wpMinoredit',
-			'name' => 'wpMinoredit',
-			'accessKey' => wfMessage( 'accesskey-minoredit' )->text(),
-			'tabIndex' => $counters->tabIndex,
-		];
-		if ( $is_checked ) {
-			$attrs['selected'] = true;
-		}
-		if ( $is_disabled ) {
-			$attrs['disabled'] = true;
-		}
-		if ( array_key_exists( 'class', $attrs ) ) {
-			$attrs['classes'] = [ $attrs['class'] ];
-		}
-
-		// We can't use OOUI\FieldLayout here, because it will make the display too wide.
-		$labelWidget = new \OOUI\LabelWidget( [
-			'label' => new \OOUI\HtmlSnippet( $label )
-		] );
-		$text = Html::rawElement(
-			'label',
-			[ 'title' => wfMessage( 'tooltip-minoredit' )->parse() ],
-			new \OOUI\CheckboxInputWidget( $attrs ) . $labelWidget
-		);
-		// Inline element so it is valid inside both <div> and <p> containers
-		$text = Html::rawElement( 'span', [ 'class' => 'pf-submit-option' ], $text );
-
-		return $text;
+		return FormButtons::minorEditInputHTML( $form_submitted, $is_disabled, $is_checked, $label, $attrs );
 	}
 
+	/** @deprecated since PageForms 6.x — use FormButtons::watchInputHTML() instead. */
 	public static function watchInputHTML(
 		$form_submitted, $is_disabled, $is_checked = false, $label = null, $attrs = []
 	) {
-		$counters = FormCounters::current();
-		$titleGlobal = RequestContext::getMain()->getTitle();
-
-		$counters->tabIndex++;
-		// figure out if the checkbox should be checked -
-		// this code borrowed from /includes/EditPage.php
-		if ( !$form_submitted ) {
-			$user = RequestContext::getMain()->getUser();
-			$services = MediaWikiServices::getInstance();
-			$userOptionsLookup = $services->getUserOptionsLookup();
-			if ( $userOptionsLookup->getOption( $user, 'watchdefault' ) ) {
-				# Watch all edits
-				$is_checked = true;
-			} elseif ( $userOptionsLookup->getOption( $user, 'watchcreations' ) &&
-				!$titleGlobal->exists() ) {
-				# Watch creations
-				$is_checked = true;
-			} elseif ( $services->getWatchlistManager()->isWatched( $user, $titleGlobal ) ) {
-				# Already watched
-				$is_checked = true;
-			}
-		}
-		if ( $label == null ) {
-			$label = wfMessage( 'watchthis' )->parse();
-		}
-		$attrs += [
-			'id' => 'wpWatchthis',
-			'name' => 'wpWatchthis',
-			'accessKey' => wfMessage( 'accesskey-watch' )->text(),
-			'tabIndex' => $counters->tabIndex,
-		];
-		if ( $is_checked ) {
-			$attrs['selected'] = true;
-		}
-		if ( $is_disabled ) {
-			$attrs['disabled'] = true;
-		}
-		if ( array_key_exists( 'class', $attrs ) ) {
-			$attrs['classes'] = [ $attrs['class'] ];
-		}
-
-		// We can't use OOUI\FieldLayout here, because it will make the display too wide.
-		$labelWidget = new \OOUI\LabelWidget( [
-			'label' => new \OOUI\HtmlSnippet( $label )
-		] );
-		$text = Html::rawElement(
-			'label',
-			[ 'title' => wfMessage( 'tooltip-watch' )->parse() ],
-			new \OOUI\CheckboxInputWidget( $attrs ) . $labelWidget
-		);
-		// Inline element so it is valid inside both <div> and <p> containers
-		$text = Html::rawElement( 'span', [ 'class' => 'pf-submit-option' ], $text );
-
-		return $text;
+		return FormButtons::watchInputHTML( $form_submitted, $is_disabled, $is_checked, $label, $attrs );
 	}
 
-	/**
-	 * Helper function to display a simple button
-	 * @param string $name
-	 * @param string $value
-	 * @param string $type
-	 * @param array $attrs
-	 * @return ButtonInputWidget
-	 */
-	private static function buttonHTML( $name, $value, $type, $attrs ) {
-		$attrs += [
-			'type' => $type,
-			'name' => $name,
-			'label' => $value
-		];
-		$button = new ButtonInputWidget( $attrs );
-		// Special handling for 'class'.
-		if ( isset( $attrs['class'] ) ) {
-			// Make sure it's an array.
-			if ( is_string( $attrs['class'] ) ) {
-				$attrs['class'] = [ $attrs['class'] ];
-			}
-			$button->addClasses( $attrs['class'] );
-		}
-		return $button;
-	}
-
+	/** @deprecated since PageForms 6.x — use FormButtons::saveButtonHTML() instead. */
 	public static function saveButtonHTML( $is_disabled, $label = null, $attr = [] ) {
-		$counters = FormCounters::current();
-
-		$counters->tabIndex++;
-		if ( $label == null ) {
-			$label = wfMessage( 'savearticle' )->text();
-		}
-		$temp = $attr + [
-			'id'        => 'wpSave',
-			'tabIndex'  => $counters->tabIndex,
-			'accessKey' => wfMessage( 'accesskey-save' )->text(),
-			'title'     => wfMessage( 'tooltip-save' )->text(),
-			'flags'     => [ 'primary', 'progressive' ]
-		];
-		if ( $is_disabled ) {
-			$temp['disabled'] = true;
-		}
-		return self::buttonHTML( 'wpSave', $label, 'submit', $temp );
+		return FormButtons::saveButtonHTML( $is_disabled, $label, $attr );
 	}
 
+	/** @deprecated since PageForms 6.x — use FormButtons::saveAndContinueButtonHTML() instead. */
 	public static function saveAndContinueButtonHTML( $is_disabled, $label = null, $attr = [] ) {
-		$counters = FormCounters::current();
-
-		$counters->tabIndex++;
-
-		if ( $label == null ) {
-			$label = wfMessage( 'pf_formedit_saveandcontinueediting' )->text();
-		}
-
-		$temp = $attr + [
-			'id'        => 'wpSaveAndContinue',
-			'tabIndex'  => $counters->tabIndex,
-			'disabled'  => true,
-			'accessKey' => wfMessage( 'pf_formedit_accesskey_saveandcontinueediting' )->text(),
-			'title'     => wfMessage( 'pf_formedit_tooltip_saveandcontinueediting' )->text(),
-		];
-
-		if ( $is_disabled ) {
-			$temp['class'] = 'pf-save_and_continue disabled';
-		} else {
-			$temp['class'] = 'pf-save_and_continue';
-		}
-
-		return self::buttonHTML( 'wpSaveAndContinue', $label, 'button', $temp );
+		return FormButtons::saveAndContinueButtonHTML( $is_disabled, $label, $attr );
 	}
 
+	/** @deprecated since PageForms 6.x — use FormButtons::showPreviewButtonHTML() instead. */
 	public static function showPreviewButtonHTML( $is_disabled, $label = null, $attr = [] ) {
-		$counters = FormCounters::current();
-
-		$counters->tabIndex++;
-		if ( $label == null ) {
-			$label = wfMessage( 'showpreview' )->text();
-		}
-		$temp = $attr + [
-			'id'        => 'wpPreview',
-			'tabIndex'  => $counters->tabIndex,
-			'accessKey' => wfMessage( 'accesskey-preview' )->text(),
-			'title'     => wfMessage( 'tooltip-preview' )->text(),
-		];
-		if ( $is_disabled ) {
-			$temp['disabled'] = true;
-		}
-		return self::buttonHTML( 'wpPreview', $label, 'submit', $temp );
+		return FormButtons::showPreviewButtonHTML( $is_disabled, $label, $attr );
 	}
 
+	/** @deprecated since PageForms 6.x — use FormButtons::showChangesButtonHTML() instead. */
 	public static function showChangesButtonHTML( $is_disabled, $label = null, $attr = [] ) {
-		$counters = FormCounters::current();
-
-		$counters->tabIndex++;
-		if ( $label == null ) {
-			$label = wfMessage( 'showdiff' )->text();
-		}
-		$temp = $attr + [
-			'id'        => 'wpDiff',
-			'tabIndex'  => $counters->tabIndex,
-			'accessKey' => wfMessage( 'accesskey-diff' )->text(),
-			'title'     => wfMessage( 'tooltip-diff' )->text(),
-		];
-		if ( $is_disabled ) {
-			$temp['disabled'] = true;
-		}
-		return self::buttonHTML( 'wpDiff', $label, 'submit', $temp );
+		return FormButtons::showChangesButtonHTML( $is_disabled, $label, $attr );
 	}
 
+	/** @deprecated since PageForms 6.x — use FormButtons::cancelLinkHTML() instead. */
 	public static function cancelLinkHTML( $is_disabled, $label = null, $attr = [] ) {
-		$titleGlobal = RequestContext::getMain()->getTitle();
-
-		if ( $label == null ) {
-			$label = wfMessage( 'cancel' )->parse();
-		}
-		$attr['classes'] = [];
-		if ( $titleGlobal == null || $titleGlobal->isSpecial( 'FormEdit' ) ) {
-			$req = RequestContext::getMain()->getRequest();
-			$returnto = $req->getVal( 'returnto' );
-			$returntoTitle = $returnto !== null ? Title::newFromText( $returnto ) : null;
-			if ( $returntoTitle !== null ) {
-				$attr['href'] = $returntoTitle->getLocalURL();
-			} else {
-				$attr['classes'][] = 'pfSendBack';
-			}
-		} else {
-			$attr['href'] = $titleGlobal->getFullURL();
-		}
-		$attr['framed'] = false;
-		$attr['label'] = $label;
-		$attr['flags'] = [ 'destructive' ];
-		if ( array_key_exists( 'class', $attr ) ) {
-			$attr['classes'][] = $attr['class'];
-		}
-
-		return "\t\t" . new \OOUI\ButtonWidget( $attr ) . "\n";
+		return FormButtons::cancelLinkHTML( $is_disabled, $label, $attr );
 	}
 
+	/** @deprecated since PageForms 6.x — use FormButtons::runQueryButtonHTML() instead. */
 	public static function runQueryButtonHTML( $is_disabled = false, $label = null, $attr = [] ) {
-		// is_disabled is currently ignored
-		$counters = FormCounters::current();
-
-		$counters->tabIndex++;
-		if ( $label == null ) {
-			$label = wfMessage( 'runquery' )->text();
-		}
-		$buttonHTML = self::buttonHTML( 'wpRunQuery', $label, 'submit',
-			$attr + [
-			'id' => 'wpRunQuery',
-			'tabIndex' => $counters->tabIndex,
-			'title' => $label,
-			'flags' => [ 'primary', 'progressive' ],
-			'icon' => 'search'
-		] );
-		return new \OOUI\FieldLayout( $buttonHTML );
+		return FormButtons::runQueryButtonHTML( $is_disabled, $label, $attr );
 	}
 
-	/**
-	 * Much of this function is based on MediaWiki's EditPage::showEditForm().
-	 * @param bool $form_submitted
-	 * @param bool $is_disabled
-	 * @return string
-	 */
+	/** @deprecated since PageForms 6.x — use FormButtons::formBottom() instead. */
 	public static function formBottom( $form_submitted, $is_disabled ) {
-		$req = RequestContext::getMain()->getRequest();
-		$summary = $req->getVal( 'wpSummary' );
-		$user = RequestContext::getMain()->getUser();
-
-		$optionsContent = self::summaryInputHTML( $is_disabled, null, [], $summary );
-		if ( $user->isAllowed( 'minoredit' ) ) {
-			$optionsContent .= self::minorEditInputHTML( $form_submitted, $is_disabled, false );
-		}
-		if ( $user->isRegistered() ) {
-			$optionsContent .= self::watchInputHTML( $form_submitted, $is_disabled );
-		}
-
-		$buttonsContent = self::saveButtonHTML( $is_disabled );
-		$buttonsContent .= self::showPreviewButtonHTML( $is_disabled );
-		$buttonsContent .= self::showChangesButtonHTML( $is_disabled );
-		$buttonsContent .= self::cancelLinkHTML( $is_disabled );
-
-		return Html::rawElement( 'div', [ 'class' => 'editOptions' ],
-			$optionsContent .
-			Html::rawElement( 'div', [ 'class' => 'editButtons' ], $buttonsContent )
-		);
+		return FormButtons::formBottom( $form_submitted, $is_disabled );
 	}
 
 	/** @deprecated since PageForms 6.x — use FormCache::getPreloadedText() instead. */
@@ -393,64 +80,24 @@ class FormUtils {
 		return FormCache::getPreloadedText( $preload );
 	}
 
-	/**
-	 * Used by 'RunQuery' page
-	 * @return \OOUI\FieldLayout
-	 */
+	/** @deprecated since PageForms 6.x — use FormButtons::queryFormBottom() instead. */
 	public static function queryFormBottom() {
-		return self::runQueryButtonHTML( false );
+		return FormButtons::queryFormBottom();
 	}
 
+	/** @deprecated since PageForms 6.x — use FormDateUtils::getMonthNames() instead. */
 	public static function getMonthNames() {
-		return [
-			wfMessage( 'january' )->inContentLanguage()->text(),
-			wfMessage( 'february' )->inContentLanguage()->text(),
-			wfMessage( 'march' )->inContentLanguage()->text(),
-			wfMessage( 'april' )->inContentLanguage()->text(),
-			// Needed to avoid using 3-letter abbreviation
-			wfMessage( 'may_long' )->inContentLanguage()->text(),
-			wfMessage( 'june' )->inContentLanguage()->text(),
-			wfMessage( 'july' )->inContentLanguage()->text(),
-			wfMessage( 'august' )->inContentLanguage()->text(),
-			wfMessage( 'september' )->inContentLanguage()->text(),
-			wfMessage( 'october' )->inContentLanguage()->text(),
-			wfMessage( 'november' )->inContentLanguage()->text(),
-			wfMessage( 'december' )->inContentLanguage()->text()
-		];
+		return FormDateUtils::getMonthNames();
 	}
 
-	/** @var bool Guards against redundant re-computation within the same request. */
-	private static $globalVarsForSpreadsheetSet = false;
-
+	/** @deprecated since PageForms 6.x — use SpreadsheetGlobals::setGlobalVarsForSpreadsheet() instead. */
 	public static function setGlobalVarsForSpreadsheet() {
-		if ( self::$globalVarsForSpreadsheetSet ) {
-			return;
-		}
-		self::$globalVarsForSpreadsheetSet = true;
-
-		global $wgPageFormsContLangYes, $wgPageFormsContLangNo, $wgPageFormsContLangMonths;
-
-		// JS variables that hold boolean and date values in the wiki's
-		// (as opposed to the user's) language.
-		$wgPageFormsContLangYes = wfMessage( 'htmlform-yes' )->inContentLanguage()->text();
-		$wgPageFormsContLangNo = wfMessage( 'htmlform-no' )->inContentLanguage()->text();
-		$monthMessages = [
-			"january", "february", "march", "april", "may_long", "june",
-			"july", "august", "september", "october", "november", "december"
-		];
-		$wgPageFormsContLangMonths = [ '' ];
-		foreach ( $monthMessages as $monthMsg ) {
-			$wgPageFormsContLangMonths[] = wfMessage( $monthMsg )->inContentLanguage()->text();
-		}
+		return SpreadsheetGlobals::setGlobalVarsForSpreadsheet();
 	}
 
-	/**
-	 * Test-only helper to reset the guard in setGlobalVarsForSpreadsheet().
-	 *
-	 * @internal
-	 */
+	/** @deprecated since PageForms 6.x — use SpreadsheetGlobals::resetGlobalVarsForSpreadsheetGuard() instead. */
 	public static function resetGlobalVarsForSpreadsheetGuard() {
-		self::$globalVarsForSpreadsheetSet = false;
+		return SpreadsheetGlobals::resetGlobalVarsForSpreadsheetGuard();
 	}
 
 	/** @deprecated since PageForms 6.x — use FormCache::purgeCache() instead. */
@@ -473,274 +120,39 @@ class FormUtils {
 		return FormCache::getCacheKey( $formId, $parser );
 	}
 
-	/**
-	 * Get section header HTML
-	 * @param string $header_name
-	 * @param int $header_level
-	 * @return string
-	 */
+	/** @deprecated since PageForms 6.x — use FormMarkup::headerHTML() instead. */
 	public static function headerHTML( $header_name, $header_level = 2 ) {
-		$counters = FormCounters::current();
-
-		$counters->tabIndex++;
-		$text = "";
-
-		if ( !is_numeric( $header_level ) ) {
-			// The default header level is set to 2
-			$header_level = 2;
-		}
-
-		$header_level = min( $header_level, 6 );
-		$elementName = 'h' . $header_level;
-		$text = Html::rawElement( $elementName, [], $header_name );
-		return $text;
+		return FormMarkup::headerHTML( $header_name, $header_level );
 	}
 
-	/**
-	 * Get the changed index if a new template or section was
-	 * inserted before the end, or one was deleted in the form
-	 * @param int $i
-	 * @param int|null $new_item_loc
-	 * @param int|null $deleted_item_loc
-	 * @return int
-	 */
+	/** @deprecated since PageForms 6.x — use FormInputValues::getChangedIndex() instead. */
 	public static function getChangedIndex( $i, $new_item_loc, $deleted_item_loc ) {
-		$old_i = $i;
-		if ( $new_item_loc != null ) {
-			if ( $i > $new_item_loc ) {
-				$old_i = $i - 1;
-			} elseif ( $i == $new_item_loc ) {
-				// it's the new template; it shouldn't
-				// get any query-string data
-				$old_i = -1;
-			}
-		} elseif ( $deleted_item_loc != null ) {
-			if ( $i >= $deleted_item_loc ) {
-				$old_i = $i + 1;
-			}
-		}
-		return $old_i;
+		return FormInputValues::getChangedIndex( $i, $new_item_loc, $deleted_item_loc );
 	}
 
+	/** @deprecated since PageForms 6.x — use FormMarkup::setShowOnSelect() instead. */
 	public static function setShowOnSelect( $showOnSelectVals, $inputID, $isCheckbox = false ) {
-		global $wgPageFormsShowOnSelect;
-
-		foreach ( $showOnSelectVals as $divID => $options ) {
-			// A checkbox will just have div ID(s).
-			$data = $isCheckbox ? $divID : [ $options, $divID ];
-			if ( array_key_exists( $inputID, $wgPageFormsShowOnSelect ) ) {
-				$wgPageFormsShowOnSelect[$inputID][] = $data;
-			} else {
-				$wgPageFormsShowOnSelect[$inputID] = [ $data ];
-			}
-		}
+		return FormMarkup::setShowOnSelect( $showOnSelectVals, $inputID, $isCheckbox );
 	}
 
-	/**
-	 * If the value passed in for a certain field, when a form is submitted,
-	 * is an array, then it might be from a checkbox or date input — in that
-	 * case, convert it into a string.
-	 *
-	 * Extracted from FormPrinter, where a forwarding alias is kept for
-	 * backward compatibility with external callers.
-	 *
-	 * @param array $value
-	 * @param string $delimiter
-	 * @return string
-	 */
+	/** @deprecated since PageForms 6.x — use FormInputValues::getStringFromPassedInArray() instead. */
 	public static function getStringFromPassedInArray( $value, $delimiter ) {
-		// If it's just a regular list, concatenate it.
-		// This is needed due to some strange behavior
-		// in PF, where, if a preload page is passed in
-		// in the query string, the form ends up being
-		// parsed twice.
-		if ( array_key_exists( 'is_list', $value ) ) {
-			unset( $value['is_list'] );
-			return str_replace( [ '<', '>' ], [ '&lt;', '&gt;' ], implode( "$delimiter ", $value ) );
-		}
-
-		// if it has 1 or 2 elements, assume it's a checkbox; if it has
-		// 3 elements, assume it's a date
-		// - this handling will have to get more complex if other
-		// possibilities get added
-		if ( count( $value ) == 1 ) {
-			return PFUtils::getWordForYesOrNo( false );
-		} elseif ( count( $value ) == 2 ) {
-			return PFUtils::getWordForYesOrNo( true );
-		// if it's 3 or greater, assume it's a date or datetime
-		} elseif ( count( $value ) >= 3 ) {
-			$month = $value['month'];
-			$day = $value['day'];
-			if ( $day !== '' ) {
-				global $wgAmericanDates;
-				if ( $wgAmericanDates == false ) {
-					// pad out day to always be two digits
-					$day = str_pad( $day, 2, "0", STR_PAD_LEFT );
-				}
-			}
-			$year = $value['year'];
-			$hour = $minute = $second = $ampm24h = $timezone = null;
-			if ( isset( $value['hour'] ) ) {
-				$hour = $value['hour'];
-			}
-			if ( isset( $value['minute'] ) ) {
-				$minute = $value['minute'];
-			}
-			if ( isset( $value['second'] ) ) {
-				$second = $value['second'];
-			}
-			if ( isset( $value['ampm24h'] ) ) {
-				$ampm24h = $value['ampm24h'];
-			}
-			if ( isset( $value['timezone'] ) ) {
-				$timezone = $value['timezone'];
-			}
-			if ( $year !== '' ) {
-				global $wgAmericanDates;
-
-				if ( $month == '' ) {
-					return $year;
-				} elseif ( $day == '' ) {
-					if ( !$wgAmericanDates ) {
-						// The month is a number - we need it to be a string,
-						// so that the date will be parsed correctly if
-						// strtotime() is used.
-						$monthNames = self::getMonthNames();
-						$month = $monthNames[$month - 1];
-					}
-					return "$month $year";
-				} else {
-					if ( $wgAmericanDates == true ) {
-						$new_value = "$month $day, $year";
-					} else {
-						$new_value = "$year/$month/$day";
-					}
-					// If there's a day, include whatever time information we have.
-					if ( $hour !== null ) {
-						$new_value .= " "
-						. str_pad( (string)intval( substr( $hour, 0, 2 ) ), 2, '0', STR_PAD_LEFT )
-						. ":"
-						. str_pad( (string)intval( substr( $minute, 0, 2 ) ), 2, '0', STR_PAD_LEFT );
-					}
-					if ( $second !== null ) {
-						$new_value .= ":" . str_pad( (string)intval( substr( $second, 0, 2 ) ), 2, '0', STR_PAD_LEFT );
-					}
-					if ( $ampm24h !== null ) {
-						$new_value .= " $ampm24h";
-					}
-					if ( $timezone !== null ) {
-						$new_value .= " $timezone";
-					}
-					return $new_value;
-				}
-			}
-		}
-		return '';
+		return FormInputValues::getStringFromPassedInArray( $value, $delimiter );
 	}
 
-	/**
-	 * Returns HTML for a loading overlay (spinner + background mask).
-	 *
-	 * Extracted from FormPrinter, where a forwarding alias is kept for
-	 * backward compatibility with external callers.
-	 *
-	 * @return string
-	 */
+	/** @deprecated since PageForms 6.x — use FormMarkup::displayLoadingImage() instead. */
 	public static function displayLoadingImage() {
-		global $wgPageFormsScriptPath;
-
-		$text = '<div id="loadingMask"></div>';
-		$loadingBGImage = Html::element( 'img', [ 'src' => "$wgPageFormsScriptPath/skins/loadingbg.png" ] );
-		$text .= '<div style="position: fixed; left: 50%; top: 50%;">' . $loadingBGImage . '</div>';
-		$loadingImage = Html::element( 'img', [ 'src' => "$wgPageFormsScriptPath/skins/loading.gif" ] );
-		$text .= '<div style="position: fixed; left: 50%; top: 50%; padding: 48px;">' . $loadingImage . '</div>';
-
-		return Html::rawElement( 'span', [ 'class' => 'loadingImage' ], $text );
+		return FormMarkup::displayLoadingImage();
 	}
 
-	/**
-	 * Returns a string representing the current date (and optionally time).
-	 *
-	 * Extracted from FormPrinter, where a forwarding alias is kept for
-	 * backward compatibility with external callers.
-	 *
-	 * @param bool $includeTime Whether to append the current time.
-	 * @param bool $includeTimezone Whether to append the timezone abbreviation.
-	 * @return string
-	 */
+	/** @deprecated since PageForms 6.x — use FormDateUtils::getStringForCurrentTime() instead. */
 	public static function getStringForCurrentTime( $includeTime, $includeTimezone ) {
-		global $wgLocaltimezone, $wgAmericanDates, $wgPageForms24HourTime;
-
-		$serverTimezone = '';
-		if ( $wgLocaltimezone !== null ) {
-			$serverTimezone = date_default_timezone_get();
-			date_default_timezone_set( $wgLocaltimezone );
-		}
-		$cur_time = time();
-		$year = date( "Y", $cur_time );
-		$month = date( "n", $cur_time );
-		$day = date( "j", $cur_time );
-		if ( $wgAmericanDates == true ) {
-			$month_names = self::getMonthNames();
-			$month_name = $month_names[(int)$month - 1];
-			$curTimeString = "$month_name $day, $year";
-		} else {
-			$curTimeString = "$year-$month-$day";
-		}
-		if ( $wgLocaltimezone !== null ) {
-			date_default_timezone_set( $serverTimezone );
-		}
-		if ( !$includeTime ) {
-			return $curTimeString;
-		}
-
-		if ( $wgPageForms24HourTime ) {
-			$hour = str_pad( (string)intval( substr( date( "G", $cur_time ), 0, 2 ) ), 2, '0', STR_PAD_LEFT );
-		} else {
-			$hour = str_pad( (string)intval( substr( date( "g", $cur_time ), 0, 2 ) ), 2, '0', STR_PAD_LEFT );
-		}
-		$minute = str_pad( (string)intval( substr( date( "i", $cur_time ), 0, 2 ) ), 2, '0', STR_PAD_LEFT );
-		$second = str_pad( (string)intval( substr( date( "s", $cur_time ), 0, 2 ) ), 2, '0', STR_PAD_LEFT );
-		if ( $wgPageForms24HourTime ) {
-			$curTimeString .= " $hour:$minute:$second";
-		} else {
-			$ampm = date( "A", $cur_time );
-			$curTimeString .= " $hour:$minute:$second $ampm";
-		}
-
-		if ( $includeTimezone ) {
-			$timezone = date( "T", $cur_time );
-			$curTimeString .= " $timezone";
-		}
-
-		return $curTimeString;
+		return FormDateUtils::getStringForCurrentTime( $includeTime, $includeTimezone );
 	}
 
-	/**
-	 * Generates a random UUID v4 string.
-	 *
-	 * Extracted from FormPrinter (was private), now public so it can be
-	 * tested and reused outside the form rendering pipeline.
-	 *
-	 * @return string
-	 */
+	/** @deprecated since PageForms 6.x — use FormInputValues::generateUUID() instead. */
 	public static function generateUUID() {
-		// Copied from https://www.php.net/manual/en/function.uniqid.php#94959
-		return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-			// 32 bits for "time_low"
-			mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ),
-			// 16 bits for "time_mid"
-			mt_rand( 0, 0xffff ),
-			// 16 bits for "time_hi_and_version",
-			// four most significant bits holds version number 4
-			mt_rand( 0, 0x0fff ) | 0x4000,
-			// 16 bits, 8 bits for "clk_seq_hi_res",
-			// 8 bits for "clk_seq_low",
-			// two most significant bits holds zero and one for variant DCE1.1
-			mt_rand( 0, 0x3fff ) | 0x8000,
-			// 48 bits for "node"
-			mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff )
-		);
+		return FormInputValues::generateUUID();
 	}
 
 }

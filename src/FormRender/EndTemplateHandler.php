@@ -7,8 +7,8 @@ namespace MediaWiki\Extension\PageForms\FormRender;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
+use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\FormRenderContext;
-use MediaWiki\Extension\PageForms\FormUtils;
 
 /**
  * The {{{end template}}} tag, which closes the template opened by {{{for template}}}.
@@ -32,7 +32,7 @@ class EndTemplateHandler implements ElementHandler {
 		if ( $context->sourceIsPage && $context->tif && !$context->tif->allowsMultiple() ) {
 			// Add any unhandled template fields
 			// in the page as hidden variables.
-			$context->formText .= FormUtils::unhandledFieldsHTML( $context->tif );
+			$context->formText .= FormMarkup::unhandledFieldsHTML( $context->tif );
 		}
 		// The tag itself produces no output.
 		$context->template = null;

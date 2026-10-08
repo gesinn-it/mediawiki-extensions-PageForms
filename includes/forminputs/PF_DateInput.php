@@ -4,7 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormCounters;
-use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\FormDateUtils;
 
 /**
  * @ingroup PFFormInput
@@ -24,7 +24,7 @@ class PFDateInput extends PFFormInput {
 		$counters = FormCounters::current();
 
 		$optionsText = '';
-		$month_names = FormUtils::getMonthNames();
+		$month_names = FormDateUtils::getMonthNames();
 		// Add a "null" value at the beginning.
 		array_unshift( $month_names, null );
 		foreach ( $month_names as $i => $name ) {
@@ -106,7 +106,7 @@ class PFDateInput extends PFFormInput {
 		// outside source.)
 		if ( $date_array['error_count'] > 0 && $wgLanguageCode != 'en' ) {
 			$date = strtolower( $date );
-			$monthNames = FormUtils::getMonthNames();
+			$monthNames = FormDateUtils::getMonthNames();
 			$englishMonthNames = [ 'January', 'February',
 				'March', 'April', 'May', 'June', 'July',
 				'August', 'September', 'October', 'November',
