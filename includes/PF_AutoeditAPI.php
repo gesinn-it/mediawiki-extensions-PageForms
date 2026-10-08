@@ -6,6 +6,7 @@ declare( strict_types=1 );
  * @ingroup PageForms
  */
 
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\HtmlFormDataExtractor;
 use MediaWiki\Logger\LoggerFactory;
@@ -133,7 +134,9 @@ class PFAutoeditAPI extends ApiBase {
 			$parser = PFUtils::ensureParserReadyForTagParse(
 				PFUtils::getParser(), $this->getUser(), RequestContext::getMain()->getTitle()
 			);
-			$this->logMessage( $parser->recursiveTagParseFully( $e->getMessage() ), $e->getCode(), $e );
+			// A form definition error carries its own HTML; every other message is wikitext.
+			$message = $e instanceof FormDefinitionException ? $e->getErrorHtml() : $e->getMessage();
+			$this->logMessage( $parser->recursiveTagParseFully( $message ), $e->getCode(), $e );
 		}
 
 		$this->finalizeResults();

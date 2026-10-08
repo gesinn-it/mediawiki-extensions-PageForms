@@ -1051,6 +1051,32 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
+	 * A malformed form definition throws a FormDefinitionException, whose message is plain
+	 * text; the error shown to the caller is its escaped HTML, with the detail in a pre element.
+	 *
+	 * @covers \PFAutoeditAPI::execute
+	 */
+	public function testAFormDefinitionErrorIsShownAsHtml(): void {
+		$formName = 'AEStoreFormMalformed';
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, $formName ),
+			"{{{for template|AEStoreTpl}}}\n{{{field|<b>x</b>}}}\n{{{end template}}}"
+		);
+
+		$module = $this->executeStore( $formName, 'AEStoreTargetMalformed' );
+
+		$this->assertSame( 400, $module->getStatus() );
+		$message = $module->getResult()->getResultData()['errors'][0]['message'];
+		$this->assertStringContainsString(
+			'<div class="error">Error in form definition! The following field tag contains '
+				. 'forbidden characters:</div>',
+			$message
+		);
+		$this->assertStringContainsString( '<pre>', $message );
+		$this->assertStringContainsString( '&lt;b&gt;x&lt;/b&gt;', $message );
+	}
+
+	/**
 	 * Successfully creating a brand-new page (AS_SUCCESS_NEW_ARTICLE) must
 	 * keep status 200 and set a 'redirect' result value, and the page must
 	 * actually be created.
