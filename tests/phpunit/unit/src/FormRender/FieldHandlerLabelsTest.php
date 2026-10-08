@@ -8,6 +8,7 @@ use MediaWiki\Extension\PageForms\FormFieldExtraHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormRender\FieldHandler;
 use MediaWiki\Extension\PageForms\MappingLabels;
+use MediaWiki\Extension\PageForms\RenderServices;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -43,7 +44,8 @@ class FieldHandlerLabelsTest extends TestCase {
 			$this->createMock( FormFieldHtmlBuilder::class ),
 			$this->createMock( MappingLabels::class ),
 			$this->createMock( FieldValueResolver::class ),
-			$this->createMock( FormFieldExtraHtmlBuilder::class )
+			$this->createMock( FormFieldExtraHtmlBuilder::class ),
+			$this->createMock( RenderServices::class )
 		);
 		$method = new ReflectionMethod( $handler, 'valueAsLabels' );
 		$method->setAccessible( true );

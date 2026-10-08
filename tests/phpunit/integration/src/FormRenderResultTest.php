@@ -1,6 +1,7 @@
 <?php
 
 use MediaWiki\Extension\PageForms\FormPrinter;
+use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Extension\PageForms\FormRenderResult;
 use MediaWiki\MediaWikiServices;
 use OOUI\BlankTheme;
@@ -54,7 +55,7 @@ class FormRenderResultTest extends MediaWikiIntegrationTestCase {
 		$title = Title::makeTitle( NS_MAIN, 'PFRenderResultPage' );
 		$wgOut->getContext()->setTitle( $title );
 		RequestContext::getMain()->setTitle( $title );
-		$printer = new FormPrinter();
+		$printer = FormPrinterFactory::create();
 		$user = $this->getTestUser()->getUser();
 
 		return [
@@ -93,7 +94,7 @@ class FormRenderResultTest extends MediaWikiIntegrationTestCase {
 			. "{{{standard input|run query}}}";
 		$title = Title::makeTitle( NS_MAIN, 'PFRenderResultPage' );
 		RequestContext::getMain()->setTitle( $title );
-		$printer = new FormPrinter();
+		$printer = FormPrinterFactory::create();
 		$user = $this->getTestUser()->getUser();
 
 		$first = $printer->render( $withTag, false, false, null, null, null, null, true, false, false, [], $user );
@@ -109,7 +110,7 @@ class FormRenderResultTest extends MediaWikiIntegrationTestCase {
 		$innerDef = "{{{for template|PFNestedTpl}}}\n{{{field|Other}}}\n{{{end template}}}";
 		$this->editPage( 'PFNestedInnerPage', 'existing' );
 		$user = $this->getTestUser()->getUser();
-		$printer = new FormPrinter();
+		$printer = FormPrinterFactory::create();
 		$renderOuter = static fn () => $printer->render(
 			$outerDef, false, false, null, null, 'PFNestedOuterPage', null, false, false, false, [], $user
 		);

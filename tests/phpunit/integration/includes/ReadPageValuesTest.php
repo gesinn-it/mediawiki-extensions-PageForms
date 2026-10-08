@@ -1,6 +1,6 @@
 <?php
 
-use MediaWiki\Extension\PageForms\FormPrinter;
+use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\MediaWikiServices;
 use OOUI\BlankTheme;
 
@@ -223,7 +223,7 @@ class ReadPageValuesTest extends MediaWikiIntegrationTestCase {
 	public function testReadPageValues( string $formDef, string $page, array $expected ): void {
 		$this->insertPage( Title::makeTitle( NS_TEMPLATE, 'AEParityMapTpl' ), 'Label {{{1}}}' );
 
-		$values = ( new FormPrinter() )->readPageValues( $formDef, $page )->toOptions();
+		$values = ( FormPrinterFactory::create() )->readPageValues( $formDef, $page )->toOptions();
 
 		$this->assertEquals( $expected, $values );
 	}

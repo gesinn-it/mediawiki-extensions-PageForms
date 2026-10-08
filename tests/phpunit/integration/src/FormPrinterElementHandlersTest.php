@@ -3,6 +3,7 @@
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormPrinter;
+use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Extension\PageForms\FormRender\ElementHandlerException;
 use MediaWiki\Extension\PageForms\FormRender\TextHandler;
 use MediaWiki\Extension\PageForms\FormRenderContext;
@@ -21,7 +22,7 @@ class FormPrinterElementHandlersTest extends MediaWikiIntegrationTestCase {
 	private function handlerTable(): array {
 		$property = new ReflectionProperty( FormPrinter::class, 'elementHandlers' );
 		$property->setAccessible( true );
-		return $property->getValue( new FormPrinter() );
+		return $property->getValue( FormPrinterFactory::create() );
 	}
 
 	/**
@@ -60,7 +61,7 @@ class FormPrinterElementHandlersTest extends MediaWikiIntegrationTestCase {
 
 	public function testElementWithoutHandlerIsAnError(): void {
 		$element = $this->newForeignElement();
-		$printer = new FormPrinter();
+		$printer = FormPrinterFactory::create();
 		$method = new ReflectionMethod( $printer, 'getElementHandler' );
 		$method->setAccessible( true );
 

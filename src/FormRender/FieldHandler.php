@@ -15,9 +15,9 @@ use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormPlaceholder;
 use MediaWiki\Extension\PageForms\FormRenderContext;
 use MediaWiki\Extension\PageForms\MappingLabels;
+use MediaWiki\Extension\PageForms\RenderServices;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateInForm;
-use MediaWiki\MediaWikiServices;
 use PFTextAreaInput;
 use PFUtils;
 
@@ -52,12 +52,16 @@ class FieldHandler implements ElementHandler {
 
 	private FormFieldExtraHtmlBuilder $extraHtmlBuilder;
 
+	private RenderServices $services;
+
 	public function __construct(
 		FormFieldHtmlBuilder $formFieldHtmlBuilder,
 		MappingLabels $mappingLabels,
 		FieldValueResolver $fieldValueResolver,
-		FormFieldExtraHtmlBuilder $extraHtmlBuilder
+		FormFieldExtraHtmlBuilder $extraHtmlBuilder,
+		RenderServices $services
 	) {
+		$this->services = $services;
 		$this->extraHtmlBuilder = $extraHtmlBuilder;
 		$this->formFieldHtmlBuilder = $formFieldHtmlBuilder;
 		$this->mappingLabels = $mappingLabels;
@@ -275,7 +279,7 @@ class FieldHandler implements ElementHandler {
 	private function runCreateFormFieldHook(
 		FormField $form_field, &$cur_value, &$cur_value_in_template, FormRenderContext $context
 	): void {
-		$hookContainer = MediaWikiServices::getInstance()->getHookContainer();
+		$hookContainer = $this->services->hookContainer();
 		if ( $context->request->formSubmitted ) {
 			$hookContainer->run( 'PageForms::CreateFormField', [ &$form_field, &$cur_value_in_template, true ] );
 		} else {

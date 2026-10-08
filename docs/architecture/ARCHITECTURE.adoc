@@ -197,6 +197,14 @@ form, once per instance for a template that allows multiple instances, and `Page
 creates the text of the page. Tab index and field number are kept in `FormCounters`; the global
 variables `$wgPageFormsTabIndex` and `$wgPageFormsFieldNum` only mirror them and are deprecated.
 
+`FormPrinterFactory` owns the wiring. `FormPrinterFactory::create()` builds a `FormPrinter` from its
+collaborators (a `FormPrinterParts`) and runs the `PageForms::FormPrinterSetup` hook on the finished
+printer; the `FormPrinter` constructor does no wiring. A test passes the fake it needs to `create()`
+and gets the defaults for the rest. `new FormPrinter()` without arguments is deprecated and does the
+same. The MediaWiki services that rendering needs (hooks, permissions, read-only mode, parser factory)
+come through `RenderServices`, which looks each one up when it is used, because the printer outlives
+the service container in tests. It is the one place of the rendering that asks `MediaWikiServices`.
+
 Responsibilities include:
 
 * generating the HTML structure of the form

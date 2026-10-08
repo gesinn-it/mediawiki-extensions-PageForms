@@ -38,7 +38,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		// singleton here so every test in this class starts from a FormPrinter
 		// bound to the current service container.
 		global $wgPageFormsFormPrinter;
-		$wgPageFormsFormPrinter = new FormPrinter();
+		$wgPageFormsFormPrinter = FormPrinterFactory::create();
 
 		parent::setUp();
 	}
@@ -808,13 +808,13 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testShowDeletionLogReturnsFalseWithoutPageTitle(): void {
-		$formPrinter = new FormPrinter();
+		$formPrinter = FormPrinterFactory::create();
 		$result = $formPrinter->showDeletionLog( RequestContext::getMain()->getOutput() );
 		$this->assertFalse( $result );
 	}
 
 	public function testShowDeletionLogReturnsTrueWithPageTitle(): void {
-		$formPrinter = new FormPrinter();
+		$formPrinter = FormPrinterFactory::create();
 		$result = $formPrinter->showDeletionLog(
 			RequestContext::getMain()->getOutput(),
 			Title::makeTitle( NS_MAIN, 'TestShowDeletionLogPage' )
@@ -1786,7 +1786,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$render = static fn ( FormPrinter $printer ) => $printer->render(
 			$formDef, false, false, null, null, 'PFTestLateRegistrationPage', null, false, false, false, [], $user
 		)->getFormText();
-		$printer = new FormPrinter();
+		$printer = FormPrinterFactory::create();
 
 		$this->assertStringNotContainsString( StubFormInput::STUB_HTML, $render( $printer ) );
 
@@ -1806,7 +1806,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	public function testDeprecatedHookPropertiesReadTheRegistry(): void {
 		$this->hideDeprecated( FormPrinter::class . '::$mInputTypeHooks' );
 		$this->hideDeprecated( FormPrinter::class . '::$mSemanticTypeHooks' );
-		$printer = new FormPrinter();
+		$printer = FormPrinterFactory::create();
 
 		$this->assertSame( [ 'PFTextInput', [] ], $printer->mInputTypeHooks['text'] );
 		$this->assertTrue( isset( $printer->mInputTypeHooks['text'] ) );
@@ -1819,7 +1819,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	public function testWritingDeprecatedHookPropertiesChangesTheRegistry(): void {
 		$this->hideDeprecated( FormPrinter::class . '::$mInputTypeHooks' );
 		$this->hideDeprecated( FormPrinter::class . '::$mSemanticTypeHooks' );
-		$printer = new FormPrinter();
+		$printer = FormPrinterFactory::create();
 
 		$printer->mInputTypeHooks['mine'] = [ 'MyInput', [ 'a' => 1 ] ];
 		$printer->mSemanticTypeHooks['_mine'] = [ 0 => [ 'MyInput', [] ] ];
@@ -1833,7 +1833,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
 	public function testAssigningDeprecatedHookPropertyFillsTheRegistry(): void {
 		$this->hideDeprecated( FormPrinter::class . '::$mInputTypeHooks' );
-		$printer = new FormPrinter();
+		$printer = FormPrinterFactory::create();
 
 		$printer->mInputTypeHooks = [ 'mine' => [ 'MyInput', [] ] ];
 
@@ -1842,7 +1842,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testUnknownPropertyCannotBeReadOrSetAndIsNotCreated(): void {
-		$printer = new FormPrinter();
+		$printer = FormPrinterFactory::create();
 
 		try {
 			$printer->noSuchProperty = 1;
@@ -1855,6 +1855,22 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
 		$this->expectException( LogicException::class );
 		$printer->noSuchProperty;
+	}
+
+	public function testConstructingWithoutPartsIsDeprecatedButBuildsAWorkingPrinterAndRunsTheSetupHook(): void {
+		$this->hideDeprecated( 'new ' . FormPrinter::class . '() without arguments' );
+		$seen = null;
+		$this->setTemporaryHook(
+			'PageForms::FormPrinterSetup',
+			static function ( FormPrinter $printer ) use ( &$seen ) {
+				$seen = $printer;
+			}
+		);
+
+		$printer = new FormPrinter();
+
+		$this->assertSame( $printer, $seen );
+		$this->assertContains( 'text', $printer->getAllInputTypes() );
 	}
 
 	public function testSetupHookSeesAFullyBuiltPrinter(): void {
@@ -1871,14 +1887,14 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 			}
 		);
 
-		new FormPrinter();
+		FormPrinterFactory::create();
 
 		$this->assertSame( [], $uninitialized );
 	}
 
 	public function testFactoryGetReturnsThePrinterInTheGlobalAndCreatesOneIfThereIsNone(): void {
 		global $wgPageFormsFormPrinter;
-		$existing = new FormPrinter();
+		$existing = FormPrinterFactory::create();
 		$wgPageFormsFormPrinter = $existing;
 
 		$this->assertSame( $existing, FormPrinterFactory::get() );

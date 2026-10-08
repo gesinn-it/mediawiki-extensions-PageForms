@@ -1,6 +1,7 @@
 <?php
 
 use MediaWiki\Extension\PageForms\FormPrinter;
+use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\MediaWikiServices;
 use OOUI\BlankTheme;
 
@@ -44,7 +45,7 @@ class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 
 		// A FormPrinter bound to the current service container (see FormPrinterTest::setUp()).
 		global $wgPageFormsFormPrinter;
-		$wgPageFormsFormPrinter = new FormPrinter();
+		$wgPageFormsFormPrinter = FormPrinterFactory::create();
 
 		parent::setUp();
 	}

@@ -9,32 +9,15 @@ use FatalError;
 use Html;
 use LogEventsList;
 use LogicException;
-use MediaWiki\Extension\PageForms\FormDefinition\EndTemplateSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
-use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
-use MediaWiki\Extension\PageForms\FormDefinition\InfoSpec;
-use MediaWiki\Extension\PageForms\FormDefinition\SectionSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\StandardInputSpec;
-use MediaWiki\Extension\PageForms\FormDefinition\TemplateSpec;
-use MediaWiki\Extension\PageForms\FormDefinition\TextSpec;
-use MediaWiki\Extension\PageForms\FormDefinition\UnknownTagSpec;
 use MediaWiki\Extension\PageForms\FormRender\ElementHandler;
 use MediaWiki\Extension\PageForms\FormRender\ElementHandlerException;
-use MediaWiki\Extension\PageForms\FormRender\EndTemplateHandler;
-use MediaWiki\Extension\PageForms\FormRender\FieldHandler;
 use MediaWiki\Extension\PageForms\FormRender\FinalizedForm;
-use MediaWiki\Extension\PageForms\FormRender\InfoHandler;
 use MediaWiki\Extension\PageForms\FormRender\PageEditability;
 use MediaWiki\Extension\PageForms\FormRender\PageTextAssembler;
-use MediaWiki\Extension\PageForms\FormRender\SectionHandler;
 use MediaWiki\Extension\PageForms\FormRender\SectionLayout;
-use MediaWiki\Extension\PageForms\FormRender\StandardInputHandler;
-use MediaWiki\Extension\PageForms\FormRender\TemplateHandler;
-use MediaWiki\Extension\PageForms\FormRender\TextHandler;
-use MediaWiki\Extension\PageForms\FormRender\UnknownTagHandler;
-use MediaWiki\HookContainer\HookContainer;
-use MediaWiki\MediaWikiServices;
 use MWException;
 use OutputPage;
 use Parser;
@@ -74,10 +57,6 @@ class FormPrinter {
 
 	private FormDefParser $formDefParser;
 
-	private FormDefinitionReader $formDefReader;
-
-	private FieldValueResolver $fieldValueResolver;
-
 	private SectionLayout $sectionLayout;
 
 	private PageTextAssembler $pageTextAssembler;
@@ -85,79 +64,34 @@ class FormPrinter {
 	/** @var array<class-string, ElementHandler> The handler of each type of form definition element */
 	private array $elementHandlers;
 
-	private MappingLabels $mappingLabels;
+	private RenderServices $services;
 
 	/**
-	 * Every collaborator can be passed in; those left out are created with their defaults, which
-	 * is what the extension itself does. A test can pass in a fake for the one it needs and no
-	 * globals or services are touched for the others.
+	 * Build the printer from its collaborators and do nothing else: FormPrinterFactory::create()
+	 * builds the default ones and runs the setup hook.
 	 *
-	 * @param InputTypeRegistry|null $inputTypeRegistry
-	 * @param CalendarHtmlBuilder|null $calendarHtmlBuilder
-	 * @param SpreadsheetHtmlBuilder|null $spreadsheetHtmlBuilder
-	 * @param MultipleTemplateHtmlBuilder|null $multipleTemplateHtmlBuilder
-	 * @param FormFieldHtmlBuilder|null $formFieldHtmlBuilder
-	 * @param FormDefParser|null $formDefParser
-	 * @param FormDefinitionReader|null $formDefReader
-	 * @param FieldValueResolver|null $fieldValueResolver
-	 * @param MappingLabels|null $mappingLabels
-	 * @param SectionLayout|null $sectionLayout
-	 * @param PageTextAssembler|null $pageTextAssembler
-	 * @param array<class-string, ElementHandler>|null $elementHandlers
-	 * @param HookContainer|null $hookContainer
+	 * @param FormPrinterParts|null $parts Null is the deprecated route, which builds the default
+	 *   collaborators and runs the setup hook here; use FormPrinterFactory::create() instead.
 	 */
-	public function __construct(
-		?InputTypeRegistry $inputTypeRegistry = null,
-		?CalendarHtmlBuilder $calendarHtmlBuilder = null,
-		?SpreadsheetHtmlBuilder $spreadsheetHtmlBuilder = null,
-		?MultipleTemplateHtmlBuilder $multipleTemplateHtmlBuilder = null,
-		?FormFieldHtmlBuilder $formFieldHtmlBuilder = null,
-		?FormDefParser $formDefParser = null,
-		?FormDefinitionReader $formDefReader = null,
-		?FieldValueResolver $fieldValueResolver = null,
-		?MappingLabels $mappingLabels = null,
-		?SectionLayout $sectionLayout = null,
-		?PageTextAssembler $pageTextAssembler = null,
-		?array $elementHandlers = null,
-		?HookContainer $hookContainer = null
-	) {
-		$hookContainer ??= MediaWikiServices::getInstance()->getHookContainer();
-		$this->mappingLabels = $mappingLabels ?? new MappingLabels();
-		$this->inputTypeRegistry = $inputTypeRegistry ?? InputTypeRegistry::newWithBuiltInTypes();
-		$this->calendarHtmlBuilder = $calendarHtmlBuilder ?? new CalendarHtmlBuilder();
-		$this->multipleTemplateHtmlBuilder = $multipleTemplateHtmlBuilder ?? new MultipleTemplateHtmlBuilder();
-		$this->spreadsheetHtmlBuilder = $spreadsheetHtmlBuilder ?? new SpreadsheetHtmlBuilder();
-		$this->formDefReader = $formDefReader ?? new FormDefinitionReader();
-		$this->fieldValueResolver = $fieldValueResolver ?? new FieldValueResolver();
-		$this->formFieldHtmlBuilder = $formFieldHtmlBuilder ?? new FormFieldHtmlBuilder( $this->inputTypeRegistry );
-		$this->formDefParser = $formDefParser ?? new FormDefParser(
-			MediaWikiServices::getInstance()->getParserFactory(), $this->formDefReader
-		);
-		$this->sectionLayout = $sectionLayout ?? new SectionLayout(
-			$this->multipleTemplateHtmlBuilder, $this->spreadsheetHtmlBuilder, $this->calendarHtmlBuilder,
-			$this->formFieldHtmlBuilder
-		);
-		$this->pageTextAssembler = $pageTextAssembler ?? new PageTextAssembler( $hookContainer );
-		$this->elementHandlers = $elementHandlers ?? [
-			FieldSpec::class => new FieldHandler(
-				$this->formFieldHtmlBuilder, $this->mappingLabels, $this->fieldValueResolver,
-				new FormFieldExtraHtmlBuilder()
-			),
-			TextSpec::class => new TextHandler(),
-			UnknownTagSpec::class => new UnknownTagHandler(),
-			TemplateSpec::class => new TemplateHandler(),
-			EndTemplateSpec::class => new EndTemplateHandler(),
-			InfoSpec::class => new InfoHandler(),
-			StandardInputSpec::class => new StandardInputHandler(),
-			SectionSpec::class => new SectionHandler(),
-		];
-
-		// All-purpose setup hook, run last so that it sees a fully built printer.
-		// Avoid PHP 7.1 warning from passing $this by reference.
-		$formPrinterRef = $this;
-		$hookContainer->run(
-			'PageForms::FormPrinterSetup', [ &$formPrinterRef ]
-		);
+	public function __construct( ?FormPrinterParts $parts = null ) {
+		$deprecatedRoute = $parts === null;
+		if ( $deprecatedRoute ) {
+			wfDeprecated( 'new ' . __CLASS__ . '() without arguments', '2.3.0' );
+			$parts = FormPrinterFactory::newParts();
+		}
+		$this->inputTypeRegistry = $parts->inputTypeRegistry;
+		$this->calendarHtmlBuilder = $parts->calendarHtmlBuilder;
+		$this->spreadsheetHtmlBuilder = $parts->spreadsheetHtmlBuilder;
+		$this->multipleTemplateHtmlBuilder = $parts->multipleTemplateHtmlBuilder;
+		$this->formFieldHtmlBuilder = $parts->formFieldHtmlBuilder;
+		$this->formDefParser = $parts->formDefParser;
+		$this->sectionLayout = $parts->sectionLayout;
+		$this->pageTextAssembler = $parts->pageTextAssembler;
+		$this->elementHandlers = $parts->elementHandlers;
+		$this->services = $parts->services;
+		if ( $deprecatedRoute ) {
+			FormPrinterFactory::runSetupHook( $this, $this->services );
+		}
 	}
 
 	/**
@@ -491,14 +425,14 @@ class FormPrinter {
 		// permission errors from the start, and use those to determine
 		// whether the page is editable.
 		if ( !$request->isQuery ) {
-			$permissionErrors = MediaWikiServices::getInstance()->getPermissionManager()
-					->getPermissionErrors( 'edit', $request->user, $pageTitle );
-			if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
-				$permissionErrors = [ [ 'readonlytext',
-					[ MediaWikiServices::getInstance()->getReadOnlyMode()->getReason() ] ] ];
+			$permissionErrors = $this->services->permissionManager()
+				->getPermissionErrors( 'edit', $request->user, $pageTitle );
+			$readOnlyMode = $this->services->readOnlyMode();
+			if ( $readOnlyMode->isReadOnly() ) {
+				$permissionErrors = [ [ 'readonlytext', [ $readOnlyMode->getReason() ] ] ];
 			}
 			$userCanEditPage = count( $permissionErrors ) == 0;
-			MediaWikiServices::getInstance()->getHookContainer()->run(
+			$this->services->hookContainer()->run(
 				'PageForms::UserCanEditPage', [ $pageTitle, &$userCanEditPage ]
 			);
 		}
@@ -546,7 +480,7 @@ class FormPrinter {
 		$form_text .= "\t</form>\n";
 
 		$context->parser->replaceLinkHolders( $form_text );
-		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::RenderingEnd', [ &$form_text ] );
+		$this->services->hookContainer()->run( 'PageForms::RenderingEnd', [ &$form_text ] );
 
 		$parserOutput = $this->finalParserOutput( $context );
 
@@ -751,7 +685,7 @@ class FormPrinter {
 			}
 		} else {
 			// MW 1.43+: create a fresh parser via the factory
-			$parser = MediaWikiServices::getInstance()->getParserFactory()->create();
+			$parser = $this->services->parserFactory()->create();
 			$parser->setOptions( ParserOptions::newFromUser( $user ) );
 		}
 		$parser->setTitle( $pageTitle );
