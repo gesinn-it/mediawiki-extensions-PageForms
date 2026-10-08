@@ -70,6 +70,30 @@ endif
 .git-safe-dir: .init
 	$(compose-exec-wiki) bash -c "git config --global --add safe.directory $(EXTENSION_FOLDER) 2>/dev/null || true"
 
+# CI coverage run split in two jobs: the JSONScript suite is half of the PHP test time,
+# so it runs in a job of its own and the other suites, PHP analysis and JS coverage in another.
+# Codecov merges the two uploads of the commit.
+# Same shell tail as composer-test-coverage of docker-compose-ci, so the failure handling stays the same.
+.PHONY: ci-coverage-quick
+ci-coverage-quick: install composer-test-coverage-quick npm-test-coverage
+
+.PHONY: ci-coverage-jsonscript
+ci-coverage-jsonscript: install composer-test-coverage-jsonscript
+
+.PHONY: composer-test-coverage-quick
+composer-test-coverage-quick: .init
+ifdef COMPOSER_EXT
+	$(show-current-target)
+	$(compose-exec-wiki-ci) bash -c "cd $(EXTENSION_FOLDER) && composer analyze && PF_COVERAGE_SUITES='unit integration' composer phpunit-coverage $(COMPOSER_PARAMS) && composer post-test-coverage > /dev/null 2>&1 || true"
+endif
+
+.PHONY: composer-test-coverage-jsonscript
+composer-test-coverage-jsonscript: .init
+ifdef COMPOSER_EXT
+	$(show-current-target)
+	$(compose-exec-wiki-ci) bash -c "cd $(EXTENSION_FOLDER) && PF_COVERAGE_SUITES=jsonscript composer phpunit-coverage $(COMPOSER_PARAMS) && composer post-test-coverage > /dev/null 2>&1 || true"
+endif
+
 # PHP development cycle: lint (full) + phpunit
 # Optional:
 #   FILTER=PFFormCacheTest   restricts phpunit via --filter
