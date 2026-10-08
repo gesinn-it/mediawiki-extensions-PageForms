@@ -21,7 +21,7 @@ class StandardInputHtmlBuilder {
 	 * @param bool $formSubmitted
 	 * @param WebRequest $request
 	 * @param Parser $parser
-	 * @param Title|null $pageTitle The resolved page title (mPageTitle from FormPrinter).
+	 * @param Title|null $pageTitle The resolved page title (from the render context).
 	 * @param string|null $pageName The raw page name string passed to formHTML().
 	 * @return string HTML fragment
 	 */

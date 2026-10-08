@@ -821,8 +821,10 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
 	public function testShowDeletionLogReturnsTrueWithPageTitle(): void {
 		$formPrinter = new FormPrinter();
-		$formPrinter->mPageTitle = Title::makeTitle( NS_MAIN, 'TestShowDeletionLogPage' );
-		$result = $formPrinter->showDeletionLog( RequestContext::getMain()->getOutput() );
+		$result = $formPrinter->showDeletionLog(
+			RequestContext::getMain()->getOutput(),
+			Title::makeTitle( NS_MAIN, 'TestShowDeletionLogPage' )
+		);
 		$this->assertTrue( $result );
 	}
 
@@ -1282,6 +1284,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		// object the parser's title, which the parser then calls real
 		// language/link methods on while parsing the form definition.
 		$title = Title::makeTitle( NS_MAIN, 'PFTestEmbeddedFormPage01' );
+		$this->editPage( $title, 'existing' );
 		$wgOut->getContext()->setTitle( $title );
 		RequestContext::getMain()->setTitle( $title );
 
@@ -1294,7 +1297,9 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		);
 
 		$this->assertNotEmpty( $formHtml );
-		$this->assertSame( $title, $wgPageFormsFormPrinter->mPageTitle );
+		// The hidden edit time is read from the page the form resolved its title to.
+		$timestamp = PFUtils::newWikiPageFromTitle( $title )->getTimestamp();
+		$this->assertStringContainsString( "value=\"$timestamp\" name=\"wpEdittime\"", $formHtml );
 	}
 
 	// -------------------------------------------------------------------------

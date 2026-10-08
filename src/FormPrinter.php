@@ -55,20 +55,6 @@ class FormPrinter {
 	 * @var array
 	 */
 	public $mInputTypeHooks;
-	/**
-	 * Whether the form definition already includes a custom "standard input"
-	 * (save/watch/minor-edit controls), so the default set should not be appended.
-	 *
-	 * @var bool
-	 */
-	public $standardInputsIncluded;
-	/**
-	 * This property stores mPageTitle values
-	 *
-	 * @var Title|null
-	 */
-	public $mPageTitle;
-
 	/** Owned by InputTypeRegistry; FormPrinter delegates to it for all input-type lookups. */
 	private InputTypeRegistry $inputTypeRegistry;
 
@@ -90,8 +76,6 @@ class FormPrinter {
 
 	private FieldValueResolver $fieldValueResolver;
 
-	private ?FormCounters $counters = null;
-
 	private MappingLabels $mappingLabels;
 
 	public function __construct() {
@@ -108,8 +92,6 @@ class FormPrinter {
 		$this->formDefReader = new FormDefinitionReader();
 		$this->formSectionHtmlBuilder = new FormSectionHtmlBuilder();
 		$this->fieldValueResolver = new FieldValueResolver();
-
-		$this->standardInputsIncluded = false;
 
 		$this->registerInputType( 'PFTextInput' );
 		$this->registerInputType( 'PFTextWithAutocompleteInput' );
@@ -212,13 +194,14 @@ class FormPrinter {
 	/**
 	 * Show the set of previous deletions for the page being edited.
 	 * @param OutputPage $out
+	 * @param Title|null $title
 	 * @return bool
 	 */
-	public function showDeletionLog( $out ) {
-		if ( $this->mPageTitle === null ) {
+	public function showDeletionLog( $out, ?Title $title = null ) {
+		if ( $title === null ) {
 			return false;
 		}
-		LogEventsList::showLogExtract( $out, 'delete', $this->mPageTitle->getPrefixedText(),
+		LogEventsList::showLogExtract( $out, 'delete', $title->getPrefixedText(),
 			'', [ 'lim' => 10,
 				'conds' => [ "log_action != 'revision'" ],
 				'showIfEmpty' => false,
@@ -281,19 +264,22 @@ class FormPrinter {
 	 * @param TemplateInForm $template_in_form
 	 * @param bool $form_is_disabled
 	 * @param string $section
+	 * @param FormCounters|null $counters
 	 * @return string
 	 */
-	public function multipleTemplateEndHTML( $template_in_form, $form_is_disabled, $section ) {
+	public function multipleTemplateEndHTML(
+		$template_in_form, $form_is_disabled, $section, ?FormCounters $counters = null
+	) {
 		return $this->multipleTemplateHtmlBuilder->multipleTemplateEndHTML(
-			$template_in_form, $form_is_disabled, $section, $this->counters
+			$template_in_form, $form_is_disabled, $section, $counters
 		);
 	}
 
-	public function tableHTML( $tif, $instanceNum, Parser $parser ) {
+	public function tableHTML( $tif, $instanceNum, Parser $parser, ?FormCounters $counters = null ) {
 		return $this->spreadsheetHtmlBuilder->tableHTML(
 			$tif, $instanceNum,
-			fn ( $formField, $curValue ) => $this->formFieldHTML( $formField, $curValue, $parser ),
-			$this->counters
+			fn ( $formField, $curValue ) => $this->formFieldHTML( $formField, $curValue, $parser, $counters ),
+			$counters
 		);
 	}
 
@@ -366,7 +352,7 @@ class FormPrinter {
 	}
 
 	/**
-	 * Resolve $this->mPageTitle (needed for permission testing even when the real
+	 * Resolve $context->pageTitle (needed for permission testing even when the real
 	 * page name isn't known yet) and compute the edit-permission errors for formHTML().
 	 *
 	 * Also shows the page's previous deletion log, as a side effect, matching the
@@ -379,10 +365,12 @@ class FormPrinter {
 	 * @param WebRequest $request
 	 * @param User $user
 	 * @param bool $form_submitted
+	 * @param FormRenderContext $context
 	 * @return array [ array $permissionErrors, bool $userCanEditPage ]
 	 */
 	private function resolvePageTitleAndPermissions(
-		$is_embedded, $is_query, $page_name, $page_name_formula, $request, $user, $form_submitted
+		$is_embedded, $is_query, $page_name, $page_name_formula, $request, $user, $form_submitted,
+		FormRenderContext $context
 	): array {
 		// Disable all form elements if user doesn't have edit
 		// permission - two different checks are needed, because
@@ -393,18 +381,18 @@ class FormPrinter {
 			// If this is an embedded form (probably a 'RunQuery') or we're in Special:RunQuery,
 			// just use the name of the actual page we're on.
 			$titleGlobal = RequestContext::getMain()->getTitle();
-			$this->mPageTitle = $titleGlobal;
+			$context->pageTitle = $titleGlobal;
 		} elseif ( $page_name === '' || $page_name === null ) {
-			$this->mPageTitle = Title::newFromText(
+			$context->pageTitle = Title::newFromText(
 				$request->getVal( 'namespace' ) . ":Page Forms permissions test" );
 		} else {
 			// $page_name may not be a syntactically valid title (e.g. it was
 			// generated from a page name formula, or came from an untrusted
 			// request value); fall back to the same placeholder title used
 			// above for permission-testing purposes rather than leaving
-			// $this->mPageTitle null, which fatals in getPermissionErrors()
+			// $context->pageTitle null, which fatals in getPermissionErrors()
 			// and other unguarded uses below.
-			$this->mPageTitle = Title::newFromText( $page_name ) ?? Title::newFromText(
+			$context->pageTitle = Title::newFromText( $page_name ) ?? Title::newFromText(
 				$request->getVal( 'namespace' ) . ":Page Forms permissions test" );
 		}
 
@@ -412,10 +400,10 @@ class FormPrinter {
 		// Show previous set of deletions for this page, if it's been
 		// deleted before.
 		if ( !$form_submitted &&
-			( $this->mPageTitle && !$this->mPageTitle->exists() &&
+			( $context->pageTitle && !$context->pageTitle->exists() &&
 			$page_name_formula === null )
 		) {
-			$this->showDeletionLog( $wgOut );
+			$this->showDeletionLog( $wgOut, $context->pageTitle );
 		}
 
 		$permissionErrors = [];
@@ -427,14 +415,14 @@ class FormPrinter {
 		// whether the page is editable.
 		if ( !$is_query ) {
 			$permissionErrors = MediaWikiServices::getInstance()->getPermissionManager()
-					->getPermissionErrors( 'edit', $user, $this->mPageTitle );
+					->getPermissionErrors( 'edit', $user, $context->pageTitle );
 			if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
 				$permissionErrors = [ [ 'readonlytext',
 					[ MediaWikiServices::getInstance()->getReadOnlyMode()->getReason() ] ] ];
 			}
 			$userCanEditPage = count( $permissionErrors ) == 0;
 			MediaWikiServices::getInstance()->getHookContainer()->run(
-				'PageForms::UserCanEditPage', [ $this->mPageTitle, &$userCanEditPage ]
+				'PageForms::UserCanEditPage', [ $context->pageTitle, &$userCanEditPage ]
 			);
 		}
 
@@ -452,9 +440,10 @@ class FormPrinter {
 	 *   wiki_page, page_name_formula, page_name, is_query, source_page_matches_this_form,
 	 *   form_submitted, form_is_disabled, user, parser, formDefParserModules,
 	 *   formDefParserModuleStyles, is_embedded, form_page_title
+	 * @param FormRenderContext $context
 	 * @return array [ string $form_text, string $page_text, string|null $form_page_title, ParserOutput $parserOutput ]
 	 */
-	private function finalizeFormAndPageText( array $args ): array {
+	private function finalizeFormAndPageText( array $args, FormRenderContext $context ): array {
 		$form_text = $args['form_text'];
 		$existing_page_content = $args['existing_page_content'];
 		$request = $args['request'];
@@ -522,7 +511,7 @@ class FormPrinter {
 		// Add a warning in, if we're editing an existing page and that
 		// page appears to not have been created with this form.
 		if ( !$args['is_query'] && $args['page_name_formula'] === null &&
-			$this->mPageTitle->exists() && $existing_page_content !== ''
+			$context->pageTitle->exists() && $existing_page_content !== ''
 			&& !$args['source_page_matches_this_form'] ) {
 			$form_text = "\t" . '<div class="warningbox">' .
 				// Prepend with a colon in case it's a file or category page.
@@ -531,7 +520,7 @@ class FormPrinter {
 		}
 
 		// Add form bottom, if no custom "standard inputs" have been defined.
-		if ( !$this->standardInputsIncluded ) {
+		if ( !$context->standardInputsIncluded ) {
 			if ( $args['is_query'] ) {
 				$form_text .= FormUtils::queryFormBottom();
 			} else {
@@ -544,7 +533,7 @@ class FormPrinter {
 			// This variable is called $mwWikiPage and not
 			// something simpler, to avoid confusion with the
 			// variable $wiki_page, which is of type PFWikiPage.
-			$mwWikiPage = PFUtils::newWikiPageFromTitle( $this->mPageTitle );
+			$mwWikiPage = PFUtils::newWikiPageFromTitle( $context->pageTitle );
 			$form_text .= Html::hidden( 'wpEdittime', $mwWikiPage->getTimestamp() );
 			$form_text .= Html::hidden( 'editRevId', 0 );
 			$form_text .= Html::hidden( 'wpEditToken', $user->getEditToken() );
@@ -587,7 +576,7 @@ class FormPrinter {
 	/**
 	 * Build the HTML for a {{{standard input}}} form-definition tag, as used by formHTML().
 	 * Caller is responsible for the "ignore this tag" early-exit (query vs. non-query
-	 * 'run query' handling) and for setting $this->standardInputsIncluded.
+	 * 'run query' handling) and for setting $context->standardInputsIncluded.
 	 *
 	 * @param string $input_name
 	 * @param array $tag_components
@@ -596,10 +585,12 @@ class FormPrinter {
 	 * @param WebRequest $request
 	 * @param Parser $parser
 	 * @param string|null $page_name
+	 * @param FormRenderContext $context
 	 * @return string
 	 */
 	private function buildStandardInputTagHtml(
-		$input_name, array $tag_components, $form_is_disabled, $form_submitted, $request, $parser, $page_name
+		$input_name, array $tag_components, $form_is_disabled, $form_submitted, $request, $parser, $page_name,
+		FormRenderContext $context
 	): string {
 		return $this->standardInputHtmlBuilder->buildHtml(
 			$input_name,
@@ -608,14 +599,14 @@ class FormPrinter {
 			(bool)$form_submitted,
 			$request,
 			$parser,
-			$this->mPageTitle,
+			$context->pageTitle,
 			$page_name
 		);
 	}
 
 	/**
 	 * Build the HTML for a {{{section}}} form-definition tag, as used by formHTML().
-	 * Increments the tab-index/field-num globals (and $this->counters) before delegating.
+	 * Increments the tab-index/field-num globals (and $context->counters) before delegating.
 	 *
 	 * @param array $tag_components
 	 * @param list<FormElement> $following_elements
@@ -627,16 +618,17 @@ class FormPrinter {
 	 * @param User $user
 	 * @param int &$fieldNum
 	 * @param int &$tabIndex
+	 * @param FormRenderContext $context
 	 * @return string
 	 */
 	private function buildSectionTagHtml(
 		array $tag_components, array $following_elements, $source_is_page, $existing_page_content,
-		$request, $wiki_page, $form_is_disabled, $user, &$fieldNum, &$tabIndex
+		$request, $wiki_page, $form_is_disabled, $user, &$fieldNum, &$tabIndex, FormRenderContext $context
 	): string {
 		$fieldNum++;
 		$tabIndex++;
-		$this->counters->fieldNum = $fieldNum;
-		$this->counters->tabIndex = $tabIndex;
+		$context->counters->fieldNum = $fieldNum;
+		$context->counters->tabIndex = $tabIndex;
 
 		return $this->formSectionHtmlBuilder->buildHtml(
 			$tag_components,
@@ -647,7 +639,7 @@ class FormPrinter {
 			$wiki_page,
 			$form_is_disabled,
 			$user,
-			$this->counters
+			$context->counters
 		);
 	}
 
@@ -667,12 +659,13 @@ class FormPrinter {
 	}
 
 	/**
-	 * Create a fresh Parser instance for use by formHTML(), titled at $this->mPageTitle.
+	 * Create a fresh Parser instance for use by formHTML(), titled at $context->pageTitle.
 	 *
 	 * @param User $user
+	 * @param FormRenderContext $context
 	 * @return Parser
 	 */
-	private function createFreshParser( $user ) {
+	private function createFreshParser( $user, FormRenderContext $context ) {
 		// getFreshParser() was removed in MW 1.43; use the factory on newer versions.
 		$globalParser = PFUtils::getParser();
 		if ( method_exists( $globalParser, 'getFreshParser' ) ) {
@@ -687,7 +680,7 @@ class FormPrinter {
 			$parser = MediaWikiServices::getInstance()->getParserFactory()->create();
 			$parser->setOptions( ParserOptions::newFromUser( $user ) );
 		}
-		$parser->setTitle( $this->mPageTitle );
+		$parser->setTitle( $context->pageTitle );
 		// This is needed in order to make sure $parser->mLinkHolders
 		// is set.
 		$parser->clearState();
@@ -707,10 +700,12 @@ class FormPrinter {
 	 * @param PFWikiPage $wiki_page
 	 * @param string|null $form_page_title current value, returned unchanged if no title tag applies
 	 * @param bool &$runQueryFormAtTop set to true by the 'query form at top' tag
+	 * @param FormRenderContext $context
 	 * @return string|null
 	 */
 	private function processInfoTag(
-		array $tag_components, $is_query, PFWikiPage $wiki_page, $form_page_title, bool &$runQueryFormAtTop
+		array $tag_components, $is_query, PFWikiPage $wiki_page, $form_page_title, bool &$runQueryFormAtTop,
+		FormRenderContext $context
 	) {
 		foreach ( array_slice( $tag_components, 1 ) as $component ) {
 			$sub_components = array_map( 'trim', explode( '=', $component, 2 ) );
@@ -719,13 +714,13 @@ class FormPrinter {
 			if ( $tag == 'create title' || $tag == 'add title' ) {
 				// Handle this only if
 				// we're adding a page.
-				if ( !$is_query && !$this->mPageTitle->exists() ) {
+				if ( !$is_query && !$context->pageTitle->exists() ) {
 					$form_page_title = $sub_components[1];
 				}
 			} elseif ( $tag == 'edit title' ) {
 				// Handle this only if
 				// we're editing a page.
-				if ( !$is_query && $this->mPageTitle->exists() ) {
+				if ( !$is_query && $context->pageTitle->exists() ) {
 					$form_page_title = $sub_components[1];
 				}
 			} elseif ( $tag == 'query title' ) {
@@ -798,9 +793,8 @@ class FormPrinter {
 		$wiki_page = new PFWikiPage();
 		$wgPageFormsTabIndex = 0;
 		$wgPageFormsFieldNum = 0;
-		$this->counters = new FormCounters();
+		$context = new FormRenderContext();
 		$runQueryFormAtTop = false;
-		$this->standardInputsIncluded = false;
 		$source_page_matches_this_form = false;
 		$form_page_title = null;
 		$generated_page_name = $page_name_formula;
@@ -812,9 +806,9 @@ class FormPrinter {
 		}
 
 		// Disable all form elements if user doesn't have edit permission.
-		// Also resolves $this->mPageTitle as a side effect (needed below).
+		// Also resolves $context->pageTitle as a side effect (needed below).
 		[ $permissionErrors, $userCanEditPage ] = $this->resolvePageTitleAndPermissions(
-			$is_embedded, $is_query, $page_name, $page_name_formula, $request, $user, $form_submitted
+			$is_embedded, $is_query, $page_name, $page_name_formula, $request, $user, $form_submitted, $context
 		);
 
 		// Start off with a loading spinner - this will be removed by
@@ -850,7 +844,7 @@ class FormPrinter {
 				Html::element( 'a', [ 'href' => '#' ], 'Expand all collapsed parts of the form' ) ) . "\n";
 		}
 
-		$parser = $this->createFreshParser( $user );
+		$parser = $this->createFreshParser( $user, $context );
 
 		$form_definition = FormCache::getFormDefinitionModel( $parser, $form_def, $form_id );
 		// Snapshot RL modules registered by parser tag hooks during form-definition
@@ -1093,8 +1087,8 @@ class FormPrinter {
 						} else {
 							$wgPageFormsTabIndex++;
 							$wgPageFormsFieldNum++;
-							$this->counters->tabIndex = $wgPageFormsTabIndex;
-							$this->counters->fieldNum = $wgPageFormsFieldNum;
+							$context->counters->tabIndex = $wgPageFormsTabIndex;
+							$context->counters->fieldNum = $wgPageFormsFieldNum;
 							if ( $cur_value === '' || $cur_value === null ) {
 								$default_value = '!free_text!';
 							} else {
@@ -1190,8 +1184,8 @@ END;
 						}
 						// increment the global field number regardless
 						$wgPageFormsFieldNum++;
-						$this->counters->tabIndex = $wgPageFormsTabIndex;
-						$this->counters->fieldNum = $wgPageFormsFieldNum;
+						$context->counters->tabIndex = $wgPageFormsTabIndex;
+						$context->counters->fieldNum = $wgPageFormsFieldNum;
 						if ( $source_is_page && !$tif->allInstancesPrinted() ) {
 							// If the source is a page, don't use the default
 							// values - except for newly-added instances of a
@@ -1216,7 +1210,7 @@ END;
 							$cur_value = null;
 						}
 
-						$new_text = $this->formFieldHTML( $form_field, $cur_value, $parser );
+						$new_text = $this->formFieldHTML( $form_field, $cur_value, $parser, $context->counters );
 						$new_text .= $form_field->additionalHTMLForInput(
 							$cur_value, $field_name, $tif->getTemplateName()
 						);
@@ -1264,11 +1258,11 @@ END;
 						continue;
 					}
 					// set a flag so that the standard 'form bottom' won't get displayed
-					$this->standardInputsIncluded = true;
+					$context->standardInputsIncluded = true;
 
 					$new_text = $this->buildStandardInputTagHtml(
 						$input_name, $tag_components, $form_is_disabled, $form_submitted, $request, $parser,
-						$page_name
+						$page_name, $context
 					);
 					$section .= $new_text;
 				// =====================================================
@@ -1278,7 +1272,7 @@ END;
 					$form_section_text = $this->buildSectionTagHtml(
 						$tag_components, array_slice( $section_elements, $element_num + 1 ), $source_is_page,
 						$existing_page_content, $request, $wiki_page, $form_is_disabled, $user,
-						$wgPageFormsFieldNum, $wgPageFormsTabIndex
+						$wgPageFormsFieldNum, $wgPageFormsTabIndex, $context
 					);
 
 					$section .= $form_section_text;
@@ -1294,7 +1288,7 @@ END;
 					}
 					$info_tag_seen = true;
 					$form_page_title = $this->processInfoTag(
-						$tag_components, $is_query, $wiki_page, $form_page_title, $runQueryFormAtTop
+						$tag_components, $is_query, $wiki_page, $form_page_title, $runQueryFormAtTop, $context
 					);
 					// Replace the {{{info}}} tag with a hidden span, instead of a blank, to avoid a
 					// potential security issue.
@@ -1370,7 +1364,7 @@ END;
 					}
 				} else {
 					if ( $tif->getDisplay() == 'table' ) {
-						$section = $this->tableHTML( $tif, $tif->getInstanceNum(), $parser );
+						$section = $this->tableHTML( $tif, $tif->getInstanceNum(), $parser, $context->counters );
 					}
 					if ( $tif->getInstanceNum() == 0 ) {
 						$multipleTemplateHTML .= $this->multipleTemplateStartHTML( $tif );
@@ -1380,7 +1374,9 @@ END;
 							$tif, $form_is_disabled, $section
 						);
 					} else {
-						$multipleTemplateHTML .= $this->multipleTemplateEndHTML( $tif, $form_is_disabled, $section );
+						$multipleTemplateHTML .= $this->multipleTemplateEndHTML(
+							$tif, $form_is_disabled, $section, $context->counters
+						);
 					}
 				}
 				$placeholder = $tif->getPlaceholder();
@@ -1415,7 +1411,7 @@ END;
 					$tif->incrementInstanceNum();
 				}
 			} elseif ( $tif && $tif->getDisplay() == 'table' ) {
-				$form_text .= $this->tableHTML( $tif, 0, $parser );
+				$form_text .= $this->tableHTML( $tif, 0, $parser, $context->counters );
 			} elseif ( $tif && !$tif->allowsMultiple() && $tif->getLabel() != null ) {
 				$form_text .= $section . "\n</fieldset>";
 			} else {
@@ -1446,7 +1442,7 @@ END;
 			'formDefParserModuleStyles' => $formDefParserModuleStyles,
 			'is_embedded' => $is_embedded,
 			'form_page_title' => $form_page_title,
-		] );
+		], $context );
 
 		return new FormRenderResult(
 			$form_text, $page_text, $form_page_title, $generated_page_name, $parserOutput, $runQueryFormAtTop
@@ -1499,8 +1495,10 @@ END;
 	/**
 	 * Create the HTML to display this field within a form.
 	 */
-	public function formFieldHTML( FormField $form_field, ?string $cur_value, Parser $parser ): string {
-		return $this->formFieldHtmlBuilder->formFieldHTML( $form_field, $cur_value, $parser, $this->counters );
+	public function formFieldHTML(
+		FormField $form_field, ?string $cur_value, Parser $parser, ?FormCounters $counters = null
+	): string {
+		return $this->formFieldHtmlBuilder->formFieldHTML( $form_field, $cur_value, $parser, $counters );
 	}
 
 	private function createFormFieldTranslateTag(

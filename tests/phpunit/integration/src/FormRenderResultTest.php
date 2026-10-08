@@ -102,4 +102,41 @@ class FormRenderResultTest extends MediaWikiIntegrationTestCase {
 		$this->assertTrue( $first->isQueryFormAtTop() );
 		$this->assertFalse( $second->isQueryFormAtTop() );
 	}
+
+	public function testRenderingAFormWhileAnotherRenderIsInProgressDoesNotAffectEitherResult(): void {
+		$outerDef = "{{{for template|PFNestedTpl}}}\n{{{field|Name}}}\n{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+		$innerDef = "{{{for template|PFNestedTpl}}}\n{{{field|Other}}}\n{{{end template}}}";
+		$this->editPage( 'PFNestedInnerPage', 'existing' );
+		$user = $this->getTestUser()->getUser();
+		$printer = new FormPrinter();
+		$renderOuter = static fn () => $printer->render(
+			$outerDef, false, false, null, null, 'PFNestedOuterPage', null, false, false, false, [], $user
+		);
+		// The hidden start time is the only part that differs between two renders.
+		$stable = static fn ( string $html ) => preg_replace( "/<input[^>]*wpStarttime[^>]*>/", '', $html );
+		$expectedOuter = $stable( $renderOuter()->getFormText() );
+
+		$inner = null;
+		$started = false;
+		$this->setTemporaryHook(
+			'PageForms::BeforeFreeTextSubst',
+			static function () use ( &$inner, &$started, $printer, $innerDef, $user ) {
+				if ( !$started ) {
+					$started = true;
+					$inner = $printer->render(
+						$innerDef, false, false, null, null, 'PFNestedInnerPage', null, false, false, false, [], $user
+					);
+				}
+			}
+		);
+		$outer = $renderOuter();
+
+		$this->assertNotNull( $inner );
+		$this->assertSame( $expectedOuter, $stable( $outer->getFormText() ) );
+		// The inner form has no standard input of its own, so it got the default form bottom;
+		// the outer one defines its own, which the comparison above
+		// shows it kept as it was.
+		$this->assertStringContainsString( 'wpSave', $inner->getFormText() );
+	}
 }
