@@ -18,11 +18,13 @@ class PFPageSectionTest extends TestCase {
 
 	public function testCreateHasDefaultLevel2() {
 		$ps = PFPageSection::create( 'Intro' );
+
 		$this->assertSame( 2, $ps->getSectionLevel() );
 	}
 
 	public function testCreateHasDefaultsForFlags() {
 		$ps = PFPageSection::create( 'Intro' );
+
 		$this->assertFalse( $ps->isMandatory() );
 		$this->assertFalse( $ps->isHidden() );
 		$this->assertFalse( $ps->isRestricted() );
@@ -35,30 +37,35 @@ class PFPageSectionTest extends TestCase {
 	public function testSetSectionLevel() {
 		$ps = PFPageSection::create( 'Intro' );
 		$ps->setSectionLevel( 3 );
+
 		$this->assertSame( 3, $ps->getSectionLevel() );
 	}
 
-	public function testSetIsMandatory() {
+	/**
+	 * @dataProvider provideFlagAccessors
+	 */
+	public function testSetAFlag( string $setter, string $getter ) {
 		$ps = PFPageSection::create( 'Intro' );
-		$ps->setIsMandatory( true );
-		$this->assertTrue( $ps->isMandatory() );
+		$ps->$setter( true );
+
+		$this->assertTrue( $ps->$getter() );
 	}
 
-	public function testSetIsHidden() {
-		$ps = PFPageSection::create( 'Intro' );
-		$ps->setIsHidden( true );
-		$this->assertTrue( $ps->isHidden() );
-	}
-
-	public function testSetIsRestricted() {
-		$ps = PFPageSection::create( 'Intro' );
-		$ps->setIsRestricted( true );
-		$this->assertTrue( $ps->isRestricted() );
+	/**
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function provideFlagAccessors(): array {
+		return [
+			'mandatory' => [ 'setIsMandatory', 'isMandatory' ],
+			'hidden' => [ 'setIsHidden', 'isHidden' ],
+			'restricted' => [ 'setIsRestricted', 'isRestricted' ],
+		];
 	}
 
 	public function testSetSectionArgs() {
 		$ps = PFPageSection::create( 'Intro' );
 		$ps->setSectionArgs( 'rows', '5' );
+
 		$this->assertSame( [ 'rows' => '5' ], $ps->getSectionArgs() );
 	}
 
@@ -86,54 +93,60 @@ class PFPageSectionTest extends TestCase {
 		$this->assertFalse( $ps->isHideIfEmpty() );
 	}
 
-	public function testNewFromFormTagMandatory() {
+	/**
+	 * @dataProvider provideFlagComponents
+	 */
+	public function testNewFromFormTagReadsAFlag(
+		string $component, bool $userMayEditRestricted, string $getter, bool $expected
+	) {
 		$ps = PFPageSection::newFromFormTag(
-			[ 'section', 'Overview', 'mandatory' ],
+			[ 'section', 'Overview', $component ],
+			$this->makeUser( $userMayEditRestricted )
+		);
+
+		$this->assertSame( $expected, $ps->$getter() );
+	}
+
+	/**
+	 * @return array<string, array{0: string, 1: bool, 2: string, 3: bool}>
+	 */
+	public static function provideFlagComponents(): array {
+		return [
+			'mandatory' => [ 'mandatory', true, 'isMandatory', true ],
+			'hidden' => [ 'hidden', true, 'isHidden', true ],
+			'hide if empty' => [ 'hide if empty', true, 'isHideIfEmpty', true ],
+			// A user who has editrestrictedfields may edit the section, so it is not restricted for them.
+			'restricted, user with permission' => [ 'restricted', true, 'isRestricted', false ],
+			'restricted, user without permission' => [ 'restricted', false, 'isRestricted', true ],
+		];
+	}
+
+	/**
+	 * @dataProvider provideArgumentComponents
+	 * @param string $component
+	 * @param array $expectedArgs
+	 */
+	public function testNewFromFormTagReadsAnArgument( string $component, array $expectedArgs ) {
+		$ps = PFPageSection::newFromFormTag(
+			[ 'section', 'Overview', $component ],
 			$this->makeUser()
 		);
-		$this->assertTrue( $ps->isMandatory() );
+
+		$this->assertSame( $expectedArgs, $ps->getSectionArgs() );
 	}
 
-	public function testNewFromFormTagHidden() {
-		$ps = PFPageSection::newFromFormTag(
-			[ 'section', 'Overview', 'hidden' ],
-			$this->makeUser()
-		);
-		$this->assertTrue( $ps->isHidden() );
-	}
-
-	public function testNewFromFormTagRestrictedUserWithPermission() {
-		// User has editrestrictedfields → section is NOT restricted (mIsRestricted = false)
-		$ps = PFPageSection::newFromFormTag(
-			[ 'section', 'Overview', 'restricted' ],
-			$this->makeUser( true )
-		);
-		$this->assertFalse( $ps->isRestricted() );
-	}
-
-	public function testNewFromFormTagRestrictedUserWithoutPermission() {
-		// User lacks editrestrictedfields → section IS restricted
-		$ps = PFPageSection::newFromFormTag(
-			[ 'section', 'Overview', 'restricted' ],
-			$this->makeUser( false )
-		);
-		$this->assertTrue( $ps->isRestricted() );
-	}
-
-	public function testNewFromFormTagHideIfEmpty() {
-		$ps = PFPageSection::newFromFormTag(
-			[ 'section', 'Overview', 'hide if empty' ],
-			$this->makeUser()
-		);
-		$this->assertTrue( $ps->isHideIfEmpty() );
-	}
-
-	public function testNewFromFormTagAutogrow() {
-		$ps = PFPageSection::newFromFormTag(
-			[ 'section', 'Overview', 'autogrow' ],
-			$this->makeUser()
-		);
-		$this->assertSame( [ 'autogrow' => true ], $ps->getSectionArgs() );
+	/**
+	 * @return array<string, array{0: string, 1: array}>
+	 */
+	public static function provideArgumentComponents(): array {
+		return [
+			'autogrow' => [ 'autogrow', [ 'autogrow' => true ] ],
+			'rows' => [ 'rows=10', [ 'rows' => '10' ] ],
+			'cols' => [ 'cols=80', [ 'cols' => '80' ] ],
+			'class' => [ 'class=my-class', [ 'class' => 'my-class' ] ],
+			'editor' => [ 'editor=wikieditor', [ 'editor' => 'wikieditor' ] ],
+			'placeholder' => [ 'placeholder=Enter text here', [ 'placeholder' => 'Enter text here' ] ],
+		];
 	}
 
 	public function testNewFromFormTagLevel() {
@@ -141,47 +154,8 @@ class PFPageSectionTest extends TestCase {
 			[ 'section', 'Overview', 'level=3' ],
 			$this->makeUser()
 		);
+
 		$this->assertSame( '3', $ps->getSectionLevel() );
-	}
-
-	public function testNewFromFormTagRows() {
-		$ps = PFPageSection::newFromFormTag(
-			[ 'section', 'Overview', 'rows=10' ],
-			$this->makeUser()
-		);
-		$this->assertSame( [ 'rows' => '10' ], $ps->getSectionArgs() );
-	}
-
-	public function testNewFromFormTagCols() {
-		$ps = PFPageSection::newFromFormTag(
-			[ 'section', 'Overview', 'cols=80' ],
-			$this->makeUser()
-		);
-		$this->assertSame( [ 'cols' => '80' ], $ps->getSectionArgs() );
-	}
-
-	public function testNewFromFormTagClass() {
-		$ps = PFPageSection::newFromFormTag(
-			[ 'section', 'Overview', 'class=my-class' ],
-			$this->makeUser()
-		);
-		$this->assertSame( [ 'class' => 'my-class' ], $ps->getSectionArgs() );
-	}
-
-	public function testNewFromFormTagEditor() {
-		$ps = PFPageSection::newFromFormTag(
-			[ 'section', 'Overview', 'editor=wikieditor' ],
-			$this->makeUser()
-		);
-		$this->assertSame( [ 'editor' => 'wikieditor' ], $ps->getSectionArgs() );
-	}
-
-	public function testNewFromFormTagPlaceholder() {
-		$ps = PFPageSection::newFromFormTag(
-			[ 'section', 'Overview', 'placeholder=Enter text here' ],
-			$this->makeUser()
-		);
-		$this->assertSame( [ 'placeholder' => 'Enter text here' ], $ps->getSectionArgs() );
 	}
 
 	public function testNewFromFormTagUnknownComponentIsIgnored() {
@@ -190,65 +164,67 @@ class PFPageSectionTest extends TestCase {
 			[ 'section', 'Overview', 'unknownkey=somevalue' ],
 			$this->makeUser()
 		);
+
 		$this->assertSame( [], $ps->getSectionArgs() );
 		$this->assertFalse( $ps->isMandatory() );
 	}
 
 	// ── createMarkup() ───────────────────────────────────────────────────
 
-	public function testCreateMarkupBasic() {
-		$ps = PFPageSection::create( 'Introduction' );
-		$markup = $ps->createMarkup();
-
-		$this->assertStringContainsString( '==Introduction==', $markup );
-		$this->assertStringContainsString( '{{{section|Introduction|level=2}}}', $markup );
-	}
-
-	public function testCreateMarkupLevel3() {
-		$ps = PFPageSection::create( 'Details' );
-		$ps->setSectionLevel( 3 );
-		$markup = $ps->createMarkup();
-
-		$this->assertStringContainsString( '===Details===', $markup );
-		$this->assertStringContainsString( '{{{section|Details|level=3}}}', $markup );
-	}
-
-	public function testCreateMarkupEmptyLevelDefaultsTo2() {
+	/**
+	 * @dataProvider provideLevels
+	 * @param int|string|null $level The level to set, or null to leave the default
+	 * @param string $heading The wiki heading markup of the section
+	 * @param string $tag The level argument of the section tag
+	 */
+	public function testCreateMarkupWritesTheHeadingAndTagOfTheLevel( $level, string $heading, string $tag ) {
 		$ps = PFPageSection::create( 'Intro' );
-		$ps->setSectionLevel( '' );
+		if ( $level !== null ) {
+			$ps->setSectionLevel( $level );
+		}
+
 		$markup = $ps->createMarkup();
 
-		$this->assertStringContainsString( '==Intro==', $markup );
-		$this->assertStringContainsString( 'level=2', $markup );
+		$this->assertStringContainsString( "{$heading}Intro{$heading}", $markup );
+		$this->assertStringContainsString( "{{{section|Intro|$tag}}}", $markup );
 	}
 
-	public function testCreateMarkupMandatory() {
-		$ps = PFPageSection::create( 'Required' );
-		$ps->setIsMandatory( true );
-		$markup = $ps->createMarkup();
-
-		$this->assertStringContainsString( '|mandatory', $markup );
+	/**
+	 * @return array<string, array{0: int|string|null, 1: string, 2: string}>
+	 */
+	public static function provideLevels(): array {
+		return [
+			'the default level' => [ null, '==', 'level=2' ],
+			'level 3' => [ 3, '===', 'level=3' ],
+			'an empty level falls back to 2' => [ '', '==', 'level=2' ],
+		];
 	}
 
-	public function testCreateMarkupRestricted() {
-		$ps = PFPageSection::create( 'Restricted' );
-		$ps->setIsRestricted( true );
-		$markup = $ps->createMarkup();
+	/**
+	 * @dataProvider provideFlagMarkup
+	 */
+	public function testCreateMarkupWritesAFlag( string $setter, string $expected ) {
+		$ps = PFPageSection::create( 'Intro' );
+		$ps->$setter( true );
 
-		$this->assertStringContainsString( '|restricted', $markup );
+		$this->assertStringContainsString( $expected, $ps->createMarkup() );
 	}
 
-	public function testCreateMarkupHidden() {
-		$ps = PFPageSection::create( 'Hidden' );
-		$ps->setIsHidden( true );
-		$markup = $ps->createMarkup();
-
-		$this->assertStringContainsString( '|hidden', $markup );
+	/**
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function provideFlagMarkup(): array {
+		return [
+			'mandatory' => [ 'setIsMandatory', '|mandatory' ],
+			'restricted' => [ 'setIsRestricted', '|restricted' ],
+			'hidden' => [ 'setIsHidden', '|hidden' ],
+		];
 	}
 
 	public function testCreateMarkupWithStringArg() {
 		$ps = PFPageSection::create( 'Rows' );
 		$ps->setSectionArgs( 'rows', '5' );
+
 		$markup = $ps->createMarkup();
 
 		$this->assertStringContainsString( '|rows=5', $markup );
@@ -257,6 +233,7 @@ class PFPageSectionTest extends TestCase {
 	public function testCreateMarkupWithBooleanArg() {
 		$ps = PFPageSection::create( 'Autogrow' );
 		$ps->setSectionArgs( 'autogrow', true );
+
 		$markup = $ps->createMarkup();
 
 		$this->assertStringContainsString( '|autogrow', $markup );
