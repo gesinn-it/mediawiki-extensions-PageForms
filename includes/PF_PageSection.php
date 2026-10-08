@@ -1,4 +1,7 @@
 <?php
+
+use MediaWiki\Extension\PageForms\FormDefinitionWriter;
+
 /**
  * Represents a page section in a user-defined form.
  * This class should really be called "PFPageSectionInForm", to differentiate
@@ -113,37 +116,12 @@ class PFPageSection {
 		return $this->mSectionArgs;
 	}
 
+	/**
+	 * @deprecated use FormDefinitionWriter::section()
+	 * @return string
+	 */
 	public function createMarkup() {
-		$section_name = $this->mSectionName;
-		$section_level = $this->mSectionLevel;
-		// Set default section level to 2
-		if ( $section_level == '' ) {
-			$section_level = 2;
-		}
-		// display the section headers in wikitext
-		$header_string = "";
-		$header_string .= str_repeat( "=", $section_level );
-		$text = $header_string . $section_name . $header_string . "\n";
-
-		$text .= "{{{section|" . $section_name . "|level=" . $section_level;
-
-		if ( $this->mIsMandatory ) {
-			$text .= "|mandatory";
-		} elseif ( $this->mIsRestricted ) {
-			$text .= "|restricted";
-		} elseif ( $this->mIsHidden ) {
-			$text .= "|hidden";
-		}
-		foreach ( $this->mSectionArgs as $arg => $value ) {
-			if ( $value === true ) {
-				$text .= "|$arg";
-			} else {
-				$text .= "|$arg=$value";
-			}
-		}
-		$text .= "}}}\n";
-
-		return $text;
+		return ( new FormDefinitionWriter() )->section( $this );
 	}
 
 	public static function getParameters() {

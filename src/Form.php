@@ -4,9 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use PFUtils;
-use Title;
-
 /**
  * Represents a user-defined form.
  *
@@ -53,63 +50,33 @@ class Form {
 		$this->mAssociatedCategory = $associatedCategory;
 	}
 
+	public function getPageNameFormula() {
+		return $this->mPageNameFormula;
+	}
+
+	public function getCreateTitle() {
+		return $this->mCreateTitle;
+	}
+
+	public function getEditTitle() {
+		return $this->mEditTitle;
+	}
+
+	/**
+	 * @return string|null
+	 */
+	public function getAssociatedCategory() {
+		return $this->mAssociatedCategory;
+	}
+
+	/**
+	 * @deprecated use FormDefinitionWriter::form()
+	 * @param bool $includeFreeText
+	 * @param string|null $freeTextLabel
+	 * @return string
+	 */
 	public function createMarkup( $includeFreeText = true, $freeTextLabel = null ) {
-		$title = Title::makeTitle( PF_NS_FORM, $this->mFormName );
-		$fs = PFUtils::getSpecialPage( 'FormStart' );
-		$form_start_url = PFUtils::titleURLString( $fs->getPageTitle() ) . "/" . $title->getPartialURL();
-		$form_description = wfMessage( 'pf_form_docu', $this->mFormName, $form_start_url )->inContentLanguage()->text();
-		$form_input = "{{#forminput:form=" . str_replace( ',', '\,', $this->mFormName );
-		if ( $this->mAssociatedCategory !== null ) {
-			$form_input .= "|autocomplete on category=" . $this->mAssociatedCategory;
-		}
-		$form_input .= "}}\n";
-		$text = <<<END
-<noinclude>
-$form_description
-
-$form_input
-</noinclude><includeonly>
-
-END;
-		$info = '';
-		if ( $this->mPageNameFormula !== '' ) {
-			$info .= "|page name=" . $this->mPageNameFormula;
-		}
-		if ( $this->mCreateTitle !== '' ) {
-			$info .= "|create title=" . $this->mCreateTitle;
-		}
-		if ( $this->mEditTitle !== '' ) {
-			$info .= "|edit title=" . $this->mEditTitle;
-		}
-		if ( $info ) {
-			$text .= "{{{info" . $info . "}}}\n";
-		}
-		$text .= '<div id="wikiPreview" style="display: none; padding-bottom: 25px;' .
-			' margin-bottom: 25px; border-bottom: 1px solid #AAAAAA;"></div>' . "\n\n";
-		foreach ( $this->mItems as $item ) {
-			if ( $item['type'] == 'template' ) {
-				$template = $item['item'];
-				$text .= $template->createMarkup() . "\n";
-			} elseif ( $item['type'] == 'section' ) {
-				$section = $item['item'];
-				$text .= $section->createMarkup() . "\n";
-			}
-		}
-
-		if ( $includeFreeText ) {
-			if ( $freeTextLabel === null ) {
-				$freeTextLabel = wfMessage( 'pf_form_freetextlabel' )->inContentLanguage()->text();
-			}
-			$text .= <<<END
-'''$freeTextLabel:'''
-
-{{{standard input|free text|rows=10}}}
-
-END;
-		}
-		$text .= "</includeonly>\n";
-
-		return $text;
+		return ( new FormDefinitionWriter() )->form( $this, $includeFreeText, $freeTextLabel );
 	}
 
 }

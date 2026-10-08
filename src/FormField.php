@@ -298,6 +298,14 @@ class FormField {
 		$this->mInstanceField->setIsDisabled( $val );
 	}
 
+	/**
+	 * @return array The description of the field, the text before it and whether the description
+	 *   is a tooltip, as set with setDescriptionArg()
+	 */
+	public function getDescriptionArgs() {
+		return $this->mDescriptionArgs;
+	}
+
 	public function setDescriptionArg( $key, $value ) {
 		$this->mDescriptionArgs[$key] = $value;
 	}
@@ -1113,129 +1121,15 @@ class FormField {
 	}
 
 	/**
-	 * For now, HTML of an individual field depends on whether or not it's
-	 * part of multiple-instance template; this may change if handling of
-	 * such templates in form definitions gets more sophisticated.
-	 *
+	 * @deprecated use FormDefinitionWriter::field()
 	 * @param bool $part_of_multiple
 	 * @param bool $is_last_field_in_template
 	 * @return string
 	 */
 	public function createMarkup( $part_of_multiple, $is_last_field_in_template ) {
-		$text = "";
-		$descPlaceholder = "";
-		$textBeforeField = "";
-
-		if ( array_key_exists( "Description", $this->mDescriptionArgs ) ) {
-			$fieldDesc = $this->mDescriptionArgs['Description'];
-			if ( $fieldDesc != '' ) {
-				if ( isset( $this->mDescriptionArgs['DescriptionTooltipMode'] ) ) {
-					// The wikitext we use for tooltips
-					// depends on which other extensions
-					// are installed.
-					if ( class_exists( 'RegularTooltipsParser' ) ) {
-						// RegularTooltips
-						$descPlaceholder = " {{#info-tooltip:$fieldDesc}}";
-					} elseif ( defined( 'SMW_VERSION' ) ) {
-						// Semantic MediaWiki
-						$descPlaceholder = " {{#info:$fieldDesc}}";
-					} elseif ( class_exists( 'SimpleTooltipParserFunction' ) ) {
-						// SimpleTooltip
-						$descPlaceholder = " {{#tip-info:$fieldDesc}}";
-					} else {
-						// Don't make it a tooltip.
-						$descPlaceholder = '<br><p class="pfFieldDescription"' .
-							' style="font-size:0.7em; color:gray;">' . $fieldDesc . '</p>';
-					}
-				} else {
-					$descPlaceholder = '<br><p class="pfFieldDescription"' .
-						' style="font-size:0.7em; color:gray;">' . $fieldDesc . '</p>';
-				}
-			}
-		}
-
-		if ( array_key_exists( "TextBeforeField", $this->mDescriptionArgs ) ) {
-			$textBeforeField = $this->mDescriptionArgs['TextBeforeField'];
-		}
-
-		$fieldLabel = $this->template_field->getLabel();
-		if ( $fieldLabel == '' ) {
-			$fieldLabel = $this->template_field->getFieldName();
-		}
-		if ( $textBeforeField != '' ) {
-			$fieldLabel = $textBeforeField . ' ' . $fieldLabel;
-		}
-
-		if ( $part_of_multiple ) {
-			$text .= "'''$fieldLabel:''' $descPlaceholder";
-		} else {
-			$text .= "! $fieldLabel: $descPlaceholder\n";
-		}
-
-		if ( !$part_of_multiple ) {
-			$text .= "| ";
-		}
-		$text .= "{{{field|" . $this->template_field->getFieldName();
-		if ( $this->mIsHidden ) {
-			$text .= "|hidden";
-		} else {
-			$inputType = $this->getInputType();
-			if ( $inputType !== null && $inputType !== '' ) {
-				$text .= "|input type=" . $inputType;
-			}
-		}
-		foreach ( $this->mFieldArgs as $arg => $value ) {
-			if ( $value === true ) {
-				$text .= "|$arg";
-			} elseif ( $arg === 'uploadable' ) {
-				// Are there similar value-less arguments
-				// that need to be handled here?
-				$text .= "|$arg";
-			} else {
-				$text .= "|$arg=$value";
-			}
-		}
-
-		// Special handling if SMW is not installed - the form has to
-		// handle stuff that otherwise would go in the template.
-		if (
-			!defined( 'SMW_VERSION' ) &&
-			!array_key_exists( 'values', $this->mFieldArgs ) &&
-			is_array( $this->template_field->getPossibleValues() ) &&
-			count( $this->template_field->getPossibleValues() ) > 0
-		) {
-			if ( $this->getInputType() == null ) {
-				if ( $this->template_field->isList() ) {
-					$text .= '|input type=checkboxes';
-				} else {
-					$text .= '|input type=dropdown';
-				}
-			}
-			$delimiter = ',';
-			if ( $this->template_field->isList() ) {
-				$delimiter = $this->template_field->getDelimiter();
-				if ( $delimiter == '' ) {
-					$delimiter = ',';
-				}
-				// @todo - we need to add a "|delimiter=" param
-				// here too, if #template_params is not being
-				// called in the template.
-			}
-			$text .= '|values=' . implode( $delimiter, $this->template_field->getPossibleValues() );
-		}
-
-		if ( $this->mIsMandatory ) {
-			$text .= "|mandatory";
-		} elseif ( $this->mIsRestricted ) {
-			$text .= "|restricted";
-		}
-		$text .= "}}}\n";
-		if ( $part_of_multiple ) {
-			$text .= "\n";
-		} elseif ( !$is_last_field_in_template ) {
-			$text .= "|-\n";
-		}
-		return $text;
+		return ( new FormDefinitionWriter() )->field(
+			$this, (bool)$part_of_multiple, (bool)$is_last_field_in_template
+		);
 	}
 
 	public function getArgumentsForInputCallSMW( array &$other_args ) {

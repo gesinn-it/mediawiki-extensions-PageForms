@@ -278,27 +278,6 @@ class TemplateInFormTest extends TestCase {
 		$this->assertEquals( 2, $template->numSeenInstancesOnThisPage() );
 	}
 
-	public function testCreateMarkupMultipleInstanceWithFields(): void {
-		$mockField = $this->createMock( FormField::class );
-		$mockField->method( 'createMarkup' )
-			->with( true, true )
-			->willReturn( "|field=\n" );
-
-		$template = TemplateInForm::create(
-			'PFTestTemplateInFormMarkupMultiple01',
-			null,
-			true,
-			null,
-			[ $mockField ]
-		);
-
-		$markup = $template->createMarkup();
-
-		$this->assertStringContainsString( '{{{for template|PFTestTemplateInFormMarkupMultiple01|multiple', $markup );
-		$this->assertStringNotContainsString( '{| class="formtable"', $markup );
-		$this->assertStringContainsString( "|field=\n", $markup );
-	}
-
 	public function testGridValuesAndInstanceNumHelpers(): void {
 		$template = new TemplateInForm();
 

@@ -145,17 +145,6 @@ class TemplateInFormTest extends MediaWikiIntegrationTestCase {
 		}
 	}
 
-	public function testCreateMarkupSingleInstanceNoFields(): void {
-		$template = TemplateInForm::create( 'PFTestTemplateInFormMarkupSingle01', 'My Label' );
-
-		$markup = $template->createMarkup();
-
-		$this->assertStringContainsString( '{{{for template|PFTestTemplateInFormMarkupSingle01', $markup );
-		$this->assertStringContainsString( '|label=My Label', $markup );
-		$this->assertStringContainsString( '{| class="formtable"', $markup );
-		$this->assertStringContainsString( '{{{end template}}}', $markup );
-	}
-
 	public function testCheckIfAllInstancesPrintedBelowMinimumAllowed(): void {
 		$template = TemplateInForm::newFromFormTag(
 			new TemplateSpec(

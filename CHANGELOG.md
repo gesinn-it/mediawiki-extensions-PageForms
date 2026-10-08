@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Changed
+- The wikitext of a form definition that is created from a template is now written by `FormDefinitionWriter`. `Form::createMarkup()`, `TemplateInForm::createMarkup()`, `PFPageSection::createMarkup()` and `FormField::createMarkup()` are deprecated and still work [#240](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/240)
 - `FormField::additionalHTMLForInput()` is deprecated and still works; the HTML next to a field's input is built by `FormFieldExtraHtmlBuilder::build()`, so `FormField` no longer builds HTML [#240](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/240)
 - The documentation now says that `remote autocompletion` gives no speed advantage for a field with a `mapping template` or `mapping property`: its values are read when the form opens, as before [#245](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/245)
 - The `FormPrinter` methods that only forward to another class are deprecated and still work: `multipleTemplateStartHTML()`, `multipleTemplateInstanceTableHTML()`, `multipleTemplateInstanceHTML()` and `multipleTemplateEndHTML()` (use `MultipleTemplateHtmlBuilder`), `tableHTML()`, `spreadsheetHTML()` and `getSpreadsheetAutocompleteAttributes()` (use `SpreadsheetHtmlBuilder`), `calendarHTML()` (use `CalendarHtmlBuilder`) and `preparePreloadData()` (use `readPageValues()`) [#241](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/241)

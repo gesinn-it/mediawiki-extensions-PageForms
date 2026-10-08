@@ -258,30 +258,12 @@ class TemplateInForm {
 		return $this->mNumSeenInstancesOnThisPage;
 	}
 
+	/**
+	 * @deprecated use FormDefinitionWriter::template()
+	 * @return string
+	 */
 	public function createMarkup() {
-		$text = "{{{for template|" . $this->mTemplateName;
-		if ( $this->mAllowMultiple ) {
-			$text .= "|multiple";
-		}
-		if ( $this->mLabel != '' ) {
-			$text .= "|label=" . $this->mLabel;
-		}
-		$text .= "}}}\n";
-		// For now, HTML for templates differs for multiple-instance
-		// templates; this may change if handling of form definitions
-		// gets more sophisticated.
-		if ( !$this->mAllowMultiple ) {
-			$text .= "{| class=\"formtable\"\n";
-		}
-		foreach ( $this->mFields as $i => $field ) {
-			$is_last_field = ( $i == count( $this->mFields ) - 1 );
-			$text .= $field->createMarkup( $this->mAllowMultiple, $is_last_field );
-		}
-		if ( !$this->mAllowMultiple ) {
-			$text .= "|}\n";
-		}
-		$text .= "{{{end template}}}\n";
-		return $text;
+		return ( new FormDefinitionWriter() )->template( $this );
 	}
 
 	/**
