@@ -46,6 +46,7 @@ jobs:
     continue-on-error: ${{ matrix.experimental }}
 
     strategy:
+      fail-fast: false
       matrix:
         include:
           - mediawiki_version: '1.39'
