@@ -56,22 +56,6 @@ use WebRequest;
  */
 class FormPrinter {
 
-	/**
-	 * A reference to the table of the input type registry that maps SMW property types to input
-	 * classes, kept for code that reads or fills it directly.
-	 *
-	 * @deprecated use registerInputType()
-	 * @var array
-	 */
-	public $mSemanticTypeHooks;
-	/**
-	 * A reference to the table of the input type registry that maps input type names to input
-	 * classes, kept for code that reads or fills it directly.
-	 *
-	 * @deprecated use registerInputType()
-	 * @var array
-	 */
-	public $mInputTypeHooks;
 	/** Owned by InputTypeRegistry; FormPrinter delegates to it for all input-type lookups. */
 	private InputTypeRegistry $inputTypeRegistry;
 
@@ -101,9 +85,6 @@ class FormPrinter {
 	public function __construct() {
 		$this->mappingLabels = new MappingLabels();
 		$this->inputTypeRegistry = InputTypeRegistry::newWithBuiltInTypes();
-		// The public arrays are the tables of the registry, not copies.
-		$this->mSemanticTypeHooks = &$this->inputTypeRegistry->semanticTypeHooksReference();
-		$this->mInputTypeHooks = &$this->inputTypeRegistry->inputTypeHooksReference();
 		$this->calendarHtmlBuilder = new CalendarHtmlBuilder();
 		$this->multipleTemplateHtmlBuilder = new MultipleTemplateHtmlBuilder();
 		$this->spreadsheetHtmlBuilder = new SpreadsheetHtmlBuilder();
@@ -138,6 +119,49 @@ class FormPrinter {
 			StandardInputSpec::class => new StandardInputHandler(),
 			SectionSpec::class => new SectionHandler(),
 		];
+	}
+
+	/**
+	 * The deprecated properties $mInputTypeHooks and $mSemanticTypeHooks, which read and write the
+	 * input type registry.
+	 *
+	 * @deprecated use registerInputType()
+	 * @param string $name
+	 * @return DeprecatedHookTable|null
+	 */
+	public function __get( $name ) {
+		$table = $this->deprecatedHookTable( $name );
+		if ( $table === null ) {
+			trigger_error( "Undefined property: " . static::class . "::\$$name", E_USER_NOTICE );
+			return null;
+		}
+		return $table;
+	}
+
+	/**
+	 * @deprecated use registerInputType()
+	 * @param string $name
+	 * @param mixed $value
+	 */
+	public function __set( $name, $value ) {
+		$table = $this->deprecatedHookTable( $name );
+		if ( $table === null ) {
+			$this->$name = $value;
+			return;
+		}
+		$table->replaceWith( $value instanceof DeprecatedHookTable ? $value->toArray() : (array)$value );
+	}
+
+	public function __isset( $name ) {
+		return $this->deprecatedHookTable( $name ) !== null;
+	}
+
+	private function deprecatedHookTable( string $name ): ?DeprecatedHookTable {
+		if ( $name !== 'mInputTypeHooks' && $name !== 'mSemanticTypeHooks' ) {
+			return null;
+		}
+		wfDeprecated( __CLASS__ . "::\$$name", '2.3.0' );
+		return new DeprecatedHookTable( $this->inputTypeRegistry, $name === 'mSemanticTypeHooks' );
 	}
 
 	/**

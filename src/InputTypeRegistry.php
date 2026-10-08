@@ -9,8 +9,8 @@ namespace MediaWiki\Extension\PageForms;
  *
  * This class is the only place that holds the lookup tables. FormPrinter and
  * FormFieldHtmlBuilder use the same instance, so an input type registered at any
- * time is seen by both. The two public arrays of FormPrinter ($mInputTypeHooks and
- * $mSemanticTypeHooks) are references to the tables kept here.
+ * time is seen by both. The deprecated properties $mInputTypeHooks and
+ * $mSemanticTypeHooks of FormPrinter go through the methods of this class.
  */
 class InputTypeRegistry {
 
@@ -68,31 +68,31 @@ class InputTypeRegistry {
 	 * Register an input type class and populate the lookup tables for its
 	 * supported SMW property types.
 	 *
-	 * @param string $inputTypeClass Fully qualified class name of the input type.
+	 * @param class-string<\PFFormInput> $inputTypeClass Fully qualified class name of the input type.
 	 */
 	public function register( string $inputTypeClass ): void {
-		$inputTypeName = call_user_func( [ $inputTypeClass, 'getName' ] );
+		$inputTypeName = $inputTypeClass::getName();
 		$this->inputTypeClasses[$inputTypeName] = $inputTypeClass;
 		$this->setInputTypeHook( $inputTypeName, $inputTypeClass, [] );
 
-		$defaultProperties = call_user_func( [ $inputTypeClass, 'getDefaultPropTypes' ] );
+		$defaultProperties = $inputTypeClass::getDefaultPropTypes();
 		foreach ( $defaultProperties as $propertyType => $additionalValues ) {
 			$this->defaultInputForPropType[$propertyType] = $inputTypeName;
 			$this->setSemanticTypeHook( $propertyType, false, $inputTypeClass, $additionalValues );
 		}
 
-		$defaultPropertyLists = call_user_func( [ $inputTypeClass, 'getDefaultPropTypeLists' ] );
+		$defaultPropertyLists = $inputTypeClass::getDefaultPropTypeLists();
 		foreach ( $defaultPropertyLists as $propertyType => $additionalValues ) {
 			$this->defaultInputForPropTypeList[$propertyType] = $inputTypeName;
 			$this->setSemanticTypeHook( $propertyType, true, $inputTypeClass, $additionalValues );
 		}
 
-		$otherProperties = call_user_func( [ $inputTypeClass, 'getOtherPropTypesHandled' ] );
+		$otherProperties = $inputTypeClass::getOtherPropTypesHandled();
 		foreach ( $otherProperties as $propertyTypeID ) {
 			$this->possibleInputsForPropType[$propertyTypeID][] = $inputTypeName;
 		}
 
-		$otherPropertyLists = call_user_func( [ $inputTypeClass, 'getOtherPropTypeListsHandled' ] );
+		$otherPropertyLists = $inputTypeClass::getOtherPropTypeListsHandled();
 		foreach ( $otherPropertyLists as $propertyTypeID ) {
 			$this->possibleInputsForPropTypeList[$propertyTypeID][] = $inputTypeName;
 		}
@@ -180,20 +180,30 @@ class InputTypeRegistry {
 	}
 
 	/**
-	 * For FormPrinter::$mInputTypeHooks, which is a reference to the table.
-	 *
-	 * @return array
+	 * @return array<string, array{0: string, 1: array}> A copy of the table of input type hooks
 	 */
-	public function &inputTypeHooksReference(): array {
+	public function getInputTypeHooks(): array {
 		return $this->inputTypeHooks;
 	}
 
 	/**
-	 * For FormPrinter::$mSemanticTypeHooks, which is a reference to the table.
-	 *
-	 * @return array
+	 * @return array<string, array<int, array{0: string, 1: array}>> A copy of the table of SMW type hooks
 	 */
-	public function &semanticTypeHooksReference(): array {
+	public function getSemanticTypeHooks(): array {
 		return $this->semanticTypeHooks;
+	}
+
+	/**
+	 * Remove the hook of an input type name or of an SMW property type, for deprecated array access.
+	 *
+	 * @param string $key
+	 * @param bool $semantic Whether the key is an SMW property type
+	 */
+	public function removeHook( string $key, bool $semantic ): void {
+		if ( $semantic ) {
+			unset( $this->semanticTypeHooks[$key] );
+		} else {
+			unset( $this->inputTypeHooks[$key] );
+		}
 	}
 }

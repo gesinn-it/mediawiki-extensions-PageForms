@@ -1841,7 +1841,48 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertStringContainsString( StubFormInput::STUB_HTML, $render( $printer ) );
 		$this->assertSame( StubFormInput::class, $printer->getInputType( 'text' ) );
+		$this->hideDeprecated( FormPrinter::class . '::$mInputTypeHooks' );
 		$this->assertSame( StubFormInput::class, $printer->mInputTypeHooks['text'][0] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Deprecated hook properties
+	// -------------------------------------------------------------------------
+
+	public function testDeprecatedHookPropertiesReadTheRegistry(): void {
+		$this->hideDeprecated( FormPrinter::class . '::$mInputTypeHooks' );
+		$this->hideDeprecated( FormPrinter::class . '::$mSemanticTypeHooks' );
+		$printer = new FormPrinter();
+
+		$this->assertSame( [ 'PFTextInput', [] ], $printer->mInputTypeHooks['text'] );
+		$this->assertTrue( isset( $printer->mInputTypeHooks['text'] ) );
+		$this->assertFalse( isset( $printer->mInputTypeHooks['nonexistent'] ) );
+		$this->assertSame( 'PFCheckboxInput', $printer->mSemanticTypeHooks['_boo'][0][0] );
+	}
+
+	public function testWritingDeprecatedHookPropertiesChangesTheRegistry(): void {
+		$this->hideDeprecated( FormPrinter::class . '::$mInputTypeHooks' );
+		$this->hideDeprecated( FormPrinter::class . '::$mSemanticTypeHooks' );
+		$printer = new FormPrinter();
+
+		$printer->mInputTypeHooks['mine'] = [ 'MyInput', [ 'a' => 1 ] ];
+		$printer->mSemanticTypeHooks['_mine'] = [ 0 => [ 'MyInput', [] ] ];
+
+		$this->assertSame( [ 'MyInput', [ 'a' => 1 ] ], $printer->mInputTypeHooks['mine'] );
+		$this->assertSame( [ 'MyInput', [] ], $printer->mSemanticTypeHooks['_mine'][0] );
+
+		unset( $printer->mInputTypeHooks['mine'] );
+		$this->assertNull( $printer->mInputTypeHooks['mine'] );
+	}
+
+	public function testAssigningDeprecatedHookPropertyFillsTheRegistry(): void {
+		$this->hideDeprecated( FormPrinter::class . '::$mInputTypeHooks' );
+		$printer = new FormPrinter();
+
+		$printer->mInputTypeHooks = [ 'mine' => [ 'MyInput', [] ] ];
+
+		$this->assertSame( [ 'MyInput', [] ], $printer->mInputTypeHooks['mine'] );
+		$this->assertSame( 'PFTextInput', $printer->mInputTypeHooks['text'][0] );
 	}
 
 }
