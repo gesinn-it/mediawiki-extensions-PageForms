@@ -754,7 +754,8 @@ class FormField {
 			} elseif ( array_key_exists( $field_name, $template_instance_query_values ) ) {
 				$field_query_val = $template_instance_query_values[$field_name];
 			} else {
-				// The next checks are to allow for support for appending/prepending with autoedit.
+				// The next checks are to allow for support for adding a value to ("+") and removing
+				// one from ("-") the existing values with autoedit.
 				if ( array_key_exists( "$field_name+", $template_instance_query_values ) ) {
 					$field_query_val = $template_instance_query_values["$field_name+"];
 					$val_modifier = '+';

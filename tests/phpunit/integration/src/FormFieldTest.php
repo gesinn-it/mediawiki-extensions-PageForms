@@ -22,10 +22,6 @@ class FormFieldTest extends TestCase {
 	private $mockUser;
 	private $mockTemplateField;
 	private $mockParser;
-	private $f;
-	private $mockTemplateFieldOne;
-	private $mockTemplateFieldTwo;
-	private $mockTemplateFieldThree;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -42,10 +38,6 @@ class FormFieldTest extends TestCase {
 		$this->mockUser->method( 'isAllowed' )
 			->with( 'editrestrictedfields' )
 			->willReturn( false );
-
-		// Mocking the object being updated
-		$this->f = new stdClass();
-		$this->f->mFieldArgs = [];
 
 		// Mocking the Template object
 		$this->mockTemplate = $this->createMock( Template::class );
@@ -72,62 +64,6 @@ class FormFieldTest extends TestCase {
 		$this->assertNull( $formField->getPossibleValues() );
 		$this->assertFalse( $formField->getUseDisplayTitle() );
 		$this->assertSame( [], $formField->getFieldArgs() );
-	}
-
-	public function testCreateFormFieldWithTemplateFieldProps() {
-		// Set expectations for the mocked methods or properties
-		$this->mockTemplateField->method( 'getFieldName' )->willReturn( 'MockedFieldName' );
-		$this->mockTemplateField->method( 'getLabel' )->willReturn( 'Mocked Label' );
-		$this->mockTemplateField->method( 'getSemanticProperty' )->willReturn( 'MockedSemanticProperty' );
-		$this->mockTemplateField->method( 'isList' )->willReturn( true );
-		$this->mockTemplateField->method( 'getDelimiter' )->willReturn( ';' );
-		$this->mockTemplateField->method( 'getDisplay' )->willReturn( 'MockedDisplay' );
-
-		// Create the FormField object
-		$formField = FormField::create( $this->mockTemplateField );
-
-		// Verify the object is an instance of FormField
-		$this->assertInstanceOf( FormField::class, $formField );
-
-		// Assert that the template field is set correctly
-		$this->assertSame( $this->mockTemplateField, $formField->template_field );
-
-		// Assert that properties were set correctly based on the mocked TemplateField
-		$this->assertSame( 'MockedFieldName', $formField->template_field->getFieldName() );
-		$this->assertSame( $this->mockTemplateField, $formField->getTemplateField() );
-		$this->assertSame( 'MockedSemanticProperty', $formField->template_field->getSemanticProperty() );
-		$this->assertSame( ';', $formField->template_field->getDelimiter() );
-		$this->assertSame( 'MockedDisplay', $formField->template_field->getDisplay() );
-	}
-
-	public function testDelimiterHandling() {
-		// Mock the TemplateField class
-		$this->mockTemplateFieldOne = $this->createMock( TemplateField::class );
-		$this->mockTemplateFieldTwo = $this->createMock( TemplateField::class );
-		$this->mockTemplateFieldOne->method( 'getDelimiter' )->willReturn( ',' );
-		$this->mockTemplateFieldTwo->method( 'getDelimiter' )->willReturn( ';' );
-
-		$this->mockTemplateFieldThree = $this->createMock( TemplateField::class );
-		$this->mockTemplateFieldThree->method( 'getDelimiter' )->willReturn( '' );
-
-		// Create the FormField objects
-		$fieldOne = FormField::create( $this->mockTemplateFieldOne );
-		$fieldTwo = FormField::create( $this->mockTemplateFieldTwo );
-		$fieldThree = FormField::create( $this->mockTemplateFieldThree );
-
-		$this->assertEquals( ',', $fieldOne->template_field->getDelimiter() );
-		$this->assertEquals( ';', $fieldTwo->template_field->getDelimiter() );
-
-		$delimiter = $fieldThree->template_field->getDelimiter();
-		if ( $delimiter === '' ) {
-			$fieldThree->setFieldArg( 'delimiter', ',' );
-			$this->assertEquals( ',', $fieldThree->getFieldArgs()['delimiter'] );
-		}
-		$delimiter = $fieldTwo->template_field->getDelimiter();
-		if ( $delimiter != '' ) {
-			$fieldTwo->setFieldArg( 'delimiter', $fieldTwo->template_field->getDelimiter() );
-			$this->assertEquals( ';', $fieldTwo->getFieldArgs()['delimiter'] );
-		}
 	}
 
 	public function testNewFromFormFieldTag_FieldExistsInTemplate() {
@@ -170,7 +106,7 @@ class FormFieldTest extends TestCase {
 
 		// Call the method under test - with strict parsing enabled and no matching
 		// field found, newFromFormFieldTag() must return early with a fresh,
-		// empty TemplateField and mIsList = false (src/FormField.php:232-239).
+		// empty TemplateField and mIsList = false.
 		$formField = FormField::newFromFormFieldTag(
 			new FieldSpec( $tagComponents ),
 			$this->mockTemplate,
@@ -186,81 +122,145 @@ class FormFieldTest extends TestCase {
 		$this->assertFalse( $formField->isList() );
 	}
 
-	public function testMandatoryComponent() {
-		$tag_components = [ '', 'test_field', 'mandatory' ];
-
-		// Call the method
+	/**
+	 * A single component of a {{{field|...}}} tag must end up in the field. The cases are the tags that need
+	 * nothing but the tag itself: flags, key=value pairs, and the "values from ..." / "unique for ..." sources.
+	 *
+	 * @dataProvider provideTagComponents
+	 * @param string[] $tagComponents
+	 * @param callable $read Reads from the field what the tag is expected to have set
+	 * @param mixed $expected
+	 */
+	public function testTagComponentIsReadIntoTheField( array $tagComponents, callable $read, $expected ) {
 		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
+			new FieldSpec( $tagComponents ),
 			$this->mockTemplate,
 			$this->mockTemplateInForm,
 			false,
 			$this->mockUser, $this->mockParser
 		);
 
-		$this->assertTrue( $formField->isMandatory() );
+		$this->assertSame( $expected, $read( $formField ) );
 	}
 
-	public function testHiddenComponent() {
-		$tag_components = [ '', '', 'hidden' ];
-
-		// Call the method
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertTrue( $formField->isHidden() );
-	}
-
-	public function testRestrictedComponent() {
-		$tag_components = [ '', '', 'restricted' ];
-
-		// Call the method
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertTrue( $formField->isRestricted() );
-	}
-
-	public function testKeyValueComponent() {
-		$tag_components = [ '', '', 'autocapitalize=uppercase' ];
-
-		// Call the method
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertEquals( 'uppercase', $formField->getAutocapitalize() );
-	}
-
-	public function testPropertyComponent() {
-		$tag_components = [ '', 'test_field', 'property=TestProperty' ];
-
-		// Call the method
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertEquals(
-			'TestProperty', $formField->getFieldArgs()['property'], 'The property should be set correctly'
-		);
+	/**
+	 * @return array<string, array{0: string[], 1: callable, 2: mixed}>
+	 */
+	public static function provideTagComponents(): array {
+		return [
+			'mandatory' => [
+				[ '', 'test_field', 'mandatory' ],
+				static fn ( FormField $field ) => $field->isMandatory(),
+				true,
+			],
+			'hidden' => [
+				[ '', '', 'hidden' ],
+				static fn ( FormField $field ) => $field->isHidden(),
+				true,
+			],
+			'restricted' => [
+				[ '', '', 'restricted' ],
+				static fn ( FormField $field ) => $field->isRestricted(),
+				true,
+			],
+			'key=value: autocapitalize' => [
+				[ '', '', 'autocapitalize=uppercase' ],
+				static fn ( FormField $field ) => $field->getAutocapitalize(),
+				'uppercase',
+			],
+			'property' => [
+				[ '', 'test_field', 'property=TestProperty' ],
+				static fn ( FormField $field ) => $field->getFieldArgs()['property'],
+				'TestProperty',
+			],
+			'unique' => [
+				[ '', '', 'unique' ],
+				static fn ( FormField $field ) => $field->getFieldArgs()['unique'],
+				true,
+			],
+			'label' => [
+				[ '', '', 'label=TestField' ],
+				static fn ( FormField $field ) => $field->getLabel(),
+				'TestField',
+			],
+			'label msg' => [
+				[ '', '', 'label msg=pf-formfield-test-label-msg' ],
+				static fn ( FormField $field ) => $field->getLabelMsg(),
+				'pf-formfield-test-label-msg',
+			],
+			'mapping template as a flag' => [
+				[ '', '', 'mapping template' ],
+				static fn ( FormField $field ) => $field->getFieldArgs()['mapping template'],
+				true,
+			],
+			'mapping property as a flag' => [
+				[ '', '', 'mapping property' ],
+				static fn ( FormField $field ) => $field->getFieldArgs()['mapping property'],
+				true,
+			],
+			'edittools' => [
+				[ '', '', 'edittools' ],
+				static fn ( FormField $field ) => $field->getFieldArgs()['edittools'],
+				true,
+			],
+			'holds template makes the field hidden' => [
+				[ '', '', 'holds template' ],
+				static fn ( FormField $field ) => [ $field->isHidden(), $field->holdsTemplate() ],
+				[ true, true ],
+			],
+			'preload' => [
+				[ '', '', 'preload=PFTestFormFieldPreloadPage01' ],
+				static fn ( FormField $field ) => $field->getFieldArgs()['preload'],
+				'PFTestFormFieldPreloadPage01',
+			],
+			// 'input type=combobox' skips the getAutocompleteValues() call, which would otherwise
+			// perform a real network request against the Wikidata SPARQL endpoint.
+			'values from wikidata' => [
+				[ '', '', 'values from wikidata=Q1', 'input type=combobox' ],
+				static fn ( FormField $field ) => $field->getFieldArgs()['values from wikidata'],
+				'Q1',
+			],
+			'values from query' => [
+				[ '', '', 'values from query=PFTestFormFieldQuery01' ],
+				static fn ( FormField $field ) => [
+					$field->getFieldArgs()['values from query'], $field->getPossibleValues()
+				],
+				[ 'PFTestFormFieldQuery01', [] ],
+			],
+			'values from category' => [
+				[ '', '', 'values from category=PFTestFormFieldCategory01' ],
+				static fn ( FormField $field ) => [
+					$field->getFieldArgs()['values from category'], $field->getPossibleValues()
+				],
+				[ 'PFTestFormFieldCategory01', [] ],
+			],
+			'values from namespace' => [
+				[ '', '', 'values from namespace=PFTestFormFieldNamespace01' ],
+				static fn ( FormField $field ) => $field->getFieldArgs()['values from namespace'],
+				'PFTestFormFieldNamespace01',
+			],
+			'unique for category' => [
+				[ '', '', 'unique for category=PFTestFormFieldUniqueCategory01' ],
+				static fn ( FormField $field ) => [
+					$field->getFieldArgs()['unique'], $field->getFieldArgs()['unique_for_category']
+				],
+				[ true, 'PFTestFormFieldUniqueCategory01' ],
+			],
+			'unique for namespace' => [
+				[ '', '', 'unique for namespace=PFTestFormFieldUniqueNamespace01' ],
+				static fn ( FormField $field ) => [
+					$field->getFieldArgs()['unique'], $field->getFieldArgs()['unique_for_namespace']
+				],
+				[ true, 'PFTestFormFieldUniqueNamespace01' ],
+			],
+			'unique for concept' => [
+				[ '', '', 'unique for concept=PFTestFormFieldUniqueConcept01' ],
+				static fn ( FormField $field ) => [
+					$field->getFieldArgs()['unique'], $field->getFieldArgs()['unique_for_concept']
+				],
+				[ true, 'PFTestFormFieldUniqueConcept01' ],
+			],
+		];
 	}
 
 	/**
@@ -322,66 +322,6 @@ class FormFieldTest extends TestCase {
 		);
 	}
 
-	public function testUniqueComponent() {
-		$tag_components = [ '', '', 'unique' ];
-
-		// Call the method
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertTrue( $formField->getFieldArgs()['unique'] );
-	}
-
-	public function testLabelComponent() {
-		$tag_components = [ '', '', 'label=TestField' ];
-
-		// Call the method
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertEquals( 'TestField', $formField->getLabel() );
-	}
-
-	public function testMappingTypeWithMappingTemplate() {
-		$tag_components = [ '', '', 'mapping template' ];
-
-		// Call the method
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertTrue( $formField->getFieldArgs()['mapping template'] );
-	}
-
-	public function testMappingTypeWithMappingProperty() {
-		$tag_components = [ '', '', 'mapping property' ];
-
-		// Call the method
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertTrue( $formField->getFieldArgs()['mapping property'] );
-	}
-
 	public function testSetMappedValuesTemplate() {
 		// Create the FormField object
 		$formField = FormField::create( $this->mockTemplateField );
@@ -421,42 +361,21 @@ class FormFieldTest extends TestCase {
 		], $formField->getPossibleValues() );
 	}
 
-	public function testValueStringToLabels() {
-		// Create the FormField object
+	// The other cases of valueStringToLabels() (empty, null, known and unknown keys, lists) are covered by the
+	// testValueStringToLabels* tests further down; these two are only here.
+
+	public function testValueStringToLabelsKeepsAWhitespaceOnlyValue() {
 		$formField = FormField::create( $this->mockTemplateField );
 		$formField->setPossibleValues( [ 'val1' => 'Label 1', 'val2' => 'Label 2' ] );
 
-		// Empty string
-		$result = $formField->valueStringToLabels( '', ',' );
-		$this->assertSame( '', $result );
+		$this->assertSame( '    ', $formField->valueStringToLabels( '    ', ',' ) );
+	}
 
-		// String with only spaces
-		$result = $formField->valueStringToLabels( '    ', ',' );
-		$this->assertEquals( '    ', $result );
+	public function testValueStringToLabelsWithoutADelimiterDoesNotSplitTheValue() {
+		$formField = FormField::create( $this->mockTemplateField );
+		$formField->setPossibleValues( [ 'val1' => 'Label 1', 'val2' => 'Label 2' ] );
 
-		// Test case 2: Null valueString
-		$result = $formField->valueStringToLabels( null, ',' );
-		$this->assertNull( $result );
-
-		// Test case 3: Value exists in mPossibleValues
-		$result = $formField->valueStringToLabels( 'val1', ',' );
-		$this->assertEquals( 'Label 1', $result );
-
-		// Test case 4: Value does not exist in mPossibleValues
-		$result = $formField->valueStringToLabels( 'val3', ',' );
-		$this->assertEquals( 'val3', $result );
-
-		// Test case 5: Multiple values, some exist in mPossibleValues, others do not
-		$result = $formField->valueStringToLabels( 'val1,val3', ',' );
-		$this->assertEquals( 'Label 1,val3', $result );
-
-		// Test case 6: Delimiter is null
-		$result = $formField->valueStringToLabels( 'val1,val2', null );
-		$this->assertEquals( 'val1,val2', $result );
-
-		// Test case 7: Multiple labels and values exist
-		$result = $formField->valueStringToLabels( 'val1,val2', ',' );
-		$this->assertEquals( 'Label 1,Label 2', $result );
+		$this->assertSame( 'val1,val2', $formField->valueStringToLabels( 'val1,val2', null ) );
 	}
 
 	public function testAdditionalHTMLForInput() {
@@ -538,12 +457,16 @@ class FormFieldTest extends TestCase {
 			'TestField+' => 'AppendedValue'
 		];
 
-		// Appending scenario
-		$resultAppend = $field->getCurrentValue( $template_instance_query_values, true, false, true );
+		// Appending scenario: the "+" modifier is handed back so that the caller adds the value
+		$val_modifier = null;
+		$resultAppend = $field->getCurrentValue(
+			$template_instance_query_values, true, false, true, $val_modifier
+		);
 		$this->assertEquals( 'AppendedValue', $resultAppend, 'Appended value should be handled correctly' );
+		$this->assertSame( '+', $val_modifier );
 	}
 
-	public function testGetCurrentValue_WithPrepending() {
+	public function testGetCurrentValue_WithRemoval() {
 		// Mock TemplateField
 		$this->mockTemplateField->method( 'getFieldName' )->willReturn( 'TestField' );
 
@@ -555,15 +478,19 @@ class FormFieldTest extends TestCase {
 		// Mock TemplateInForm
 		$this->mockTemplateInForm->method( 'getTemplateName' )->willReturn( 'TestTemplate' );
 
-		// Define test cases for prepending
+		// The "-" modifier names a value to remove from the field
 		$template_instance_query_values = [
-			'TestField-' => 'PrependedValue'
+			'TestField-' => 'RemovedValue'
 		];
 
-		// Prepending scenario
+		// The value is handed back together with the "-" modifier, so that the caller removes it
 		$field->setFieldArg( 'field_name', 'TestField-' );
-		$resultPrepend = $field->getCurrentValue( $template_instance_query_values, true, false, true );
-		$this->assertEquals( 'PrependedValue', $resultPrepend, 'Prepended value should be handled correctly' );
+		$val_modifier = null;
+		$resultRemoval = $field->getCurrentValue(
+			$template_instance_query_values, true, false, true, $val_modifier
+		);
+		$this->assertEquals( 'RemovedValue', $resultRemoval, 'The value to remove should be handed back' );
+		$this->assertSame( '-', $val_modifier );
 	}
 
 	public function testCreateMarkup() {
@@ -706,7 +633,7 @@ class FormFieldTest extends TestCase {
 
 		$field = FormField::create( $this->mockTemplateField );
 		// A non-boolean-true 'uploadable' value must still be rendered as a
-		// value-less argument (src/FormField.php:956-959), not "|uploadable=1".
+		// value-less argument by createMarkup(), not "|uploadable=1".
 		$field->setFieldArg( 'uploadable', '1' );
 
 		$output = $field->createMarkup( true, true );
@@ -910,37 +837,9 @@ class FormFieldTest extends TestCase {
 		$this->assertSame( 'tokens', $formField->getInputType() );
 	}
 
-	public function testGetLabelMsg() {
-		$tag_components = [ '', '', 'label msg=pf-formfield-test-label-msg' ];
-
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertSame( 'pf-formfield-test-label-msg', $formField->getLabelMsg() );
-	}
-
 	// -------------------------------------------------------------------------
-	// newFromFormFieldTag() - additional single-value / key-value components.
+	// newFromFormFieldTag() - components that need more than the tag itself.
 	// -------------------------------------------------------------------------
-
-	public function testEdittoolsComponent() {
-		$tag_components = [ '', '', 'edittools' ];
-
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertTrue( $formField->getFieldArgs()['edittools'] );
-	}
 
 	public function testEmbeddedTemplateFromTemplateFieldSetsHiddenAndHoldsTemplate() {
 		global $wgPageFormsEmbeddedTemplates;
@@ -977,38 +876,9 @@ class FormFieldTest extends TestCase {
 		);
 	}
 
-	public function testHoldsTemplateSingleValueComponent() {
-		$tag_components = [ '', '', 'holds template' ];
-
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertTrue( $formField->isHidden() );
-		$this->assertTrue( $formField->holdsTemplate() );
-	}
-
-	public function testPreloadComponent() {
-		$tag_components = [ '', '', 'preload=PFTestFormFieldPreloadPage01' ];
-
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertSame( 'PFTestFormFieldPreloadPage01', $formField->getFieldArgs()['preload'] );
-	}
-
 	public function testShowOnSelectComponentGroupsOptionsByDivId() {
 		// The trailing ';' produces an empty trimmed element, which must be
-		// skipped via the 'continue' branch (src/FormField.php:340-341).
+		// skipped via the 'continue' branch of the show on select parsing.
 		$tag_components = [
 			'', '', 'show on select=optionA=>div1;optionB=>div1;optionC=>div2;'
 		];
@@ -1045,74 +915,6 @@ class FormFieldTest extends TestCase {
 		$this->assertSame( [], $formField->getFieldArgs()['show on select']['optionA'] );
 	}
 
-	public function testValuesFromWikidataComponent() {
-		// 'input type=combobox' skips the getAutocompleteValues() call further
-		// down (src/FormField.php:424-425), which would otherwise perform a
-		// real network request against the Wikidata SPARQL endpoint -
-		// unavailable in this test environment.
-		$tag_components = [ '', '', 'values from wikidata=Q1', 'input type=combobox' ];
-
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertSame( 'Q1', $formField->getFieldArgs()['values from wikidata'] );
-	}
-
-	public function testValuesFromQueryComponent() {
-		$tag_components = [ '', '', 'values from query=PFTestFormFieldQuery01' ];
-
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertSame(
-			'PFTestFormFieldQuery01', $formField->getFieldArgs()['values from query']
-		);
-		$this->assertSame( [], $formField->getPossibleValues() );
-	}
-
-	public function testValuesFromCategoryComponent() {
-		$tag_components = [ '', '', 'values from category=PFTestFormFieldCategory01' ];
-
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertSame(
-			'PFTestFormFieldCategory01', $formField->getFieldArgs()['values from category']
-		);
-		$this->assertSame( [], $formField->getPossibleValues() );
-	}
-
-	public function testValuesFromNamespaceComponent() {
-		$tag_components = [ '', '', 'values from namespace=PFTestFormFieldNamespace01' ];
-
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertSame(
-			'PFTestFormFieldNamespace01', $formField->getFieldArgs()['values from namespace']
-		);
-	}
-
 	public function testValuesDependentOnComponent() {
 		global $wgPageFormsDependentFields;
 		$wgPageFormsDependentFields = [];
@@ -1134,57 +936,6 @@ class FormFieldTest extends TestCase {
 		$this->assertSame(
 			[ 'parent_field', 'PFTestFormFieldTemplateName01[child_field]' ],
 			$wgPageFormsDependentFields[0]
-		);
-	}
-
-	public function testUniqueForCategoryComponent() {
-		$tag_components = [ '', '', 'unique for category=PFTestFormFieldUniqueCategory01' ];
-
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertTrue( $formField->getFieldArgs()['unique'] );
-		$this->assertSame(
-			'PFTestFormFieldUniqueCategory01', $formField->getFieldArgs()['unique_for_category']
-		);
-	}
-
-	public function testUniqueForNamespaceComponent() {
-		$tag_components = [ '', '', 'unique for namespace=PFTestFormFieldUniqueNamespace01' ];
-
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertTrue( $formField->getFieldArgs()['unique'] );
-		$this->assertSame(
-			'PFTestFormFieldUniqueNamespace01', $formField->getFieldArgs()['unique_for_namespace']
-		);
-	}
-
-	public function testUniqueForConceptComponent() {
-		$tag_components = [ '', '', 'unique for concept=PFTestFormFieldUniqueConcept01' ];
-
-		$formField = FormField::newFromFormFieldTag(
-			new FieldSpec( $tag_components ),
-			$this->mockTemplate,
-			$this->mockTemplateInForm,
-			false,
-			$this->mockUser, $this->mockParser
-		);
-
-		$this->assertTrue( $formField->getFieldArgs()['unique'] );
-		$this->assertSame(
-			'PFTestFormFieldUniqueConcept01', $formField->getFieldArgs()['unique_for_concept']
 		);
 	}
 
@@ -1216,7 +967,7 @@ class FormFieldTest extends TestCase {
 		$originalTitle = RequestContext::getMain()->getTitle();
 		try {
 			// Special:FormEdit/FormName/TargetPage - the target-name extraction
-			// branch (src/FormField.php:400-407) must strip the special-page
+			// branch of the default filename handling must strip the special-page
 			// and form-name prefix, leaving just "TargetPage".
 			RequestContext::getMain()->setTitle(
 				Title::newFromText( 'Special:FormEdit/PFTestFormFieldForm01/PFTestFormFieldTargetPage01' )
@@ -1286,7 +1037,7 @@ class FormFieldTest extends TestCase {
 		$this->assertTrue( $formField->isList() );
 	}
 
-	public function testMappingValuesFromNamespacePrefixesPossibleValues() {
+	public function testMappingPropertyWithoutAStoreKeepsTheNamespaceArgumentAndDisplayTitleOff() {
 		$mappedTemplateField = $this->createMock( TemplateField::class );
 		$mappedTemplateField->method( 'getDelimiter' )->willReturn( '' );
 		$mappedTemplateField->method( 'getCategory' )->willReturn( null );
@@ -1377,7 +1128,7 @@ class FormFieldTest extends TestCase {
 	/**
 	 * Pathological input with 205 distinct adjacent tags must not loop
 	 * forever - the safety-valve break after 200 iterations
-	 * (src/FormField.php:539-541) must trigger. Tags need distinct numbers:
+	 * must trigger. Tags need distinct numbers:
 	 * str_replace() on an identical repeated tag would collapse the whole
 	 * chain in a single iteration, never reaching the guard.
 	 */
@@ -1393,8 +1144,8 @@ class FormFieldTest extends TestCase {
 	}
 
 	/**
-	 * Same safety-valve, for the "add newline before template call" loop
-	 * (src/FormField.php:558-562). Each tag+template pair only needs one
+	 * Same safety-valve, for the "add newline before template call" loop.
+	 * Each tag+template pair only needs one
 	 * pass, so 205 distinct pairs are required to exceed the 200-iteration
 	 * guard within a single call.
 	 */
@@ -1431,7 +1182,7 @@ class FormFieldTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// getCurrentValue() - additional branches: appending/prepending value
+	// getCurrentValue() - additional branches: value
 	// mapping via map_field, array values, "not submitted" passthrough, and
 	// default-value / preload fallback.
 	// -------------------------------------------------------------------------
@@ -1492,7 +1243,7 @@ class FormFieldTest extends TestCase {
 		// The field name contains an apostrophe, so the escaped lookup key
 		// ("Field\'Name") differs from the field name itself ("Field'Name").
 		// When the query-values array only has the unescaped key, the
-		// fallback match at src/FormField.php:620-621 must be used.
+		// fallback match in getCurrentValue() must be used.
 		$this->mockTemplateField->method( 'getFieldName' )->willReturn( "PFTestFormFieldApos'Name01" );
 
 		$field = FormField::create( $this->mockTemplateField );
