@@ -184,7 +184,6 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		$formField->method( 'getLabelMsg' )->willReturn( 'pf-test-shb-label-msg-01' );
 		$formField->method( 'hasFieldArg' )->willReturn( false );
 		$formField->method( 'getInputName' )->willReturn( 'input_label_msg_field' );
-		$formField->method( 'additionalHTMLForInput' )->willReturn( '' );
 
 		$tif = $this->makeTifForTable( 'PFTestSHBOuterTemplate05', [ $formField ], [] );
 		$html = $this->builder->tableHTML( $tif, 0, static fn ( $f, $v ) => '' );
@@ -207,7 +206,6 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		$formField->method( 'getLabelMsg' )->willReturn( null );
 		$formField->method( 'hasFieldArg' )->willReturn( false );
 		$formField->method( 'getInputName' )->willReturn( 'input_template_field_label' );
-		$formField->method( 'additionalHTMLForInput' )->willReturn( '' );
 
 		$tif = $this->makeTifForTable( 'PFTestSHBOuterTemplate06', [ $formField ], [] );
 		$html = $this->builder->tableHTML( $tif, 0, static fn ( $f, $v ) => '' );
@@ -230,7 +228,6 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		$formField->method( 'getLabelMsg' )->willReturn( null );
 		$formField->method( 'hasFieldArg' )->willReturn( false );
 		$formField->method( 'getInputName' )->willReturn( 'input_fallback_field_name' );
-		$formField->method( 'additionalHTMLForInput' )->willReturn( '' );
 
 		$tif = $this->makeTifForTable( 'PFTestSHBOuterTemplate07', [ $formField ], [] );
 		$html = $this->builder->tableHTML( $tif, 0, static fn ( $f, $v ) => '' );
@@ -258,7 +255,6 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 			static fn ( $key ) => $key === 'tooltip' ? 'PFTestSHBTooltipText01' : null
 		);
 		$formField->method( 'getInputName' )->willReturn( 'input_tooltip_field' );
-		$formField->method( 'additionalHTMLForInput' )->willReturn( '' );
 
 		$tif = $this->makeTifForTable( 'PFTestSHBOuterTemplate08', [ $formField ], [] );
 		$html = $this->builder->tableHTML( $tif, 0, static fn ( $f, $v ) => '' );
@@ -626,7 +622,6 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 			static fn ( $key ) => $fieldArgs[$key] ?? null
 		);
 		$formField->method( 'getInputName' )->willReturn( $inputName );
-		$formField->method( 'additionalHTMLForInput' )->willReturn( '' );
 		return $formField;
 	}
 
@@ -643,7 +638,6 @@ class SpreadsheetHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		$formField->method( 'getLabelMsg' )->willReturn( null );
 		$formField->method( 'hasFieldArg' )->willReturn( false );
 		$formField->method( 'getInputName' )->willReturn( $inputName );
-		$formField->method( 'additionalHTMLForInput' )->willReturn( '' );
 		return $formField;
 	}
 

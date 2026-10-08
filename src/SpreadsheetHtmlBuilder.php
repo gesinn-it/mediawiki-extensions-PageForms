@@ -12,6 +12,12 @@ use Html;
  */
 class SpreadsheetHtmlBuilder {
 
+	private FormFieldExtraHtmlBuilder $extraHtmlBuilder;
+
+	public function __construct( ?FormFieldExtraHtmlBuilder $extraHtmlBuilder = null ) {
+		$this->extraHtmlBuilder = $extraHtmlBuilder ?? new FormFieldExtraHtmlBuilder();
+	}
+
 	/**
 	 * Creates the HTML for the inner table used in display=table mode for
 	 * every instance of a template.
@@ -41,7 +47,9 @@ class SpreadsheetHtmlBuilder {
 				}
 				$html .= '</table>' . "\n";
 				$html .= Html::hidden( $formField->getInputName() ?? '', $curValue, $attribs );
-				$html .= $formField->additionalHTMLForInput( $curValue, $fieldName, $tif->getTemplateName() );
+				$html .= $this->extraHtmlBuilder->build(
+					$formField, $curValue, $fieldName, $tif->getTemplateName(), $counters
+				);
 				$html .= '<table class="formtable">' . "\n";
 				continue;
 			}
@@ -80,7 +88,9 @@ class SpreadsheetHtmlBuilder {
 
 			$labelCell = Html::rawElement( 'th', $labelCellAttrs, $label );
 			$inputHTML = $fieldHtmlCallback( $formField, $curValue );
-			$inputHTML .= $formField->additionalHTMLForInput( $curValue, $fieldName, $tif->getTemplateName() );
+			$inputHTML .= $this->extraHtmlBuilder->build(
+					$formField, $curValue, $fieldName, $tif->getTemplateName(), $counters
+				);
 			$inputCell = Html::rawElement( 'td', [], $inputHTML );
 			$html .= Html::rawElement( 'tr', [], $labelCell . $inputCell ) . "\n";
 		}

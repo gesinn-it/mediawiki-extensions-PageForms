@@ -10,6 +10,7 @@ use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormField;
+use MediaWiki\Extension\PageForms\FormFieldExtraHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormPlaceholder;
 use MediaWiki\Extension\PageForms\FormRenderContext;
@@ -49,11 +50,15 @@ class FieldHandler implements ElementHandler {
 
 	private FieldValueResolver $fieldValueResolver;
 
+	private FormFieldExtraHtmlBuilder $extraHtmlBuilder;
+
 	public function __construct(
 		FormFieldHtmlBuilder $formFieldHtmlBuilder,
 		MappingLabels $mappingLabels,
-		FieldValueResolver $fieldValueResolver
+		FieldValueResolver $fieldValueResolver,
+		FormFieldExtraHtmlBuilder $extraHtmlBuilder
 	) {
+		$this->extraHtmlBuilder = $extraHtmlBuilder;
 		$this->formFieldHtmlBuilder = $formFieldHtmlBuilder;
 		$this->mappingLabels = $mappingLabels;
 		$this->fieldValueResolver = $fieldValueResolver;
@@ -188,8 +193,8 @@ class FieldHandler implements ElementHandler {
 		$new_text = $this->formFieldHtmlBuilder->formFieldHTML(
 			$form_field, $cur_value, $context->parser, $context->counters
 		);
-		$new_text .= $form_field->additionalHTMLForInput(
-			$cur_value, $field_name, $context->tif->getTemplateName()
+		$new_text .= $this->extraHtmlBuilder->build(
+			$form_field, $cur_value, $field_name, $context->tif->getTemplateName(), $context->counters
 		);
 		if ( $new_text ) {
 			$context->wikiPage->addTemplateParam(

@@ -4,7 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use Html;
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\MediaWikiServices;
 use Parser;
@@ -1102,71 +1101,15 @@ class FormField {
 		return implode( $delimiter ?? ', ', $labels );
 	}
 
+	/**
+	 * @deprecated use FormFieldExtraHtmlBuilder::build()
+	 * @param string|array|null $cur_value
+	 * @param string $field_name
+	 * @param string|null $template_name
+	 * @return string
+	 */
 	public function additionalHTMLForInput( $cur_value, $field_name, $template_name ) {
-		$text = '';
-
-		// Add a field just after the hidden field, within the HTML, to
-		// locate where the multiple-templates HTML, stored in
-		// $multipleTemplateString, should be inserted.
-		if ( $this->mHoldsTemplate ) {
-			$text .= FormPlaceholder::toHtmlMarker(
-				FormPlaceholder::format( $template_name, $field_name )
-			);
-		}
-
-		// If this field is disabled, add a hidden field holding
-		// the value of this field, because disabled inputs for some
-		// reason don't submit their value.
-		if ( $this->isDisabled() ) {
-			if ( $field_name == 'free text' || $field_name == '#freetext#' ) {
-				$text .= Html::hidden( 'pf_free_text', '!free_text!' );
-			} else {
-				if ( is_array( $cur_value ) ) {
-					$delimiter = $this->mFieldArgs['delimiter'];
-					$text .= Html::hidden( $this->getInputName() ?? '', implode( $delimiter, $cur_value ) );
-				} else {
-					$text .= Html::hidden( $this->getInputName() ?? '', $cur_value );
-				}
-			}
-		}
-
-		if ( $this->hasFieldArg( 'mapping template' ) ||
-			$this->hasFieldArg( 'mapping property' ) ||
-			$this->mUseDisplayTitle ) {
-			if ( $this->hasFieldArg( 'part_of_multiple' ) ) {
-				$text .= Html::hidden( $template_name . '[num][map_field][' . $field_name . ']', 'true' );
-			} else {
-				$text .= Html::hidden( $template_name . '[map_field][' . $field_name . ']', 'true' );
-			}
-		}
-
-		if ( $this->hasFieldArg( 'unique' ) ) {
-			$counters = FormCounters::current();
-
-			$semantic_property = $this->template_field->getSemanticProperty();
-			if ( $semantic_property != null ) {
-				$text .= Html::hidden( 'input_' . $counters->fieldNum . '_unique_property', $semantic_property );
-			}
-			if ( $this->hasFieldArg( 'unique_for_category' ) ) {
-				$text .= Html::hidden(
-					'input_' . $counters->fieldNum . '_unique_for_category',
-					$this->getFieldArg( 'unique_for_category' )
-				);
-			}
-			if ( $this->hasFieldArg( 'unique_for_namespace' ) ) {
-				$text .= Html::hidden(
-					'input_' . $counters->fieldNum . '_unique_for_namespace',
-					$this->getFieldArg( 'unique_for_namespace' )
-				);
-			}
-			if ( $this->hasFieldArg( 'unique_for_concept' ) ) {
-				$text .= Html::hidden(
-					'input_' . $counters->fieldNum . '_unique_for_concept',
-					$this->getFieldArg( 'unique_for_concept' )
-				);
-			}
-		}
-		return $text;
+		return ( new FormFieldExtraHtmlBuilder() )->build( $this, $cur_value, $field_name, $template_name );
 	}
 
 	/**

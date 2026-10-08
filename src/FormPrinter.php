@@ -136,7 +136,8 @@ class FormPrinter {
 		$this->pageTextAssembler = $pageTextAssembler ?? new PageTextAssembler( $hookContainer );
 		$this->elementHandlers = $elementHandlers ?? [
 			FieldSpec::class => new FieldHandler(
-				$this->formFieldHtmlBuilder, $this->mappingLabels, $this->fieldValueResolver
+				$this->formFieldHtmlBuilder, $this->mappingLabels, $this->fieldValueResolver,
+				new FormFieldExtraHtmlBuilder()
 			),
 			TextSpec::class => new TextHandler(),
 			UnknownTagSpec::class => new UnknownTagHandler(),

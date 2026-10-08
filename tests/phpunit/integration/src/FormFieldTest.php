@@ -1,8 +1,8 @@
 <?php
 
-use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormField;
+use MediaWiki\Extension\PageForms\FormFieldExtraHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormInstanceField;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateField;
@@ -378,40 +378,14 @@ class FormFieldTest extends TestCase {
 		$this->assertSame( 'val1,val2', $formField->valueStringToLabels( 'val1,val2', null ) );
 	}
 
-	public function testAdditionalHTMLForInput() {
-		FormCounters::current()->fieldNum = 0;
-
-		// Create the FormField object
+	public function testAdditionalHTMLForInputForwardsToTheBuilder() {
 		$field = FormField::create( $this->mockTemplateField );
-
-		// Mock values for $field
-		$field->setHoldsTemplate( true );
 		$field->setIsDisabled( true );
-		$field->setInputName( 'input_field' );
-		$field->setFieldArg( 'delimiter', ',' );
-		$field->setFieldArg( 'mapping template', 'template_name' );
-		$field->setFieldArg( 'unique', true );
-		$field->setFieldArg( 'unique_for_category', 'Category1' );
-		$field->setFieldArg( 'unique_for_namespace', 'Namespace1' );
+		$field->setInputName( 'PFTestFormFieldForwardName01' );
 
-		// Call the method to test
-		$cur_value = 'some_value';
-		$field_name = 'some_field';
-		$template_name = 'template_example';
-		$result = $field->additionalHTMLForInput( $cur_value, $field_name, $template_name );
-
-		// Assertions for template-related hidden fields
-		$this->assertStringContainsString(
-			'type="hidden" value="true" name="template_example[map_field][some_field]"', $result
-		);
-		$this->assertStringContainsString( 'type="hidden" value="some_value" name="input_field"', $result );
-
-		// Assertions for unique-related hidden fields
-		$this->assertStringContainsString(
-			'type="hidden" value="Category1" name="input_0_unique_for_category"', $result
-		);
-		$this->assertStringContainsString(
-			'type="hidden" value="Namespace1" name="input_0_unique_for_namespace"', $result
+		$this->assertSame(
+			( new FormFieldExtraHtmlBuilder() )->build( $field, 'v', 'some_field', 'template_example' ),
+			$field->additionalHTMLForInput( 'v', 'some_field', 'template_example' )
 		);
 	}
 
@@ -1439,77 +1413,6 @@ class FormFieldTest extends TestCase {
 		$this->assertSame(
 			[ 'PFTestFormFieldMappingSubject01' => 'PFTestFormFieldMappingSubject01' ],
 			$formField->getPossibleValues()
-		);
-	}
-
-	// -------------------------------------------------------------------------
-	// additionalHTMLForInput() - free-text field, part_of_multiple map_field
-	// hidden field, and unique_for_concept hidden field.
-	// -------------------------------------------------------------------------
-
-	public function testAdditionalHTMLForInputFreeTextField() {
-		$field = FormField::create( $this->mockTemplateField );
-		$field->setIsDisabled( true );
-
-		$result = $field->additionalHTMLForInput( 'some free text', 'free text', 'template_example' );
-
-		$this->assertStringContainsString(
-			'type="hidden" value="!free_text!" name="pf_free_text"', $result
-		);
-	}
-
-	public function testAdditionalHTMLForInputDisabledFieldWithArrayValue() {
-		$field = FormField::create( $this->mockTemplateField );
-		$field->setIsDisabled( true );
-		$field->setInputName( 'PFTestFormFieldInputName01' );
-		$field->setFieldArg( 'delimiter', ';' );
-
-		$result = $field->additionalHTMLForInput( [ 'a', 'b' ], 'some_field', 'template_example' );
-
-		$this->assertStringContainsString(
-			'type="hidden" value="a;b" name="PFTestFormFieldInputName01"', $result
-		);
-	}
-
-	public function testAdditionalHTMLForInputUniqueWithSemanticProperty() {
-		FormCounters::current()->fieldNum = 0;
-
-		$this->mockTemplateField->method( 'getSemanticProperty' )->willReturn( 'PFTestFormFieldUniqueSemProp01' );
-
-		$field = FormField::create( $this->mockTemplateField );
-		$field->setFieldArg( 'unique', true );
-
-		$result = $field->additionalHTMLForInput( 'some_value', 'some_field', 'template_example' );
-
-		$this->assertStringContainsString(
-			'type="hidden" value="PFTestFormFieldUniqueSemProp01" name="input_0_unique_property"', $result
-		);
-	}
-
-	public function testAdditionalHTMLForInputPartOfMultipleMapField() {
-		$field = FormField::create( $this->mockTemplateField );
-		$field->setFieldArg( 'mapping template', 'template_name' );
-		$field->setFieldArg( 'part_of_multiple', true );
-
-		$result = $field->additionalHTMLForInput( 'some_value', 'some_field', 'template_example' );
-
-		$this->assertStringContainsString(
-			'type="hidden" value="true" name="template_example[num][map_field][some_field]"', $result
-		);
-	}
-
-	public function testAdditionalHTMLForInputUniqueForConcept() {
-		FormCounters::current()->fieldNum = 0;
-
-		$field = FormField::create( $this->mockTemplateField );
-		$field->setFieldArg( 'unique', true );
-		$field->setFieldArg( 'unique_for_concept', 'PFTestFormFieldUniqueConceptName01' );
-
-		$result = $field->additionalHTMLForInput( 'some_value', 'some_field', 'template_example' );
-
-		$this->assertStringContainsString(
-			'type="hidden" value="PFTestFormFieldUniqueConceptName01" name="input_0_unique_for_concept"',
-			$result
 		);
 	}
 
