@@ -12,8 +12,23 @@ namespace MediaWiki\Extension\PageForms;
  * as the input classes, reads and advances current(). Nested renders are safe, each
  * works on its own counters.
  *
+ * Route for the input classes: they keep reading current() instead of getting the counters
+ * passed in. The PFFormInput constructor and getHTML() are public API implemented by
+ * third-party input classes, so adding a parameter would break them; current() is a thin
+ * accessor that leaves those signatures alone. Everything inside FormPrinter that can take
+ * the counters as a parameter does so and only falls back to current().
+ *
+ * The remaining static state is the stack of active renders and the standalone counters.
+ * The standalone counters are used only when current() is called outside of any render,
+ * e.g. when an input is built on its own (unit tests, parser functions that build an input).
+ * They live for the rest of the process unless resetStandalone() is called, which tests that
+ * depend on them must do.
+ *
  * The legacy globals $wgPageFormsTabIndex and $wgPageFormsFieldNum only mirror these
  * values for external code that reads them (see mirrorToGlobals()); nothing reads them back.
+ * While a render runs they hold the values of the field being built; after renders have
+ * finished they hold the final values of the render that finished last, which for nested
+ * renders is the outermost one, because it overwrites what the inner render left behind.
  */
 class FormCounters {
 
