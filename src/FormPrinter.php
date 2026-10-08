@@ -569,9 +569,8 @@ class FormPrinter {
 	 *
 	 * @param list<FormElement> $elements
 	 * @param FormRenderContext $context
-	 * @return bool True if the section has to be rendered again for the next instance of its template
 	 */
-	private function renderSection( array $elements, FormRenderContext $context ): bool {
+	private function renderSection( array $elements, FormRenderContext $context ): void {
 		// The HTML for the section is assembled from the elements in $context->section.
 		$context->sectionElements = array_map( [ $this, 'freeTextAsField' ], $elements );
 		$context->section = ' ';
@@ -583,7 +582,7 @@ class FormPrinter {
 		}
 
 		$this->pageTextAssembler->insertTemplateCalls( $context );
-		return $this->sectionLayout->finish( $context );
+		$this->sectionLayout->finish( $context );
 	}
 
 	/**
@@ -720,6 +719,8 @@ class FormPrinter {
 		$request,
 		FormRenderContext $context
 	): FormRenderResult {
+		global $wgOut, $wgPageFormsScriptPath;
+
 		$context->formSubmitted = (bool)$form_submitted;
 		$context->sourceIsPage = (bool)$source_is_page;
 		$context->isQuery = (bool)$is_query;
@@ -732,6 +733,8 @@ class FormPrinter {
 		$context->existingPageContent = $existing_page_content;
 		$context->generatedPageName = $page_name_formula;
 		$context->request = $request ?? RequestContext::getMain()->getRequest();
+		$context->out = $wgOut;
+		$context->scriptPath = (string)$wgPageFormsScriptPath;
 		$context->user = $user ?? RequestContext::getMain()->getUser();
 
 		// Disable all form elements if user doesn't have edit permission.
@@ -765,10 +768,12 @@ class FormPrinter {
 		$context->infoTagSeen = false;
 
 		foreach ( $form_def_sections as $section_elements ) {
+			$this->renderSection( $section_elements, $context );
 			// A section of a template that allows multiple instances is rendered once per instance.
-			do {
-				$repeatSection = $this->renderSection( $section_elements, $context );
-			} while ( $repeatSection );
+			while ( $context->tif?->hasInstancesLeftToPrint() ) {
+				$context->tif->incrementInstanceNum();
+				$this->renderSection( $section_elements, $context );
+			}
 		}
 
 		[ $context->formText, $page_text, $context->formPageTitle, $parserOutput ] =

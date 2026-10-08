@@ -42,117 +42,118 @@ class SectionLayout {
 	}
 
 	/**
-	 * Adds the section ($context->section) to the form ($context->formText).
+	 * Adds the section ($context->section) to the form ($context->formText). For a template
+	 * that allows multiple instances this is called once per instance, see
+	 * TemplateInForm::hasInstancesLeftToPrint().
 	 *
 	 * @param FormRenderContext $context
-	 * @return bool True if the template allows more instances, so the same section has to be
-	 *  rendered again for the next one
 	 */
-	public function finish( FormRenderContext $context ): bool {
-		global $wgOut, $wgPageFormsScriptPath;
-
+	public function finish( FormRenderContext $context ): void {
 		$tif = $context->tif;
-		if ( $context->sourceIsPage && $tif && $tif->allowsMultiple()
-			&& !$tif->allInstancesPrinted() ) {
+		if ( !$tif ) {
+			$context->formText .= $context->section;
+		} elseif ( $tif->allowsMultiple() ) {
+			$this->finishMultiple( $tif, $context );
+		} else {
+			$this->finishSingle( $tif, $context );
+		}
+	}
+
+	private function finishSingle( TemplateInForm $tif, FormRenderContext $context ): void {
+		$context->formText .= $this->openingHtml( $tif );
+		if ( $tif->getDisplay() == 'table' ) {
+			$context->formText .= $this->tableHtml( $tif, 0, $context );
+		} elseif ( $tif->getLabel() != null ) {
+			$context->formText .= $context->section . "\n</fieldset>";
+		} else {
+			$context->formText .= $context->section;
+		}
+	}
+
+	private function finishMultiple( TemplateInForm $tif, FormRenderContext $context ): void {
+		if ( $context->sourceIsPage && !$tif->allInstancesPrinted() ) {
 			// The parameters of this instance's template call that the form does not define,
 			// as hidden inputs of the instance. (The "end template" tag is only handled once
 			// for all instances, so it cannot do this.)
 			$context->section .= FormMarkup::unhandledFieldsHTML( $tif );
 		}
 
-		$multipleTemplateHTML = '';
-		if ( $tif ) {
-			if ( $tif->getLabel() != null ) {
-				$fieldsetStartHTML = "<fieldset>\n"
-					. Html::element( 'legend', [], $tif->getLabel() ) . "\n";
-				$fieldsetStartHTML .= $tif->getIntro();
-				if ( !$tif->allowsMultiple() ) {
-					$context->formText .= $fieldsetStartHTML;
-				} elseif ( $tif->allowsMultiple() && $tif->getInstanceNum() == 0 ) {
-					$multipleTemplateHTML .= $fieldsetStartHTML;
-				}
-			} else {
-				if ( !$tif->allowsMultiple() ) {
-					$context->formText .= $tif->getIntro();
-				}
-				if ( $tif->allowsMultiple() && $tif->getInstanceNum() == 0 ) {
-					$multipleTemplateHTML .= $tif->getIntro();
-				}
-			}
-		}
-		if ( $tif && $tif->allowsMultiple() ) {
-			if ( $tif->getDisplay() == 'spreadsheet' ) {
-				if ( $tif->allInstancesPrinted() ) {
-					$multipleTemplateHTML .= $this->spreadsheetHtmlBuilder->spreadsheetHTML(
-						$tif, $wgOut, $wgPageFormsScriptPath
-					);
-					// For spreadsheets, this needs
-					// to be specially inserted.
-					if ( $tif->getLabel() != null ) {
-						$multipleTemplateHTML .= "</fieldset>\n";
-					}
-				}
-			} elseif ( $tif->getDisplay() == 'calendar' ) {
-				if ( $tif->allInstancesPrinted() ) {
-					$multipleTemplateHTML .= $this->calendarHtmlBuilder->calendarHTML( $tif, $wgPageFormsScriptPath );
-					$multipleTemplateHTML .= "</fieldset>\n";
-				}
-			} else {
-				if ( $tif->getDisplay() == 'table' ) {
-					$context->section = $this->tableHtml( $tif, $tif->getInstanceNum(), $context );
-				}
-				if ( $tif->getInstanceNum() == 0 ) {
-					$multipleTemplateHTML .= $this->multipleTemplateHtmlBuilder->multipleTemplateStartHTML( $tif );
-				}
-				if ( !$tif->allInstancesPrinted() ) {
-					$multipleTemplateHTML .= $this->multipleTemplateHtmlBuilder->multipleTemplateInstanceHTML(
-						$tif, $context->formIsDisabled, $context->section
-					);
-				} else {
-					$multipleTemplateHTML .= $this->multipleTemplateHtmlBuilder->multipleTemplateEndHTML(
-						$tif, $context->formIsDisabled, $context->section, $context->counters
-					);
-				}
-			}
-			$placeholder = $tif->getPlaceholder();
-			if ( $placeholder == null ) {
-				// The normal process.
-				$context->formText .= $multipleTemplateHTML;
-			} else {
-				// The template text won't be appended
-				// at the end of the template like for
-				// usual multiple template forms.
-				// The HTML text will instead be stored in
-				// the $multipleTemplateHTML variable,
-				// and then added in the right
-				// @insertHTML_".$placeHolderField."@"; position
-				// Optimization: actually, instead of
-				// separating the processes, the usual
-				// multiple template forms could also be
-				// handled this way if a fitting
-				// placeholder tag was added.
-				// We replace the HTML into the current
-				// placeholder tag, but also add another
-				// placeholder tag, to keep track of it.
-				$multipleTemplateHTML .= FormPlaceholder::toHtmlMarker( $placeholder );
-				$context->formText = str_replace(
-					FormPlaceholder::toHtmlMarker( $placeholder ), $multipleTemplateHTML, $context->formText
-				);
-			}
-			if ( !$tif->allInstancesPrinted() ) {
-				// The section is rendered again for the next instance.
-				$tif->incrementInstanceNum();
-				return true;
-			}
-		} elseif ( $tif && $tif->getDisplay() == 'table' ) {
-			$context->formText .= $this->tableHtml( $tif, 0, $context );
-		} elseif ( $tif && !$tif->allowsMultiple() && $tif->getLabel() != null ) {
-			$context->formText .= $context->section . "\n</fieldset>";
+		// The fieldset and the intro are only added before the first instance.
+		$html = $tif->getInstanceNum() == 0 ? $this->openingHtml( $tif ) : '';
+		if ( $tif->getDisplay() == 'spreadsheet' ) {
+			$html .= $this->spreadsheetHtml( $tif, $context );
+		} elseif ( $tif->getDisplay() == 'calendar' ) {
+			$html .= $this->calendarHtml( $tif, $context );
 		} else {
-			$context->formText .= $context->section;
+			$html .= $this->instancesHtml( $tif, $context );
 		}
 
-		return false;
+		$placeholder = $tif->getPlaceholder();
+		if ( $placeholder == null ) {
+			$context->formText .= $html;
+		} else {
+			// The HTML goes to the place of the placeholder in the form, followed by the
+			// placeholder again, so that the next instance is added after this one.
+			$marker = FormPlaceholder::toHtmlMarker( $placeholder );
+			$context->formText = str_replace( $marker, $html . $marker, $context->formText );
+		}
+	}
+
+	/**
+	 * The fieldset with its legend, if the template has a label, followed by the intro.
+	 */
+	private function openingHtml( TemplateInForm $tif ): string {
+		$html = '';
+		if ( $tif->getLabel() != null ) {
+			$html .= "<fieldset>\n" . Html::element( 'legend', [], $tif->getLabel() ) . "\n";
+		}
+		return $html . $tif->getIntro();
+	}
+
+	/**
+	 * A spreadsheet is one grid for all instances, so it is added with the last one.
+	 */
+	private function spreadsheetHtml( TemplateInForm $tif, FormRenderContext $context ): string {
+		if ( !$tif->allInstancesPrinted() ) {
+			return '';
+		}
+		$html = (string)$this->spreadsheetHtmlBuilder->spreadsheetHTML( $tif, $context->out, $context->scriptPath );
+		if ( $tif->getLabel() != null ) {
+			$html .= "</fieldset>\n";
+		}
+		return $html;
+	}
+
+	/**
+	 * A calendar shows all instances, so it is added with the last one.
+	 */
+	private function calendarHtml( TemplateInForm $tif, FormRenderContext $context ): string {
+		if ( !$tif->allInstancesPrinted() ) {
+			return '';
+		}
+		return $this->calendarHtmlBuilder->calendarHTML( $tif, $context->scriptPath ) . "</fieldset>\n";
+	}
+
+	/**
+	 * The start of the list of instances, one instance and, after the last one, the end of
+	 * the list with the template for new instances.
+	 */
+	private function instancesHtml( TemplateInForm $tif, FormRenderContext $context ): string {
+		if ( $tif->getDisplay() == 'table' ) {
+			$context->section = $this->tableHtml( $tif, $tif->getInstanceNum(), $context );
+		}
+		$html = '';
+		if ( $tif->getInstanceNum() == 0 ) {
+			$html .= $this->multipleTemplateHtmlBuilder->multipleTemplateStartHTML( $tif );
+		}
+		if ( !$tif->allInstancesPrinted() ) {
+			return $html . $this->multipleTemplateHtmlBuilder->multipleTemplateInstanceHTML(
+				$tif, $context->formIsDisabled, $context->section
+			);
+		}
+		return $html . $this->multipleTemplateHtmlBuilder->multipleTemplateEndHTML(
+			$tif, $context->formIsDisabled, $context->section, $context->counters
+		);
 	}
 
 	private function tableHtml( TemplateInForm $tif, int $instanceNum, FormRenderContext $context ): string {

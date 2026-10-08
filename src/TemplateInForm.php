@@ -323,6 +323,14 @@ class TemplateInForm {
 		$this->mInstanceNum++;
 	}
 
+	/**
+	 * True if the template allows multiple instances and not all of them have been printed,
+	 * so its section has to be rendered again for the next one.
+	 */
+	public function hasInstancesLeftToPrint(): bool {
+		return $this->mAllowMultiple && !$this->mAllInstancesPrinted;
+	}
+
 	public function allInstancesPrinted() {
 		return $this->mAllInstancesPrinted;
 	}

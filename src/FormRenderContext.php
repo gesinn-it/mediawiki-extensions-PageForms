@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
+use OutputPage;
 use Parser;
 use PFWikiPage;
 use Title;
@@ -39,6 +40,9 @@ class FormRenderContext {
 	public ?int $formId = null;
 	public WebRequest $request;
 	public User $user;
+	public OutputPage $out;
+	/** The URL path of the extension's files. */
+	public string $scriptPath = '';
 	/** The fresh parser the form definition and the field values are parsed with. */
 	public Parser $parser;
 	/** True if the user may not edit the page; all inputs are then disabled. */
