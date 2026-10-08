@@ -75,7 +75,7 @@ class FormMarkup {
 	/**
 	 * Returns HTML for a loading overlay (spinner + background mask).
 	 *
-	 * Extracted from FormPrinter, where a forwarding alias is kept for
+	 * Moved here from FormUtils, which keeps a deprecated forward for
 	 * backward compatibility with external callers.
 	 *
 	 * @return string

@@ -32,7 +32,7 @@ class FormDateUtils {
 	/**
 	 * Returns a string representing the current date (and optionally time).
 	 *
-	 * Extracted from FormPrinter, where a forwarding alias is kept for
+	 * Moved here from FormUtils, which keeps a deprecated forward for
 	 * backward compatibility with external callers.
 	 *
 	 * @param bool $includeTime Whether to append the current time.

@@ -18,7 +18,7 @@ class FormInputValues {
 	 * is an array, then it might be from a checkbox or date input — in that
 	 * case, convert it into a string.
 	 *
-	 * Extracted from FormPrinter, where a forwarding alias is kept for
+	 * Moved here from FormUtils, which keeps a deprecated forward for
 	 * backward compatibility with external callers.
 	 *
 	 * @param array $value

@@ -139,7 +139,7 @@ class FormDefParserTest extends MediaWikiIntegrationTestCase {
 
 	public function testTemplateNameWithUnderscoresNormalisedToSpaces(): void {
 		// Template names using underscores in the form tag must be normalised to spaces
-		// so that the array key matches the underscore form used by HtmlFormDataExtractor.
+		// so that the array key matches the underscore form used by NestedInputValues.
 		$formDef = "{{{for template|PFTest_FDP_Tpl07}}}\n"
 			. "{{{field|Value}}}\n"
 			. "{{{end template}}}";
@@ -164,7 +164,7 @@ class FormDefParserTest extends MediaWikiIntegrationTestCase {
 
 		$data = $this->parser->preparePreloadData( $formDef, $pageContent );
 
-		// Instances are keyed like HtmlFormDataExtractor does ("0a", "1a", ...).
+		// Instances are keyed like NestedInputValues does ("0a", "1a", ...).
 		$this->assertSame(
 			[
 				'0a' => [ 'Step' => 'one', 'Note' => 'first' ],

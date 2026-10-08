@@ -8,7 +8,7 @@ declare( strict_types=1 );
 
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Extension\PageForms\FormLinker;
-use MediaWiki\Extension\PageForms\HtmlFormDataExtractor;
+use MediaWiki\Extension\PageForms\NestedInputValues;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
@@ -1225,7 +1225,7 @@ class PFAutoeditAPI extends ApiBase {
 			if ( $key == "query" || $key == "query string" ) {
 				$this->parseDataFromQueryString( $data, $value );
 			} else {
-				HtmlFormDataExtractor::addToArray( $data, $key, $value );
+				NestedInputValues::addToArray( $data, $key, $value );
 			}
 		}
 

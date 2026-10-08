@@ -68,7 +68,7 @@ class FormDefParser {
 		foreach ( $definition->getTemplates() as $templateSpec ) {
 			$tag_components = $templateSpec->getComponents();
 			$template_name = str_replace( '_', ' ', $parser->recursiveTagParse( $tag_components[1] ) );
-			// Top-level array key: spaces → underscores, matching HtmlFormDataExtractor::addToArray().
+			// Top-level array key: spaces → underscores, matching NestedInputValues::addToArray().
 			$template_key = str_replace( ' ', '_', $template_name );
 			$pageValues = new TemplatePageValues();
 			// Field values of every instance of a multiple-instance template, in page
@@ -104,7 +104,7 @@ class FormDefParser {
 				}
 				if ( $instances !== null ) {
 					// Multiple-instance template: instances are keyed "0a", "1a", ... exactly
-					// as HtmlFormDataExtractor::addToArray() names them.
+					// as NestedInputValues::addToArray() names them.
 					foreach ( $instances as $i => $values ) {
 						if ( array_key_exists( $field_name, $values ) ) {
 							$result->setFieldValue( $template_key, $i . 'a', $field_name, $values[$field_name] );

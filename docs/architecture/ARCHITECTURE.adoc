@@ -184,7 +184,7 @@ Behavior:
 * Reads the values of the existing page with `FormDefParser::readPageValues()`,
   applies the request with `FormValues::mergeRequest()` and drops what the user
   may not change (`RestrictedInputs`). Earlier versions rendered the form and
-  extracted the values from its HTML (`HtmlFormDataExtractor`); that route is now
+  extracted the values from its HTML (`HtmlFormDataExtractor`, now `NestedInputValues`); that route is now
   only used to show an existing page in the form editor.
 * Bypasses the browser UI entirely — no HTML form is sent to the client.
 * Saves the page via the standard MediaWiki edit pipeline, based on the revision
@@ -433,7 +433,7 @@ Future refactoring could focus on improving separation of concerns and modulariz
 Deliberately left open for now:
 
 * The FORMEDIT branch of `PFAutoeditAPI` still gets the values of an existing page from
-  `formHTML()` and `HtmlFormDataExtractor`. Moving it to `readPageValues()` would change which
+  `formHTML()` and `NestedInputValues`. Moving it to `readPageValues()` would change which
   values `mOptions` holds (defaults, query values, mapping labels) and is a change in
   behaviour, not only in structure.
 * `remote autocompletion` together with a `mapping template` still returns labels from the API.
