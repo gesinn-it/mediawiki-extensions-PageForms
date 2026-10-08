@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- With Semantic MediaWiki, opening or saving a form (`#autoedit`, `pfautoedit`, form edit) right after the page was purged or edited without changes no longer removes the page's properties from the store
+
 ## [2.3.0] - 2026-10-08
 
 Makes `#autoedit` and the `pfautoedit` API safe for pages with multiple-instance templates, enforces `restricted` fields in the API, and opens forms faster. Behind the scenes the form printer was split into smaller parts; the old methods keep working but are deprecated.

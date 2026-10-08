@@ -12,6 +12,7 @@ use MediaWiki\Revision\RenderedRevision;
 use ObjectCache;
 use Parser;
 use ParserOptions;
+use ParserOutput;
 use PFUtils;
 use RequestContext;
 use StringUtils;
@@ -153,7 +154,14 @@ class FormCache {
 		$title = $parser->getTitle();
 		// We need to pass "false" in to the parse() $clearState param so that
 		// embedding Special:RunQuery will work.
-		$output = $parser->parse( $form_def, $title, $parser->getOptions(), true, false );
+		//
+		// Semantic MediaWiki must not take this parse for the content of the page: see
+		// SmwPurgeRequestShield.
+		$options = $parser->getOptions();
+		$output = SmwPurgeRequestShield::run(
+			$title,
+			static fn (): ParserOutput => $parser->parse( $form_def, $title, $options, true, false )
+		);
 		$form_def = $output->getText();
 		$form_def = preg_replace_callback(
 			"/{$rnd}-item-(\d+)-{$rnd}/",

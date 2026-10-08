@@ -6,12 +6,14 @@ namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
 use BagOStuff;
 use MediaWiki\Extension\PageForms\FormCache;
+use MediaWiki\Extension\PageForms\SmwPurgeRequestShield;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RenderedRevision;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWikiIntegrationTestCase;
 use Parser;
 use ParserOptions;
+use RuntimeException;
 use Title;
 use WikiPage;
 
@@ -29,6 +31,7 @@ use WikiPage;
  * @covers \MediaWiki\Extension\PageForms\FormCache::getFormDefinition
  * @covers \MediaWiki\Extension\PageForms\FormCache::getFormDefinitionFromCache
  * @covers \MediaWiki\Extension\PageForms\FormCache::cacheFormDefinition
+ * @covers \MediaWiki\Extension\PageForms\SmwPurgeRequestShield
  */
 class FormCacheTest extends MediaWikiIntegrationTestCase {
 
@@ -171,6 +174,83 @@ class FormCacheTest extends MediaWikiIntegrationTestCase {
 		$result = FormCache::getFormDefinition( $parser, $formDef, null );
 
 		$this->assertIsString( $result );
+	}
+
+	/**
+	 * Semantic MediaWiki takes the parse of the form definition, which runs in the context of the page the
+	 * form edits, for the content of that page. If a purge request is pending for the page (marker set by
+	 * SMW's ArticlePurge hook), it consumes the marker in that parse and stores the data of the form definition
+	 * for the page, which drops all its properties. The marker has to survive the parse of the form definition
+	 * for the parse of the real page content.
+	 */
+	public function testGetFormDefinitionLeavesAPendingSmwPurgeRequestForThePageIntact() {
+		$cache = $this->getSmwObjectCache();
+		$title = $this->insertPage( 'PFFormCacheTestSmwPurgeMarker01' )['title'];
+		$purgeKey = smwfCacheKey( 'smw:arc', $title->getArticleID() );
+		// SemanticApprovedRevs and the like request the processing of a page without annotations in it
+		$processKey = smwfCacheKey( 'smw:parseraftertidy', $title->getPrefixedDBKey() );
+		$cache->set( $purgeKey, true );
+		$cache->set( $processKey, true );
+
+		$parser = $this->getServiceContainer()->getParserFactory()->create();
+		$parser->setOptions( ParserOptions::newFromAnon() );
+		$parser->setTitle( $title );
+		$parser->clearState();
+
+		try {
+			FormCache::getFormDefinition( $parser, '{{{standard input|save}}}', null );
+
+			$this->assertTrue( $cache->get( $purgeKey ), 'the pending purge request is still pending' );
+		} finally {
+			$cache->delete( $purgeKey );
+			$cache->delete( $processKey );
+		}
+	}
+
+	public function testGetFormDefinitionDoesNotCreateAnSmwPurgeRequest() {
+		$cache = $this->getSmwObjectCache();
+		$title = $this->insertPage( 'PFFormCacheTestSmwPurgeMarker02' )['title'];
+		$purgeKey = smwfCacheKey( 'smw:arc', $title->getArticleID() );
+		$cache->delete( $purgeKey );
+
+		$parser = $this->getServiceContainer()->getParserFactory()->create();
+		$parser->setOptions( ParserOptions::newFromAnon() );
+		$parser->setTitle( $title );
+		$parser->clearState();
+
+		FormCache::getFormDefinition( $parser, '{{{standard input|save}}}', null );
+
+		$this->assertFalse( $cache->get( $purgeKey ) );
+	}
+
+	public function testSmwPurgeRequestShieldPutsTheMarkerBackWhenTheCallbackThrows() {
+		$cache = $this->getSmwObjectCache();
+		$title = $this->insertPage( 'PFFormCacheTestSmwPurgeMarker03' )['title'];
+		$purgeKey = smwfCacheKey( 'smw:arc', $title->getArticleID() );
+		$cache->set( $purgeKey, true );
+
+		try {
+			SmwPurgeRequestShield::run( $title, function () use ( $cache, $purgeKey ) {
+				$this->assertFalse( $cache->get( $purgeKey ), 'the marker is out of reach during the callback' );
+				throw new RuntimeException( 'parse failed' );
+			} );
+			$this->fail( 'the exception of the callback is passed on' );
+		} catch ( RuntimeException $e ) {
+			$this->assertTrue( $cache->get( $purgeKey ) );
+		} finally {
+			$cache->delete( $purgeKey );
+		}
+	}
+
+	private function getSmwObjectCache(): BagOStuff {
+		if ( !function_exists( 'smwfCacheKey' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+		// SMW 7 hands out the cache via ServicesFactory::getObjectCache(), SMW 5 via ApplicationFactory::getCache()
+		if ( class_exists( '\\SMW\\Services\\ServicesFactory' ) ) {
+			return \SMW\Services\ServicesFactory::getInstance()->getObjectCache();
+		}
+		return \SMW\ApplicationFactory::getInstance()->getCache();
 	}
 
 	public function testGetFormDefinitionNullFormIdAndNullFormDefReturnsEmpty() {
