@@ -68,7 +68,7 @@ class FormDefParser {
 		foreach ( $definition->getTemplates() as $templateSpec ) {
 			$tag_components = $templateSpec->getComponents();
 			$template_name = str_replace( '_', ' ', $parser->recursiveTagParse( $tag_components[1] ) );
-			// Top-level array key: spaces → underscores, matching HtmlFormDataExtractor output.
+			// Top-level array key: spaces → underscores, matching HtmlFormDataExtractor::addToArray().
 			$template_key = str_replace( ' ', '_', $template_name );
 			$pageValues = new TemplatePageValues();
 			// Field values of every instance of a multiple-instance template, in page

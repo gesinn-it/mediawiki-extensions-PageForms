@@ -303,11 +303,11 @@ class FormPrinter {
 	 * the page, and returns the collected values as a nested array.
 	 *
 	 * The returned keys use the same underscore-normalisation as
-	 * HtmlFormDataExtractor::extract(), so the result can be merged directly
+	 * HtmlFormDataExtractor::addToArray(), so the result can be merged directly
 	 * into PFAutoeditAPI::$mOptions without further transformation.
 	 *
 	 * Every instance of a multiple-instance template (one with the `multiple` attribute) is
-	 * read and keyed "0a", "1a", ... as HtmlFormDataExtractor::extract() names them. For all
+	 * read and keyed "0a", "1a", ... as HtmlFormDataExtractor::addToArray() names them. For all
 	 * other templates only the first occurrence on the page is read.
 	 *
 	 * @param string $form_def Form definition wikitext (noinclude already stripped)

@@ -1097,7 +1097,7 @@ class PFAutoeditAPI extends ApiBase {
 
 			if ( $isFormSubmitted ) {
 				// SAVE / PREVIEW / DIFF: take the field values directly from the wikitext of the
-				// existing page, bypassing the formHTML() + HtmlFormDataExtractor HTML round-trip.
+				// existing page.
 				// The request is laid over them; this is also where a "+" / "-" modifier ("Tags+")
 				// is resolved against the value the page has.
 				$values = $formPrinter->readPageValues( $formContent, $preloadContent, $formArticleId );
@@ -1117,8 +1117,6 @@ class PFAutoeditAPI extends ApiBase {
 				$form_page_title = $result->getFormPageTitle();
 				$generatedTargetNameFormula = $result->getGeneratedPageName();
 				$formParserOutput = $result->getParserOutput();
-				$data = HtmlFormDataExtractor::extract( $formHTML, $this->mOptions );
-				$this->mOptions = PFUtils::arrayMergeRecursiveDistinct( $data, $this->mOptions );
 			}
 		}
 

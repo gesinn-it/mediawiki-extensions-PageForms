@@ -536,8 +536,6 @@ class PFAutoeditAPITest extends ApiTestCase {
 		$this->assertStringContainsString( 'Something went wrong.', $result['responseText'] );
 	}
 
-	// The tests of HtmlFormDataExtractor::extract() are in the unit test of that class.
-
 	// -------------------------------------------------------------------------
 	// FauxRequest / formHTML integration
 	//
