@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
 use BagOStuff;
+use HashBagOStuff;
 use MediaWiki\Extension\PageForms\FormCache;
 use MediaWiki\Extension\PageForms\SmwPurgeRequestShield;
 use MediaWiki\MediaWikiServices;
@@ -242,15 +243,40 @@ class FormCacheTest extends MediaWikiIntegrationTestCase {
 		}
 	}
 
+	/**
+	 * SMW 7 hands out the cache that holds the purge marker as a BagOStuff (ServicesFactory::getObjectCache()),
+	 * SMW 5 as a Doctrine-style cache (ApplicationFactory::getCache()). Both are wrapped as a BagOStuff here.
+	 */
 	private function getSmwObjectCache(): BagOStuff {
 		if ( !function_exists( 'smwfCacheKey' ) ) {
 			$this->markTestSkipped( 'SMW not installed' );
 		}
-		// SMW 7 hands out the cache via ServicesFactory::getObjectCache(), SMW 5 via ApplicationFactory::getCache()
-		if ( class_exists( '\\SMW\\Services\\ServicesFactory' ) ) {
-			return \SMW\Services\ServicesFactory::getInstance()->getObjectCache();
+		$factory = class_exists( '\\SMW\\Services\\ServicesFactory' )
+			? \SMW\Services\ServicesFactory::getInstance()
+			: \SMW\ApplicationFactory::getInstance();
+		if ( method_exists( $factory, 'getObjectCache' ) ) {
+			return $factory->getObjectCache();
 		}
-		return \SMW\ApplicationFactory::getInstance()->getCache();
+		$cache = $factory->getCache();
+		return new class( $cache ) extends HashBagOStuff {
+			public function __construct( private $cache ) {
+				parent::__construct();
+			}
+
+			public function get( $key, $flags = 0 ) {
+				return $this->cache->fetch( $key );
+			}
+
+			public function set( $key, $value, $exptime = 0, $flags = 0 ) {
+				$this->cache->save( $key, $value );
+				return true;
+			}
+
+			public function delete( $key, $flags = 0 ) {
+				$this->cache->delete( $key );
+				return true;
+			}
+		};
 	}
 
 	public function testGetFormDefinitionNullFormIdAndNullFormDefReturnsEmpty() {

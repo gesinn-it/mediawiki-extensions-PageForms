@@ -21,6 +21,7 @@ use Title;
  *
  * Does nothing when Semantic MediaWiki is not installed.
  */
+// phpcs:disable MediaWiki.Commenting.FunctionComment.ObjectTypeHintParam -- the cache differs by SMW version
 class SmwPurgeRequestShield {
 
 	/** Cache namespace of the marker, see SMW\MediaWiki\Hooks\ArticlePurge::CACHE_NAMESPACE. */
@@ -40,34 +41,70 @@ class SmwPurgeRequestShield {
 		}
 
 		$key = smwfCacheKey( self::MARKER_NAMESPACE, (string)$articleId );
-		$marker = $cache->get( $key );
+		$marker = self::read( $cache, $key );
 		if ( $marker === false ) {
 			return $callback();
 		}
 
-		$cache->delete( $key );
+		self::remove( $cache, $key );
 		try {
 			return $callback();
 		} finally {
-			$cache->set( $key, $marker );
+			self::write( $cache, $key, $marker );
 		}
 	}
 
-	private static function getCache(): ?BagOStuff {
+	/**
+	 * The cache that holds the marker: a BagOStuff in SMW 7 (ServicesFactory::getObjectCache()),
+	 * a Doctrine-style cache with fetch() and save() in SMW 5 (ApplicationFactory::getCache()).
+	 */
+	private static function getCache(): ?object {
 		if ( !function_exists( 'smwfCacheKey' ) ) {
 			return null;
 		}
-		// SMW 7 hands out the cache that holds the marker via ServicesFactory::getObjectCache(),
-		// SMW 5 via ApplicationFactory::getCache()
-		$servicesFactory = '\\SMW\\Services\\ServicesFactory';
-		if ( class_exists( $servicesFactory ) ) {
-			return $servicesFactory::getInstance()->getObjectCache();
-		}
-		$applicationFactory = '\\SMW\\ApplicationFactory';
-		if ( class_exists( $applicationFactory ) ) {
-			return $applicationFactory::getInstance()->getCache();
+		foreach ( [ '\\SMW\\Services\\ServicesFactory', '\\SMW\\ApplicationFactory' ] as $factory ) {
+			if ( !class_exists( $factory ) ) {
+				continue;
+			}
+			$instance = $factory::getInstance();
+			if ( method_exists( $instance, 'getObjectCache' ) ) {
+				return $instance->getObjectCache();
+			}
+			if ( method_exists( $instance, 'getCache' ) ) {
+				return $instance->getCache();
+			}
 		}
 		return null;
+	}
+
+	/**
+	 * @param BagOStuff|object $cache BagOStuff in SMW 7, a Doctrine-style cache in SMW 5
+	 * @param string $key
+	 * @return mixed The marker, or false if there is none
+	 */
+	private static function read( object $cache, string $key ) {
+		return $cache instanceof BagOStuff ? $cache->get( $key ) : $cache->fetch( $key );
+	}
+
+	/**
+	 * @param BagOStuff|object $cache BagOStuff in SMW 7, a Doctrine-style cache in SMW 5
+	 * @param string $key
+	 * @param mixed $marker
+	 */
+	private static function write( object $cache, string $key, $marker ): void {
+		if ( $cache instanceof BagOStuff ) {
+			$cache->set( $key, $marker );
+		} else {
+			$cache->save( $key, $marker );
+		}
+	}
+
+	/**
+	 * @param BagOStuff|object $cache BagOStuff in SMW 7, a Doctrine-style cache in SMW 5
+	 * @param string $key
+	 */
+	private static function remove( object $cache, string $key ): void {
+		$cache->delete( $key );
 	}
 
 }
