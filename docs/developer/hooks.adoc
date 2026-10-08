@@ -610,7 +610,7 @@ class Hooks {
 === Notes
 
 * The hook fires once per MediaWiki request, during the construction of the global `FormPrinter` singleton.
-* `registerInputType()` is preferred over the two low-level setters because it keeps all lookup tables of the input type registry in sync automatically. An input type registered later, after the hook has run, is used as well. `FormPrinter::$mInputTypeHooks` and `FormPrinter::$mSemanticTypeHooks` are deprecated; they are references to tables of the registry.
+* `registerInputType()` is preferred over the two low-level setters because it keeps all lookup tables of the input type registry in sync automatically. An input type registered later, after the hook has run, is used as well. `FormPrinter::$mInputTypeHooks` and `FormPrinter::$mSemanticTypeHooks` are deprecated; reading and writing them goes through the registry and logs a deprecation.
 * Custom input classes must extend `PFFormInput` and implement the required abstract static methods (`getName()`, `getDefaultPropTypes()`, `getDefaultPropTypeLists()`, `getHTML()`).
 
 
