@@ -435,27 +435,22 @@ class FormPrinter {
 	 * form and the page text, add the warning/form-bottom/hidden-fields boilerplate,
 	 * and finalize the ParserOutput to return to the caller.
 	 *
-	 * @param array $args Keyed by: form_text, placeholderFields, free_text_was_included,
-	 *   source_is_page, existing_page_content, is_autocreate, request, preloaded_free_text,
-	 *   wiki_page, page_name_formula, page_name, is_query, source_page_matches_this_form,
-	 *   form_submitted, form_is_disabled, user, parser, formDefParserModules,
-	 *   formDefParserModuleStyles, is_embedded, form_page_title
 	 * @param FormRenderContext $context
 	 * @return array [ string $form_text, string $page_text, string|null $form_page_title, ParserOutput $parserOutput ]
 	 */
-	private function finalizeFormAndPageText( array $args, FormRenderContext $context ): array {
-		$form_text = $args['form_text'];
-		$existing_page_content = $args['existing_page_content'];
-		$request = $args['request'];
-		$wiki_page = $args['wiki_page'];
-		$user = $args['user'];
-		$parser = $args['parser'];
-		$form_page_title = $args['form_page_title'];
+	private function finalizeFormAndPageText( FormRenderContext $context ): array {
+		$form_text = $context->formText;
+		$existing_page_content = $context->existingPageContent;
+		$request = $context->request;
+		$wiki_page = $context->wikiPage;
+		$user = $context->user;
+		$parser = $context->parser;
+		$form_page_title = $context->formPageTitle;
 
 		// Cleanup - everything has been browsed.
 		// Remove all the remaining placeholder
 		// tags in the HTML and wiki-text.
-		foreach ( $args['placeholderFields'] as $stringToReplace ) {
+		foreach ( $context->placeholderFields as $stringToReplace ) {
 			// Remove the @<insertHTML>@ tags from the generated
 			// HTML form.
 			$form_text = str_replace( self::makePlaceholderInFormHTML( $stringToReplace ), '', $form_text );
@@ -463,25 +458,25 @@ class FormPrinter {
 
 		// If it wasn't included in the form definition, add the
 		// 'free text' input as a hidden field at the bottom.
-		if ( !$args['free_text_was_included'] ) {
+		if ( !$context->freeTextWasIncluded ) {
 			$form_text .= Html::hidden( 'pf_free_text', '!free_text!' );
 		}
 		// Get free text, and add to page data, as well as retroactively
 		// inserting it into the form.
 
-		if ( $args['source_is_page'] ) {
+		if ( $context->sourceIsPage ) {
 			// If the page is the source, free_text will just be
 			// whatever in the page hasn't already been inserted
 			// into the form.
 			$free_text = trim( $existing_page_content );
 		// ...or get it from the form submission, if it's not called from #formredlink
-		} elseif ( !$args['is_autocreate'] && $request->getCheck( 'pf_free_text' ) ) {
+		} elseif ( !$context->isAutocreate && $request->getCheck( 'pf_free_text' ) ) {
 			$free_text = $request->getVal( 'pf_free_text' );
-			if ( !$args['free_text_was_included'] ) {
+			if ( !$context->freeTextWasIncluded ) {
 				$wiki_page->addFreeTextSection();
 			}
-		} elseif ( $args['preloaded_free_text'] != null ) {
-			$free_text = $args['preloaded_free_text'];
+		} elseif ( $context->preloadedFreeText != null ) {
+			$free_text = $context->preloadedFreeText;
 		} else {
 			$free_text = null;
 		}
@@ -510,25 +505,25 @@ class FormPrinter {
 
 		// Add a warning in, if we're editing an existing page and that
 		// page appears to not have been created with this form.
-		if ( !$args['is_query'] && $args['page_name_formula'] === null &&
+		if ( !$context->isQuery && $context->pageNameFormula === null &&
 			$context->pageTitle->exists() && $existing_page_content !== ''
-			&& !$args['source_page_matches_this_form'] ) {
+			&& !$context->sourcePageMatchesThisForm ) {
 			$form_text = "\t" . '<div class="warningbox">' .
 				// Prepend with a colon in case it's a file or category page.
-				wfMessage( 'pf_formedit_formwarning', ':' . $args['page_name'] )->parse() .
+				wfMessage( 'pf_formedit_formwarning', ':' . $context->pageName )->parse() .
 				"</div>\n<br clear=\"both\" />\n" . $form_text;
 		}
 
 		// Add form bottom, if no custom "standard inputs" have been defined.
 		if ( !$context->standardInputsIncluded ) {
-			if ( $args['is_query'] ) {
+			if ( $context->isQuery ) {
 				$form_text .= FormUtils::queryFormBottom();
 			} else {
-				$form_text .= FormUtils::formBottom( $args['form_submitted'], $args['form_is_disabled'] );
+				$form_text .= FormUtils::formBottom( $context->formSubmitted, $context->formIsDisabled );
 			}
 		}
 
-		if ( !$args['is_query'] ) {
+		if ( !$context->isQuery ) {
 			$form_text .= Html::hidden( 'wpStarttime', wfTimestampNow() );
 			// This variable is called $mwWikiPage and not
 			// something simpler, to avoid confusion with the
@@ -553,18 +548,18 @@ class FormPrinter {
 		$parserOutput = $parser->getOutput();
 		// Restore modules that were registered during form-definition parsing
 		// but cleared by FormField::clearState() during field rendering.
-		if ( $args['formDefParserModules'] ) {
-			$parserOutput->addModules( $args['formDefParserModules'] );
+		if ( $context->formDefParserModules ) {
+			$parserOutput->addModules( $context->formDefParserModules );
 		}
-		if ( $args['formDefParserModuleStyles'] ) {
-			$parserOutput->addModuleStyles( $args['formDefParserModuleStyles'] );
+		if ( $context->formDefParserModuleStyles ) {
+			$parserOutput->addModuleStyles( $context->formDefParserModuleStyles );
 		}
 
 		// Send the autocomplete values to the browser, along with the
 		// mappings of which values should apply to which fields.
 		// If doing a replace, the page text is actually the modified
 		// original page.
-		if ( !$args['is_embedded'] ) {
+		if ( !$context->isEmbedded ) {
 			$form_page_title = $parser->recursiveTagParse( str_replace( "{{!}}", "|", $form_page_title ?? '' ) );
 		} else {
 			$form_page_title = null;
@@ -746,7 +741,7 @@ class FormPrinter {
 	 * @param string $form_def
 	 * @param bool $form_submitted
 	 * @param bool $source_is_page
-	 * @param string|null $form_id
+	 * @param int|null $form_id
 	 * @param string|null $existing_page_content
 	 * @param string|null $page_name
 	 * @param string|null $page_name_formula
@@ -795,7 +790,7 @@ class FormPrinter {
 	 * @param string $form_def
 	 * @param bool $form_submitted
 	 * @param bool $source_is_page
-	 * @param string|null $form_id
+	 * @param int|null $form_id
 	 * @param string|null $existing_page_content
 	 * @param string|null $page_name
 	 * @param string|null $page_name_formula
@@ -824,51 +819,50 @@ class FormPrinter {
 		$request,
 		FormRenderContext $context
 	): FormRenderResult {
-		if ( $request === null ) {
-			$request = RequestContext::getMain()->getRequest();
-		}
 		global $wgPageFormsShowExpandAllLink;
 		global $wgOut;
 
-		// Initialize some variables.
-		$wiki_page = new PFWikiPage();
-		$runQueryFormAtTop = false;
-		$source_page_matches_this_form = false;
-		$form_page_title = null;
-		$generated_page_name = $page_name_formula;
-		$new_text = "";
-		$original_page_content = $existing_page_content;
-
-		if ( $user === null ) {
-			$user = RequestContext::getMain()->getUser();
-		}
+		$context->formSubmitted = (bool)$form_submitted;
+		$context->sourceIsPage = (bool)$source_is_page;
+		$context->isQuery = (bool)$is_query;
+		$context->isEmbedded = (bool)$is_embedded;
+		$context->isAutocreate = (bool)$is_autocreate;
+		$context->autocreateQuery = $autocreate_query;
+		$context->pageName = $page_name;
+		$context->pageNameFormula = $page_name_formula;
+		$context->formId = $form_id !== null ? (int)$form_id : null;
+		$context->existingPageContent = $existing_page_content;
+		$context->generatedPageName = $page_name_formula;
+		$context->request = $request ?? RequestContext::getMain()->getRequest();
+		$context->user = $user ?? RequestContext::getMain()->getUser();
 
 		// Disable all form elements if user doesn't have edit permission.
 		// Also resolves $context->pageTitle as a side effect (needed below).
 		[ $permissionErrors, $userCanEditPage ] = $this->resolvePageTitleAndPermissions(
-			$is_embedded, $is_query, $page_name, $page_name_formula, $request, $user, $form_submitted, $context
+			$context->isEmbedded, $context->isQuery, $context->pageName, $context->pageNameFormula,
+			$context->request, $context->user, $context->formSubmitted, $context
 		);
 
 		// Start off with a loading spinner - this will be removed by
 		// the JavaScript once everything has finished loading.
-		$form_text = FormUtils::displayLoadingImage();
-		if ( $is_query || $userCanEditPage ) {
-			$form_is_disabled = false;
+		$context->formText = FormUtils::displayLoadingImage();
+		if ( $context->isQuery || $userCanEditPage ) {
+			$context->formIsDisabled = false;
 			// Show "Your IP address will be recorded" warning if
 			// user is anonymous, and it's not a query.
-			if ( $user->isAnon() && !$is_query ) {
+			if ( $context->user->isAnon() && !$context->isQuery ) {
 				// Based on code in MediaWiki's EditPage.php.
 				$anonEditWarning = wfMessage( 'anoneditwarning',
 					// Log-in link
 					'{{fullurl:Special:UserLogin|returnto={{FULLPAGENAMEE}}}}',
 					// Sign-up link
 					'{{fullurl:Special:UserLogin/signup|returnto={{FULLPAGENAMEE}}}}' )->parse();
-				$form_text .= Html::rawElement(
+				$context->formText .= Html::rawElement(
 					'div', [ 'id' => 'mw-anon-edit-warning', 'class' => 'warningbox' ], $anonEditWarning
 				);
 			}
 		} else {
-			$form_is_disabled = true;
+			$context->formIsDisabled = true;
 			if ( $wgOut->getTitle() != null ) {
 				$wgOut->setPageTitle( wfMessage( 'badaccess' )->text() );
 				$wgOut->addWikiTextAsInterface( $wgOut->formatPermissionsErrorMessage( $permissionErrors, 'edit' ) );
@@ -877,23 +871,23 @@ class FormPrinter {
 		}
 
 		if ( $wgPageFormsShowExpandAllLink ) {
-			$form_text .= Html::rawElement( 'p', [ 'id' => 'pf-expand-all' ],
+			$context->formText .= Html::rawElement( 'p', [ 'id' => 'pf-expand-all' ],
 				// @TODO - add an i18n message for this.
 				Html::element( 'a', [ 'href' => '#' ], 'Expand all collapsed parts of the form' ) ) . "\n";
 		}
 
-		$parser = $this->createFreshParser( $user, $context );
+		$context->parser = $this->createFreshParser( $context->user, $context );
 
-		$form_definition = FormCache::getFormDefinitionModel( $parser, $form_def, $form_id );
+		$form_definition = FormCache::getFormDefinitionModel( $context->parser, $form_def, $context->formId );
 		// Snapshot RL modules registered by parser tag hooks during form-definition
-		// parsing. FormField calls $parser->clearState() during field rendering,
-		// which resets $parser->mOutput and discards these modules. We save them
+		// parsing. FormField calls $context->parser->clearState() during field rendering,
+		// which resets $context->parser->mOutput and discards these modules. We save them
 		// here and merge them back into the final ParserOutput before returning.
-		$formDefParserModules = $parser->getOutput()->getModules();
-		$formDefParserModuleStyles = $parser->getOutput()->getModuleStyles();
+		$context->formDefParserModules = $context->parser->getOutput()->getModules();
+		$context->formDefParserModuleStyles = $context->parser->getOutput()->getModuleStyles();
 
-		$free_text_was_included = false;
-		$preloaded_free_text = null;
+		$context->freeTextWasIncluded = false;
+		$context->preloadedFreeText = null;
 		$form_def_sections = $this->formDefParser->splitIntoSections( $form_definition );
 
 		// Cycle through the form definition file, and possibly an
@@ -901,23 +895,24 @@ class FormPrinter {
 		// declarations and replacing them with form elements, either
 		// blank or pre-populated, as appropriate.
 		$template_name = null;
-		$template = null;
-		$tif = null;
+		$new_text = '';
+		$context->template = null;
+		$context->tif = null;
 		// This array will keep track of all the replaced @<name>@ strings
-		$placeholderFields = [];
-		$info_tag_seen = false;
+		$context->placeholderFields = [];
+		$context->infoTagSeen = false;
 
 		for ( $section_num = 0; $section_num < count( $form_def_sections ); $section_num++ ) {
 			// The section's text and tags, in order. The HTML for the section is
-			// assembled from them in $section.
+			// assembled from them in $context->section.
 			$section_elements = array_map(
 				[ $this, 'freeTextAsField' ], $form_def_sections[$section_num]
 			);
-			$section = ' ';
+			$context->section = ' ';
 
 			foreach ( $section_elements as $element_num => $element ) {
 				if ( $element instanceof TextSpec ) {
-					$section .= $element->getText();
+					$context->section .= $element->getText();
 					continue;
 				}
 				if ( !$element instanceof TagSpec ) {
@@ -953,17 +948,17 @@ class FormPrinter {
 							' \'for template\' tag is missing the template name.</div>'
 						);
 					}
-					if ( $tif ) {
-						$previous_template_name = $tif->getTemplateName();
+					if ( $context->tif ) {
+						$previous_template_name = $context->tif->getTemplateName();
 					} else {
 						$previous_template_name = '';
 					}
-					$template_name = str_replace( '_', ' ', $parser->recursiveTagParse( $tag_components[1] ) );
+					$template_name = str_replace( '_', ' ', $context->parser->recursiveTagParse( $tag_components[1] ) );
 					$is_new_template = ( $template_name != $previous_template_name );
 					if ( $is_new_template ) {
-						$template = Template::newFromName( $template_name );
+						$context->template = Template::newFromName( $template_name );
 						// @phan-suppress-next-line PhanTypeMismatchArgumentSuperType Is a TemplateSpec
-						$tif = TemplateInForm::newFromFormTag( $element, $parser );
+						$context->tif = TemplateInForm::newFromFormTag( $element, $context->parser );
 					}
 					// The template tag itself produces no output.
 					// If we are editing a page, and this
@@ -971,19 +966,21 @@ class FormPrinter {
 					// once in that page, and multiple
 					// values are allowed, repeat this
 					// section.
-					if ( $source_is_page ) {
+					if ( $context->sourceIsPage ) {
 						// Get the first instance of
 						// this template on the page
 						// being edited, even if there
 						// are more, and remove it from
 						// the text being edited.
-						$existing_page_content = $tif->readFirstCallFromPage( $existing_page_content );
-						if ( $tif->pageCallsThisTemplate() ) {
+						$context->existingPageContent = $context->tif->readFirstCallFromPage(
+							$context->existingPageContent
+						);
+						if ( $context->tif->pageCallsThisTemplate() ) {
 							// If we've found a match in the source
 							// page, there's a good chance that this
 							// page was created with this form - note
 							// that, so we don't send the user a warning.
-							$source_page_matches_this_form = true;
+							$context->sourcePageMatchesThisForm = true;
 						}
 					}
 
@@ -993,14 +990,14 @@ class FormPrinter {
 					// the source is a page, values can still
 					// come from a query string.
 					// (Unless it's called from #formredlink.)
-					if ( !$is_autocreate ) {
-						$tif->setFieldValuesFromSubmit( $request );
+					if ( !$context->isAutocreate ) {
+						$context->tif->setFieldValuesFromSubmit( $context->request );
 					}
 
-					$tif->checkIfAllInstancesPrinted( $form_submitted, $source_is_page );
+					$context->tif->checkIfAllInstancesPrinted( $context->formSubmitted, $context->sourceIsPage );
 
-					if ( !$tif->allInstancesPrinted() ) {
-						$wiki_page->addTemplate( $tif );
+					if ( !$context->tif->allInstancesPrinted() ) {
+						$context->wikiPage->addTemplate( $context->tif );
 					}
 
 				// =====================================================
@@ -1013,14 +1010,14 @@ class FormPrinter {
 							' \'end template\' tag cannot contain any additional parameters.</div>'
 						);
 					}
-					if ( $source_is_page && $tif && !$tif->allowsMultiple() ) {
+					if ( $context->sourceIsPage && $context->tif && !$context->tif->allowsMultiple() ) {
 						// Add any unhandled template fields
 						// in the page as hidden variables.
-						$form_text .= FormUtils::unhandledFieldsHTML( $tif );
+						$context->formText .= FormUtils::unhandledFieldsHTML( $context->tif );
 					}
 					// The tag itself produces no output.
-					$template = null;
-					$tif = null;
+					$context->template = null;
+					$context->tif = null;
 				// =====================================================
 				// field processing
 				// =====================================================
@@ -1028,16 +1025,16 @@ class FormPrinter {
 					// If the template is null, that (hopefully)
 					// means we're handling the free text field.
 					// Make the template a dummy variable.
-					if ( $tif == null ) {
-						$template = new Template( null, [] );
+					if ( $context->tif == null ) {
+						$context->template = new Template( null, [] );
 						// Get free text from the query string, if it was set.
-						if ( $request->getCheck( 'free_text' ) ) {
-							$standard_input = $request->getArray( 'standard_input', [] );
-							$standard_input['#freetext#'] = $request->getVal( 'free_text' );
-							$request->setVal( 'standard_input', $standard_input );
+						if ( $context->request->getCheck( 'free_text' ) ) {
+							$standard_input = $context->request->getArray( 'standard_input', [] );
+							$standard_input['#freetext#'] = $context->request->getVal( 'free_text' );
+							$context->request->setVal( 'standard_input', $standard_input );
 						}
-						$tif = TemplateInForm::create( 'standard_input', null, null, null, [] );
-						$tif->setFieldValuesFromSubmit( $request );
+						$context->tif = TemplateInForm::create( 'standard_input', null, null, null, [] );
+						$context->tif->setFieldValuesFromSubmit( $context->request );
 					}
 					// We get the field name both here
 					// and in the FormField constructor,
@@ -1054,57 +1051,60 @@ class FormPrinter {
 					$form_field = FormField::newFromFormFieldTag(
 						// @phan-suppress-next-line PhanTypeMismatchArgumentSuperType Is a FieldSpec
 						$element,
-						$template, $tif, $form_is_disabled, $user, $parser,
+						$context->template, $context->tif, $context->formIsDisabled, $context->user, $context->parser,
 						$this->mappingLabels
 					);
 					// For special displays, add in the
 					// form fields, so we know the data
 					// structure.
-					if ( ( $tif->getDisplay() == 'table'
-							&& ( !$tif->allowsMultiple() || $tif->getInstanceNum() == 0 ) ) ||
-						( $tif->getDisplay() == 'spreadsheet'
-							&& $tif->allowsMultiple() && $tif->getInstanceNum() == 0 ) ||
-						( $tif->getDisplay() == 'calendar'
-							&& $tif->allowsMultiple() && $tif->getInstanceNum() == 0 ) ) {
-						$tif->addField( $form_field );
+					if ( ( $context->tif->getDisplay() == 'table'
+							&& ( !$context->tif->allowsMultiple() || $context->tif->getInstanceNum() == 0 ) ) ||
+						( $context->tif->getDisplay() == 'spreadsheet'
+							&& $context->tif->allowsMultiple() && $context->tif->getInstanceNum() == 0 ) ||
+						( $context->tif->getDisplay() == 'calendar'
+							&& $context->tif->allowsMultiple() && $context->tif->getInstanceNum() == 0 ) ) {
+						$context->tif->addField( $form_field );
 					}
 					$val_modifier = null;
-					if ( $is_autocreate ) {
-						$values_from_query = $autocreate_query[$tif->getTemplateName()] ?? [];
+					if ( $context->isAutocreate ) {
+						$values_from_query = $context->autocreateQuery[$context->tif->getTemplateName()] ?? [];
 						$cur_value = $form_field->getCurrentValue(
-							$values_from_query, $form_submitted, $source_is_page,
-							$tif->allInstancesPrinted(), $val_modifier
+							$values_from_query, $context->formSubmitted, $context->sourceIsPage,
+							$context->tif->allInstancesPrinted(), $val_modifier
 						);
 					} else {
 						$cur_value = $form_field->getCurrentValue(
-							$tif->getValuesFromSubmit(), $form_submitted, $source_is_page,
-							$tif->allInstancesPrinted(), $val_modifier
+							$context->tif->getValuesFromSubmit(), $context->formSubmitted, $context->sourceIsPage,
+							$context->tif->allInstancesPrinted(), $val_modifier
 						);
 					}
 					$delimiter = $form_field->getFieldArg( 'delimiter' );
 					if ( $form_field->holdsTemplate() ) {
-						$placeholderFields[] = self::placeholderFormat( $tif->getTemplateName(), $field_name );
+						$context->placeholderFields[] = self::placeholderFormat(
+							$context->tif->getTemplateName(), $field_name
+						);
 					}
 
 					if ( $val_modifier !== null ) {
-						$page_value = $tif->getValuesFromPage()[$field_name] ?? '';
+						$page_value = $context->tif->getValuesFromPage()[$field_name] ?? '';
 						$cur_value = $this->fieldValueResolver->applyValModifier(
 							(string)$cur_value, $val_modifier, (string)$page_value, $delimiter
 						);
-						$tif->changeFieldValues( $field_name, $cur_value, $delimiter );
+						$context->tif->changeFieldValues( $field_name, $cur_value, $delimiter );
 					}
 					// If the user is editing a page, and that page contains a call to
 					// the template being processed, get the current field's value
 					// from the template call
-					if ( $source_is_page && ( $tif->getFullTextInPage() != '' ) && !$form_submitted ) {
-						if ( $tif->hasValueFromPageForField( $field_name ) ) {
+					if ( $context->sourceIsPage && ( $context->tif->getFullTextInPage() != '' )
+						&& !$context->formSubmitted ) {
+						if ( $context->tif->hasValueFromPageForField( $field_name ) ) {
 							// Get value, and remove it,
 							// so that at the end we
 							// can have a list of all
 							// the fields that weren't
 							// handled by the form.
-							$cur_value = $tif->takeValueFromPage(
-								$field_name, $form_field->holdsTemplate(), $existing_page_content
+							$cur_value = $context->tif->takeValueFromPage(
+								$field_name, $form_field->holdsTemplate(), $context->existingPageContent
 							);
 						} elseif ( $cur_value !== '' ) {
 							// Do nothing.
@@ -1116,7 +1116,7 @@ class FormPrinter {
 					// Handle the free text field.
 					if ( $field_name == '#freetext#' ) {
 						// If there was no preloading, this will just be blank.
-						$preloaded_free_text = $cur_value;
+						$context->preloadedFreeText = $cur_value;
 						// Add placeholders for the free text in both the form and
 						// the page, using <free_text> tags - once all the free text
 						// is known (at the end), it will get substituted in.
@@ -1132,14 +1132,14 @@ class FormPrinter {
 							}
 							$freeTextInput = new PFTextAreaInput(
 								$input_number = null, $default_value, 'pf_free_text',
-								( $form_is_disabled || $form_field->isRestricted() ),
+								( $context->formIsDisabled || $form_field->isRestricted() ),
 								$form_field->getFieldArgs()
 							);
 							$freeTextInput->addJavaScript();
 							$new_text = $freeTextInput->getHtmlText();
 							if ( $form_field->hasFieldArg( 'edittools' ) ) {
 								// borrowed from EditPage::showEditTools()
-								$edittools_text = $parser->recursiveTagParse(
+								$edittools_text = $context->parser->recursiveTagParse(
 									wfMessage( 'edittools', [ 'content' ] )->text()
 								);
 
@@ -1151,12 +1151,12 @@ class FormPrinter {
 END;
 							}
 						}
-						$free_text_was_included = true;
-						$wiki_page->addFreeTextSection();
+						$context->freeTextWasIncluded = true;
+						$context->wikiPage->addFreeTextSection();
 					}
 
-					if ( $tif->getTemplateName() === '' || $field_name == '#freetext#' ) {
-						$section .= $new_text;
+					if ( $context->tif->getTemplateName() === '' || $field_name == '#freetext#' ) {
+						$context->section .= $new_text;
 					} else {
 						if ( $form_field->holdsTemplate() ) {
 							// If this field holds an embedded template and the value is not
@@ -1170,17 +1170,18 @@ END;
 						// If we're creating the page name from a formula based on
 						// form values, see if the current input is part of that formula,
 						// and if so, substitute in the actual value.
-						if ( $form_submitted && $generated_page_name !== '' ) {
+						if ( $context->formSubmitted && $context->generatedPageName !== '' ) {
 							// This line appears to be unnecessary.
-							// $generated_page_name = str_replace('.', '_', $generated_page_name);
-							$generated_page_name = str_replace( ' ', '_', $generated_page_name ?? '' );
+							// $context->generatedPageName = str_replace('.', '_', $context->generatedPageName);
+							$context->generatedPageName = str_replace( ' ', '_', $context->generatedPageName ?? '' );
 							$escaped_input_name = str_replace( ' ', '_', $form_field->getInputName() ?? '' );
-							$generated_page_name = str_ireplace(
-								"<$escaped_input_name>", (string)( $cur_value_in_template ?? '' ), $generated_page_name
+							$context->generatedPageName = str_ireplace(
+								"<$escaped_input_name>", (string)( $cur_value_in_template ?? '' ),
+								$context->generatedPageName
 							);
 							// Once the substitution is done, replace underlines back
 							// with spaces.
-							$generated_page_name = str_replace( '_', ' ', $generated_page_name );
+							$context->generatedPageName = str_replace( '_', ' ', $context->generatedPageName );
 						}
 						if ( $cur_value !== '' &&
 							( $form_field->hasFieldArg( 'mapping template' ) ||
@@ -1203,12 +1204,14 @@ END;
 						// each case.
 						// @TODO - should it be $cur_value for both cases? Or should the
 						// hook perhaps modify both variables?
-						if ( $form_submitted ) {
+						if ( $context->formSubmitted ) {
 							MediaWikiServices::getInstance()->getHookContainer()->run(
 								'PageForms::CreateFormField', [ &$form_field, &$cur_value_in_template, true ]
 							);
 						} else {
-							$this->createFormFieldTranslateTag( $template, $tif, $form_field, $cur_value );
+							$this->createFormFieldTranslateTag(
+								$context->template, $context->tif, $form_field, $cur_value
+							);
 							MediaWikiServices::getInstance()->getHookContainer()->run(
 								'PageForms::CreateFormField', [ &$form_field, &$cur_value, false ]
 							);
@@ -1220,14 +1223,14 @@ END;
 						}
 						// increment the field number regardless
 						$context->counters->fieldNum++;
-						if ( $source_is_page && !$tif->allInstancesPrinted() ) {
+						if ( $context->sourceIsPage && !$context->tif->allInstancesPrinted() ) {
 							// If the source is a page, don't use the default
 							// values - except for newly-added instances of a
 							// multiple-instance template.
 						} elseif ( $form_field->getDefaultValue() !== null ) {
 							[ $cur_value, $cur_value_in_template ] = $this->fieldValueResolver->resolveDefaultValue(
 								$form_field, (string)$cur_value, (string)$cur_value_in_template,
-								(bool)$tif->allowsMultiple(), (bool)$form_submitted, $user
+								(bool)$context->tif->allowsMultiple(), $context->formSubmitted, $context->user
 							);
 						}
 
@@ -1240,24 +1243,26 @@ END;
 						// (Ideally it wouldn't get
 						// set at all, but that seems a
 						// little harder.)
-						if ( $tif->allInstancesPrinted() && $form_field->getDefaultValue() == null ) {
+						if ( $context->tif->allInstancesPrinted() && $form_field->getDefaultValue() == null ) {
 							$cur_value = null;
 						}
 
-						$new_text = $this->formFieldHTML( $form_field, $cur_value, $parser, $context->counters );
+						$new_text = $this->formFieldHTML(
+							$form_field, $cur_value, $context->parser, $context->counters
+						);
 						$new_text .= $form_field->additionalHTMLForInput(
-							$cur_value, $field_name, $tif->getTemplateName()
+							$cur_value, $field_name, $context->tif->getTemplateName()
 						);
 
 						if ( $new_text ) {
-							$wiki_page->addTemplateParam(
-								$template_name, $tif->getInstanceNum(), $field_name, $cur_value_in_template
+							$context->wikiPage->addTemplateParam(
+								$template_name, $context->tif->getInstanceNum(), $field_name, $cur_value_in_template
 							);
-							$section .= $new_text;
+							$context->section .= $new_text;
 						}
 					}
 
-					if ( $tif->allowsMultiple() && !$tif->allInstancesPrinted() ) {
+					if ( $context->tif->allowsMultiple() && !$context->tif->allInstancesPrinted() ) {
 						$wordForYes = PFUtils::getWordForYesOrNo( true );
 						if ( $form_field->getInputType() == 'checkbox' ) {
 							if ( strtolower( (string)$cur_value ) == strtolower( $wordForYes )
@@ -1269,9 +1274,9 @@ END;
 						}
 					}
 
-					if ( $tif->getDisplay() != null
-						&& ( !$tif->allowsMultiple() || !$tif->allInstancesPrinted() ) ) {
-						$tif->addGridValue( $field_name, $cur_value );
+					if ( $context->tif->getDisplay() != null
+						&& ( !$context->tif->allowsMultiple() || !$context->tif->allInstancesPrinted() ) ) {
+						$context->tif->addGridValue( $field_name, $cur_value );
 					}
 
 				// =====================================================
@@ -1287,135 +1292,147 @@ END;
 					$input_name = $tag_components[1];
 
 					// if it's a query, ignore all standard inputs except run query
-					if ( ( $is_query && $input_name != 'run query' )
-						|| ( !$is_query && $input_name == 'run query' ) ) {
+					if ( ( $context->isQuery && $input_name != 'run query' )
+						|| ( !$context->isQuery && $input_name == 'run query' ) ) {
 						continue;
 					}
 					// set a flag so that the standard 'form bottom' won't get displayed
 					$context->standardInputsIncluded = true;
 
 					$new_text = $this->buildStandardInputTagHtml(
-						$input_name, $tag_components, $form_is_disabled, $form_submitted, $request, $parser,
-						$page_name, $context
+						$input_name, $tag_components, $context->formIsDisabled, $context->formSubmitted,
+						$context->request, $context->parser,
+						$context->pageName, $context
 					);
-					$section .= $new_text;
+					$context->section .= $new_text;
 				// =====================================================
 				// for section processing
 				// =====================================================
 				} elseif ( $tag_title == 'section' ) {
 					$form_section_text = $this->buildSectionTagHtml(
-						$tag_components, array_slice( $section_elements, $element_num + 1 ), $source_is_page,
-						$existing_page_content, $request, $wiki_page, $form_is_disabled, $user, $context
+						$tag_components, array_slice( $section_elements, $element_num + 1 ), $context->sourceIsPage,
+						$context->existingPageContent, $context->request, $context->wikiPage,
+						$context->formIsDisabled, $context->user, $context
 					);
 
-					$section .= $form_section_text;
+					$context->section .= $form_section_text;
 				// =====================================================
 				// page info processing
 				// =====================================================
 				} elseif ( $tag_title == 'info' ) {
-					if ( $info_tag_seen ) {
+					if ( $context->infoTagSeen ) {
 						throw new MWException(
 							'<div class="error">Error in form definition:'
 							. ' only one \'info\' tag is allowed per form.</div>'
 						);
 					}
-					$info_tag_seen = true;
-					$form_page_title = $this->processInfoTag(
-						$tag_components, $is_query, $wiki_page, $form_page_title, $runQueryFormAtTop, $context
+					$context->infoTagSeen = true;
+					$context->formPageTitle = $this->processInfoTag(
+						$tag_components, $context->isQuery, $context->wikiPage, $context->formPageTitle,
+						$context->runQueryFormAtTop, $context
 					);
 					// Replace the {{{info}}} tag with a hidden span, instead of a blank, to avoid a
 					// potential security issue.
-					$section .= '<span style="visibility: hidden;"></span>';
+					$context->section .= '<span style="visibility: hidden;"></span>';
 				// =====================================================
 				// default outer level processing
 				// =====================================================
 				} else {
 					// Tag is not one of the allowed values -
 					// ignore it, other than to HTML-escape it.
-					$section .= htmlspecialchars( $element instanceof UnknownTagSpec ? $element->getRaw() : '' );
+					$context->section .= htmlspecialchars(
+						$element instanceof UnknownTagSpec ? $element->getRaw() : ''
+					);
 				}
 				// end if
 			}
 			// end foreach
 
-			if ( $tif && ( !$tif->allowsMultiple() || $tif->allInstancesPrinted() ) ) {
-				$template_text = $wiki_page->createTemplateCallsForTemplateName( $tif->getTemplateName(), $request );
+			if ( $context->tif && ( !$context->tif->allowsMultiple() || $context->tif->allInstancesPrinted() ) ) {
+				$template_text = $context->wikiPage->createTemplateCallsForTemplateName(
+					$context->tif->getTemplateName(), $context->request
+				);
 				// Escape the '$' characters for the preg_replace() call.
 				$template_text = str_replace( '$', '\$', $template_text );
 
 				// If there is a placeholder in the text, we
 				// know that we are doing a replace.
-				if ( $existing_page_content && str_contains( $existing_page_content, '{{{insertionpoint}}}' ) ) {
-					$existing_page_content = preg_replace( '/\{\{\{insertionpoint\}\}\}(\r?\n?)/',
+				if ( $context->existingPageContent
+					&& str_contains( $context->existingPageContent, '{{{insertionpoint}}}' ) ) {
+					$context->existingPageContent = preg_replace( '/\{\{\{insertionpoint\}\}\}(\r?\n?)/',
 						preg_replace( '/\}\}/m', '}�',
 							preg_replace( '/\{\{/m', '�{', $template_text ) ) .
 						"{{{insertionpoint}}}",
-						$existing_page_content );
+						$context->existingPageContent );
 				}
 			}
 
-			if ( $source_is_page && $tif && $tif->allowsMultiple() && !$tif->allInstancesPrinted() ) {
+			if ( $context->sourceIsPage && $context->tif && $context->tif->allowsMultiple()
+				&& !$context->tif->allInstancesPrinted() ) {
 				// The parameters of this instance's template call that the form does not define,
 				// as hidden inputs of the instance. (The "end template" tag is only handled once
 				// for all instances, so it cannot do this.)
-				$section .= FormUtils::unhandledFieldsHTML( $tif );
+				$context->section .= FormUtils::unhandledFieldsHTML( $context->tif );
 			}
 
 			$multipleTemplateHTML = '';
-			if ( $tif ) {
-				if ( $tif->getLabel() != null ) {
-					$fieldsetStartHTML = "<fieldset>\n" . Html::element( 'legend', [], $tif->getLabel() ) . "\n";
-					$fieldsetStartHTML .= $tif->getIntro();
-					if ( !$tif->allowsMultiple() ) {
-						$form_text .= $fieldsetStartHTML;
-					} elseif ( $tif->allowsMultiple() && $tif->getInstanceNum() == 0 ) {
+			if ( $context->tif ) {
+				if ( $context->tif->getLabel() != null ) {
+					$fieldsetStartHTML = "<fieldset>\n"
+						. Html::element( 'legend', [], $context->tif->getLabel() ) . "\n";
+					$fieldsetStartHTML .= $context->tif->getIntro();
+					if ( !$context->tif->allowsMultiple() ) {
+						$context->formText .= $fieldsetStartHTML;
+					} elseif ( $context->tif->allowsMultiple() && $context->tif->getInstanceNum() == 0 ) {
 						$multipleTemplateHTML .= $fieldsetStartHTML;
 					}
 				} else {
-					if ( !$tif->allowsMultiple() ) {
-						$form_text .= $tif->getIntro();
+					if ( !$context->tif->allowsMultiple() ) {
+						$context->formText .= $context->tif->getIntro();
 					}
-					if ( $tif->allowsMultiple() && $tif->getInstanceNum() == 0 ) {
-						$multipleTemplateHTML .= $tif->getIntro();
+					if ( $context->tif->allowsMultiple() && $context->tif->getInstanceNum() == 0 ) {
+						$multipleTemplateHTML .= $context->tif->getIntro();
 					}
 				}
 			}
-			if ( $tif && $tif->allowsMultiple() ) {
-				if ( $tif->getDisplay() == 'spreadsheet' ) {
-					if ( $tif->allInstancesPrinted() ) {
-						$multipleTemplateHTML .= $this->spreadsheetHTML( $tif );
+			if ( $context->tif && $context->tif->allowsMultiple() ) {
+				if ( $context->tif->getDisplay() == 'spreadsheet' ) {
+					if ( $context->tif->allInstancesPrinted() ) {
+						$multipleTemplateHTML .= $this->spreadsheetHTML( $context->tif );
 						// For spreadsheets, this needs
 						// to be specially inserted.
-						if ( $tif->getLabel() != null ) {
+						if ( $context->tif->getLabel() != null ) {
 							$multipleTemplateHTML .= "</fieldset>\n";
 						}
 					}
-				} elseif ( $tif->getDisplay() == 'calendar' ) {
-					if ( $tif->allInstancesPrinted() ) {
-						$multipleTemplateHTML .= $this->calendarHTML( $tif );
+				} elseif ( $context->tif->getDisplay() == 'calendar' ) {
+					if ( $context->tif->allInstancesPrinted() ) {
+						$multipleTemplateHTML .= $this->calendarHTML( $context->tif );
 						$multipleTemplateHTML .= "</fieldset>\n";
 					}
 				} else {
-					if ( $tif->getDisplay() == 'table' ) {
-						$section = $this->tableHTML( $tif, $tif->getInstanceNum(), $parser, $context->counters );
+					if ( $context->tif->getDisplay() == 'table' ) {
+						$context->section = $this->tableHTML(
+							$context->tif, $context->tif->getInstanceNum(), $context->parser, $context->counters
+						);
 					}
-					if ( $tif->getInstanceNum() == 0 ) {
-						$multipleTemplateHTML .= $this->multipleTemplateStartHTML( $tif );
+					if ( $context->tif->getInstanceNum() == 0 ) {
+						$multipleTemplateHTML .= $this->multipleTemplateStartHTML( $context->tif );
 					}
-					if ( !$tif->allInstancesPrinted() ) {
+					if ( !$context->tif->allInstancesPrinted() ) {
 						$multipleTemplateHTML .= $this->multipleTemplateInstanceHTML(
-							$tif, $form_is_disabled, $section
+							$context->tif, $context->formIsDisabled, $context->section
 						);
 					} else {
 						$multipleTemplateHTML .= $this->multipleTemplateEndHTML(
-							$tif, $form_is_disabled, $section, $context->counters
+							$context->tif, $context->formIsDisabled, $context->section, $context->counters
 						);
 					}
 				}
-				$placeholder = $tif->getPlaceholder();
+				$placeholder = $context->tif->getPlaceholder();
 				if ( $placeholder == null ) {
 					// The normal process.
-					$form_text .= $multipleTemplateHTML;
+					$context->formText .= $multipleTemplateHTML;
 				} else {
 					// The template text won't be appended
 					// at the end of the template like for
@@ -1433,52 +1450,32 @@ END;
 					// placeholder tag, but also add another
 					// placeholder tag, to keep track of it.
 					$multipleTemplateHTML .= self::makePlaceholderInFormHTML( $placeholder );
-					$form_text = str_replace(
-						self::makePlaceholderInFormHTML( $placeholder ), $multipleTemplateHTML, $form_text
+					$context->formText = str_replace(
+						self::makePlaceholderInFormHTML( $placeholder ), $multipleTemplateHTML, $context->formText
 					);
 				}
-				if ( !$tif->allInstancesPrinted() ) {
+				if ( !$context->tif->allInstancesPrinted() ) {
 					// This will cause the section to be
 					// re-parsed on the next go.
 					$section_num--;
-					$tif->incrementInstanceNum();
+					$context->tif->incrementInstanceNum();
 				}
-			} elseif ( $tif && $tif->getDisplay() == 'table' ) {
-				$form_text .= $this->tableHTML( $tif, 0, $parser, $context->counters );
-			} elseif ( $tif && !$tif->allowsMultiple() && $tif->getLabel() != null ) {
-				$form_text .= $section . "\n</fieldset>";
+			} elseif ( $context->tif && $context->tif->getDisplay() == 'table' ) {
+				$context->formText .= $this->tableHTML( $context->tif, 0, $context->parser, $context->counters );
+			} elseif ( $context->tif && !$context->tif->allowsMultiple() && $context->tif->getLabel() != null ) {
+				$context->formText .= $context->section . "\n</fieldset>";
 			} else {
-				$form_text .= $section;
+				$context->formText .= $context->section;
 			}
 		}
 		// end for
 
-		[ $form_text, $page_text, $form_page_title, $parserOutput ] = $this->finalizeFormAndPageText( [
-			'form_text' => $form_text,
-			'placeholderFields' => $placeholderFields,
-			'free_text_was_included' => $free_text_was_included,
-			'source_is_page' => $source_is_page,
-			'existing_page_content' => $existing_page_content,
-			'is_autocreate' => $is_autocreate,
-			'request' => $request,
-			'preloaded_free_text' => $preloaded_free_text,
-			'wiki_page' => $wiki_page,
-			'page_name_formula' => $page_name_formula,
-			'page_name' => $page_name,
-			'is_query' => $is_query,
-			'source_page_matches_this_form' => $source_page_matches_this_form,
-			'form_submitted' => $form_submitted,
-			'form_is_disabled' => $form_is_disabled,
-			'user' => $user,
-			'parser' => $parser,
-			'formDefParserModules' => $formDefParserModules,
-			'formDefParserModuleStyles' => $formDefParserModuleStyles,
-			'is_embedded' => $is_embedded,
-			'form_page_title' => $form_page_title,
-		], $context );
+		[ $context->formText, $page_text, $context->formPageTitle, $parserOutput ] =
+			$this->finalizeFormAndPageText( $context );
 
 		return new FormRenderResult(
-			$form_text, $page_text, $form_page_title, $generated_page_name, $parserOutput, $runQueryFormAtTop
+			$context->formText, $page_text, $context->formPageTitle, $context->generatedPageName, $parserOutput,
+			$context->runQueryFormAtTop
 		);
 	}
 
@@ -1489,7 +1486,7 @@ END;
 	 * @param string $form_def
 	 * @param bool $form_submitted
 	 * @param bool $source_is_page
-	 * @param string|null $form_id
+	 * @param int|null $form_id
 	 * @param string|null $existing_page_content
 	 * @param string|null $page_name
 	 * @param string|null $page_name_formula

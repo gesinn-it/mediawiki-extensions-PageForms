@@ -56,7 +56,10 @@ return [
 		],
 		'src/FormPrinter.php' => [
 			'PhanTypeMismatchArgumentNullableInternal' => ['\\MediaWiki\\Extension\\PageForms\\FormPrinter::renderInContext'],
-			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormPrinter::renderInContext']
+			'SecurityCheck-DoubleEscaped' => [
+				'\\MediaWiki\\Extension\\PageForms\\FormPrinter::finalizeFormAndPageText',
+				'\\MediaWiki\\Extension\\PageForms\\FormPrinter::renderInContext'
+			]
 		],
 		'src/FormUtils.php' => [
 			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormUtils::minorEditInputHTML', '\\MediaWiki\\Extension\\PageForms\\FormUtils::unhandledFieldsHTML', '\\MediaWiki\\Extension\\PageForms\\FormUtils::watchInputHTML']
