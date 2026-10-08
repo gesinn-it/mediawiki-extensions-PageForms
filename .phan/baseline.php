@@ -9,9 +9,8 @@
  */
 return [
 	// # Issue statistics:
-	// SecurityCheck-DoubleEscaped : 55+ occurrences
+	// SecurityCheck-DoubleEscaped : 10+ occurrences
 	// PhanTypeMismatchProperty : 4 occurrences
-	// PhanTypeMismatchArgumentNullableInternal : 2 occurrences
 	// PhanTypeMismatchDimEmpty : 1 occurrence
 	// PhanTypeMismatchPropertyProbablyReal : 1 occurrence
 
@@ -45,30 +44,11 @@ return [
 		'specials/PF_UploadWindow.php' => [
 			'SecurityCheck-DoubleEscaped' => ['\\PFUploadWindow::getExistsWarning', '\\PFUploadWindow::showViewDeletedLinks']
 		],
-		'src/CalendarHtmlBuilder.php' => [
-			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\CalendarHtmlBuilder::calendarHTML']
-		],
 		'src/FormField.php' => [
-			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormField::additionalHTMLForInput', '\\MediaWiki\\Extension\\PageForms\\FormField::newFromFormFieldTag']
+			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormField::newFromFormFieldTag']
 		],
-		'src/FormFieldHtmlBuilder.php' => [
-			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::addTranslatableInput', '\\MediaWiki\\Extension\\PageForms\\FormFieldHtmlBuilder::formFieldHTML']
-		],
-		'src/FormPrinter.php' => [
-			'PhanTypeMismatchArgumentNullableInternal' => ['\\MediaWiki\\Extension\\PageForms\\FormPrinter::renderInContext'],
-			'SecurityCheck-DoubleEscaped' => [
-				'\\MediaWiki\\Extension\\PageForms\\FormPrinter::finalizeFormAndPageText',
-				'\\MediaWiki\\Extension\\PageForms\\FormPrinter::renderInContext'
-			]
-		],
-		'src/FormButtons.php' => [
-			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormButtons::minorEditInputHTML', '\\MediaWiki\\Extension\\PageForms\\FormButtons::watchInputHTML']
-		],
-		'src/FormMarkup.php' => [
-			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormMarkup::unhandledFieldsHTML']
-		],
-		'src/SpreadsheetHtmlBuilder.php' => [
-			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\SpreadsheetHtmlBuilder::spreadsheetHTML', '\\MediaWiki\\Extension\\PageForms\\SpreadsheetHtmlBuilder::tableHTML']
+		'src/FormRender/PageTextAssembler.php' => [
+			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormRender\\PageTextAssembler::createPageText']
 		],
 	],
 	// 'directory_suppressions' => ['src/directory_name' => ['PhanIssueName1', 'PhanIssueName2']] can be manually added if needed.

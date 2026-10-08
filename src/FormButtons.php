@@ -90,7 +90,7 @@ class FormButtons {
 		] );
 		$text = Html::rawElement(
 			'label',
-			[ 'title' => wfMessage( 'tooltip-minoredit' )->parse() ],
+			[ 'title' => wfMessage( 'tooltip-minoredit' )->text() ],
 			new \OOUI\CheckboxInputWidget( $attrs ) . $labelWidget
 		);
 		// Inline element so it is valid inside both <div> and <p> containers
@@ -149,7 +149,7 @@ class FormButtons {
 		] );
 		$text = Html::rawElement(
 			'label',
-			[ 'title' => wfMessage( 'tooltip-watch' )->parse() ],
+			[ 'title' => wfMessage( 'tooltip-watch' )->text() ],
 			new \OOUI\CheckboxInputWidget( $attrs ) . $labelWidget
 		);
 		// Inline element so it is valid inside both <div> and <p> containers

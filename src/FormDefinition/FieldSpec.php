@@ -66,4 +66,8 @@ class FieldSpec extends TagSpec {
 		}
 		return null;
 	}
+
+	public static function fromArray( array $data ): static {
+		return new static( $data['components'] );
+	}
 }

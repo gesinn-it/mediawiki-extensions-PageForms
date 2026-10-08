@@ -10,4 +10,8 @@ namespace MediaWiki\Extension\PageForms\FormDefinition;
 class EndTemplateSpec extends TagSpec {
 
 	public const TYPE = 'end template';
+
+	public static function fromArray( array $data ): static {
+		return new static( $data['components'] );
+	}
 }

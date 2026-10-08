@@ -1,0 +1,44 @@
+= Phan Baseline
+include::../attributes.adoc[]
+
+`.phan/baseline.php` lists the issues that Phan does not report. Phan writes the file itself and
+drops any comment in it, so the reasons for the entries live here.
+
+Regenerate the baseline from the current code, not from the old baseline, so that entries that no
+longer apply disappear: run Phan with a configuration whose `baseline_path` points to a file that
+does not exist, and pass `--save-baseline .phan/baseline.php`.
+
+== Entries in `src/`
+
+`SecurityCheck-DoubleEscaped` is a taint finding: a value that Phan believes is already escaped
+reaches code that escapes it again. All remaining entries in `src/` are false positives or accepted
+for the reason given.
+
+`FormRender\PageTextAssembler::createPageText`::
+The free text is wikitext: the text of the page that is edited, the text submitted in `pf_free_text`
+or the default of the free text field. `FormPrinter` escapes it once, with
+`Sanitizer::safeEncodeAttribute()`, where it goes into the form as an attribute. Phan reaches the
+"already escaped" side through `FormField::getCurrentValue()`, which also handles the arguments of
+a field, and some of those (`values`, `unique for ...`) are parsed with `Parser::recursiveTagParse()`.
+Those parsed arguments never become the free text.
+
+`FormField::newFromFormFieldTag`::
+The values of `values from ...` arguments are parsed with `Parser::recursiveTagParse()` and used as
+the name of the source to look up. `wfEscapeWikiText()` in `PFValuesUtils::getAllPagesForConcept()`
+escapes that name once more, but only in the message that says the concept does not exist; the
+lookup itself uses the name unescaped. A source name with a character that the parser turns into an
+entity would be shown wrongly in that message. Not changed, because a change to the parsing would
+change which source a form reads its values from.
+
+== Entries outside `src/`
+
+The entries for `includes/`, `specials/` and the upload form predate the refactoring of `FormPrinter`
+and have not been reviewed.
+
+== Inline suppressions
+
+An inline `@phan-suppress` that the refactoring of `FormPrinter` added names the condition under which
+it can go: for `getFreshParser()` in `FormPrinter::createFreshParser()` that is a minimum MediaWiki
+version of 1.43. The suppression for `new static` in `TagSpec` is gone: `TagSpec::fromArray()` is
+abstract and each concrete tag implements it. The older suppressions in `includes/` have not been
+reviewed.

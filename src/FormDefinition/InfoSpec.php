@@ -44,4 +44,8 @@ class InfoSpec extends TagSpec {
 	public function hasQueryFormAtTop(): bool {
 		return $this->hasArg( 'query form at top' );
 	}
+
+	public static function fromArray( array $data ): static {
+		return new static( $data['components'] );
+	}
 }

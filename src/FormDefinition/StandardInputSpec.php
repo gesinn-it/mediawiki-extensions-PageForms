@@ -21,4 +21,8 @@ class StandardInputSpec extends TagSpec {
 	public function isFreeText(): bool {
 		return $this->getInputName() === self::FREE_TEXT;
 	}
+
+	public static function fromArray( array $data ): static {
+		return new static( $data['components'] );
+	}
 }

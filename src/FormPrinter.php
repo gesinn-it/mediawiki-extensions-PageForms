@@ -678,7 +678,9 @@ class FormPrinter {
 		$globalParser = PFUtils::getParser();
 		if ( method_exists( $globalParser, 'getFreshParser' ) ) {
 			// MW < 1.43: reset the global parser instance in-place
-			// @phan-suppress-next-line PhanUndeclaredMethod -- getFreshParser() removed in MW 1.43, guarded above
+			// Remove this guard and the branch once the minimum MediaWiki version is 1.43, which no
+			// longer has getFreshParser().
+			// @phan-suppress-next-line PhanUndeclaredMethod -- getFreshParser() is guarded above
 			$parser = $globalParser->getFreshParser();
 			if ( !$parser->getOptions() ) {
 				$parser->setOptions( ParserOptions::newFromUser( $user ) );

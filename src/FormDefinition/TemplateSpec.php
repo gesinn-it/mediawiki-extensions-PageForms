@@ -104,4 +104,8 @@ class TemplateSpec extends TagSpec {
 	public function getEventEndDateField(): ?string {
 		return $this->getArg( 'event end date field' );
 	}
+
+	public static function fromArray( array $data ): static {
+		return new static( $data['components'] );
+	}
 }

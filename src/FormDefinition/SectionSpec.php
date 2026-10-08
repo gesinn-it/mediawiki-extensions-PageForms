@@ -34,4 +34,8 @@ class SectionSpec extends TagSpec {
 	public function hidesIfEmpty(): bool {
 		return $this->hasArg( 'hide if empty' );
 	}
+
+	public static function fromArray( array $data ): static {
+		return new static( $data['components'] );
+	}
 }

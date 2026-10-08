@@ -118,8 +118,12 @@ abstract class TagSpec implements FormElement {
 		return [ 'type' => static::TYPE, 'components' => $this->components ];
 	}
 
-	public static function fromArray( array $data ): static {
-		// @phan-suppress-next-line PhanTypeInstantiateAbstractStatic Only called on the concrete subclasses
-		return new static( $data['components'] );
-	}
+	/**
+	 * Rebuild a tag from what toArray() returned. Every concrete kind of tag implements this, so
+	 * that no code instantiates the abstract class.
+	 *
+	 * @param array<string, mixed> $data
+	 * @return static
+	 */
+	abstract public static function fromArray( array $data ): static;
 }

@@ -30,6 +30,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - `FormPrinterFactory::create()` builds a form printer with its default collaborators and runs the `PageForms::FormPrinterSetup` hook; the `FormPrinter` constructor now takes its collaborators as a `FormPrinterParts` and does no wiring. `new FormPrinter()` without arguments is deprecated and still works. Code that passed collaborators to the old constructor should build them with `FormPrinterFactory::newParts()` [#259](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/259).
 
 ### Fixed
+- The tooltips of the "minor edit" and "watch this page" checkboxes of a form are no longer HTML-escaped twice, so a translation with `&` or quotes shows correctly [#263](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/263)
 - Fixed the template text that _Create Template_ generates for a field with a namespace (for example a file field): the field value was written with the number of the namespace in front (`6:`), which MediaWiki does not read as a namespace, instead of its name (`File:`).
 - Fixed the property of a `values from wikidata` filter (the part before the `=`) being put into the Wikidata query unchecked, which let a form editor inject their own query. Only property ids such as `P31` are accepted now; other filters are ignored, as are filters without a value.
 - Fixed a `checkboxes` field with a `mapping template` showing no box checked when an existing page is edited; the values stored on the page are checked again, as they were before 2.1.6.
