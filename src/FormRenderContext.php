@@ -63,6 +63,8 @@ class FormRenderContext {
 	public string $section = ' ';
 	public ?TemplateInForm $tif = null;
 	public ?Template $template = null;
+	/** The name of the template of the last {{{for template}}} tag. */
+	public ?string $templateName = null;
 	/** The page text that has not been taken over into the form yet. */
 	public ?string $existingPageContent = null;
 	/** @var list<string> The replaced @<name>@ strings of fields that hold a template. */

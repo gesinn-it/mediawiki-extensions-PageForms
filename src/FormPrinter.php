@@ -8,6 +8,7 @@ use EditPage;
 use FatalError;
 use Html;
 use LogEventsList;
+use MediaWiki\Extension\PageForms\FormDefinition\EndTemplateSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
@@ -15,12 +16,17 @@ use MediaWiki\Extension\PageForms\FormDefinition\InfoSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\SectionSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\StandardInputSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
+use MediaWiki\Extension\PageForms\FormDefinition\TemplateSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TextSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\UnknownTagSpec;
 use MediaWiki\Extension\PageForms\FormRender\ElementHandler;
+use MediaWiki\Extension\PageForms\FormRender\EndTemplateHandler;
 use MediaWiki\Extension\PageForms\FormRender\InfoHandler;
 use MediaWiki\Extension\PageForms\FormRender\SectionHandler;
 use MediaWiki\Extension\PageForms\FormRender\StandardInputHandler;
+use MediaWiki\Extension\PageForms\FormRender\TemplateHandler;
+use MediaWiki\Extension\PageForms\FormRender\TextHandler;
+use MediaWiki\Extension\PageForms\FormRender\UnknownTagHandler;
 use MediaWiki\MediaWikiServices;
 use MWException;
 use OutputPage;
@@ -95,6 +101,10 @@ class FormPrinter {
 		$this->formDefReader = new FormDefinitionReader();
 		$this->fieldValueResolver = new FieldValueResolver();
 		$this->elementHandlers = [
+			TextSpec::class => new TextHandler(),
+			UnknownTagSpec::class => new UnknownTagHandler(),
+			TemplateSpec::class => new TemplateHandler(),
+			EndTemplateSpec::class => new EndTemplateHandler(),
 			InfoSpec::class => new InfoHandler(),
 			StandardInputSpec::class => new StandardInputHandler(),
 			SectionSpec::class => new SectionHandler(),
@@ -576,6 +586,29 @@ class FormPrinter {
 	}
 
 	/**
+	 * Angled brackets in a tag could cause a security leak (and should not be necessary).
+	 *
+	 * @param TagSpec $tag
+	 * @throws MWException if a component of the tag contains both < and >
+	 */
+	private function assertNoForbiddenCharacters( TagSpec $tag ): void {
+		foreach ( $tag->getComponents() as $tag_component ) {
+			// Allow them in "default filename", though.
+			$tagParts = explode( '=', $tag_component, 2 );
+			if ( count( $tagParts ) == 2 && $tagParts[0] == 'default filename' ) {
+				continue;
+			}
+			if ( str_contains( $tag_component, '<' ) && str_contains( $tag_component, '>' ) ) {
+				throw new MWException(
+					'<div class="error">Error in form definition!' .
+					' The following field tag contains forbidden characters:</div>' .
+					"\n<pre>" . htmlspecialchars( $tag_component ) . "</pre>"
+				);
+			}
+		}
+	}
+
+	/**
 	 * Replace the 'free text' standard input with a field declaration
 	 * to get it to be handled as a field (a hack).
 	 *
@@ -784,7 +817,6 @@ class FormPrinter {
 		// existing article as well, finding template and field
 		// declarations and replacing them with form elements, either
 		// blank or pre-populated, as appropriate.
-		$template_name = null;
 		$new_text = '';
 		$context->template = null;
 		$context->tif = null;
@@ -802,32 +834,8 @@ class FormPrinter {
 
 			foreach ( $section_elements as $element_num => $element ) {
 				$context->elementNum = $element_num;
-				if ( $element instanceof TextSpec ) {
-					$context->section .= $element->getText();
-					continue;
-				}
-				if ( !$element instanceof TagSpec ) {
-					continue;
-				}
-				$tag_components = $element->getComponents();
-				$tag_title = trim( $tag_components[0] );
-				// Checks for forbidden characters
-				if ( $tag_title != 'info' ) {
-					foreach ( $tag_components as $tag_component ) {
-						// Angled brackets could cause a security leak (and should not be necessary).
-						// Allow them in "default filename", though.
-						$tagParts = explode( '=', $tag_component, 2 );
-						if ( count( $tagParts ) == 2 && $tagParts[0] == 'default filename' ) {
-							continue;
-						}
-						if ( str_contains( $tag_component, '<' ) && str_contains( $tag_component, '>' ) ) {
-							throw new MWException(
-								'<div class="error">Error in form definition!' .
-						' The following field tag contains forbidden characters:</div>' .
-								"\n<pre>" . htmlspecialchars( $tag_component ) . "</pre>"
-							);
-						}
-					}
+				if ( $element instanceof TagSpec && !$element instanceof InfoSpec ) {
+					$this->assertNoForbiddenCharacters( $element );
 				}
 				$handler = $this->elementHandlers[get_class( $element )] ?? null;
 				if ( $handler !== null ) {
@@ -835,89 +843,10 @@ class FormPrinter {
 					continue;
 				}
 				// =====================================================
-				// for template processing
-				// =====================================================
-				if ( $tag_title == 'for template' ) {
-					if ( count( $tag_components ) < 2 ) {
-						throw new MWException(
-							'<div class="error">Error in form definition:' .
-							' \'for template\' tag is missing the template name.</div>'
-						);
-					}
-					if ( $context->tif ) {
-						$previous_template_name = $context->tif->getTemplateName();
-					} else {
-						$previous_template_name = '';
-					}
-					$template_name = str_replace( '_', ' ', $context->parser->recursiveTagParse( $tag_components[1] ) );
-					$is_new_template = ( $template_name != $previous_template_name );
-					if ( $is_new_template ) {
-						$context->template = Template::newFromName( $template_name );
-						// @phan-suppress-next-line PhanTypeMismatchArgumentSuperType Is a TemplateSpec
-						$context->tif = TemplateInForm::newFromFormTag( $element, $context->parser );
-					}
-					// The template tag itself produces no output.
-					// If we are editing a page, and this
-					// template can be found more than
-					// once in that page, and multiple
-					// values are allowed, repeat this
-					// section.
-					if ( $context->sourceIsPage ) {
-						// Get the first instance of
-						// this template on the page
-						// being edited, even if there
-						// are more, and remove it from
-						// the text being edited.
-						$context->existingPageContent = $context->tif->readFirstCallFromPage(
-							$context->existingPageContent
-						);
-						if ( $context->tif->pageCallsThisTemplate() ) {
-							// If we've found a match in the source
-							// page, there's a good chance that this
-							// page was created with this form - note
-							// that, so we don't send the user a warning.
-							$context->sourcePageMatchesThisForm = true;
-						}
-					}
-
-					// We get values from the request,
-					// regardless of whether the source is the
-					// page or a form submit, because even if
-					// the source is a page, values can still
-					// come from a query string.
-					// (Unless it's called from #formredlink.)
-					if ( !$context->isAutocreate ) {
-						$context->tif->setFieldValuesFromSubmit( $context->request );
-					}
-
-					$context->tif->checkIfAllInstancesPrinted( $context->formSubmitted, $context->sourceIsPage );
-
-					if ( !$context->tif->allInstancesPrinted() ) {
-						$context->wikiPage->addTemplate( $context->tif );
-					}
-
-				// =====================================================
-				// end template processing
-				// =====================================================
-				} elseif ( $tag_title == 'end template' ) {
-					if ( count( $tag_components ) > 1 ) {
-						throw new MWException(
-							'<div class="error">Error in form definition:' .
-							' \'end template\' tag cannot contain any additional parameters.</div>'
-						);
-					}
-					if ( $context->sourceIsPage && $context->tif && !$context->tif->allowsMultiple() ) {
-						// Add any unhandled template fields
-						// in the page as hidden variables.
-						$context->formText .= FormUtils::unhandledFieldsHTML( $context->tif );
-					}
-					// The tag itself produces no output.
-					$context->template = null;
-					$context->tif = null;
-				// =====================================================
 				// field processing
 				// =====================================================
-				} elseif ( $tag_title == 'field' ) {
+				if ( $element instanceof FieldSpec ) {
+					$tag_components = $element->getComponents();
 					// If the template is null, that (hopefully)
 					// means we're handling the free text field.
 					// Make the template a dummy variable.
@@ -1152,7 +1081,8 @@ END;
 
 						if ( $new_text ) {
 							$context->wikiPage->addTemplateParam(
-								$template_name, $context->tif->getInstanceNum(), $field_name, $cur_value_in_template
+								$context->templateName, $context->tif->getInstanceNum(), $field_name,
+								$cur_value_in_template
 							);
 							$context->section .= $new_text;
 						}
@@ -1175,17 +1105,7 @@ END;
 						$context->tif->addGridValue( $field_name, $cur_value );
 					}
 
-				// =====================================================
-				// default outer level processing
-				// =====================================================
-				} else {
-					// Tag is not one of the allowed values -
-					// ignore it, other than to HTML-escape it.
-					$context->section .= htmlspecialchars(
-						$element instanceof UnknownTagSpec ? $element->getRaw() : ''
-					);
 				}
-				// end if
 			}
 			// end foreach
 
