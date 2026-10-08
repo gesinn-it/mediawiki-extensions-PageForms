@@ -8,6 +8,7 @@ use EditPage;
 use FatalError;
 use Html;
 use LogEventsList;
+use LogicException;
 use MediaWiki\Extension\PageForms\FormDefinition\EndTemplateSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
@@ -161,37 +162,34 @@ class FormPrinter {
 
 	/**
 	 * The deprecated properties $mInputTypeHooks and $mSemanticTypeHooks, which read and write the
-	 * input type registry.
+	 * input type registry. The printer has no other properties that can be reached from outside.
 	 *
 	 * @deprecated use registerInputType()
 	 * @param string $name
-	 * @return DeprecatedHookTable|null
+	 * @return DeprecatedHookTable
+	 * @throws LogicException for any other name
 	 */
 	public function __get( $name ) {
-		$table = $this->deprecatedHookTable( $name );
-		if ( $table === null ) {
-			trigger_error( "Undefined property: " . static::class . "::\$$name", E_USER_NOTICE );
-			return null;
-		}
-		return $table;
+		return $this->deprecatedHookTable( $name ) ?? throw $this->unknownProperty( $name );
 	}
 
 	/**
 	 * @deprecated use registerInputType()
 	 * @param string $name
 	 * @param mixed $value
+	 * @throws LogicException for any name but the two deprecated tables; no property is created
 	 */
 	public function __set( $name, $value ) {
-		$table = $this->deprecatedHookTable( $name );
-		if ( $table === null ) {
-			$this->$name = $value;
-			return;
-		}
+		$table = $this->deprecatedHookTable( $name ) ?? throw $this->unknownProperty( $name );
 		$table->replaceWith( $value instanceof DeprecatedHookTable ? $value->toArray() : (array)$value );
 	}
 
 	public function __isset( $name ) {
 		return $this->deprecatedHookTable( $name ) !== null;
+	}
+
+	private function unknownProperty( string $name ): LogicException {
+		return new LogicException( 'Undefined property: ' . static::class . "::\$$name" );
 	}
 
 	private function deprecatedHookTable( string $name ): ?DeprecatedHookTable {

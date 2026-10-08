@@ -1812,6 +1812,8 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertTrue( isset( $printer->mInputTypeHooks['text'] ) );
 		$this->assertFalse( isset( $printer->mInputTypeHooks['nonexistent'] ) );
 		$this->assertSame( 'PFCheckboxInput', $printer->mSemanticTypeHooks['_boo'][0][0] );
+		$this->assertTrue( isset( $printer->mInputTypeHooks ) );
+		$this->assertTrue( isset( $printer->mSemanticTypeHooks ) );
 	}
 
 	public function testWritingDeprecatedHookPropertiesChangesTheRegistry(): void {
@@ -1837,6 +1839,22 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( [ 'MyInput', [] ], $printer->mInputTypeHooks['mine'] );
 		$this->assertSame( 'PFTextInput', $printer->mInputTypeHooks['text'][0] );
+	}
+
+	public function testUnknownPropertyCannotBeReadOrSetAndIsNotCreated(): void {
+		$printer = new FormPrinter();
+
+		try {
+			$printer->noSuchProperty = 1;
+			$this->fail( 'Setting an unknown property must throw' );
+		} catch ( LogicException $e ) {
+			$this->assertStringContainsString( 'FormPrinter::$noSuchProperty', $e->getMessage() );
+		}
+		$this->assertFalse( property_exists( $printer, 'noSuchProperty' ) );
+		$this->assertFalse( isset( $printer->noSuchProperty ) );
+
+		$this->expectException( LogicException::class );
+		$printer->noSuchProperty;
 	}
 
 	public function testSetupHookSeesAFullyBuiltPrinter(): void {
