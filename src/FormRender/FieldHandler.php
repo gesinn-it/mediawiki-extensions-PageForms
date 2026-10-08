@@ -23,15 +23,23 @@ use PFUtils;
 /**
  * The {{{field}}} tag: finds the current value of the field and adds its input.
  *
- * Two values of a field are kept while it is handled:
- * - $cur_value is what the input shows. It starts as the value from the request, from
- *   #formredlink or from the template call on the page being edited (a string, an array for a
- *   list, '' or null if there is none). For a field with a mapping or display titles it is then
- *   turned into labels, for a default value it is replaced, and in the starter instance of a
- *   multiple-instance template it is null.
- * - $cur_value_in_template is what is written into the template call of the page: the same value
- *   before it is turned into labels, null for a field that holds an embedded template, and what the
- *   PageForms::CreateFormField hook leaves of it when the form was submitted.
+ * Two values of a field are kept while it is handled. Where each case is decided is named here.
+ *
+ * $cur_value is what the input shows:
+ * 1. currentValue(): the value from the request, from #formredlink or from the template call on
+ *    the page being edited (a string, an array for a list, '' or null if there is none), with a
+ *    val_modifier applied to it.
+ * 2. valueAsLabels(): for a field with a mapping or display titles, the labels of the value.
+ * 3. applyDefaultValue(): the default value of the field, except when the form is opened for an
+ *    existing page; null in the starter instance of a multiple-instance template.
+ * 4. checkboxValueForGrid(): a boolean for a checkbox in the grid of a multiple-instance template.
+ *
+ * $cur_value_in_template is what is written into the template call of the page:
+ * 1. addTemplateField(): the value of case 1 above, but null for a field that holds an embedded
+ *    template.
+ * 2. runCreateFormFieldHook(): what the PageForms::CreateFormField hook leaves of it, when the
+ *    form was submitted.
+ * 3. applyDefaultValue(): the default value, as in case 3 above.
  */
 class FieldHandler implements ElementHandler {
 
@@ -60,7 +68,6 @@ class FieldHandler implements ElementHandler {
 		if ( !$element instanceof FieldSpec ) {
 			return;
 		}
-		$new_text = '';
 		// If the template is null, that (hopefully)
 		// means we're handling the free text field.
 		// Make the template a dummy variable.
@@ -83,160 +90,241 @@ class FieldHandler implements ElementHandler {
 			$context->template, $context->tif, $context->formIsDisabled, $context->user, $context->parser,
 			$this->mappingLabels
 		);
-		// For special displays, add in the
-		// form fields, so we know the data
-		// structure.
-		if ( ( $context->tif->getDisplay() == 'table'
-				&& ( !$context->tif->allowsMultiple() || $context->tif->getInstanceNum() == 0 ) ) ||
-			( $context->tif->getDisplay() == 'spreadsheet'
-				&& $context->tif->allowsMultiple() && $context->tif->getInstanceNum() == 0 ) ||
-			( $context->tif->getDisplay() == 'calendar'
-				&& $context->tif->allowsMultiple() && $context->tif->getInstanceNum() == 0 ) ) {
-			$context->tif->addField( $form_field );
-		}
+		$this->registerFieldForSpecialDisplay( $form_field, $context );
 		$cur_value = $this->currentValue( $form_field, $field_name, $context );
 
-		// Handle the free text field.
 		if ( $field_name == '#freetext#' ) {
-			// If there was no preloading, this will just be blank.
-			$context->preloadedFreeText = $cur_value;
-			// Add placeholders for the free text in both the form and
-			// the page, using <free_text> tags - once all the free text
-			// is known (at the end), it will get substituted in.
-			if ( $form_field->isHidden() ) {
-				$new_text = Html::hidden( 'pf_free_text', '!free_text!' );
-			} else {
-				$new_text = $this->freeTextInputHtml( $form_field, $cur_value, $context );
-			}
-			$context->freeTextWasIncluded = true;
-			$context->wikiPage->addFreeTextSection();
-		}
-
-		if ( $context->tif->getTemplateName() === '' || $field_name == '#freetext#' ) {
-			$context->section .= $new_text;
-		} else {
-			if ( $form_field->holdsTemplate() ) {
-				// If this field holds an embedded template and the value is not
-				// an array, there are no instances of the template — set the value
-				// to null to avoid carrying over whatever is currently on the page.
-				$cur_value_in_template = null;
-			} else {
-				$cur_value_in_template = $cur_value;
-			}
-
-			// If we're creating the page name from a formula based on
-			// form values, see if the current input is part of that formula,
-			// and if so, substitute in the actual value.
-			if ( $context->formSubmitted && $context->generatedPageName !== '' ) {
-				// This line appears to be unnecessary.
-				// $context->generatedPageName = str_replace('.', '_', $context->generatedPageName);
-				$context->generatedPageName = str_replace( ' ', '_', $context->generatedPageName ?? '' );
-				$escaped_input_name = str_replace( ' ', '_', $form_field->getInputName() ?? '' );
-				$context->generatedPageName = str_ireplace(
-					"<$escaped_input_name>", (string)( $cur_value_in_template ?? '' ),
-					$context->generatedPageName
-				);
-				// Once the substitution is done, replace underlines back
-				// with spaces.
-				$context->generatedPageName = str_replace( '_', ' ', $context->generatedPageName );
-			}
-			$delimiter = $form_field->getFieldArg( 'delimiter' );
-			if ( $cur_value !== '' &&
-				( $form_field->hasFieldArg( 'mapping template' ) ||
-				$form_field->hasFieldArg( 'mapping property' ) ||
-				$form_field->getUseDisplayTitle() ) ) {
-				// If the input type is "tokens', the value is not
-				// an array, but the delimiter still needs to be set.
-				if ( !is_array( $cur_value ) ) {
-					if ( $form_field->isList() ) {
-						$delimiter = $form_field->getFieldArg( 'delimiter' );
-					} else {
-						$delimiter = null;
-					}
-				}
-				$cur_value = $form_field->valueStringToLabels( $cur_value, $delimiter );
-			}
-
-			// Call hooks - unfortunately this has to be split into two
-			// separate calls, because of the different variable names in
-			// each case.
-			// @TODO - should it be $cur_value for both cases? Or should the
-			// hook perhaps modify both variables?
-			if ( $context->formSubmitted ) {
-				MediaWikiServices::getInstance()->getHookContainer()->run(
-					'PageForms::CreateFormField', [ &$form_field, &$cur_value_in_template, true ]
-				);
-			} else {
-				$this->formFieldHtmlBuilder->createFormFieldTranslateTag(
-					$context->template, $context->tif, $form_field, $cur_value
-				);
-				MediaWikiServices::getInstance()->getHookContainer()->run(
-					'PageForms::CreateFormField', [ &$form_field, &$cur_value, false ]
-				);
-			}
-			// if this is not part of a 'multiple' template, increment the
-			// tab index (used for correct tabbing)
-			if ( !$form_field->hasFieldArg( 'part_of_multiple' ) ) {
-				$context->counters->tabIndex++;
-			}
-			// increment the field number regardless
-			$context->counters->fieldNum++;
-			if ( $context->sourceIsPage && !$context->tif->allInstancesPrinted() ) {
-				// If the source is a page, don't use the default
-				// values - except for newly-added instances of a
-				// multiple-instance template.
-			} elseif ( $form_field->getDefaultValue() !== null ) {
-				[ $cur_value, $cur_value_in_template ] = $this->fieldValueResolver->resolveDefaultValue(
-					$form_field, (string)$cur_value, (string)$cur_value_in_template,
-					(bool)$context->tif->allowsMultiple(), $context->formSubmitted, $context->user
-				);
-			}
-
-			// If all instances have been
-			// printed, that means we're
-			// now printing a "starter"
-			// div - set the current value
-			// to null, unless it's the
-			// default value.
-			// (Ideally it wouldn't get
-			// set at all, but that seems a
-			// little harder.)
-			if ( $context->tif->allInstancesPrinted() && $form_field->getDefaultValue() == null ) {
-				$cur_value = null;
-			}
-
-			$new_text = $this->formFieldHtmlBuilder->formFieldHTML(
-				$form_field, $cur_value, $context->parser, $context->counters
-			);
-			$new_text .= $form_field->additionalHTMLForInput(
-				$cur_value, $field_name, $context->tif->getTemplateName()
-			);
-
-			if ( $new_text ) {
-				$context->wikiPage->addTemplateParam(
-					$context->templateName, $context->tif->getInstanceNum(), $field_name,
-					$cur_value_in_template
-				);
-				$context->section .= $new_text;
-			}
+			$context->section .= $this->handleFreeText( $form_field, $cur_value, $context );
+		} elseif ( $context->tif->getTemplateName() !== '' ) {
+			$cur_value = $this->addTemplateField( $form_field, $field_name, $cur_value, $context );
 		}
 
 		if ( $context->tif->allowsMultiple() && !$context->tif->allInstancesPrinted() ) {
-			$wordForYes = PFUtils::getWordForYesOrNo( true );
-			if ( $form_field->getInputType() == 'checkbox' ) {
-				if ( strtolower( (string)$cur_value ) == strtolower( $wordForYes )
-					|| strtolower( (string)$cur_value ) == 'yes' || $cur_value == '1' ) {
-					$cur_value = true;
-				} else {
-					$cur_value = false;
-				}
-			}
+			$cur_value = $this->checkboxValueForGrid( $form_field, $cur_value );
 		}
 
 		if ( $context->tif->getDisplay() != null
 			&& ( !$context->tif->allowsMultiple() || !$context->tif->allInstancesPrinted() ) ) {
 			$context->tif->addGridValue( $field_name, $cur_value );
 		}
+	}
+
+	/**
+	 * For special displays, add in the form fields, so we know the data structure.
+	 *
+	 * @param FormField $form_field
+	 * @param FormRenderContext $context
+	 */
+	private function registerFieldForSpecialDisplay( FormField $form_field, FormRenderContext $context ): void {
+		$tif = $context->tif;
+		$display = $tif->getDisplay();
+		$isFirstInstance = $tif->getInstanceNum() == 0;
+		if ( ( $display == 'table' && ( !$tif->allowsMultiple() || $isFirstInstance ) ) ||
+			( ( $display == 'spreadsheet' || $display == 'calendar' )
+				&& $tif->allowsMultiple() && $isFirstInstance ) ) {
+			$tif->addField( $form_field );
+		}
+	}
+
+	/**
+	 * The free text field: add placeholders for the free text in both the form and the page,
+	 * using <free_text> tags - once all the free text is known (at the end), it will get
+	 * substituted in.
+	 *
+	 * @param FormField $form_field
+	 * @param string|array|null $cur_value
+	 * @param FormRenderContext $context
+	 * @return string the HTML of the input
+	 */
+	private function handleFreeText( FormField $form_field, $cur_value, FormRenderContext $context ): string {
+		// If there was no preloading, this will just be blank.
+		$context->preloadedFreeText = $cur_value;
+		if ( $form_field->isHidden() ) {
+			$new_text = Html::hidden( 'pf_free_text', '!free_text!' );
+		} else {
+			$new_text = $this->freeTextInputHtml( $form_field, $cur_value, $context );
+		}
+		$context->freeTextWasIncluded = true;
+		$context->wikiPage->addFreeTextSection();
+
+		return $new_text;
+	}
+
+	/**
+	 * A field of a template: add its input to the section and its value to the template call.
+	 *
+	 * @param FormField $form_field
+	 * @param string $field_name
+	 * @param string|array|null $cur_value
+	 * @param FormRenderContext $context
+	 * @return string|array|null the value the input shows, for the grid values
+	 */
+	private function addTemplateField(
+		FormField $form_field, string $field_name, $cur_value, FormRenderContext $context
+	) {
+		if ( $form_field->holdsTemplate() ) {
+			// If this field holds an embedded template and the value is not
+			// an array, there are no instances of the template — set the value
+			// to null to avoid carrying over whatever is currently on the page.
+			$cur_value_in_template = null;
+		} else {
+			$cur_value_in_template = $cur_value;
+		}
+		$this->substituteInPageNameFormula( $form_field, $cur_value_in_template, $context );
+		$cur_value = $this->valueAsLabels( $form_field, $cur_value );
+		$this->runCreateFormFieldHook( $form_field, $cur_value, $cur_value_in_template, $context );
+
+		// if this is not part of a 'multiple' template, increment the
+		// tab index (used for correct tabbing)
+		if ( !$form_field->hasFieldArg( 'part_of_multiple' ) ) {
+			$context->counters->tabIndex++;
+		}
+		// increment the field number regardless
+		$context->counters->fieldNum++;
+		[ $cur_value, $cur_value_in_template ] = $this->applyDefaultValue(
+			$form_field, $cur_value, $cur_value_in_template, $context
+		);
+
+		$new_text = $this->formFieldHtmlBuilder->formFieldHTML(
+			$form_field, $cur_value, $context->parser, $context->counters
+		);
+		$new_text .= $form_field->additionalHTMLForInput(
+			$cur_value, $field_name, $context->tif->getTemplateName()
+		);
+		if ( $new_text ) {
+			$context->wikiPage->addTemplateParam(
+				$context->templateName, $context->tif->getInstanceNum(), $field_name,
+				$cur_value_in_template
+			);
+			$context->section .= $new_text;
+		}
+
+		return $cur_value;
+	}
+
+	/**
+	 * If we're creating the page name from a formula based on form values, see if the current
+	 * input is part of that formula, and if so, substitute in the actual value.
+	 *
+	 * @param FormField $form_field
+	 * @param string|array|null $cur_value_in_template
+	 * @param FormRenderContext $context
+	 */
+	private function substituteInPageNameFormula(
+		FormField $form_field, $cur_value_in_template, FormRenderContext $context
+	): void {
+		if ( !$context->formSubmitted || $context->generatedPageName === '' ) {
+			return;
+		}
+		$context->generatedPageName = str_replace( ' ', '_', $context->generatedPageName ?? '' );
+		$escaped_input_name = str_replace( ' ', '_', $form_field->getInputName() ?? '' );
+		$context->generatedPageName = str_ireplace(
+			"<$escaped_input_name>", (string)( $cur_value_in_template ?? '' ),
+			$context->generatedPageName
+		);
+		// Once the substitution is done, replace underlines back
+		// with spaces.
+		$context->generatedPageName = str_replace( '_', ' ', $context->generatedPageName );
+	}
+
+	/**
+	 * For a field with a mapping or display titles, turn the value into labels.
+	 *
+	 * @param FormField $form_field
+	 * @param string|array|null $cur_value
+	 * @return string|array|null
+	 */
+	private function valueAsLabels( FormField $form_field, $cur_value ) {
+		if ( $cur_value === '' ||
+			!( $form_field->hasFieldArg( 'mapping template' ) ||
+			$form_field->hasFieldArg( 'mapping property' ) ||
+			$form_field->getUseDisplayTitle() ) ) {
+			return $cur_value;
+		}
+		$delimiter = $form_field->getFieldArg( 'delimiter' );
+		// If the input type is "tokens', the value is not
+		// an array, but the delimiter still needs to be set.
+		if ( !is_array( $cur_value ) && !$form_field->isList() ) {
+			$delimiter = null;
+		}
+
+		return $form_field->valueStringToLabels( $cur_value, $delimiter );
+	}
+
+	/**
+	 * Call hooks - unfortunately this has to be split into two separate calls, because of the
+	 * different variable names in each case.
+	 * @todo - should it be $cur_value for both cases? Or should the hook perhaps modify both
+	 * variables?
+	 *
+	 * @param FormField $form_field
+	 * @param string|array|null &$cur_value
+	 * @param string|array|null &$cur_value_in_template
+	 * @param FormRenderContext $context
+	 */
+	private function runCreateFormFieldHook(
+		FormField $form_field, &$cur_value, &$cur_value_in_template, FormRenderContext $context
+	): void {
+		$hookContainer = MediaWikiServices::getInstance()->getHookContainer();
+		if ( $context->formSubmitted ) {
+			$hookContainer->run( 'PageForms::CreateFormField', [ &$form_field, &$cur_value_in_template, true ] );
+		} else {
+			$this->formFieldHtmlBuilder->createFormFieldTranslateTag(
+				$context->template, $context->tif, $form_field, $cur_value
+			);
+			$hookContainer->run( 'PageForms::CreateFormField', [ &$form_field, &$cur_value, false ] );
+		}
+	}
+
+	/**
+	 * Replace the values by the default value of the field where one applies, and show nothing
+	 * in the starter instance of a multiple-instance template.
+	 *
+	 * @param FormField $form_field
+	 * @param string|array|null $cur_value
+	 * @param string|array|null $cur_value_in_template
+	 * @param FormRenderContext $context
+	 * @return array [ $cur_value, $cur_value_in_template ]
+	 */
+	private function applyDefaultValue(
+		FormField $form_field, $cur_value, $cur_value_in_template, FormRenderContext $context
+	): array {
+		if ( $context->sourceIsPage && !$context->tif->allInstancesPrinted() ) {
+			// If the source is a page, don't use the default
+			// values - except for newly-added instances of a
+			// multiple-instance template.
+		} elseif ( $form_field->getDefaultValue() !== null ) {
+			[ $cur_value, $cur_value_in_template ] = $this->fieldValueResolver->resolveDefaultValue(
+				$form_field, (string)$cur_value, (string)$cur_value_in_template,
+				(bool)$context->tif->allowsMultiple(), $context->formSubmitted, $context->user
+			);
+		}
+
+		// If all instances have been printed, that means we're now printing a "starter"
+		// div - set the current value to null, unless it's the default value.
+		// (Ideally it wouldn't get set at all, but that seems a little harder.)
+		if ( $context->tif->allInstancesPrinted() && $form_field->getDefaultValue() == null ) {
+			$cur_value = null;
+		}
+
+		return [ $cur_value, $cur_value_in_template ];
+	}
+
+	/**
+	 * In the grid of a multiple-instance template, a checkbox holds a boolean.
+	 *
+	 * @param FormField $form_field
+	 * @param string|array|null $cur_value
+	 * @return string|array|bool|null
+	 */
+	private function checkboxValueForGrid( FormField $form_field, $cur_value ) {
+		if ( $form_field->getInputType() != 'checkbox' ) {
+			return $cur_value;
+		}
+		$wordForYes = PFUtils::getWordForYesOrNo( true );
+
+		return strtolower( (string)$cur_value ) == strtolower( $wordForYes )
+			|| strtolower( (string)$cur_value ) == 'yes' || $cur_value == '1';
 	}
 
 	/**
