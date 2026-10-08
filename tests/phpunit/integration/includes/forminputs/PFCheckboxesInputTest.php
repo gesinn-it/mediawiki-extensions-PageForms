@@ -185,9 +185,9 @@ class PFCheckboxesInputTest extends MediaWikiIntegrationTestCase {
 		);
 
 		$this->assertSame( 2, substr_count( $html, "checked='checked'" ) );
-		$this->assertMatchesRegularExpression( "/value='a'\\s+checked='checked'/", $html );
-		$this->assertMatchesRegularExpression( "/value='c'\\s+checked='checked'/", $html );
-		$this->assertDoesNotMatchRegularExpression( "/value='b'\\s+checked='checked'/", $html );
+		$this->assertSame( 1, preg_match( "/value='a'\\s+checked='checked'/", $html ) );
+		$this->assertSame( 1, preg_match( "/value='c'\\s+checked='checked'/", $html ) );
+		$this->assertSame( 0, preg_match( "/value='b'\\s+checked='checked'/", $html ) );
 	}
 
 	public function testGetHtmlChecksTheOptionsOfAMappedCurrentValueGivenAsValues(): void {
