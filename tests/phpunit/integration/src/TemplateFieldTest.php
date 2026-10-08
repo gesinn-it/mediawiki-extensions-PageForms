@@ -19,19 +19,8 @@ class TemplateFieldTest extends MediaWikiIntegrationTestCase {
 		$reflProp->setValue( null, [] );
 	}
 
-	public function testCreateWithRequiredFields() {
-		$name = "testField";
-		$label = "Test Label";
-
-		$field = TemplateField::create( $name, $label );
-
-		// Check if the object is an instance of TemplateField
-		$this->assertInstanceOf( TemplateField::class, $field );
-
-		// Check if the field name and label are set correctly
-		$this->assertEquals( $name, $field->getFieldName() );
-		$this->assertEquals( $label, $field->getLabel() );
-	}
+	// The tests that need neither a property nor a namespace name are in TemplateFieldBasicsTest, which needs
+	// no database.
 
 	public function testCreateWithOptionalFields() {
 		$name = "testField";
@@ -53,56 +42,10 @@ class TemplateFieldTest extends MediaWikiIntegrationTestCase {
 		$this->assertEquals( $display, $field->getDisplay() );
 	}
 
-	public function testCreateWithDefaultDelimiterForList() {
-		$name = "testField";
-		$label = "Test Label";
-		$isList = true;
-
-		$field = TemplateField::create( $name, $label, null, $isList );
-
-		// Check if the default delimiter is set when list is true and delimiter is not provided
-		$this->assertEquals( ',', $field->getDelimiter() );
-	}
-
-	public function testCreateWithNullLabel() {
-		$name = "testField";
-		$label = null;
-
-		$field = TemplateField::create( $name, $label );
-
-		// Check if label is set to null when not provided
-		$this->assertNull( $field->getLabel() );
-	}
-
-	public function testToWikitextWithDefaultValues() {
-		$name = "testField";
-		$label = "Test Label";
-
-		$field = TemplateField::create( $name, $label );
-		$result = $field->toWikitext();
-
-		// Expected Wikitext output when no additional properties are set
-		$expected = "testField (label=Test Label)";
-		$this->assertEquals( trim( $expected ), trim( $result ) );
-	}
-
-	public function testToWikitextWithEmptyLabel() {
-		$name = "testField";
-		$label = "";
-
-		$field = TemplateField::create( $name, $label );
-		$result = $field->toWikitext();
-
-		// Test if label is omitted when it's empty
-		$expected = "testField";
-		$this->assertEquals( trim( $expected ), trim( $result ) );
-	}
-
 	public function testToWikitextWithAttributes() {
 		// Arrange: create a field and set attributes
 		$field = TemplateField::create( 'testField', 'Test Label' );
 		$field->setLabel( 'Custom Label' );
-		$field->isList( true );
 		$field->setNSText( 'MyNamespace' );
 
 		// Act: Call the toWikitext method
@@ -113,34 +56,9 @@ class TemplateFieldTest extends MediaWikiIntegrationTestCase {
 		$this->assertEquals( $expected, $result );
 	}
 
-	public function testToWikitextOmitsSameLabelAsFieldName() {
-		$field = TemplateField::create( 'testField', 'testField' );
-		$this->assertSame( 'testField', $field->toWikitext() );
-	}
-
-	public function testToWikitextIncludesListAttribute() {
-		$field = TemplateField::create( 'myField', null, null, true );
-		$this->assertStringContainsString( 'list', $field->toWikitext() );
-	}
-
-	public function testToWikitextIncludesCustomDelimiter() {
-		$field = TemplateField::create( 'myField', null, null, true, ';' );
-		$this->assertStringContainsString( 'delimiter=;', $field->toWikitext() );
-	}
-
-	public function testToWikitextOmitsDefaultCommaDelimiter() {
-		$field = TemplateField::create( 'myField', null, null, true, ',' );
-		$this->assertStringNotContainsString( 'delimiter', $field->toWikitext() );
-	}
-
 	public function testToWikitextIncludesProperty() {
 		$field = TemplateField::create( 'myField', null, 'SomeProp' );
 		$this->assertStringContainsString( 'property=SomeProp', $field->toWikitext() );
-	}
-
-	public function testToWikitextIncludesDisplay() {
-		$field = TemplateField::create( 'myField', null, null, null, null, 'table' );
-		$this->assertStringContainsString( 'display=table', $field->toWikitext() );
 	}
 
 	public function testToWikitextIncludesNSText() {
@@ -149,76 +67,10 @@ class TemplateFieldTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'namespace=User', $field->toWikitext() );
 	}
 
-	public function testNewFromParamsSetsFieldName() {
-		$field = TemplateField::newFromParams( 'MyField', [] );
-		$this->assertSame( 'MyField', $field->getFieldName() );
-	}
-
-	public function testNewFromParamsSetsLabel() {
-		$field = TemplateField::newFromParams( 'Field', [ 'label' => 'My Label' ] );
-		$this->assertSame( 'My Label', $field->getLabel() );
-	}
-
-	public function testNewFromParamsListDefaultsDelimiterToComma() {
-		$field = TemplateField::newFromParams( 'Field', [ 'list' => true ] );
-		$this->assertTrue( $field->isList() );
-		$this->assertSame( ',', $field->getDelimiter() );
-	}
-
-	public function testNewFromParamsSetsCustomDelimiter() {
-		$field = TemplateField::newFromParams( 'Field', [ 'list' => true, 'delimiter' => ';' ] );
-		$this->assertSame( ';', $field->getDelimiter() );
-	}
-
-	public function testNewFromParamsSetsHoldsTemplate() {
-		$field = TemplateField::newFromParams( 'Field', [ 'holds template' => 'TplName' ] );
-		$this->assertSame( 'TplName', $field->getHoldsTemplate() );
-	}
-
-	public function testNewFromParamsSetsCategory() {
-		$field = TemplateField::newFromParams( 'Field', [ 'category' => 'MyCategory' ] );
-		$this->assertSame( 'MyCategory', $field->getCategory() );
-	}
-
-	public function testNewFromParamsSetsDisplay() {
-		$field = TemplateField::newFromParams( 'Field', [ 'display' => 'table' ] );
-		$this->assertSame( 'table', $field->getDisplay() );
-	}
-
 	public function testNewFromParamsSetsNamespaceFromText() {
 		$field = TemplateField::newFromParams( 'Field', [ 'namespace' => 'User' ] );
 		$this->assertSame( 'User', $field->getNSText() );
 		$this->assertSame( NS_USER, $field->getNamespace() );
-	}
-
-	public function testDefaultIsMandatoryIsFalse() {
-		$field = TemplateField::create( 'Field', null );
-		$this->assertFalse( $field->isMandatory() );
-	}
-
-	public function testDefaultIsUniqueIsFalse() {
-		$field = TemplateField::create( 'Field', null );
-		$this->assertFalse( $field->isUnique() );
-	}
-
-	public function testDefaultRegexIsNull() {
-		$field = TemplateField::create( 'Field', null );
-		$this->assertNull( $field->getRegex() );
-	}
-
-	public function testDefaultHoldsTemplateIsNull() {
-		$field = TemplateField::create( 'Field', null );
-		$this->assertNull( $field->getHoldsTemplate() );
-	}
-
-	public function testDefaultCategoryIsNull() {
-		$field = TemplateField::create( 'Field', null );
-		$this->assertNull( $field->getCategory() );
-	}
-
-	public function testDefaultNamespaceIsZero() {
-		$field = TemplateField::create( 'Field', null );
-		$this->assertSame( 0, $field->getNamespace() );
 	}
 
 	public function testSetSemanticPropertyHandlesNull() {
@@ -240,38 +92,11 @@ class TemplateFieldTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [], $field->getPossibleValues() );
 	}
 
-	public function testSetAndGetPossibleValues() {
-		$field = TemplateField::create( 'Field', null );
-		$field->setPossibleValues( [ 'Alpha', 'Beta' ] );
-		$this->assertSame( [ 'Alpha', 'Beta' ], $field->getPossibleValues() );
-	}
-
-	public function testGetPossibleValuesReturnsEmptyArrayAfterCreate() {
-		$field = TemplateField::create( 'Field', null );
-		$this->assertSame( [], $field->getPossibleValues() );
-	}
-
-	public function testSetFieldTypeSetsType() {
-		$field = TemplateField::create( 'Field', null );
-		$field->setFieldType( 'Text' );
-		$this->assertSame( 'Text', $field->getFieldType() );
-	}
-
 	public function testSetNSTextWithKnownNamespaceSetsNamespaceId() {
 		$field = TemplateField::create( 'Field', null );
 		$field->setNSText( 'User' );
 		$this->assertSame( 'User', $field->getNSText() );
 		$this->assertSame( NS_USER, $field->getNamespace() );
-	}
-
-	public function testCreateStripsBackslashesFromFieldName() {
-		$field = TemplateField::create( 'Field\\Name', null );
-		$this->assertSame( 'FieldName', $field->getFieldName() );
-	}
-
-	public function testCreateTrimsFieldName() {
-		$field = TemplateField::create( '  trimmed  ', null );
-		$this->assertSame( 'trimmed', $field->getFieldName() );
 	}
 
 	// --- setTypeAndPossibleValues via injected mock store ---
@@ -362,18 +187,6 @@ class TemplateFieldTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 'PFTemplateFieldEdgeCaseProp01', $field->getSemanticProperty() );
 	}
 
-	public function testDefaultHierarchyStructureIsNull() {
-		$field = TemplateField::create( 'Field', null );
-		$this->assertNull( $field->getHierarchyStructure() );
-	}
-
-	public function testSetAndGetHierarchyStructure() {
-		$field = TemplateField::create( 'Field', null );
-		$structure = [ 'Root' => [ 'Child1', 'Child2' ] ];
-		$field->setHierarchyStructure( $structure );
-		$this->assertSame( $structure, $field->getHierarchyStructure() );
-	}
-
 	public function testSetNamespaceSetsNSTextAndNamespaceId() {
 		$field = TemplateField::create( 'Field', null );
 		$field->setNamespace( NS_USER );
@@ -451,11 +264,6 @@ class TemplateFieldTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// --- createText() ---
-
-	public function testCreateTextNonListNoPropertyDefaultNamespace() {
-		$field = TemplateField::create( 'PFTemplateFieldEdgeCaseField01', null );
-		$this->assertSame( '{{{PFTemplateFieldEdgeCaseField01|}}}', $field->createText() );
-	}
 
 	public function testCreateTextNonListWithPropertyDefaultNamespace() {
 		$field = TemplateField::create( 'PFTemplateFieldEdgeCaseField02', null, 'PFTemplateFieldEdgeCaseProp02' );
