@@ -4,10 +4,10 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\FormRender;
 
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
 use MediaWiki\Extension\PageForms\FormRenderContext;
-use MWException;
 
 /**
  * The {{{info}}} tag: titles of the form page, the free text being part of the page and
@@ -22,16 +22,15 @@ class InfoHandler implements ElementHandler {
 	 *
 	 * @param FormElement $element
 	 * @param FormRenderContext $context
-	 * @throws MWException if the form definition has more than one info tag
+	 * @throws FormDefinitionException if the form definition has more than one info tag
 	 */
 	public function handle( FormElement $element, FormRenderContext $context ): void {
 		if ( !$element instanceof TagSpec ) {
 			return;
 		}
 		if ( $context->infoTagSeen ) {
-			throw new MWException(
-				'<div class="error">Error in form definition:'
-				. ' only one \'info\' tag is allowed per form.</div>'
+			throw new FormDefinitionException(
+				"Error in form definition: only one 'info' tag is allowed per form."
 			);
 		}
 		$context->infoTagSeen = true;

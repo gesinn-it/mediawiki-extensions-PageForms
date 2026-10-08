@@ -7,6 +7,7 @@ namespace MediaWiki\Extension\PageForms\FormRender;
 use Html;
 use MediaWiki\Extension\PageForms\FieldValueResolver;
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
@@ -16,7 +17,6 @@ use MediaWiki\Extension\PageForms\MappingLabels;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateInForm;
 use MediaWiki\MediaWikiServices;
-use MWException;
 use PFTextAreaInput;
 use PFUtils;
 
@@ -54,7 +54,7 @@ class FieldHandler implements ElementHandler {
 	/**
 	 * @param FormElement $element
 	 * @param FormRenderContext $context
-	 * @throws MWException if the tag has no field name
+	 * @throws FormDefinitionException if the tag has no field name
 	 */
 	public function handle( FormElement $element, FormRenderContext $context ): void {
 		if ( !$element instanceof FieldSpec ) {
@@ -73,9 +73,8 @@ class FieldHandler implements ElementHandler {
 		// to deal with the #freetext# hack,
 		// among others.
 		if ( count( $element->getComponents() ) < 2 ) {
-			throw new MWException(
-				'<div class="error">Error in form definition:' .
-				' \'field\' tag is missing the field name.</div>'
+			throw new FormDefinitionException(
+				"Error in form definition: 'field' tag is missing the field name."
 			);
 		}
 		$field_name = trim( $element->getComponents()[1] );

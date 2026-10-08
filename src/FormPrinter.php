@@ -15,7 +15,6 @@ use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormDefinition\InfoSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\SectionSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\StandardInputSpec;
-use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TemplateSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TextSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\UnknownTagSpec;
@@ -579,38 +578,12 @@ class FormPrinter {
 
 		foreach ( $context->sectionElements as $element_num => $element ) {
 			$context->elementNum = $element_num;
-			if ( $element instanceof TagSpec && !$element instanceof InfoSpec ) {
-				$this->assertNoForbiddenCharacters( $element );
-			}
 			$handler = $this->elementHandlers[get_class( $element )] ?? null;
 			$handler?->handle( $element, $context );
 		}
 
 		$this->pageTextAssembler->insertTemplateCalls( $context );
 		return $this->sectionLayout->finish( $context );
-	}
-
-	/**
-	 * Angled brackets in a tag could cause a security leak (and should not be necessary).
-	 *
-	 * @param TagSpec $tag
-	 * @throws MWException if a component of the tag contains both < and >
-	 */
-	private function assertNoForbiddenCharacters( TagSpec $tag ): void {
-		foreach ( $tag->getComponents() as $tag_component ) {
-			// Allow them in "default filename", though.
-			$tagParts = explode( '=', $tag_component, 2 );
-			if ( count( $tagParts ) == 2 && $tagParts[0] == 'default filename' ) {
-				continue;
-			}
-			if ( str_contains( $tag_component, '<' ) && str_contains( $tag_component, '>' ) ) {
-				throw new MWException(
-					'<div class="error">Error in form definition!' .
-					' The following field tag contains forbidden characters:</div>' .
-					"\n<pre>" . htmlspecialchars( $tag_component ) . "</pre>"
-				);
-			}
-		}
 	}
 
 	/**

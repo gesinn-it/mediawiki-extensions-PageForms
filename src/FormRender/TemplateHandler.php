@@ -4,12 +4,12 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\FormRender;
 
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormDefinition\TemplateSpec;
 use MediaWiki\Extension\PageForms\FormRenderContext;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateInForm;
-use MWException;
 
 /**
  * The {{{for template}}} tag, which opens a template whose fields follow.
@@ -22,7 +22,7 @@ class TemplateHandler implements ElementHandler {
 	 *
 	 * @param FormElement $element
 	 * @param FormRenderContext $context
-	 * @throws MWException if the tag has no template name
+	 * @throws FormDefinitionException if the tag has no template name
 	 */
 	public function handle( FormElement $element, FormRenderContext $context ): void {
 		if ( !$element instanceof TemplateSpec ) {
@@ -30,9 +30,8 @@ class TemplateHandler implements ElementHandler {
 		}
 		$tag_components = $element->getComponents();
 		if ( count( $tag_components ) < 2 ) {
-			throw new MWException(
-				'<div class="error">Error in form definition:' .
-				' \'for template\' tag is missing the template name.</div>'
+			throw new FormDefinitionException(
+				"Error in form definition: 'for template' tag is missing the template name."
 			);
 		}
 		if ( $context->tif ) {

@@ -4,11 +4,11 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\FormRender;
 
+use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
 use MediaWiki\Extension\PageForms\FormRenderContext;
 use MediaWiki\Extension\PageForms\StandardInputHtmlBuilder;
-use MWException;
 
 /**
  * The {{{standard input}}} tag: save, preview, changes, cancel, summary, minor edit, watch
@@ -25,7 +25,7 @@ class StandardInputHandler implements ElementHandler {
 	/**
 	 * @param FormElement $element
 	 * @param FormRenderContext $context
-	 * @throws MWException if the tag has no input name
+	 * @throws FormDefinitionException if the tag has no input name
 	 */
 	public function handle( FormElement $element, FormRenderContext $context ): void {
 		if ( !$element instanceof TagSpec ) {
@@ -33,9 +33,8 @@ class StandardInputHandler implements ElementHandler {
 		}
 		$tag_components = $element->getComponents();
 		if ( count( $tag_components ) < 2 ) {
-			throw new MWException(
-				'<div class="error">Error in form definition:' .
-				' \'standard input\' tag is missing the input name.</div>'
+			throw new FormDefinitionException(
+				"Error in form definition: 'standard input' tag is missing the input name."
 			);
 		}
 		$input_name = $tag_components[1];
