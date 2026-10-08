@@ -312,8 +312,6 @@ class FormField {
 		Parser $parser,
 		?MappingLabels $mappingLabels = null
 	) {
-		global $wgPageFormsEmbeddedTemplates;
-
 		// MW 1.43 compat: Parser::$mStripState and $mOutputType are typed properties
 		// that are only initialised after clearState()/setOutputType() are called.
 		// $parser must already be titled by the caller (see FormPrinter::createFreshParser()) -
@@ -336,28 +334,66 @@ class FormField {
 		$field_name = $spec->getName();
 		$template_name = $template_in_form->getTemplateName();
 
-		// See if this field matches one of the fields defined for this
-		// template - if it does, use all available information about
-		// that field; if it doesn't, either include it in the form or
-		// not, depending on whether the template has a 'strict'
-		// setting in the form definition.
-		$template_field = $template->getFieldNamed( $field_name );
-
-		if ( $template_field != null ) {
-			$f->template_field = $template_field;
-		} else {
-			if ( $template_in_form->strictParsing() ) {
-				$f->template_field = new TemplateField();
-				$f->mIsList = false;
-				return $f;
-			}
-			$f->template_field = TemplateField::create( $field_name, null );
+		if ( !$f->setUpTemplateField( $template, $template_in_form, $field_name, $template_name ) ) {
+			return $f;
 		}
 
-		$embeddedTemplate = $f->template_field->getHoldsTemplate();
+		$fullFieldName = $template_name . '[' . $field_name . ']';
+		$f->applyTemplateFieldDefaults();
+		$f->applySpecFlags( $spec, $user );
+		$args = $f->readArguments( $spec, $parser, $user, $fullFieldName );
+
+		$f->setUpPossibleValuesFromSources( $args, $template_in_form->getDisplay() );
+		$f->setUpDelimiter();
+		$f->setPossibleValuesFromList( $args['values'] );
+		$f->setUpSemanticProperty( $args['semantic_property'], $fullFieldName );
+		$f->setUpMapping( $args['valuesSourceType'], $args['valuesSource'] );
+
+		if ( $template_in_form->allowsMultiple() ) {
+			$f->mFieldArgs['part_of_multiple'] = true;
+		}
+		if ( count( $args['show_on_select'] ) > 0 ) {
+			$f->mFieldArgs['show on select'] = $args['show_on_select'];
+		}
+
+		// Disable this field if either the whole form is disabled, or
+		// it's a restricted field and user doesn't have sysop privileges.
+		$f->mInstanceField->setIsDisabled( $form_is_disabled || $f->mIsRestricted );
+		$f->setUpInputName( $template_in_form, $template_name, $field_name, $fullFieldName );
+
+		return $f;
+	}
+
+	/**
+	 * See if the field matches one of the fields defined for the template - if it does, use all
+	 * available information about that field; if it doesn't, either include it in the form or
+	 * not, depending on whether the template has a 'strict' setting in the form definition.
+	 *
+	 * @param Template $template
+	 * @param TemplateInForm $template_in_form
+	 * @param string $field_name
+	 * @param string|null $template_name
+	 * @return bool false if the field is not part of the form
+	 */
+	private function setUpTemplateField( $template, $template_in_form, $field_name, $template_name ): bool {
+		global $wgPageFormsEmbeddedTemplates;
+
+		$template_field = $template->getFieldNamed( $field_name );
+		if ( $template_field != null ) {
+			$this->template_field = $template_field;
+		} else {
+			if ( $template_in_form->strictParsing() ) {
+				$this->template_field = new TemplateField();
+				$this->mIsList = false;
+				return false;
+			}
+			$this->template_field = TemplateField::create( $field_name, null );
+		}
+
+		$embeddedTemplate = $this->template_field->getHoldsTemplate();
 		if ( $embeddedTemplate != '' ) {
-			$f->mIsHidden = true;
-			$f->mHoldsTemplate = true;
+			$this->mIsHidden = true;
+			$this->mHoldsTemplate = true;
 			// Store this information so that the embedded/"held"
 			// template - which is hopefully after this one in the
 			// form definition - can be handled correctly. In forms,
@@ -366,226 +402,301 @@ class FormField {
 			// #template_params), it's only the embedding field.
 			$wgPageFormsEmbeddedTemplates[$embeddedTemplate] = [ $template_name, $field_name ];
 		}
+		return true;
+	}
 
-		$semantic_property = null;
-		$show_on_select = [];
-		$fullFieldName = $template_name . '[' . $field_name . ']';
-		$values = $valuesSourceType = $valuesSource = null;
-		$valuesFromPropertyName = null;
-
-		// We set "values from ..." params if there are corresponding
-		// values set in #template_params - this is a bit of a @hack,
-		// since we should really just use these values directly, but
-		// there are various places in the code that check for "values
-		// from ...", so it's easier to just pretend that these params
-		// were set.
-		$categoryFromTemplate = $f->getTemplateField()->getCategory();
+	/**
+	 * We set "values from ..." params if there are corresponding
+	 * values set in #template_params - this is a bit of a @hack,
+	 * since we should really just use these values directly, but
+	 * there are various places in the code that check for "values
+	 * from ...", so it's easier to just pretend that these params
+	 * were set.
+	 */
+	private function applyTemplateFieldDefaults(): void {
+		$categoryFromTemplate = $this->getTemplateField()->getCategory();
 		if ( $categoryFromTemplate !== null ) {
-			$f->mFieldArgs['values from category'] = $categoryFromTemplate;
+			$this->mFieldArgs['values from category'] = $categoryFromTemplate;
 		}
-		$namespaceFromTemplate = $f->getTemplateField()->getNSText();
+		$namespaceFromTemplate = $this->getTemplateField()->getNSText();
 		if ( $namespaceFromTemplate !== null ) {
-			$f->mFieldArgs['values from namespace'] = $namespaceFromTemplate;
+			$this->mFieldArgs['values from namespace'] = $namespaceFromTemplate;
 		}
+	}
 
+	private function applySpecFlags( FieldSpec $spec, User $user ): void {
 		if ( $spec->isMandatory() ) {
-			$f->mIsMandatory = true;
+			$this->mIsMandatory = true;
 		}
 		if ( $spec->isHidden() ) {
-			$f->mIsHidden = true;
+			$this->mIsHidden = true;
 		}
 		if ( $spec->isList() ) {
-			$f->mIsList = true;
+			$this->mIsList = true;
 		}
 		if ( $spec->isUnique() ) {
-			$f->mFieldArgs['unique'] = true;
+			$this->mFieldArgs['unique'] = true;
 		}
 		if ( $spec->isFlag( 'restricted' ) ) {
-			$f->mIsRestricted = !$user->isAllowed( 'editrestrictedfields' );
+			$this->mIsRestricted = !$user->isAllowed( 'editrestrictedfields' );
 		}
 		if ( $spec->isFlag( 'edittools' ) ) {
 			// free text only
-			$f->mFieldArgs['edittools'] = true;
+			$this->mFieldArgs['edittools'] = true;
 		}
+	}
 
-		// Cycle through the arguments.
+	/**
+	 * Go through the arguments of the field tag. What can only be used once all arguments are
+	 * known (the values and where they come from, the property, "show on select") is returned.
+	 *
+	 * @param FieldSpec $spec
+	 * @param Parser $parser
+	 * @param User $user
+	 * @param string $fullFieldName
+	 * @return array<string, mixed> The keys semantic_property, show_on_select, values, valuesSourceType,
+	 *   valuesSource and valuesFromPropertyName
+	 */
+	private function readArguments( FieldSpec $spec, Parser $parser, User $user, string $fullFieldName ): array {
+		$args = [
+			'semantic_property' => null,
+			'show_on_select' => [],
+			'values' => null,
+			'valuesSourceType' => null,
+			'valuesSource' => null,
+			// The actual fetch is deferred to after the full loop has run, so that a 'remote
+			// autocompletion' argument appearing later in the tag is already known.
+			'valuesFromPropertyName' => null,
+		];
+
 		foreach ( $spec->getArgs() as $argName => $argValue ) {
 			if ( $spec->isFlag( $argName ) ) {
 				// add handling for single-value params, for custom input types
-				$f->mFieldArgs[$argName] = true;
+				$this->mFieldArgs[$argName] = true;
 
 				if ( $argName == 'holds template' ) {
-					$f->mIsHidden = true;
-					$f->mHoldsTemplate = true;
+					$this->mIsHidden = true;
+					$this->mHoldsTemplate = true;
 				}
 			} else {
 				// First, set each value as its own entry in $this->mFieldArgs.
-				$f->mFieldArgs[$argName] = $argValue;
+				$this->mFieldArgs[$argName] = $argValue;
 
 				// Then, do all special handling.
-				if ( $argName == 'autocapitalize' ) {
-					$f->mAutocapitalize = strtolower( $argValue );
-				} elseif ( $argName == 'input type' ) {
-					$f->mInputType = $argValue;
-				} elseif ( $argName == 'default' ) {
-					// We call recursivePreprocess() here,
-					// and not the more standard
-					// recursiveTagParse(), so that
-					// wikitext in the value, and bare URLs,
-					// will not get turned into HTML.
-					$f->mDefaultValue = $parser->recursivePreprocess( $argValue );
-				} elseif ( $argName == 'preload' ) {
-					$f->mPreloadPage = $argValue;
-				} elseif ( $argName == 'label' ) {
-					$f->mLabel = $argValue;
-				} elseif ( $argName == 'label msg' ) {
-					$f->mLabelMsg = $argValue;
-				} elseif ( $argName == 'show on select' ) {
-					// html_entity_decode() is needed to turn '&gt;' to '>'
-					$vals = explode( ';', html_entity_decode( $argValue ) );
-					foreach ( $vals as $val ) {
-						$val = trim( $val );
-						if ( $val === '' ) {
-							continue;
-						}
-						$option_div_pair = explode( '=>', $val, 2 );
-						if ( count( $option_div_pair ) > 1 ) {
-							$option = trim( $parser->recursiveTagParse( $option_div_pair[0] ) );
-							$div_id = $option_div_pair[1];
-							if ( array_key_exists( $div_id, $show_on_select ) ) {
-								$show_on_select[$div_id][] = $option;
-							} else {
-								$show_on_select[$div_id] = [ $option ];
-							}
-						} else {
-							$show_on_select[$val] = [];
-						}
-					}
-				} elseif ( $argName == 'values' ) {
-					// Handle this one only after
-					// 'delimiter' has also been set.
-					$values = $parser->recursiveTagParse( $argValue );
-				} elseif ( $argName == 'values from property' ) {
-					// The actual fetch is deferred to after the full component
-					// loop has run (see below), so that a 'remote autocompletion'
-					// component appearing later in the tag is already known.
-					$valuesFromPropertyName = $argValue;
-				} elseif ( $argName == 'values from wikidata' ) {
-					$valuesSourceType = 'wikidata';
-					$valuesSource = urlencode( $argValue );
-				} elseif ( $argName == 'values from query' ) {
-					$valuesSourceType = 'query';
-					$valuesSource = $argValue;
-				} elseif ( $argName == 'values from category' ) {
-					$valuesSource = $parser->recursiveTagParse( $argValue );
-					global $wgCapitalLinks;
-					if ( $wgCapitalLinks ) {
-						$valuesSource = ucfirst( $valuesSource );
-					}
-					$valuesSourceType = 'category';
-				} elseif ( $argName == 'values from concept' ) {
-					$valuesSourceType = 'concept';
-					$valuesSource = $parser->recursiveTagParse( $argValue );
-				} elseif ( $argName == 'values from namespace' ) {
-					$valuesSourceType = 'namespace';
-					$valuesSource = $parser->recursiveTagParse( $argValue );
-				} elseif ( $argName == 'values dependent on' ) {
-					global $wgPageFormsDependentFields;
-					$wgPageFormsDependentFields[] = [ $argValue, $fullFieldName ];
-				} elseif ( $argName == 'unique for category' ) {
-					$f->mFieldArgs['unique'] = true;
-					$f->mFieldArgs['unique_for_category'] = $parser->recursiveTagParse( $argValue );
-				} elseif ( $argName == 'unique for namespace' ) {
-					$f->mFieldArgs['unique'] = true;
-					$f->mFieldArgs['unique_for_namespace'] = $parser->recursiveTagParse( $argValue );
-				} elseif ( $argName == 'unique for concept' ) {
-					$f->mFieldArgs['unique'] = true;
-					$f->mFieldArgs['unique_for_concept'] = $parser->recursiveTagParse( $argValue );
-				} elseif ( $argName == 'property' ) {
-					$semantic_property = $argValue;
-				} elseif ( $argName == 'default filename' ) {
-					$titleGlobal = RequestContext::getMain()->getTitle();
-					$page_name = $titleGlobal->getText();
-					if ( $titleGlobal->isSpecialPage() ) {
-						// If it's of the form
-						// Special:FormEdit/form/target,
-						// get just the target.
-						$pageNameComponents = explode( '/', $page_name, 3 );
-						if ( count( $pageNameComponents ) == 3 ) {
-							$page_name = $pageNameComponents[2];
-						}
-					}
-					$default_filename = str_replace( '<page name>', $page_name, $argValue );
-					// Parse value, so default filename can
-					// include parser functions.
-					$default_filename = $parser->recursiveTagParse( $default_filename );
-					$f->mFieldArgs['default filename'] = $default_filename;
-				} elseif ( $argName == 'restricted' ) {
-					$effectiveGroups = MediaWikiServices::getInstance()->getUserGroupManager()
-						->getUserEffectiveGroups( $user );
-					$f->mIsRestricted = !array_intersect(
-						$effectiveGroups, array_map( 'trim', explode( ',', $argValue ) )
-					);
-				}
+				$this->readArgument( $argName, $argValue, $parser, $user, $fullFieldName, $args );
 			}
 		}
-		// end for
 
-		// 'values from property' fetches are deferred to here (rather than
-		// handled inline in the component loop above) so that a 'remote
-		// autocompletion' component appearing later in the tag is already
-		// known by the time we decide whether to defer the fetch.
-		if ( $valuesFromPropertyName !== null ) {
-			if ( $f->canDeferAutocompleteFetch(
-				'property', $valuesFromPropertyName, $template_in_form->getDisplay()
-			) ) {
-				$f->mInstanceField->deferPossibleValues( 'property' );
+		return $args;
+	}
+
+	/**
+	 * The special handling of one argument that has a value.
+	 *
+	 * @param string $argName
+	 * @param string $argValue
+	 * @param Parser $parser
+	 * @param User $user
+	 * @param string $fullFieldName
+	 * @param array &$args What readArguments() returns
+	 */
+	private function readArgument(
+		string $argName, $argValue, Parser $parser, User $user, string $fullFieldName, array &$args
+	): void {
+		if ( $argName == 'autocapitalize' ) {
+			$this->mAutocapitalize = strtolower( $argValue );
+		} elseif ( $argName == 'input type' ) {
+			$this->mInputType = $argValue;
+		} elseif ( $argName == 'default' ) {
+			// We call recursivePreprocess() here,
+			// and not the more standard
+			// recursiveTagParse(), so that
+			// wikitext in the value, and bare URLs,
+			// will not get turned into HTML.
+			$this->mDefaultValue = $parser->recursivePreprocess( $argValue );
+		} elseif ( $argName == 'preload' ) {
+			$this->mPreloadPage = $argValue;
+		} elseif ( $argName == 'label' ) {
+			$this->mLabel = $argValue;
+		} elseif ( $argName == 'label msg' ) {
+			$this->mLabelMsg = $argValue;
+		} elseif ( $argName == 'show on select' ) {
+			$this->readShowOnSelect( $argValue, $parser, $args['show_on_select'] );
+		} elseif ( $argName == 'values' ) {
+			// Handle this one only after
+			// 'delimiter' has also been set.
+			$args['values'] = $parser->recursiveTagParse( $argValue );
+		} elseif ( $argName == 'values from property' ) {
+			$args['valuesFromPropertyName'] = $argValue;
+		} elseif ( $argName == 'values from wikidata' ) {
+			$args['valuesSourceType'] = 'wikidata';
+			$args['valuesSource'] = urlencode( $argValue );
+		} elseif ( $argName == 'values from query' ) {
+			$args['valuesSourceType'] = 'query';
+			$args['valuesSource'] = $argValue;
+		} elseif ( $argName == 'values from category' ) {
+			$valuesSource = $parser->recursiveTagParse( $argValue );
+			global $wgCapitalLinks;
+			if ( $wgCapitalLinks ) {
+				$valuesSource = ucfirst( $valuesSource );
+			}
+			$args['valuesSource'] = $valuesSource;
+			$args['valuesSourceType'] = 'category';
+		} elseif ( $argName == 'values from concept' ) {
+			$args['valuesSourceType'] = 'concept';
+			$args['valuesSource'] = $parser->recursiveTagParse( $argValue );
+		} elseif ( $argName == 'values from namespace' ) {
+			$args['valuesSourceType'] = 'namespace';
+			$args['valuesSource'] = $parser->recursiveTagParse( $argValue );
+		} elseif ( $argName == 'values dependent on' ) {
+			global $wgPageFormsDependentFields;
+			$wgPageFormsDependentFields[] = [ $argValue, $fullFieldName ];
+		} elseif ( $argName == 'unique for category' ) {
+			$this->mFieldArgs['unique'] = true;
+			$this->mFieldArgs['unique_for_category'] = $parser->recursiveTagParse( $argValue );
+		} elseif ( $argName == 'unique for namespace' ) {
+			$this->mFieldArgs['unique'] = true;
+			$this->mFieldArgs['unique_for_namespace'] = $parser->recursiveTagParse( $argValue );
+		} elseif ( $argName == 'unique for concept' ) {
+			$this->mFieldArgs['unique'] = true;
+			$this->mFieldArgs['unique_for_concept'] = $parser->recursiveTagParse( $argValue );
+		} elseif ( $argName == 'property' ) {
+			$args['semantic_property'] = $argValue;
+		} elseif ( $argName == 'default filename' ) {
+			$this->mFieldArgs['default filename'] = $this->defaultFilename( $argValue, $parser );
+		} elseif ( $argName == 'restricted' ) {
+			$effectiveGroups = MediaWikiServices::getInstance()->getUserGroupManager()
+				->getUserEffectiveGroups( $user );
+			$this->mIsRestricted = !array_intersect(
+				$effectiveGroups, array_map( 'trim', explode( ',', $argValue ) )
+			);
+		}
+	}
+
+	/**
+	 * @param string $argValue
+	 * @param Parser $parser
+	 * @param array &$showOnSelect The div IDs, each with the options that show it
+	 */
+	private function readShowOnSelect( $argValue, Parser $parser, array &$showOnSelect ): void {
+		// html_entity_decode() is needed to turn '&gt;' to '>'
+		$vals = explode( ';', html_entity_decode( $argValue ) );
+		foreach ( $vals as $val ) {
+			$val = trim( $val );
+			if ( $val === '' ) {
+				continue;
+			}
+			$option_div_pair = explode( '=>', $val, 2 );
+			if ( count( $option_div_pair ) > 1 ) {
+				$option = trim( $parser->recursiveTagParse( $option_div_pair[0] ) );
+				$div_id = $option_div_pair[1];
+				if ( array_key_exists( $div_id, $showOnSelect ) ) {
+					$showOnSelect[$div_id][] = $option;
+				} else {
+					$showOnSelect[$div_id] = [ $option ];
+				}
 			} else {
-				$f->mPossibleValues = PFValuesUtils::getAllValuesForProperty( $valuesFromPropertyName );
-				$f->mUseDisplayTitle = is_string( array_key_first( $f->mPossibleValues ) );
+				$showOnSelect[$val] = [];
+			}
+		}
+	}
+
+	private function defaultFilename( string $argValue, Parser $parser ): string {
+		$titleGlobal = RequestContext::getMain()->getTitle();
+		$page_name = $titleGlobal->getText();
+		if ( $titleGlobal->isSpecialPage() ) {
+			// If it's of the form
+			// Special:FormEdit/form/target,
+			// get just the target.
+			$pageNameComponents = explode( '/', $page_name, 3 );
+			if ( count( $pageNameComponents ) == 3 ) {
+				$page_name = $pageNameComponents[2];
+			}
+		}
+		$default_filename = str_replace( '<page name>', $page_name, $argValue );
+		// Parse value, so default filename can
+		// include parser functions.
+		return $parser->recursiveTagParse( $default_filename );
+	}
+
+	/**
+	 * Fetch the possible values from "values from ..." - or note that it is left to the
+	 * autocomplete request, if the field has 'remote autocompletion'.
+	 *
+	 * The 'values from property' fetch is made here, after all arguments were read, so that a
+	 * 'remote autocompletion' argument appearing later in the tag is known when deciding whether
+	 * to defer the fetch.
+	 *
+	 * @param array $args What readArguments() returns
+	 * @param string $display The display mode of the template in the form
+	 */
+	private function setUpPossibleValuesFromSources( array $args, $display ): void {
+		$valuesFromPropertyName = $args['valuesFromPropertyName'];
+		$valuesSourceType = $args['valuesSourceType'];
+		$valuesSource = $args['valuesSource'];
+
+		if ( $valuesFromPropertyName !== null ) {
+			if ( $this->canDeferAutocompleteFetch( 'property', $valuesFromPropertyName, $display ) ) {
+				$this->mInstanceField->deferPossibleValues( 'property' );
+			} else {
+				$this->mPossibleValues = PFValuesUtils::getAllValuesForProperty( $valuesFromPropertyName );
+				$this->mUseDisplayTitle = is_string( array_key_first( $this->mPossibleValues ) );
 			}
 		}
 
 		if ( $valuesSourceType !== null && $valuesSource !== null && ( $valuesSourceType !== 'wikidata' || (
-				$f->mInputType !== 'combobox' && $f->mInputType !== 'tokens' ) ) ) {
+				$this->mInputType !== 'combobox' && $this->mInputType !== 'tokens' ) ) ) {
 			if ( in_array( $valuesSourceType, [ 'category', 'namespace', 'concept' ], true ) &&
-				$f->canDeferAutocompleteFetch( $valuesSourceType, $valuesSource, $template_in_form->getDisplay() )
+				$this->canDeferAutocompleteFetch( $valuesSourceType, $valuesSource, $display )
 			) {
-				$f->mInstanceField->deferPossibleValues( $valuesSourceType );
+				$this->mInstanceField->deferPossibleValues( $valuesSourceType );
 			} else {
-				$f->mPossibleValues = PFValuesUtils::getAutocompleteValues( $valuesSource, $valuesSourceType );
+				$this->mPossibleValues = PFValuesUtils::getAutocompleteValues( $valuesSource, $valuesSourceType );
 				if ( in_array( $valuesSourceType, [ 'category', 'namespace', 'concept' ], true ) ) {
 					global $wgPageFormsUseDisplayTitle;
-					$f->mUseDisplayTitle = $wgPageFormsUseDisplayTitle;
+					$this->mUseDisplayTitle = $wgPageFormsUseDisplayTitle;
 				}
 			}
 		}
+	}
 
-		if ( !array_key_exists( 'delimiter', $f->mFieldArgs ) ) {
-			$delimiterFromTemplate = $f->getTemplateField()->getDelimiter();
+	private function setUpDelimiter(): void {
+		if ( !array_key_exists( 'delimiter', $this->mFieldArgs ) ) {
+			$delimiterFromTemplate = $this->getTemplateField()->getDelimiter();
 			if ( $delimiterFromTemplate == '' ) {
-				$f->mFieldArgs['delimiter'] = ',';
+				$this->mFieldArgs['delimiter'] = ',';
 			} else {
-				$f->mFieldArgs['delimiter'] = $delimiterFromTemplate;
-				$f->mIsList = true;
+				$this->mFieldArgs['delimiter'] = $delimiterFromTemplate;
+				$this->mIsList = true;
 			}
 		}
-		$delimiter = $f->mFieldArgs['delimiter'];
+	}
 
-		// If the 'values' parameter was set, separate it based on the
-		// 'delimiter' parameter, if any.
+	/**
+	 * If the 'values' parameter was set, separate it based on the 'delimiter' parameter, if any.
+	 *
+	 * @param string|null $values
+	 */
+	private function setPossibleValuesFromList( $values ): void {
 		if ( $values != null ) {
 			// Remove whitespaces, and un-escape characters
-			$valuesArray = array_map( 'trim', explode( $delimiter, $values ) );
-			$f->mPossibleValues = array_map( 'htmlspecialchars_decode', $valuesArray );
+			$valuesArray = array_map( 'trim', explode( $this->mFieldArgs['delimiter'], $values ) );
+			$this->mPossibleValues = array_map( 'htmlspecialchars_decode', $valuesArray );
 		}
+	}
 
-		// Do some data storage specific to the Semantic MediaWiki extension.
-		// This must happen before the "mapping template"/"mapping property"
-		// handling below, since a 'property' set in the form definition can
-		// populate $f->template_field's possible values (from the SMW
-		// property's "Allows value"/"Allows value list" annotations), and
-		// those values need to be in place before we decide what to map.
+	/**
+	 * Do some data storage specific to the Semantic MediaWiki extension.
+	 * This must happen before the "mapping template"/"mapping property"
+	 * handling, since a 'property' set in the form definition can
+	 * populate the template field's possible values (from the SMW
+	 * property's "Allows value"/"Allows value list" annotations), and
+	 * those values need to be in place before we decide what to map.
+	 *
+	 * @param string|null $semantic_property The property set in the form definition
+	 * @param string $fullFieldName
+	 */
+	private function setUpSemanticProperty( $semantic_property, string $fullFieldName ): void {
 		if ( defined( 'SMW_VERSION' ) ) {
 			// If a property was set in the form definition,
 			// overwrite whatever is set in the template field -
@@ -597,72 +708,67 @@ class FormField {
 			// FormField::setSemanticProperty() function just for
 			// this call.
 			if ( $semantic_property !== null ) {
-				$f->template_field->setSemanticProperty( $semantic_property );
+				$this->template_field->setSemanticProperty( $semantic_property );
 			} else {
-				$semantic_property = $f->template_field->getSemanticProperty();
+				$semantic_property = $this->template_field->getSemanticProperty();
 			}
 			if ( $semantic_property !== null ) {
 				global $wgPageFormsFieldProperties;
 				$wgPageFormsFieldProperties[$fullFieldName] = $semantic_property;
 			}
 		}
+	}
 
+	/**
+	 * @param string|null $valuesSourceType
+	 * @param string|null $valuesSource
+	 */
+	private function setUpMapping( $valuesSourceType, $valuesSource ): void {
 		// A deferred field intentionally has an empty (but non-null)
 		// mPossibleValues at this point (see above) - it must not be
 		// overwritten by the template field's unrelated list.
-		if ( $f->mPossibleValues === null && !$f->mInstanceField->hasDeferredPossibleValues() ) {
-			$f->mPossibleValues = $f->template_field->getPossibleValues();
+		if ( $this->mPossibleValues === null && !$this->mInstanceField->hasDeferredPossibleValues() ) {
+			$this->mPossibleValues = $this->template_field->getPossibleValues();
 		}
 
 		$mappingType = null;
-		if ( array_key_exists( 'mapping template', $f->mFieldArgs ) ) {
+		if ( array_key_exists( 'mapping template', $this->mFieldArgs ) ) {
 			$mappingType = 'template';
-		} elseif ( array_key_exists( 'mapping property', $f->mFieldArgs ) ) {
+		} elseif ( array_key_exists( 'mapping property', $this->mFieldArgs ) ) {
 			$mappingType = 'property';
-		} elseif ( $f->mUseDisplayTitle ) {
-			$f->mPossibleValues = PFValuesUtils::disambiguateLabels( $f->mPossibleValues );
+		} elseif ( $this->mUseDisplayTitle ) {
+			$this->mPossibleValues = PFValuesUtils::disambiguateLabels( $this->mPossibleValues );
 		}
 
-		if ( $mappingType !== null && $f->mPossibleValues !== [] ) {
+		if ( $mappingType !== null && $this->mPossibleValues !== [] ) {
 			// If we're going to be mapping values, we need to have
 			// the exact page name - and if these values come from
 			// "values from namespace", the namespace prefix was
 			// not included, so we need to add it now.
 			if ( $valuesSourceType == 'namespace' && $valuesSource != '' && $valuesSource != 'Main' ) {
-				foreach ( $f->mPossibleValues as $index => &$value ) {
+				foreach ( $this->mPossibleValues as $index => &$value ) {
 					$value = $valuesSource . ':' . $value;
 				}
 				// Has to be set to false to not mess up the
 				// handling.
-				$f->mUseDisplayTitle = false;
+				$this->mUseDisplayTitle = false;
 			}
 
-			$f->setMappedValues( $mappingType );
+			$this->setMappedValues( $mappingType );
 		}
+	}
 
-		if ( $template_in_form->allowsMultiple() ) {
-			$f->mFieldArgs['part_of_multiple'] = true;
-		}
-		if ( count( $show_on_select ) > 0 ) {
-			$f->mFieldArgs['show on select'] = $show_on_select;
-		}
-
-		// Disable this field if either the whole form is disabled, or
-		// it's a restricted field and user doesn't have sysop privileges.
-		$f->mInstanceField->setIsDisabled( $form_is_disabled || $f->mIsRestricted );
-
+	private function setUpInputName( $template_in_form, $template_name, $field_name, string $fullFieldName ): void {
 		if ( $template_name === null || $template_name === '' ) {
-			$f->mInstanceField->setInputName( $field_name );
+			$this->mInstanceField->setInputName( $field_name );
 		} elseif ( $template_in_form->allowsMultiple() ) {
 			// 'num' will get replaced by an actual index, either in PHP
 			// or in Javascript, later on
-			$f->mInstanceField->setInputName( $template_name . '[num][' . $field_name . ']' );
-			$f->setFieldArg( 'origName', $fullFieldName );
+			$this->mInstanceField->setInputName( $template_name . '[num][' . $field_name . ']' );
+			$this->setFieldArg( 'origName', $fullFieldName );
 		} else {
-			$f->mInstanceField->setInputName( $fullFieldName );
+			$this->mInstanceField->setInputName( $fullFieldName );
 		}
-
-		return $f;
 	}
 
 	public function cleanupTranslateTags( &$value ) {
