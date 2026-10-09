@@ -59,9 +59,10 @@ class PFFormEditTest extends SpecialPageTestBase {
 		[ $html ] = $this->executeSpecialPage( 'PFFormEditRestrictedForm/PFFormEditRestrictedTarget' );
 
 		$this->assertStringContainsString( 'disabled', $html );
-		$this->assertStringContainsString(
-			'<input type="hidden" value="kept value" name="PFFormEditRestrictedTpl[locked]">', $html
-		);
+		// MediaWiki 1.39 closes void elements with "/>", later versions with ">".
+		$this->assertSame( 1, preg_match(
+			'~<input type="hidden" value="kept value" name="PFFormEditRestrictedTpl\[locked\]"\s*/?>~', $html
+		), $html );
 	}
 
 	public function testTargetWithInvalidTitleCharactersDoesNotFatal() {
