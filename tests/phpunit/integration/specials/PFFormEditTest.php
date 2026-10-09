@@ -41,6 +41,29 @@ class PFFormEditTest extends SpecialPageTestBase {
 		$this->assertStringContainsString( '<b>InvalidForm</b> is not a valid form.', $html );
 	}
 
+	/**
+	 * A save from the form takes the request as complete (Special:FormEdit sets preload=false), so
+	 * the form must post the value of a field the user may not edit: it shows the field disabled
+	 * and carries the value in a hidden input of the same name. The pfautoedit API relies on this
+	 * and therefore does not enforce "restricted" itself; a field dropped from the request would
+	 * be emptied on the page.
+	 */
+	public function testRestrictedFieldCarriesItsPageValueInAHiddenInput() {
+		$this->insertPage(
+			'Form:PFFormEditRestrictedForm',
+			"{{{for template|PFFormEditRestrictedTpl}}}\n{{{field|locked|restricted=pfformeditnobody}}}\n"
+			. "{{{end template}}}\n{{{standard input|save}}}"
+		);
+		$this->insertPage( 'PFFormEditRestrictedTarget', "{{PFFormEditRestrictedTpl\n|locked=kept value\n}}\n" );
+
+		[ $html ] = $this->executeSpecialPage( 'PFFormEditRestrictedForm/PFFormEditRestrictedTarget' );
+
+		$this->assertStringContainsString( 'disabled', $html );
+		$this->assertStringContainsString(
+			'<input type="hidden" value="kept value" name="PFFormEditRestrictedTpl[locked]">', $html
+		);
+	}
+
 	public function testTargetWithInvalidTitleCharactersDoesNotFatal() {
 		[ $html ] = $this->executeSpecialPage( '/Foo[Bar' );
 

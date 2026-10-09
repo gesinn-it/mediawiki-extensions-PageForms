@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- `restricted` fields are no longer enforced by `#autoedit`, the `pfautoedit` API and form saves, as before 2.3.0: it only governs who may change a field in the form, and a page saved through the form no longer loses the values of its restricted fields
+
 ## [2.3.1] - 2026-10-09
 
 Fixes forms removing a page's Semantic MediaWiki properties after a purge.

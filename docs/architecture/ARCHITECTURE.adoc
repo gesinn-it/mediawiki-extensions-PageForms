@@ -93,7 +93,8 @@ the fields whose value is a label that has to be mapped back (`mapping template`
   `+=` / `-=` modifiers and `Template[<n>][field]` instance numbers are resolved
   against the values of the page.
 * `RestrictedInputs` lists the fields, sections and the free text a user may not
-  change (`restricted`); they are removed from a request before it is applied.
+  change (`restricted`) and can take their values out of a request. The API does
+  not use it: see the comment in `PFAutoeditAPI::doAction()`.
 
 === Rendering classes
 
@@ -231,8 +232,9 @@ Behavior:
 
 * Accepts form name, target page, and field values as request parameters.
 * Reads the values of the existing page with `FormDefParser::readPageValues()`,
-  applies the request with `FormValues::mergeRequest()` and drops what the user
-  may not change (`RestrictedInputs`). Earlier versions rendered the form and
+  applies the request with `FormValues::mergeRequest()`. The API does not apply
+  `RestrictedInputs`: `restricted` only governs who may change an input in the form.
+  Earlier versions rendered the form and
   extracted the values from its HTML (`HtmlFormDataExtractor`, now `NestedInputValues`); that route is now
   only used to show an existing page in the form editor.
 * Bypasses the browser UI entirely — no HTML form is sent to the client.

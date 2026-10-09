@@ -36,7 +36,7 @@ The action requires a POST request with a valid CSRF edit token.
 
 === Restricted fields
 
-Fields, sections and the free text input that the form marks as `restricted` are enforced by the API as well: values sent for them by a user who may not edit them (the `restricted` and `restricted=` parameters of the form definition) are ignored, and the page keeps the value it already has. For a page that does not exist yet, the field gets its default value or stays empty.
+The `restricted` and `restricted=` parameters of a form definition only say who may change a field, section or the free text input in the form. The API does not enforce them: values sent for such an input are written like any other, so `#autoedit` links can preset fields that the form shows disabled.
 
 === Parameters
 

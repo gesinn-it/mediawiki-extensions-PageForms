@@ -1003,10 +1003,12 @@ class PFAutoeditAPI extends ApiBase {
 		// the article id of the form to be used
 		$formArticleId = $formTitle->getArticleID();
 
-		// A restricted field the user may not edit keeps the value it has on the page, whatever
-		// the request says: the form shows such a field disabled, and the API must not be a way around it.
-		$this->mOptions = $formPrinter->getRestrictedInputs( $formContent, $formArticleId, $this->getUser() )
-			->removeFrom( $this->mOptions );
+		// "restricted" is deliberately NOT enforced here. It only says who may change what in the
+		// form: the form shows such a field disabled for users without the right. The values of
+		// a restricted field must always be kept, whoever saves: #autoedit links preset fields the
+		// form shows disabled, and a form save posts the disabled field's value back unchanged.
+		// Dropping them from the request (as 2.3.0 and 2.3.1 did, see #218) made a page lose the
+		// values of its restricted fields when it was saved through the form.
 
 		// the name of the target page; might be empty when using the one-step-process
 		$targetName = $this->mOptions['target'];

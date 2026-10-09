@@ -1334,16 +1334,15 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * A "restricted" field keeps the value it has on the page when a user who may not edit it
-	 * sends another one through the API (issue #218); a user who may edit it can change it.
+	 * "restricted" only says who may change what in the form; the API does not enforce it. The
+	 * value a request carries for a restricted field is written, for #autoedit (no wpSave) as well
+	 * as for a form save, whoever the user is (issue #218 was reverted: pages lost the values of
+	 * their restricted fields when they were saved through the form).
 	 *
 	 * @dataProvider provideRestrictedFieldCases
-	 * @covers \MediaWiki\Extension\PageForms\FormDefParser::getRestrictedInputs
-	 * @covers \MediaWiki\Extension\PageForms\RestrictedInputs::removeFrom
+	 * @covers \PFAutoeditAPI::doAction
 	 */
-	public function testStoreKeepsRestrictedFieldForUsersWhoMayNotEditIt(
-		string $restriction, array $groups, bool $mayEdit
-	): void {
+	public function testStoreDoesNotEnforceRestrictedFields( string $restriction, ?string $wpSave ): void {
 		static $counter = 0;
 		$counter++;
 		$formName = "AEStoreFormRestricted$counter";
@@ -1354,47 +1353,51 @@ class PFAutoeditAPITest extends ApiTestCase {
 			. "{{{end template}}}\n{{{standard input|save}}}"
 		);
 		$this->insertPage( $targetName, "{{AEStoreRestrictedTpl\n|locked=original\n|open=1\n}}\n" );
-		$testUser = $this->getMutableTestUser( $groups );
 
 		$module = $this->executeStore( $formName, $targetName, [
+			'wpSave' => $wpSave,
 			'AEStoreRestrictedTpl' => [ 'locked' => 'changed', 'open' => '2' ],
-		], $testUser );
+		] );
 
 		$this->assertSame( 200, $module->getStatus() );
 		$text = $this->getExistingTestPage( $targetName )->getContent()->getText();
 		$this->assertStringContainsString( 'open=2', $text );
-		$this->assertStringContainsString( $mayEdit ? 'locked=changed' : 'locked=original', $text );
+		$this->assertStringContainsString( 'locked=changed', $text );
 	}
 
 	public static function provideRestrictedFieldCases(): array {
 		return [
-			'plain restriction, ordinary user' => [ '|restricted', [], false ],
-			'group restriction, user outside the group' => [ '|restricted=aerestricted', [], false ],
-			'group restriction, user in the group' => [ '|restricted=aerestricted', [ 'aerestricted' ], true ],
-			'group list, user in one of the groups' => [ '|restricted=other,aerestricted', [ 'aerestricted' ], true ],
-			'no restriction' => [ '', [], true ],
+			'plain restriction, form save' => [ '|restricted', '1' ],
+			'plain restriction, #autoedit' => [ '|restricted', null ],
+			'group restriction, form save' => [ '|restricted=aerestricted', '1' ],
+			'group restriction, #autoedit' => [ '|restricted=aerestricted', null ],
 		];
 	}
 
 	/**
-	 * @covers \MediaWiki\Extension\PageForms\RestrictedInputs::removeFrom
+	 * A request to the API that does not carry a restricted field keeps the value the page has,
+	 * because the API reads the page. This does not hold for Special:FormEdit: it sets preload=false
+	 * on a save and takes the request as complete, so the form has to post the values of its
+	 * restricted fields (it does, as hidden inputs). That is why the API must not drop them.
+	 *
+	 * @covers \PFAutoeditAPI::doAction
 	 */
-	public function testStoreKeepsRestrictedFreeTextForUsersWhoMayNotEditIt(): void {
-		$formName = 'AEStoreFormRestrictedFreeText';
+	public function testStoreKeepsRestrictedFieldTheRequestDoesNotCarry(): void {
+		$formName = 'AEStoreFormRestrictedKept';
+		$targetName = 'AEStoreTargetRestrictedKept';
 		$this->insertPage(
 			Title::makeTitle( PF_NS_FORM, $formName ),
-			"{{{for template|AEStoreRestrictedTpl2}}}\n{{{field|a}}}\n{{{end template}}}\n"
-			. "{{{standard input|free text|restricted}}}\n{{{standard input|save}}}"
+			"{{{for template|AEStoreRestrictedTpl2}}}\n{{{field|locked|restricted}}}\n{{{field|open}}}\n"
+			. "{{{end template}}}\n{{{standard input|save}}}"
 		);
-		$targetName = 'AEStoreTargetRestrictedFreeText';
-		$this->insertPage( $targetName, "{{AEStoreRestrictedTpl2\n|a=1\n}}\noriginal text\n" );
+		$this->insertPage( $targetName, "{{AEStoreRestrictedTpl2\n|locked=original\n|open=1\n}}\n" );
 
-		$module = $this->executeStore( $formName, $targetName, [ 'pf_free_text' => 'changed text' ] );
+		$module = $this->executeStore( $formName, $targetName, [ 'AEStoreRestrictedTpl2' => [ 'open' => '2' ] ] );
 
 		$this->assertSame( 200, $module->getStatus() );
 		$text = $this->getExistingTestPage( $targetName )->getContent()->getText();
-		$this->assertStringContainsString( 'original text', $text );
-		$this->assertStringNotContainsString( 'changed text', $text );
+		$this->assertStringContainsString( 'locked=original', $text );
+		$this->assertStringContainsString( 'open=2', $text );
 	}
 
 	/**
