@@ -824,7 +824,7 @@ $wgHooks['PageForms::SetTargetName'][] = function ( &$targetName, $hookQuery ) {
 
 == PageForms::TemplateFieldEnd
 
-Called by `Template::createTextForField()` in `/src/Template.php` after the field wikitext has been generated, immediately before the per-field suffix string is appended to the template output.
+Called by `Template::createTextForField()` (which hands over to `TemplateWikitextWriter::fieldText()` in `src/TemplateText/`) after the field wikitext has been generated, immediately before the per-field suffix string is appended to the template output.
 This hook allows extensions (or local `LocalSettings.php` code) to inspect the current `TemplateField` object and override or replace the trailing delimiter/suffix text that follows each field value in the generated template.
 
 === When it fires
@@ -844,7 +844,7 @@ Use its getters (e.g. `getFieldName()`, `getSemanticProperty()`, `isList()`) to 
 
 `&$fieldEnd` (string, passed by reference)::
 The trailing text to append after the field wikitext.
-Initially set to `$this->mFieldEnd` (the template-level field-end string, which may be empty).
+Initially `null`; a handler that wants a type has to allow `null`.
 Modify this variable in-place to change or replace the suffix; set it to `''` to suppress the suffix entirely.
 The value is only appended when it is non-empty.
 
@@ -866,11 +866,11 @@ $wgHooks['PageForms::TemplateFieldEnd'][] = function (
 
 === Source reference
 
-Defined in `src/Template.php`, method `Template::createTextForField()`:
+Defined in `src/TemplateText/TemplateWikitextWriter.php`, method `TemplateWikitextWriter::fieldText()`:
 
 [source,php]
 ----
-$fieldEnd = $this->mFieldEnd;
+$fieldEnd = null;
 MediaWikiServices::getInstance()->getHookContainer()->run(
     'PageForms::TemplateFieldEnd', [ $field, &$fieldEnd ]
 );
@@ -897,11 +897,11 @@ The companion hook `PageForms::TemplateFieldEnd` provides the same control over 
 The field object being rendered. Provides read access to the field name, label, SMW property, list status, delimiter, display mode, and other field metadata. Passed by value — modifications are ignored.
 
 `&$fieldStart` (string)::
-The prefix string to prepend before the field's wikitext. Passed by reference. Initialized to the template's configured field-start string (which may be empty). Set or replace this value to inject custom wikitext before every field, or before specific fields based on `$field` properties.
+The prefix string to prepend before the field's wikitext. Passed by reference. Initially `null`. Set or replace this value to inject custom wikitext before every field, or before specific fields based on `$field` properties.
 
 === Source location
 
-`src/Template.php`, method `Template::createTextForField()`.
+`src/TemplateText/TemplateWikitextWriter.php`, method `TemplateWikitextWriter::fieldText()`, reached through `Template::createTextForField()`.
 
 === Example usage
 

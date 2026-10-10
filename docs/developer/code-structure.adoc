@@ -43,6 +43,13 @@ namespace. `includes/` and `specials/` are being migrated here
 incrementally; see xref:psr4-migration.adoc[PSR-4 Migration Guide] for the
 target layout and conventions.
 
+`src/TemplateText/`::
+The wikitext of a template that Special:CreateTemplate and Special:CreateClass create.
+`Template::createText()` calls the hook `PageForms::CreateTemplateText` and hands the rest to
+`TemplateWikitextWriter`. The markup of the display formats (`standard`, `infobox`, `plain`,
+`sections`) is one `TemplateFormat` class each; `InternalObjectCall` and `SetCall` build the
+calls that store the fields.
+
 `tests/`::
 PHPUnit and QUnit test suites.
 
@@ -68,3 +75,15 @@ To update a snapshot deliberately, run the test with `PF_UPDATE_GOLDEN=1`, revie
 files in `golden/formhtml/` (every changed line has to be explained by the change you made) and
 commit them together with that change. Never record the snapshots again just to make a failing run
 green.
+
+== Characterization tests of the created template text
+
+`tests/phpunit/integration/src/TemplateTextCharacterizationTest.php` writes the wikitext of
+templates with `Template::createText()` and compares it with a snapshot in
+`tests/phpunit/integration/golden/templatetext/`, for every display format and for fields of every
+kind. The same rules as for the snapshots of the form printer apply: they record what the code
+wrote, they do not say that it is right, and they are recorded again with `PF_UPDATE_GOLDEN=1`
+only for a change that is meant.
+
+One snapshot records a defect: for a field in the main namespace, the calls of `#set`,
+`#set_internal` and `#subobject` get `0:` in front of the field parameter.

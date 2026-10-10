@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Extension\PageForms\TemplateText\TemplateWikitextWriter;
 use MediaWiki\MediaWikiServices;
 use PFUtils;
 use StringUtils;
@@ -26,10 +27,6 @@ class Template {
 	private $mAggregatingProperty;
 	private $mAggregationLabel;
 	private $mTemplateFormat;
-	private $mFieldStart;
-	private $mFieldEnd;
-	private $mTemplateStart;
-	private $mTemplateEnd;
 	private $mFullWikiText;
 
 	public function __construct( $templateName, $templateFields ) {
@@ -301,6 +298,34 @@ class Template {
 		$this->mAggregationLabel = $aggregationLabel;
 	}
 
+	public function getName() {
+		return $this->mTemplateName;
+	}
+
+	public function getFormat() {
+		return $this->mTemplateFormat;
+	}
+
+	public function getCategoryName() {
+		return $this->mCategoryName;
+	}
+
+	public function getConnectingProperty() {
+		return $this->mConnectingProperty;
+	}
+
+	public function getAggregatingProperty() {
+		return $this->mAggregatingProperty;
+	}
+
+	public function getAggregationLabel() {
+		return $this->mAggregationLabel;
+	}
+
+	public function isFullWikiText() {
+		return (bool)$this->mFullWikiText;
+	}
+
 	public function setFormat( $templateFormat ) {
 		$this->mTemplateFormat = $templateFormat;
 	}
@@ -314,294 +339,23 @@ class Template {
 		// Avoid PHP 7.1 warning from passing $this by reference
 		$template = $this;
 		MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::CreateTemplateText', [ &$template ] );
-		// Check whether the user needs the full wikitext instead of #template_display
-		if ( $this->mFullWikiText ) {
-			$templateHeader = wfMessage( 'pf_template_docu', $this->mTemplateName )->inContentLanguage()->text();
-			$text = <<<END
-<noinclude>
-$templateHeader
-<pre>
-END;
-			$text .= '{{' . $this->mTemplateName;
-			if ( count( $this->mTemplateFields ) > 0 ) {
-				$text .= "\n";
-			}
-			foreach ( $this->mTemplateFields as $field ) {
-				if ( $field->getFieldName() == '' ) {
-					continue;
-				}
-				$text .= "|" . $field->getFieldName() . "=\n";
-			}
-			$templateFooter = wfMessage( 'pf_template_docufooter' )->inContentLanguage()->text();
-			$text .= <<<END
-}}
-</pre>
-$templateFooter
-</noinclude><includeonly>
-END;
-		} else {
-			$text = <<<END
-<noinclude>
-{{#template_params:
-END;
-			foreach ( $this->mTemplateFields as $i => $field ) {
-				if ( $field->getFieldName() == '' ) {
-					continue;
-				}
-				if ( $i > 0 ) {
-					$text .= "|";
-				}
-				$text .= $field->toWikitext();
-			}
-			$text .= <<<END
-}}
-</noinclude><includeonly>
-END;
-			// @codeCoverageIgnoreStart
-			// This branch is only reachable when SMW is not installed.
-			// It cannot be covered in this test environment (SMW is always present).
-			if ( !defined( 'SMW_VERSION' ) ) {
-				$text .= "\n{{#template_display:";
-				if ( $this->mTemplateFormat != null ) {
-					$text .= "_format=" . $this->mTemplateFormat;
-				}
-				$text .= "}}";
-				$text .= $this->printCategoryTag();
-				$text .= "</includeonly>";
-				return $text;
-			}
-			// @codeCoverageIgnoreEnd
-
-		}
-
-		// Before text
-		$text .= $this->mTemplateStart;
-
-		// $internalObjText can be either a call to #set_internal
-		// or to #subobject (or null); which one we go with
-		// depends on whether Semantic Internal Objects is installed,
-		// and on the SMW version.
-		// Thankfully, the syntaxes of #set_internal and #subobject
-		// are quite similar, so we don't need too much extra logic.
-		$useSubobject = false;
-		$internalObjText = null;
-		if ( $this->mConnectingProperty ) {
-			if ( defined( 'SIO_VERSION' ) ) {
-				$internalObjText = '{{#set_internal:' . $this->mConnectingProperty;
-			} else {
-				$useSubobject = true;
-				$internalObjText = '{{#subobject:-|' . $this->mConnectingProperty . '={{PAGENAME}}';
-			}
-		}
-		$setText = '';
-
-		// Topmost part of table depends on format.
-		if ( !$this->mTemplateFormat ) {
-			$this->mTemplateFormat = 'standard';
-		}
-		if ( $this->mTemplateFormat == 'standard' ) {
-			$tableText = '{| class="wikitable"' . "\n";
-		} elseif ( $this->mTemplateFormat == 'infobox' ) {
-			// A CSS style can't be used, unfortunately, since most
-			// MediaWiki setups don't have an 'infobox' or
-			// comparable CSS class.
-			$tableText = '{| style="width: 30em; font-size: 90%; border: 1px solid #aaaaaa;' .
-				' background-color: #f9f9f9; color: black; margin-bottom: 0.5em; margin-left: 1em;' .
-				' padding: 0.2em; float: right; clear: right; text-align:left;"' . "\n" .
-				'! style="text-align: center; background-color:#ccccff;" colspan="2"' .
-				' |<span style="font-size: larger;">{{PAGENAME}}</span>' . "\n" .
-				"|-\n\n";
-		} else {
-			$tableText = '';
-		}
-
-		foreach ( $this->mTemplateFields as $i => $field ) {
-			if ( $field->getFieldName() == '' ) {
-				continue;
-			}
-
-			$fieldParam = '{{{' . $field->getFieldName() . '|}}}';
-			if ( $field->getNamespace() === null ) {
-				$fieldString = $fieldParam;
-			} else {
-				$fieldString = $field->getNamespace() . ':' . $fieldParam;
-			}
-			$separator = '';
-
-			$fieldLabel = $field->getLabel();
-			if ( $fieldLabel == '' ) {
-				$fieldLabel = $field->getFieldName();
-			}
-			$fieldDisplay = $field->getDisplay();
-			$fieldProperty = $field->getSemanticProperty();
-			$fieldIsList = $field->isList();
-
-			// Header/field label column
-			if ( $fieldDisplay === null ) {
-				if ( $this->mTemplateFormat == 'standard' || $this->mTemplateFormat == 'infobox' ) {
-					if ( $i > 0 ) {
-						$tableText .= "|-\n";
-					}
-					$tableText .= '! ' . $fieldLabel . "\n";
-				} elseif ( $this->mTemplateFormat == 'plain' ) {
-					$tableText .= "\n'''" . $fieldLabel . ":''' ";
-				} elseif ( $this->mTemplateFormat == 'sections' ) {
-					$tableText .= "\n==" . $fieldLabel . "==\n";
-				}
-			} elseif ( $fieldDisplay == 'nonempty' ) {
-				if ( $this->mTemplateFormat == 'plain' || $this->mTemplateFormat == 'sections' ) {
-					$tableText .= "\n";
-				}
-				$tableText .= '{{#if:' . $fieldParam . '|';
-				if ( $this->mTemplateFormat == 'standard' || $this->mTemplateFormat == 'infobox' ) {
-					if ( $i > 0 ) {
-						$tableText .= "\n{{!}}-\n";
-					}
-					$tableText .= '! ' . $fieldLabel . "\n";
-					$separator = '{{!}}';
-				} elseif ( $this->mTemplateFormat == 'plain' ) {
-					$tableText .= "'''" . $fieldLabel . ":''' ";
-					$separator = '';
-				} elseif ( $this->mTemplateFormat == 'sections' ) {
-					$tableText .= '==' . $fieldLabel . "==\n";
-					$separator = '';
-				}
-			} else {
-				// If it's 'hidden', do nothing
-			}
-			// Value column
-			if ( $this->mTemplateFormat == 'standard' || $this->mTemplateFormat == 'infobox' ) {
-				if ( $fieldDisplay == 'hidden' ) {
-				} elseif ( $fieldDisplay == 'nonempty' ) {
-					// $tableText .= "{{!}} ";
-				} else {
-					$tableText .= "| ";
-				}
-			}
-
-			if ( !$fieldProperty ) {
-				if ( $separator != '' ) {
-					$tableText .= "$separator ";
-				}
-				$tableText .= $this->createTextForField( $field );
-				if ( $fieldDisplay == 'nonempty' ) {
-					$tableText .= " }}";
-				}
-				$tableText .= "\n";
-			} elseif ( $internalObjText !== null ) {
-				if ( $separator != '' ) {
-					$tableText .= "$separator ";
-				}
-				$tableText .= $this->createTextForField( $field );
-				if ( $fieldDisplay == 'nonempty' ) {
-					$tableText .= " }}";
-				}
-				$tableText .= "\n";
-				if ( $field->isList() ) {
-					if ( $useSubobject ) {
-						$internalObjText .= '|' . $fieldProperty . '=' . $fieldString . '|+sep=,';
-					} else {
-						$internalObjText .= '|' . $fieldProperty . '#list=' . $fieldString;
-					}
-				} else {
-					$internalObjText .= '|' . $fieldProperty . '=' . $fieldString;
-				}
-			} elseif ( $fieldDisplay == 'hidden' ) {
-				if ( $fieldIsList ) {
-					$setText .= $fieldProperty . '#list=' . $fieldString . '|';
-				} else {
-					$setText .= $fieldProperty . '=' . $fieldString . '|';
-				}
-			} elseif ( $fieldDisplay == 'nonempty' ) {
-				if ( $this->mTemplateFormat == 'standard' || $this->mTemplateFormat == 'infobox' ) {
-					$tableText .= '{{!}} ';
-				}
-				$tableText .= $this->createTextForField( $field ) . "\n}}\n";
-			} else {
-				$tableText .= $this->createTextForField( $field ) . "\n";
-			}
-		}
-
-		// Add an inline query to the output text, for
-		// aggregation, if a property was specified.
-		if ( $this->mAggregatingProperty !== null && $this->mAggregatingProperty !== '' ) {
-			if ( $this->mTemplateFormat == 'standard' || $this->mTemplateFormat == 'infobox' ) {
-				if ( count( $this->mTemplateFields ) > 0 ) {
-					$tableText .= "|-\n";
-				}
-				$tableText .= <<<END
-! $this->mAggregationLabel
-|
-END;
-			} elseif ( $this->mTemplateFormat == 'plain' ) {
-				$tableText .= "\n'''" . $this->mAggregationLabel . ":''' ";
-			} elseif ( $this->mTemplateFormat == 'sections' ) {
-				$tableText .= "\n==" . $this->mAggregationLabel . "==\n";
-			}
-			$tableText .= "{{#ask:[[" . $this->mAggregatingProperty . "::{{SUBJECTPAGENAME}}]]|format=list}}\n";
-		}
-		if ( $this->mTemplateFormat == 'standard' || $this->mTemplateFormat == 'infobox' ) {
-			$tableText .= "|}";
-		}
-		// Leave out newlines if there's an internal property
-		// set here (which would mean that there are meant to be
-		// multiple instances of this template.)
-		if ( $internalObjText === null ) {
-			if ( $this->mTemplateFormat == 'standard' || $this->mTemplateFormat == 'infobox' ) {
-				$tableText .= "\n";
-			}
-		} else {
-			$internalObjText .= "}}";
-			$text .= $internalObjText;
-		}
-
-		// Add a call to #set, if necessary
-		if ( $setText !== '' ) {
-			$setText = '{{#set:' . $setText . "}}\n";
-			$text .= $setText;
-		}
-
-		$text .= $tableText;
-		$text .= $this->printCategoryTag();
-
-		// After text
-		$text .= $this->mTemplateEnd;
-
-		$text .= "</includeonly>\n";
-
-		return $text;
+		return $this->newWriter()->write( $this );
 	}
 
 	public function createTextForField( $field ) {
-		$text = '';
-		$fieldStart = $this->mFieldStart;
-		MediaWikiServices::getInstance()->getHookContainer()->run(
-			'PageForms::TemplateFieldStart', [ $field, &$fieldStart ]
-		);
-		if ( $fieldStart != '' ) {
-			$text .= "$fieldStart ";
-		}
-
-		$text .= $field->createText();
-
-		$fieldEnd = $this->mFieldEnd;
-		MediaWikiServices::getInstance()->getHookContainer()->run(
-			'PageForms::TemplateFieldEnd', [ $field, &$fieldEnd ]
-		);
-		if ( $fieldEnd != '' ) {
-			$text .= " $fieldEnd";
-		}
-
-		return $text;
+		return $this->newWriter()->fieldText( $field );
 	}
 
 	public function printCategoryTag() {
-		if ( ( $this->mCategoryName === '' || $this->mCategoryName === null ) ) {
-			return '';
-		}
-		$namespaceLabels = PFUtils::getContLang()->getNamespaces();
-		$categoryNamespace = $namespaceLabels[NS_CATEGORY];
-		return "\n[[$categoryNamespace:" . $this->mCategoryName . "]]\n";
+		return $this->newWriter()->categoryTag( $this->mCategoryName );
+	}
+
+	private function newWriter(): TemplateWikitextWriter {
+		return new TemplateWikitextWriter(
+			MediaWikiServices::getInstance()->getHookContainer(),
+			defined( 'SMW_VERSION' ),
+			defined( 'SIO_VERSION' )
+		);
 	}
 
 }
