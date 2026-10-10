@@ -1028,6 +1028,49 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
+	 * A page that is new needs the right to create it as well as the right to edit it. If the user
+	 * has only the right to edit, the error of the missing right to create is the one shown.
+	 *
+	 * @covers \PFAutoeditAPI::doStore
+	 */
+	public function testDoStoreOfANewPageWithoutTheRightToCreateIsRefused(): void {
+		$this->setGroupPermissions( '*', 'createpage', false );
+		$this->setGroupPermissions( 'user', 'createpage', false );
+		try {
+			$formName = $this->createTestForm( 'AEStoreFormCreate' );
+
+			$module = $this->executeStore( $formName, 'AEStoreTargetCreate' );
+
+			$this->assertSame( 400, $module->getStatus() );
+			$this->assertCount( 1, $module->getResult()->getResultData()['errors'] );
+			$this->assertFalse( Title::newFromText( 'AEStoreTargetCreate' )->exists() );
+		} finally {
+			$this->resetServices();
+		}
+	}
+
+	/**
+	 * The errors of the right to edit and of the right to create are listed together, and an error
+	 * that both have is listed once.
+	 *
+	 * @covers \PFAutoeditAPI::doStore
+	 */
+	public function testDoStoreListsAnErrorOfTheEditAndCreateRightsOnce(): void {
+		$this->setGroupPermissions( '*', 'edit', false );
+		$this->setGroupPermissions( 'user', 'edit', false );
+		try {
+			$formName = $this->createTestForm( 'AEStoreFormBothDenied' );
+
+			$module = $this->executeStore( $formName, 'AEStoreTargetBothDenied' );
+
+			$messages = array_column( $module->getResult()->getResultData()['errors'], 'message' );
+			$this->assertSame( array_values( array_unique( $messages ) ), $messages );
+		} finally {
+			$this->resetServices();
+		}
+	}
+
+	/**
 	 * The "Minor edit" checkbox of a form is passed on to the save: an edit of an existing page
 	 * with it checked is a minor edit, and without it it is not.
 	 *

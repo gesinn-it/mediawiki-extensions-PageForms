@@ -505,7 +505,10 @@ class PFAutoeditAPI extends ApiBase {
 		// if this title needs to be created, user needs create rights
 		if ( !$title->exists() ) {
 			$permErrorsForCreate = $permManager->getPermissionErrors( 'create', $user, $title );
-			$permErrors = array_merge( $permErrors, wfArrayDiff2( $permErrorsForCreate, $permErrors ) );
+			$permErrors = array_merge(
+				$permErrors,
+				array_filter( $permErrorsForCreate, static fn ( $error ) => !in_array( $error, $permErrors, true ) )
+			);
 		}
 
 		if ( $permErrors ) {
