@@ -18,6 +18,7 @@ use MediaWiki\Extension\PageForms\FormRender\FinalizedForm;
 use MediaWiki\Extension\PageForms\FormRender\PageEditabilityResolver;
 use MediaWiki\Extension\PageForms\FormRender\PageTextAssembler;
 use MediaWiki\Extension\PageForms\FormRender\SectionLayout;
+use MediaWiki\Permissions\PermissionStatus;
 use MWException;
 use OutputPage;
 use Parser;
@@ -677,9 +678,11 @@ class FormPrinter {
 			}
 		} elseif ( $request->out->getTitle() != null ) {
 			$request->out->setPageTitle( wfMessage( 'badaccess' )->text() );
-			$request->out->addWikiTextAsInterface(
-				$request->out->formatPermissionsErrorMessage( $permissionErrors, 'edit' )
-			);
+			$status = PermissionStatus::newEmpty();
+			foreach ( $permissionErrors as $error ) {
+				$status->fatal( $request->out->msg( $error[0], ...array_slice( $error, 1 ) ) );
+			}
+			$request->out->addWikiTextAsInterface( $request->out->formatPermissionStatus( $status, 'edit' ) );
 			$request->out->addHTML( "\n<hr />\n" );
 		}
 
