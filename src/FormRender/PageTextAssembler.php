@@ -12,10 +12,9 @@ use MediaWiki\HookContainer\HookContainer;
  */
 class PageTextAssembler {
 
-	private HookContainer $hookContainer;
-
-	public function __construct( HookContainer $hookContainer ) {
-		$this->hookContainer = $hookContainer;
+	public function __construct(
+		private HookContainer $hookContainer
+	) {
 	}
 
 	/**

@@ -23,7 +23,6 @@ use PFValuesUtils;
  */
 class FormInstanceField {
 
-	private FormField $formField;
 	private ?string $mInputName = null;
 	private bool $mIsDisabled = false;
 	/**
@@ -35,8 +34,9 @@ class FormInstanceField {
 	 */
 	private ?string $mDeferredAutocompleteType = null;
 
-	public function __construct( FormField $formField ) {
-		$this->formField = $formField;
+	public function __construct(
+		private FormField $formField
+	) {
 	}
 
 	public function getFormField(): FormField {

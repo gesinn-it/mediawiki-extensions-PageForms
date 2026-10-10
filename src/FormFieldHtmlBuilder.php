@@ -14,10 +14,9 @@ use PFUtils;
  */
 class FormFieldHtmlBuilder {
 
-	private InputTypeRegistry $inputTypeRegistry;
-
-	public function __construct( InputTypeRegistry $inputTypeRegistry ) {
-		$this->inputTypeRegistry = $inputTypeRegistry;
+	public function __construct(
+		private InputTypeRegistry $inputTypeRegistry
+	) {
 	}
 
 	/**

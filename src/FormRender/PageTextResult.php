@@ -9,12 +9,10 @@ namespace MediaWiki\Extension\PageForms\FormRender;
  */
 class PageTextResult {
 
-	private ?string $freeText;
-	private string $pageText;
-
-	public function __construct( ?string $freeText, string $pageText ) {
-		$this->freeText = $freeText;
-		$this->pageText = $pageText;
+	public function __construct(
+		private ?string $freeText,
+		private string $pageText
+	) {
 	}
 
 	/**

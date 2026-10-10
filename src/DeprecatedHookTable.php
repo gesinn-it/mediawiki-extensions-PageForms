@@ -13,13 +13,10 @@ use ArrayAccess;
  */
 class DeprecatedHookTable implements ArrayAccess {
 
-	private InputTypeRegistry $registry;
-
-	private bool $semantic;
-
-	public function __construct( InputTypeRegistry $registry, bool $semantic ) {
-		$this->registry = $registry;
-		$this->semantic = $semantic;
+	public function __construct(
+		private InputTypeRegistry $registry,
+		private bool $semantic
+	) {
 	}
 
 	/**

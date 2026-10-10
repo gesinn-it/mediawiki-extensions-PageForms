@@ -18,24 +18,16 @@ use PFUtils;
  */
 class TemplateWikitextWriter {
 
-	/** @var HookContainer */
-	private $hookContainer;
-
-	/** @var bool */
-	private $hasSmw;
-
-	/** @var bool */
-	private $hasSio;
-
 	/**
 	 * @param HookContainer $hookContainer
 	 * @param bool $hasSmw Whether Semantic MediaWiki is installed
 	 * @param bool $hasSio Whether Semantic Internal Objects is installed
 	 */
-	public function __construct( HookContainer $hookContainer, bool $hasSmw, bool $hasSio ) {
-		$this->hookContainer = $hookContainer;
-		$this->hasSmw = $hasSmw;
-		$this->hasSio = $hasSio;
+	public function __construct(
+		private HookContainer $hookContainer,
+		private bool $hasSmw,
+		private bool $hasSio
+	) {
 	}
 
 	/**

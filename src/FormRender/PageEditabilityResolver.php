@@ -16,10 +16,9 @@ use Title;
  */
 class PageEditabilityResolver {
 
-	private RenderServices $services;
-
-	public function __construct( RenderServices $services ) {
-		$this->services = $services;
+	public function __construct(
+		private RenderServices $services
+	) {
 	}
 
 	/**

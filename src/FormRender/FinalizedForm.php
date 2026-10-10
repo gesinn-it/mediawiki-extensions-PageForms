@@ -13,18 +13,12 @@ use ParserOutput;
  */
 class FinalizedForm {
 
-	private string $formText;
-	private string $pageText;
-	private ?string $formPageTitle;
-	private ParserOutput $parserOutput;
-
 	public function __construct(
-		string $formText, string $pageText, ?string $formPageTitle, ParserOutput $parserOutput
+		private string $formText,
+		private string $pageText,
+		private ?string $formPageTitle,
+		private ParserOutput $parserOutput
 	) {
-		$this->formText = $formText;
-		$this->pageText = $pageText;
-		$this->formPageTitle = $formPageTitle;
-		$this->parserOutput = $parserOutput;
 	}
 
 	public function getFormText(): string {

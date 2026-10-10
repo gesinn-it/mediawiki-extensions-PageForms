@@ -11,14 +11,11 @@ use Title;
  */
 class PageEditability {
 
-	private Title $pageTitle;
-	private array $permissionErrors;
-	private bool $userCanEdit;
-
-	public function __construct( Title $pageTitle, array $permissionErrors, bool $userCanEdit ) {
-		$this->pageTitle = $pageTitle;
-		$this->permissionErrors = $permissionErrors;
-		$this->userCanEdit = $userCanEdit;
+	public function __construct(
+		private Title $pageTitle,
+		private array $permissionErrors,
+		private bool $userCanEdit
+	) {
 	}
 
 	/**

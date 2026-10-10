@@ -21,24 +21,12 @@ use MediaWiki\Extension\PageForms\TemplateInForm;
  */
 class SectionLayout {
 
-	private MultipleTemplateHtmlBuilder $multipleTemplateHtmlBuilder;
-
-	private SpreadsheetHtmlBuilder $spreadsheetHtmlBuilder;
-
-	private CalendarHtmlBuilder $calendarHtmlBuilder;
-
-	private FormFieldHtmlBuilder $formFieldHtmlBuilder;
-
 	public function __construct(
-		MultipleTemplateHtmlBuilder $multipleTemplateHtmlBuilder,
-		SpreadsheetHtmlBuilder $spreadsheetHtmlBuilder,
-		CalendarHtmlBuilder $calendarHtmlBuilder,
-		FormFieldHtmlBuilder $formFieldHtmlBuilder
+		private MultipleTemplateHtmlBuilder $multipleTemplateHtmlBuilder,
+		private SpreadsheetHtmlBuilder $spreadsheetHtmlBuilder,
+		private CalendarHtmlBuilder $calendarHtmlBuilder,
+		private FormFieldHtmlBuilder $formFieldHtmlBuilder
 	) {
-		$this->multipleTemplateHtmlBuilder = $multipleTemplateHtmlBuilder;
-		$this->spreadsheetHtmlBuilder = $spreadsheetHtmlBuilder;
-		$this->calendarHtmlBuilder = $calendarHtmlBuilder;
-		$this->formFieldHtmlBuilder = $formFieldHtmlBuilder;
 	}
 
 	/**
