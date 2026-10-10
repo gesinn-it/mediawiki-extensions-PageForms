@@ -1190,6 +1190,24 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 'PFTestUntouchedTitle', $wgOut->getPageTitle() );
 	}
 
+	public function testFormHTMLDeniedByTheEditPermissionHookShowsAPermissionError(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+		$wgOut->setPageTitle( 'PFTestUntouchedTitle' );
+		$wgOut->clearHTML();
+		$this->denyEditingByHook();
+
+		$wgPageFormsFormPrinter->formHTML(
+			'{{{standard input|save}}}', false, false, null, null,
+			'PFTestHookPermission01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'permission error', strtolower( $wgOut->getPageTitle() ) );
+		$this->assertStringContainsString( 'permissions-errors', $wgOut->getHTML() );
+	}
+
 	public function testFormHTMLWithAnInvalidPageNameDoesNotThrow(): void {
 		global $wgPageFormsFormPrinter, $wgOut;
 
