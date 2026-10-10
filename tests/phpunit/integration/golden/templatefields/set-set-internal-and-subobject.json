@@ -1,0 +1,42 @@
+[
+    {
+        "key": 16,
+        "name": "A",
+        "label": "A",
+        "property": "Has a",
+        "list": false,
+        "delimiter": null
+    },
+    {
+        "key": 31,
+        "name": "B",
+        "label": "B",
+        "property": "Has b",
+        "list": false,
+        "delimiter": null
+    },
+    {
+        "key": 69,
+        "name": "D",
+        "label": "D",
+        "property": "Has d",
+        "list": false,
+        "delimiter": null
+    },
+    {
+        "key": 100,
+        "name": "E",
+        "label": "E",
+        "property": "Has e",
+        "list": false,
+        "delimiter": null
+    },
+    {
+        "key": 111,
+        "name": "Z",
+        "label": "Z",
+        "property": "",
+        "list": null,
+        "delimiter": null
+    }
+]

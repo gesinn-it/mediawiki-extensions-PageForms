@@ -1,0 +1,26 @@
+[
+    {
+        "key": 21,
+        "name": "Color",
+        "label": "Color",
+        "property": "Has color",
+        "list": false,
+        "delimiter": null
+    },
+    {
+        "key": 33,
+        "name": "Z",
+        "label": "Z",
+        "property": "",
+        "list": null,
+        "delimiter": null
+    },
+    {
+        "key": 36,
+        "name": "Size",
+        "label": "Size",
+        "property": "Has size",
+        "list": false,
+        "delimiter": null
+    }
+]

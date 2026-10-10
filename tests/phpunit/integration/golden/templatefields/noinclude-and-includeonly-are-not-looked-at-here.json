@@ -1,0 +1,18 @@
+[
+    {
+        "key": 16,
+        "name": "Shown",
+        "label": "Shown",
+        "property": "",
+        "list": null,
+        "delimiter": null
+    },
+    {
+        "key": 53,
+        "name": "Hidden",
+        "label": "Hidden",
+        "property": "",
+        "list": null,
+        "delimiter": null
+    }
+]

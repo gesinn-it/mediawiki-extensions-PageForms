@@ -1,0 +1,34 @@
+[
+    {
+        "key": 29,
+        "name": "Apple",
+        "label": "Apple",
+        "property": "Has apple",
+        "list": false,
+        "delimiter": null
+    },
+    {
+        "key": 3,
+        "name": "Zebra",
+        "label": "Zebra",
+        "property": "",
+        "list": null,
+        "delimiter": null
+    },
+    {
+        "key": "Mango",
+        "name": "Mango",
+        "label": "M",
+        "property": null,
+        "list": null,
+        "delimiter": null
+    },
+    {
+        "key": "Banana",
+        "name": "Banana",
+        "label": null,
+        "property": null,
+        "list": null,
+        "delimiter": null
+    }
+]

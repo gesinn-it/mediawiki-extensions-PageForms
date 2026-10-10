@@ -1,0 +1,18 @@
+[
+    {
+        "key": 15,
+        "name": "Authors",
+        "label": "Authors",
+        "property": "Has author",
+        "list": true,
+        "delimiter": ","
+    },
+    {
+        "key": 54,
+        "name": "Title",
+        "label": "Title",
+        "property": "",
+        "list": null,
+        "delimiter": null
+    }
+]

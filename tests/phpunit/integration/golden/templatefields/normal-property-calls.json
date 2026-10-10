@@ -1,0 +1,26 @@
+[
+    {
+        "key": 16,
+        "name": "Title",
+        "label": "Title",
+        "property": "Has title",
+        "list": false,
+        "delimiter": null
+    },
+    {
+        "key": 45,
+        "name": "Author",
+        "label": "Author",
+        "property": "Has author",
+        "list": false,
+        "delimiter": null
+    },
+    {
+        "key": 64,
+        "name": "Year",
+        "label": "Year",
+        "property": "",
+        "list": null,
+        "delimiter": null
+    }
+]

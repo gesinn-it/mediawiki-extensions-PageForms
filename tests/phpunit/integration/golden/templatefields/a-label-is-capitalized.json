@@ -1,0 +1,18 @@
+[
+    {
+        "key": 3,
+        "name": "first name",
+        "label": "First name",
+        "property": "",
+        "list": null,
+        "delimiter": null
+    },
+    {
+        "key": 36,
+        "name": "surname",
+        "label": "Surname",
+        "property": "Has surname",
+        "list": false,
+        "delimiter": null
+    }
+]

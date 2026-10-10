@@ -1,0 +1,18 @@
+[
+    {
+        "key": "Name",
+        "name": "Name",
+        "label": "Full name",
+        "property": "Has name",
+        "list": null,
+        "delimiter": null
+    },
+    {
+        "key": "Tags",
+        "name": "Tags",
+        "label": null,
+        "property": null,
+        "list": true,
+        "delimiter": ";"
+    }
+]
