@@ -1,0 +1,12 @@
+<noinclude>
+{{#template_params:Title|Author (label=Written by)|Year}}
+</noinclude><includeonly>
+==Title==
+{{{Title|}}}
+
+==Written by==
+{{{Author|}}}
+
+==Year==
+{{{Year|}}}
+</includeonly>

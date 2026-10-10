@@ -1,0 +1,13 @@
+<noinclude>
+{{#template_params:Title|Author (label=Written by)|Year}}
+</noinclude><includeonly>{| class="wikitable"
+! Title
+| {{{Title|}}}
+|-
+! Written by
+| {{{Author|}}}
+|-
+! Year
+| {{{Year|}}}
+|}
+</includeonly>

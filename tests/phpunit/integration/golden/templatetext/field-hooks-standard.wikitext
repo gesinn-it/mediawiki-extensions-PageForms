@@ -1,0 +1,10 @@
+<noinclude>
+{{#template_params:Name|Born (property=Has born)}}
+</noinclude><includeonly>{| class="wikitable"
+! Name
+| <Name> {{{Name|}}} </Name>
+|-
+! Born
+| <Born> [[Has born::{{{Born|}}}]] </Born>
+|}
+</includeonly>

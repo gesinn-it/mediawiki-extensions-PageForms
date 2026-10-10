@@ -1,0 +1,5 @@
+<noinclude>
+{{#template_params:}}
+</noinclude><includeonly>{| class="wikitable"
+|}
+</includeonly>

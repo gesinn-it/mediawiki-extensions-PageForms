@@ -1,0 +1,9 @@
+<noinclude>
+{{#template_params:Name}}
+</noinclude><includeonly>
+'''Name:''' {{{Name|}}}
+
+'''Hooked:''' {{#ask:[[Has hook::{{SUBJECTPAGENAME}}]]|format=list}}
+
+[[Category:FromHook]]
+</includeonly>

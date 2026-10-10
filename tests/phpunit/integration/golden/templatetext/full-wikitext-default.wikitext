@@ -1,0 +1,42 @@
+<noinclude>
+This is the "Person" template.
+It should be called in the following format:
+<pre>{{Person
+|Name=
+|Born=
+|Tags=
+|Nickname=
+|Note=
+|Secret=
+|Codes=
+|Draft=
+|Photo=
+}}
+</pre>
+Edit the page to see the template text.
+</noinclude><includeonly>{{#set:Has secret=0:{{{Secret|}}}|Has code#list=0:{{{Codes|}}}|}}
+{| class="wikitable"
+! Name
+| {{{Name|}}}
+|-
+! Born
+| [[Has born::{{{Born|}}}]]
+|-
+! Tags
+| {{#arraymap:{{{Tags|}}}|;|x|[[Has tag::x]]|;\s}}
+
+{{#if:{{{Nickname|}}}|
+{{!}}-
+! Nickname
+{{!}} {{{Nickname|}}} }}
+{{#if:{{{Note|}}}|
+{{!}}-
+! Note
+{{!}} [[Has note::{{{Note|}}}]]
+}}
+{{{Draft|}}}
+|-
+! Photo
+| [[File:{{{Photo|}}}]] {{#set:Has photo=File:{{{Photo|}}}}}
+|}
+</includeonly>

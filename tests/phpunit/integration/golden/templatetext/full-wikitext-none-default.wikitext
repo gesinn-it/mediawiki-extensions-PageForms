@@ -1,0 +1,9 @@
+<noinclude>
+This is the "Empty" template.
+It should be called in the following format:
+<pre>{{Empty}}
+</pre>
+Edit the page to see the template text.
+</noinclude><includeonly>{| class="wikitable"
+|}
+</includeonly>
