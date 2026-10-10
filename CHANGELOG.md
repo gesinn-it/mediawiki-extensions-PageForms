@@ -7,9 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
-- The template text created by Special:CreateTemplate and Special:CreateClass no longer puts `0:` (or the number of the namespace, as in `6:`) in front of a field in the calls that store it for a template with a connecting property and for hidden fields, so the stored property value is the value of the field [`751c07f9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/751c07f9)
-- A field of a template is no longer dropped when its parameter has no `|` (as in `{{{Name}}}`) or when its name starts another field's name (`{{{AB|}}}` and `{{{A|}}}`) [`7eefbc66`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/7eefbc66)
-- A form no longer fails with an "Undefined array key" error when a handler of the `PageForms::UserCanEditPage` hook denies editing while MediaWiki reports no permission error; the form is disabled and shows the generic "no permission" message [`c5101618`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/c5101618)
+- Templates created by Special:CreateTemplate and Special:CreateClass no longer store a field's value with a leading `0:` (or the namespace number, as in `6:`); the stored property value is now just the field's value [`751c07f9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/751c07f9)
+- A form generated from a template no longer drops fields written as `{{{Name}}}` or whose name starts another field's name (`{{{AB|}}}` and `{{{A|}}}`), and lists its fields in the order of the template text [`7eefbc66`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/7eefbc66), [`7871b652`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/7871b652)
+- A form that a `PageForms::UserCanEditPage` hook handler denies editing no longer fails with an error; it is disabled and shows the generic "no permission" message [`c5101618`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/c5101618)
 - `restricted` fields are no longer enforced by `#autoedit`, the `pfautoedit` API and form saves, as before 2.3.0: it only governs who may change a field in the form, and a page saved through the form no longer loses the values of its restricted fields
 
 ## [2.3.1] - 2026-10-09
