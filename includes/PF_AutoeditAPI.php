@@ -520,15 +520,13 @@ class PFAutoeditAPI extends ApiBase {
 		}
 
 		$resultDetails = [];
-		# Allow bots to exempt some edits from bot flagging
-		$bot = $user->isAllowed( 'bot' ) && $editor->bot;
 
 		$request = $editor->pfFauxRequest;
 		if ( $this->tokenOk( $request ) ) {
 			$ctx = RequestContext::getMain();
 			$tempTitle = $ctx->getTitle();
 			$ctx->setTitle( $title );
-			$status = $editor->internalAttemptSave( $resultDetails, $bot );
+			$status = $editor->attemptSave( $resultDetails );
 			$ctx->setTitle( $tempTitle );
 		} else {
 			throw new MWException( $this->msg( 'session_fail_preview' )->parse() );
@@ -538,7 +536,7 @@ class PFAutoeditAPI extends ApiBase {
 	}
 
 	/**
-	 * Names the outcome of EditPage::internalAttemptSave() for a failed save: the EditPage::AS_*
+	 * Names the outcome of EditPage::attemptSave() for a failed save: the EditPage::AS_*
 	 * constant, followed by the message MediaWiki attached to the status, if any.
 	 *
 	 * Several different outcomes (an edit conflict, a page that was deleted in the meantime,
@@ -569,7 +567,7 @@ class PFAutoeditAPI extends ApiBase {
 	}
 
 	/**
-	 * Maps the EditPage::AS_* status returned by EditPage::internalAttemptSave()
+	 * Maps the EditPage::AS_* status returned by EditPage::attemptSave()
 	 * to a result/redirect/exception, per the contract documented on doStore().
 	 *
 	 * @param \Status $status

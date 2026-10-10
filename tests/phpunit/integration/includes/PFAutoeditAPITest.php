@@ -961,7 +961,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * Explicitly restores RequestContext::getMain()'s title and user
 	 * afterwards: PFAutoeditAPI::doStore() temporarily repoints
 	 * RequestContext::getMain() at the target title for the duration of
-	 * internalAttemptSave(), and ApiTestCase::doApiRequest() itself points
+	 * attemptSave(), and ApiTestCase::doApiRequest() itself points
 	 * RequestContext::getMain() at $testUser for the duration of the
 	 * request — neither is undone once execute()/doApiRequest() returns,
 	 * which otherwise leaks into later tests that read
@@ -1025,6 +1025,41 @@ class PFAutoeditAPITest extends ApiTestCase {
 			// instance within the process.
 			$this->resetServices();
 		}
+	}
+
+	/**
+	 * The "Minor edit" checkbox of a form is passed on to the save: an edit of an existing page
+	 * with it checked is a minor edit, and without it it is not.
+	 *
+	 * @dataProvider provideMinorEditFlags
+	 * @covers \PFAutoeditAPI::doStore
+	 */
+	public function testDoStoreMarksAnEditAsMinorOnlyIfAsked( ?string $minorFlag, bool $expectedMinor ): void {
+		$formName = 'AEMinorForm' . (int)$expectedMinor;
+		$target = 'AEMinorTarget' . (int)$expectedMinor;
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, $formName ),
+			"{{{for template|AEMinorTpl}}}\n{{{field|note}}}\n{{{end template}}}\n{{{standard input|save}}}"
+		);
+		$this->insertPage( $target, "{{AEMinorTpl\n|note=old\n}}\n" );
+
+		$module = $this->executeStore( $formName, $target, [
+			'AEMinorTpl' => [ 'note' => 'new' ],
+			'wpMinoredit' => $minorFlag,
+		] );
+
+		$this->assertSame( 200, $module->getStatus() );
+		$revision = $this->getServiceContainer()->getRevisionLookup()
+			->getRevisionByTitle( Title::newFromText( $target ) );
+		$this->assertStringContainsString( 'note=new', $revision->getContent( 'main' )->getText() );
+		$this->assertSame( $expectedMinor, $revision->isMinor() );
+	}
+
+	public static function provideMinorEditFlags(): array {
+		return [
+			'the minor edit box is checked' => [ '1', true ],
+			'the minor edit box is not checked' => [ null, false ],
+		];
 	}
 
 	/**
