@@ -1164,6 +1164,77 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'permission error', strtolower( $wgOut->getPageTitle() ) );
 	}
 
+	private function denyEditingByHook(): void {
+		MediaWikiServices::getInstance()->getHookContainer()->register(
+			'PageForms::UserCanEditPage',
+			static function ( $pageTitle, &$userCanEditPage ) {
+				$userCanEditPage = false;
+				return true;
+			}
+		);
+	}
+
+	public function testFormHTMLOfAQueryIsNotDisabledByTheEditPermission(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+		$wgOut->setPageTitle( 'PFTestUntouchedTitle' );
+		$this->denyEditingByHook();
+
+		$wgPageFormsFormPrinter->formHTML(
+			'{{{standard input|save}}}', false, false, null, null,
+			'PFTestQueryPermission01', null, true, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertSame( 'PFTestUntouchedTitle', $wgOut->getPageTitle() );
+	}
+
+	public function testFormHTMLWithAnInvalidPageNameDoesNotThrow(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			'{{{standard input|save}}}', false, false, null, null,
+			'<invalid>[page]', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'wpSave', $formHtml );
+	}
+
+	/**
+	 * @dataProvider provideDeletionLogCases
+	 */
+	public function testFormHTMLShowsTheDeletionLogOfANewPage(
+		bool $formSubmitted, ?string $pageNameFormula, bool $expectedLog
+	): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$title = Title::makeTitle( NS_MAIN, 'PFTestDeletedPage01' );
+		$this->editPage( $title, 'to be deleted' );
+		$this->deletePage( $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title ) );
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+		$wgOut->clearHTML();
+
+		$wgPageFormsFormPrinter->formHTML(
+			'{{{standard input|save}}}', $formSubmitted, false, null, null,
+			'PFTestDeletedPage01', $pageNameFormula, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertSame( $expectedLog, str_contains( $wgOut->getHTML(), 'mw-logevent-loglines' ) );
+	}
+
+	public static function provideDeletionLogCases(): array {
+		return [
+			'a new form' => [ false, null, true ],
+			'a submitted form' => [ true, null, false ],
+			'a page name from a formula' => [ false, '<Name>', false ],
+		];
+	}
+
 	// -------------------------------------------------------------------------
 	// Anonymous-user edit warning — #785-788 (badaccess) already covered above;
 	// this covers the anon-edit-warning branch instead (line ~779-782 area,
