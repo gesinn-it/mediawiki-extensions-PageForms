@@ -21,11 +21,6 @@ if ( !class_exists( 'MediaWikiIntegrationTestCase' ) ) {
  * snapshot in tests/phpunit/integration/golden/templatetext. It pins the output byte for byte, so
  * that the structure of createText() can change without a change of what it writes.
  *
- * The snapshots also pin a known defect on purpose: for a field in the main namespace the calls of
- * #set, #set_internal and #subobject get "0:" in front of the field parameter ("Has born=0:{{{Born|}}}"),
- * because Template::createText() tests getNamespace() against null while TemplateField defaults to 0.
- * Fix it in its own commit and record the snapshots again there, not as part of a refactoring.
- *
  * To record the snapshots again after an intended change, run the tests with the environment
  * variable PF_UPDATE_GOLDEN=1 and review the diff of the snapshot files.
  *

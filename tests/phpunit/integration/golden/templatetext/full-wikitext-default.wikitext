@@ -14,7 +14,7 @@ It should be called in the following format:
 }}
 </pre>
 Edit the page to see the template text.
-</noinclude><includeonly>{{#set:Has secret=0:{{{Secret|}}}|Has code#list=0:{{{Codes|}}}|}}
+</noinclude><includeonly>{{#set:Has secret={{{Secret|}}}|Has code#list={{{Codes|}}}|}}
 {| class="wikitable"
 ! Name
 | {{{Name|}}}

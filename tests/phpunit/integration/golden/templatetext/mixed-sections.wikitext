@@ -1,6 +1,6 @@
 <noinclude>
 {{#template_params:Name|Born (property=Has born)|Tags (list;delimiter=;;property=Has tag)|Nickname (display=nonempty)|Note (property=Has note;display=nonempty)|Secret (property=Has secret;display=hidden)|Codes (list;property=Has code;display=hidden)|Draft (display=hidden)|Photo (property=Has photo;namespace=File)}}
-</noinclude><includeonly>{{#set:Has secret=0:{{{Secret|}}}|Has code#list=0:{{{Codes|}}}|}}
+</noinclude><includeonly>{{#set:Has secret={{{Secret|}}}|Has code#list={{{Codes|}}}|}}
 
 ==Name==
 {{{Name|}}}

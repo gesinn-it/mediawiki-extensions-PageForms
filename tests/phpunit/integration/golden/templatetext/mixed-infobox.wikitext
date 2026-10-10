@@ -1,6 +1,6 @@
 <noinclude>
 {{#template_params:Name|Born (property=Has born)|Tags (list;delimiter=;;property=Has tag)|Nickname (display=nonempty)|Note (property=Has note;display=nonempty)|Secret (property=Has secret;display=hidden)|Codes (list;property=Has code;display=hidden)|Draft (display=hidden)|Photo (property=Has photo;namespace=File)}}
-</noinclude><includeonly>{{#set:Has secret=0:{{{Secret|}}}|Has code#list=0:{{{Codes|}}}|}}
+</noinclude><includeonly>{{#set:Has secret={{{Secret|}}}|Has code#list={{{Codes|}}}|}}
 {| style="width: 30em; font-size: 90%; border: 1px solid #aaaaaa; background-color: #f9f9f9; color: black; margin-bottom: 0.5em; margin-left: 1em; padding: 0.2em; float: right; clear: right; text-align:left;"
 ! style="text-align: center; background-color:#ccccff;" colspan="2" |<span style="font-size: larger;">{{PAGENAME}}</span>
 |-

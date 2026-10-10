@@ -233,10 +233,11 @@ END;
 		TemplateField $field, bool $notFirst, TemplateFormat $format, ?InternalObjectCall $internalObject, SetCall $set
 	): string {
 		$fieldParam = '{{{' . $field->getFieldName() . '|}}}';
-		if ( $field->getNamespace() === null ) {
+		// The same as TemplateField::createText(): the main namespace has no prefix.
+		if ( $field->getNamespace() == 0 ) {
 			$fieldString = $fieldParam;
 		} else {
-			$fieldString = $field->getNamespace() . ':' . $fieldParam;
+			$fieldString = $field->getNSText() . ':' . $fieldParam;
 		}
 		$fieldLabel = $field->getLabel();
 		if ( $fieldLabel == '' ) {

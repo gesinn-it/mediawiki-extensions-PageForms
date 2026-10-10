@@ -1,6 +1,6 @@
 <noinclude>
 {{#template_params:Name|Born (property=Has born)|Tags (list;delimiter=;;property=Has tag)|Nickname (display=nonempty)|Note (property=Has note;display=nonempty)|Secret (property=Has secret;display=hidden)|Codes (list;property=Has code;display=hidden)|Draft (display=hidden)|Photo (property=Has photo;namespace=File)}}
-</noinclude><includeonly>{{#subobject:-|Has person={{PAGENAME}}|Has born=0:{{{Born|}}}|Has tag=0:{{{Tags|}}}|+sep=,|Has note=0:{{{Note|}}}|Has secret=0:{{{Secret|}}}|Has code=0:{{{Codes|}}}|+sep=,|Has photo=6:{{{Photo|}}}}}
+</noinclude><includeonly>{{#subobject:-|Has person={{PAGENAME}}|Has born={{{Born|}}}|Has tag={{{Tags|}}}|+sep=,|Has note={{{Note|}}}|Has secret={{{Secret|}}}|Has code={{{Codes|}}}|+sep=,|Has photo=File:{{{Photo|}}}}}
 '''Name:''' {{{Name|}}}
 
 '''Born:''' [[Has born::{{{Born|}}}]]

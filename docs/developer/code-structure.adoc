@@ -86,9 +86,6 @@ kind. The same rules as for the snapshots of the form printer apply: they record
 wrote, they do not say that it is right, and they are recorded again with `PF_UPDATE_GOLDEN=1`
 only for a change that is meant.
 
-One snapshot records a defect: for a field in the main namespace, the calls of `#set`,
-`#set_internal` and `#subobject` get `0:` in front of the field parameter.
-
 `tests/phpunit/integration/src/TemplateFieldsCharacterizationTest.php` does the same for the
 reverse, the fields that `TemplateFieldParser` finds in the text of a template, with snapshots in
 `golden/templatefields/`. It records two quirks: a field whose name is not followed by `|` gets the

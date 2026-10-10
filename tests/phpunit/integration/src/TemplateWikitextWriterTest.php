@@ -82,7 +82,7 @@ class TemplateWikitextWriterTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertStringContainsString(
 			'<includeonly>{{#subobject:-|Has book={{PAGENAME}}' .
-				'|Has tag=0:{{{Tags|}}}|+sep=,|Has born=0:{{{Born|}}}}}',
+				'|Has tag={{{Tags|}}}|+sep=,|Has born={{{Born|}}}}}',
 			$text
 		);
 		$this->assertStringNotContainsString( '#set_internal', $text );
@@ -99,7 +99,7 @@ class TemplateWikitextWriterTest extends MediaWikiIntegrationTestCase {
 		$text = $this->writer( true, true )->write( $template );
 
 		$this->assertStringContainsString(
-			'<includeonly>{{#set_internal:Has book|Has tag#list=0:{{{Tags|}}}|Has born=0:{{{Born|}}}}}',
+			'<includeonly>{{#set_internal:Has book|Has tag#list={{{Tags|}}}|Has born={{{Born|}}}}}',
 			$text
 		);
 		$this->assertStringNotContainsString( '#subobject', $text );
@@ -112,9 +112,26 @@ class TemplateWikitextWriterTest extends MediaWikiIntegrationTestCase {
 		] );
 
 		$this->assertStringContainsString(
-			"<includeonly>{{#set:Has secret=0:{{{Secret|}}}|Has code#list=0:{{{Codes|}}}|}}\n",
+			"<includeonly>{{#set:Has secret={{{Secret|}}}|Has code#list={{{Codes|}}}|}}\n",
 			$this->writer()->write( $template )
 		);
+	}
+
+	public function testAFieldInAnotherNamespaceIsStoredWithTheNameOfTheNamespace() {
+		$photo = TemplateField::create( 'Photo', 'Photo', 'Has photo' );
+		$photo->setFieldType( 'File' );
+		$hidden = TemplateField::create( 'Logo', 'Logo', 'Has logo', false, null, 'hidden' );
+		$hidden->setFieldType( 'File' );
+		$template = $this->template( [ $photo, $hidden ] );
+		$template->setConnectingProperty( 'Has book' );
+
+		$text = $this->writer()->write( $template );
+
+		$this->assertStringContainsString( '|Has photo=File:{{{Photo|}}}|', $text . '|' );
+		$this->assertStringNotContainsString( '6:{{{', $text );
+
+		$template = $this->template( [ $hidden ] );
+		$this->assertStringContainsString( '{{#set:Has logo=File:{{{Logo|}}}|}}', $this->writer()->write( $template ) );
 	}
 
 	public function testNoSetCallWithoutAHiddenField() {
