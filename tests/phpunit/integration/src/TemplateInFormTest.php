@@ -110,6 +110,22 @@ class TemplateInFormTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 'endDateField', $template->getEventEndDateField() );
 	}
 
+	public function testNewFromFormTagDefaults(): void {
+		$template = TemplateInForm::newFromFormTag(
+			new TemplateSpec( [ 'for template', 'PFTestTemplateInFormDefaults_01' ] ),
+			$this->createMockParser()
+		);
+
+		$this->assertSame( 'PFTestTemplateInFormDefaults 01', $template->getTemplateName() );
+		$this->assertNull( $template->allowsMultiple() );
+		$this->assertNull( $template->strictParsing() );
+		$this->assertNull( $template->getEmbedInTemplate() );
+		$this->assertSame(
+			wfMessage( 'pf_formedit_addanother' )->text(),
+			$template->getAddButtonText()
+		);
+	}
+
 	public function testNewFromFormTagEmbedInField(): void {
 		$template = TemplateInForm::newFromFormTag(
 			new TemplateSpec( [

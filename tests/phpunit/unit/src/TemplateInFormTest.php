@@ -134,6 +134,52 @@ class TemplateInFormTest extends TestCase {
 				] ],
 				[],
 			],
+			'a new instance is taken after the instances on the page' => [
+				'PFTestTemplateInFormNewInstance01', true, 2,
+				'{{PFTestTemplateInFormNewInstance01|field1=x}}{{PFTestTemplateInFormNewInstance01|field1=y}}',
+				[ 'PFTestTemplateInFormNewInstance01' => [
+					'0' => [ 'field1' => 'value0' ],
+					'1' => [ 'field1' => 'value1' ],
+					'2' => [ 'field1' => 'value2' ],
+				] ],
+				[ 'field1' => 'value2' ],
+			],
+			'a new instance is looked up by its position among the keys' => [
+				'PFTestTemplateInFormNewInstance02', true, 1,
+				null,
+				[ 'PFTestTemplateInFormNewInstance02' => [
+					'num' => '2',
+					'a' => [ 'field1' => 'valueA' ],
+					'b' => [ 'field1' => 'valueB' ],
+				] ],
+				[ 'field1' => 'valueB' ],
+			],
+			'a key with a letter suffix counts as an existing instance' => [
+				'PFTestTemplateInFormSuffix01', true, 1,
+				'{{PFTestTemplateInFormSuffix01|field1=x}}{{PFTestTemplateInFormSuffix01|field1=y}}',
+				[ 'PFTestTemplateInFormSuffix01' => [
+					'0' => [ 'field1' => 'value0' ],
+					'1a' => [ 'field1' => 'value1' ],
+				] ],
+				[ 'field1' => 'value1' ],
+			],
+			'there is no new instance beyond the submitted ones' => [
+				'PFTestTemplateInFormNoMore01', true, 3,
+				null,
+				[ 'PFTestTemplateInFormNoMore01' => [ '0' => [ 'field1' => 'value0' ] ] ],
+				[],
+			],
+			'the values of an earlier instance are reset' => [
+				'PFTestTemplateInFormReset01', true, 1,
+				null,
+				[ 'PFTestTemplateInFormReset01' => [ 'num' => '1' ] ],
+				[],
+			],
+			'dots in the template name are read as underscores' => [
+				'My.Template Name', false, null, null,
+				[ 'My_Template_Name' => [ 'field1' => 'value1' ] ],
+				[ 'field1' => 'value1' ],
+			],
 		];
 	}
 
