@@ -12,9 +12,9 @@ use Title;
 class PageEditability {
 
 	public function __construct(
-		private Title $pageTitle,
-		private array $permissionErrors,
-		private bool $userCanEdit
+		private readonly Title $pageTitle,
+		private readonly array $permissionErrors,
+		private readonly bool $userCanEdit
 	) {
 	}
 

@@ -14,8 +14,8 @@ use ArrayAccess;
 class DeprecatedHookTable implements ArrayAccess {
 
 	public function __construct(
-		private InputTypeRegistry $registry,
-		private bool $semantic
+		private readonly InputTypeRegistry $registry,
+		private readonly bool $semantic
 	) {
 	}
 

@@ -24,9 +24,9 @@ class TemplateWikitextWriter {
 	 * @param bool $hasSio Whether Semantic Internal Objects is installed
 	 */
 	public function __construct(
-		private HookContainer $hookContainer,
-		private bool $hasSmw,
-		private bool $hasSio
+		private readonly HookContainer $hookContainer,
+		private readonly bool $hasSmw,
+		private readonly bool $hasSio
 	) {
 	}
 
@@ -225,8 +225,9 @@ END;
 		TemplateField $field, bool $notFirst, TemplateFormat $format, ?InternalObjectCall $internalObject, SetCall $set
 	): string {
 		$fieldParam = '{{{' . $field->getFieldName() . '|}}}';
-		// The same as TemplateField::createText(): the main namespace has no prefix.
-		if ( $field->getNamespace() == 0 ) {
+		// The same as TemplateField::createText(): the main namespace has no prefix. The id can be
+		// a numeric string, as it is where the field is set from a request.
+		if ( (int)$field->getNamespace() === NS_MAIN ) {
 			$fieldString = $fieldParam;
 		} else {
 			$fieldString = $field->getNSText() . ':' . $fieldParam;

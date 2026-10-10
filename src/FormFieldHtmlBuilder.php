@@ -15,7 +15,7 @@ use PFUtils;
 class FormFieldHtmlBuilder {
 
 	public function __construct(
-		private InputTypeRegistry $inputTypeRegistry
+		private readonly InputTypeRegistry $inputTypeRegistry
 	) {
 	}
 

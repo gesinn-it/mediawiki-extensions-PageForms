@@ -15,11 +15,11 @@ use MediaWiki\Extension\PageForms\TemplateField;
  */
 class FoundTemplateFields {
 
-	/** @var TemplateField[] */
-	private $fields = [];
+	/** @var array<int|string, TemplateField> */
+	private array $fields = [];
 
 	/** @var string[] */
-	private $names = [];
+	private array $names = [];
 
 	public function has( string $fieldName ): bool {
 		return in_array( $fieldName, $this->names );
@@ -32,7 +32,7 @@ class FoundTemplateFields {
 	 *  follows that field and replaces none.
 	 * @param TemplateField $field
 	 */
-	public function add( string $fieldName, $key, TemplateField $field ): void {
+	public function add( string $fieldName, int|string $key, TemplateField $field ): void {
 		while ( is_int( $key ) && isset( $this->fields[$key] ) ) {
 			$key++;
 		}

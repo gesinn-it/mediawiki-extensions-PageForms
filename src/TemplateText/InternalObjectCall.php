@@ -11,11 +11,9 @@ namespace MediaWiki\Extension\PageForms\TemplateText;
  */
 class InternalObjectCall {
 
-	/** @var string */
-	private $text;
+	private string $text;
 
-	/** @var bool */
-	private $useSubobject;
+	private bool $useSubobject;
 
 	/**
 	 * @param string $connectingProperty

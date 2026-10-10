@@ -10,8 +10,8 @@ namespace MediaWiki\Extension\PageForms\FormRender;
 class PageTextResult {
 
 	public function __construct(
-		private ?string $freeText,
-		private string $pageText
+		private readonly ?string $freeText,
+		private readonly string $pageText
 	) {
 	}
 

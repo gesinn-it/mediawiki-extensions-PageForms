@@ -35,7 +35,7 @@ class FormInstanceField {
 	private ?string $mDeferredAutocompleteType = null;
 
 	public function __construct(
-		private FormField $formField
+		private readonly FormField $formField
 	) {
 	}
 

@@ -12,7 +12,7 @@ class TextSpec implements FormElement {
 	public const TYPE = 'text';
 
 	public function __construct(
-		private string $text
+		private readonly string $text
 	) {
 	}
 

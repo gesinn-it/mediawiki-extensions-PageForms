@@ -14,10 +14,10 @@ use ParserOutput;
 class FinalizedForm {
 
 	public function __construct(
-		private string $formText,
-		private string $pageText,
-		private ?string $formPageTitle,
-		private ParserOutput $parserOutput
+		private readonly string $formText,
+		private readonly string $pageText,
+		private readonly ?string $formPageTitle,
+		private readonly ParserOutput $parserOutput
 	) {
 	}
 

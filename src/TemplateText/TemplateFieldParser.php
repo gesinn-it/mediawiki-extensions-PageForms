@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\TemplateText;
 
+use Closure;
 use MediaWiki\Extension\PageForms\TemplateField;
 use PFUtils;
 
@@ -20,15 +21,16 @@ use PFUtils;
  */
 class TemplateFieldParser {
 
-	/** @var callable|null */
-	private $onBacktrackLimitExceeded;
+	private ?Closure $onBacktrackLimitExceeded;
 
 	/**
 	 * @param callable|null $onBacktrackLimitExceeded Called if the text is too complex for the
 	 *  regular expression of the "#arraymap" calls
 	 */
 	public function __construct( ?callable $onBacktrackLimitExceeded = null ) {
-		$this->onBacktrackLimitExceeded = $onBacktrackLimitExceeded;
+		$this->onBacktrackLimitExceeded = $onBacktrackLimitExceeded === null
+			? null
+			: Closure::fromCallable( $onBacktrackLimitExceeded );
 	}
 
 	/**

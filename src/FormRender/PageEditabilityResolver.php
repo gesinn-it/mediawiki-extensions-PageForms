@@ -17,7 +17,7 @@ use Title;
 class PageEditabilityResolver {
 
 	public function __construct(
-		private RenderServices $services
+		private readonly RenderServices $services
 	) {
 	}
 

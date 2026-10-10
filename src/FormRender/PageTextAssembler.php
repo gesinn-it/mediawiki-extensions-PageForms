@@ -13,7 +13,7 @@ use MediaWiki\HookContainer\HookContainer;
 class PageTextAssembler {
 
 	public function __construct(
-		private HookContainer $hookContainer
+		private readonly HookContainer $hookContainer
 	) {
 	}
 

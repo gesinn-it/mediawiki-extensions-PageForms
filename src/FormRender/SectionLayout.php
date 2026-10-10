@@ -22,10 +22,10 @@ use MediaWiki\Extension\PageForms\TemplateInForm;
 class SectionLayout {
 
 	public function __construct(
-		private MultipleTemplateHtmlBuilder $multipleTemplateHtmlBuilder,
-		private SpreadsheetHtmlBuilder $spreadsheetHtmlBuilder,
-		private CalendarHtmlBuilder $calendarHtmlBuilder,
-		private FormFieldHtmlBuilder $formFieldHtmlBuilder
+		private readonly MultipleTemplateHtmlBuilder $multipleTemplateHtmlBuilder,
+		private readonly SpreadsheetHtmlBuilder $spreadsheetHtmlBuilder,
+		private readonly CalendarHtmlBuilder $calendarHtmlBuilder,
+		private readonly FormFieldHtmlBuilder $formFieldHtmlBuilder
 	) {
 	}
 
