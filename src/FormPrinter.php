@@ -677,11 +677,8 @@ class FormPrinter {
 			}
 		} elseif ( $request->out->getTitle() != null ) {
 			$request->out->setPageTitle( wfMessage( 'badaccess' )->text() );
-			// A hook on PageForms::UserCanEditPage can deny the edit without a permission error.
 			$request->out->addWikiTextAsInterface(
-				$request->out->formatPermissionsErrorMessage(
-					$permissionErrors ?: [ [ 'badaccess-group0' ] ], 'edit'
-				)
+				$request->out->formatPermissionsErrorMessage( $permissionErrors, 'edit' )
 			);
 			$request->out->addHTML( "\n<hr />\n" );
 		}

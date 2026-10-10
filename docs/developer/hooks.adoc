@@ -72,7 +72,7 @@ Page Forms provides the following hooks. Register them in your extension's `exte
 | Was: alter a tree input node's display label. Removed in July 2020 when the tree widget was rewritten.
 
 | `PageForms::UserCanEditPage`
-| `FormPrinter::render()`
+| `PageEditabilityResolver::resolve()`
 | Override the permission check that determines whether the user may submit the form.
 
 | `PageForms::WritePageData`
@@ -985,16 +985,16 @@ Whether the user is permitted to edit the page. Set to `true` to grant edit acce
 
 === Behaviour
 
-If `$userCanEditPage` is `false` when the hook finishes, Page Forms renders the form in disabled state (read-only). If it is `true`, the form is rendered normally and the user may submit it.
+If `$userCanEditPage` is `false` when the hook finishes, Page Forms renders the form in disabled state (read-only) and shows the permission errors of MediaWiki as the reason, or the generic "no permission" message if MediaWiki reported none. If it is `true`, the form is rendered normally and the user may submit it.
 
 === Source
 
-Fired in `FormPrinter::render()` (`src/FormPrinter.php`):
+Fired in `PageEditabilityResolver::resolve()` (`src/FormRender/PageEditabilityResolver.php`):
 
 [source,php]
 ----
 MediaWikiServices::getInstance()->getHookContainer()->run(
-    'PageForms::UserCanEditPage', [ $this->mPageTitle, &$userCanEditPage ]
+    'PageForms::UserCanEditPage', [ $pageTitle, &$userCanEditPage ]
 );
 ----
 

@@ -1165,7 +1165,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	private function denyEditingByHook(): void {
-		MediaWikiServices::getInstance()->getHookContainer()->register(
+		$this->setTemporaryHook(
 			'PageForms::UserCanEditPage',
 			static function ( $pageTitle, &$userCanEditPage ) {
 				$userCanEditPage = false;

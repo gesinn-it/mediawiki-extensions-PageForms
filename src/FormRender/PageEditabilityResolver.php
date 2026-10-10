@@ -49,6 +49,11 @@ class PageEditabilityResolver {
 		$this->services->hookContainer()->run(
 			'PageForms::UserCanEditPage', [ $pageTitle, &$userCanEditPage ]
 		);
+		// A handler of the hook can deny the edit while MediaWiki has reported no error, and the
+		// form shows the errors as the reason why the user may not edit.
+		if ( !$userCanEditPage && $permissionErrors === [] ) {
+			$permissionErrors = [ [ 'badaccess-group0' ] ];
+		}
 
 		return new PageEditability( $pageTitle, $permissionErrors, $userCanEditPage );
 	}
