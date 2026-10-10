@@ -92,62 +92,70 @@ class TemplateInForm {
 			$tif->mPlaceholder = FormPlaceholder::format( $tif->mEmbedInTemplate, $tif->mEmbedInField );
 		}
 
+		$tif->applyFormTagOptions( $spec, $parser );
+
+		return $tif;
+	}
+
+	private function applyFormTagOptions( TemplateSpec $spec, Parser $parser ): void {
 		if ( $spec->isMultiple() ) {
-			$tif->mAllowMultiple = true;
+			$this->mAllowMultiple = true;
 		}
 		if ( $spec->isStrict() ) {
-			$tif->mStrictParsing = true;
+			$this->mStrictParsing = true;
 		}
 		$label = $spec->getLabel();
 		if ( $label !== null ) {
-			$tif->mLabel = $parser->recursiveTagParse( $label );
+			$this->mLabel = $parser->recursiveTagParse( $label );
 		}
 		if ( $spec->getIntro() !== null ) {
-			$tif->mIntro = $spec->getIntro();
+			$this->mIntro = $spec->getIntro();
 		}
 		if ( $spec->getMinimumInstances() !== null ) {
-			$tif->mMinAllowed = $spec->getMinimumInstances();
+			$this->mMinAllowed = $spec->getMinimumInstances();
 		}
 		if ( $spec->getMaximumInstances() !== null ) {
-			$tif->mMaxAllowed = $spec->getMaximumInstances();
+			$this->mMaxAllowed = $spec->getMaximumInstances();
 		}
 		$addButtonText = $spec->getAddButtonText();
 		if ( $addButtonText !== null ) {
-			$tif->mAddButtonText = $parser->recursiveTagParse( $addButtonText );
+			$this->mAddButtonText = $parser->recursiveTagParse( $addButtonText );
 		}
 		// Placeholder on form template level. Assume that the template form def
 		// will have a multiple+placeholder parameters, and get the placeholder value.
 		// The spec converts TemplateName[fieldName] to the pair used internally.
 		$embedInField = $spec->getEmbedInField();
 		if ( $embedInField !== null ) {
-			[ $tif->mEmbedInTemplate, $tif->mEmbedInField ] = $embedInField;
-			$tif->mPlaceholder = FormPlaceholder::format(
-				$tif->mEmbedInTemplate, $tif->mEmbedInField
+			[ $this->mEmbedInTemplate, $this->mEmbedInField ] = $embedInField;
+			$this->mPlaceholder = FormPlaceholder::format(
+				$this->mEmbedInTemplate, $this->mEmbedInField
 			);
 		}
+		$this->applyFormTagDisplayOptions( $spec );
+	}
+
+	private function applyFormTagDisplayOptions( TemplateSpec $spec ): void {
 		if ( $spec->getDisplay() !== null ) {
-			$tif->mDisplay = $spec->getDisplay();
+			$this->mDisplay = $spec->getDisplay();
 		}
 		if ( $spec->getHeight() !== null ) {
-			$tif->mHeight = $spec->getHeight();
+			$this->mHeight = $spec->getHeight();
 		}
 		if ( $spec->getDisplayedFieldsWhenMinimized() !== null ) {
-			$tif->mDisplayedFieldsWhenMinimized = $spec->getDisplayedFieldsWhenMinimized();
+			$this->mDisplayedFieldsWhenMinimized = $spec->getDisplayedFieldsWhenMinimized();
 		}
 		if ( $spec->getEventTitleField() !== null ) {
-			$tif->mEventTitleField = $spec->getEventTitleField();
+			$this->mEventTitleField = $spec->getEventTitleField();
 		}
 		if ( $spec->getEventDateField() !== null ) {
-			$tif->mEventDateField = $spec->getEventDateField();
+			$this->mEventDateField = $spec->getEventDateField();
 		}
 		if ( $spec->getEventStartDateField() !== null ) {
-			$tif->mEventStartDateField = $spec->getEventStartDateField();
+			$this->mEventStartDateField = $spec->getEventStartDateField();
 		}
 		if ( $spec->getEventEndDateField() !== null ) {
-			$tif->mEventEndDateField = $spec->getEventEndDateField();
+			$this->mEventEndDateField = $spec->getEventEndDateField();
 		}
-
-		return $tif;
 	}
 
 	public function getTemplateName() {
@@ -346,67 +354,82 @@ class TemplateInForm {
 			$this->mValuesFromSubmit = [];
 		}
 
-		$query_template_name = str_replace( ' ', '_', $this->mTemplateName );
-		// Also replace periods with underlines, since that's what
+		// Periods are replaced with underlines too, since that's what
 		// POST does to strings anyway.
-		$query_template_name = str_replace( '.', '_', $query_template_name );
+		$query_template_name = str_replace( [ ' ', '.' ], '_', $this->mTemplateName );
 
 		$allValuesFromSubmit = $request->getArray( $query_template_name );
 		if ( $allValuesFromSubmit === null ) {
 			return;
 		}
-		// If this is a multiple-instance template, get the values for
-		// this instance of the template.
-		if ( $this->mAllowMultiple ) {
-			// If this data came from a spreadsheet, unescape some characters.
-			$spreadsheetTemplates = $request->getArray( 'spreadsheet_templates' );
-			if ( is_array( $spreadsheetTemplates ) &&
-				array_key_exists( $query_template_name, $spreadsheetTemplates ) ) {
-				foreach ( $allValuesFromSubmit as &$rowValues ) {
-					foreach ( $rowValues as &$curValue ) {
-						$curValue = str_replace( [ '&lt;', '&gt;' ], [ '<', '>' ], $curValue );
-					}
-				}
-			}
-			$valuesFromSubmitKeys = [];
-			foreach ( array_keys( $allValuesFromSubmit ) as $key ) {
-				if ( $key != 'num' ) {
-					$valuesFromSubmitKeys[] = $key;
-				}
-			}
-			$this->mNumInstancesFromSubmit = count( $valuesFromSubmitKeys );
-			# First search if there are keys \d+a? (keys are made of an integer plus optional letter a),
-			# return them if the main loop modify existing templates
-			for ( $i = 0; $i < $this->mNumInstancesFromSubmit; $i++ ) {
-				$intkey = preg_filter( '/^(\d+)a?$/', '$1', (string)$valuesFromSubmitKeys[$i] );
-				if ( $intkey !== null ) {
-					$intkey = (int)$intkey;
-				}
-				if ( $intkey !== null && $this->mNumSeenInstancesOnThisPage !== null &&
-					$intkey < $this->mNumSeenInstancesOnThisPage ) {
-					if ( $intkey === $this->mInstanceNum ) {
-						$instanceKey = $valuesFromSubmitKeys[$intkey];
-						$this->mValuesFromSubmit = $allValuesFromSubmit[$instanceKey];
-						return;
-					}
-					unset( $valuesFromSubmitKeys[$i] );
-				} else {
-					break;
-				}
-			}
-			# The main loop is still in existing templates
-			if ( $this->mInstanceNum < $this->mNumSeenInstancesOnThisPage ) {
-				return;
-			}
-			# Now the main loop is adding new templates
-			$valuesFromSubmitKeys = array_values( $valuesFromSubmitKeys );
-			$offset = $this->mInstanceNum - $this->mNumSeenInstancesOnThisPage;
-			if ( $offset < count( $valuesFromSubmitKeys ) ) {
-				$instanceKey = $valuesFromSubmitKeys[$offset];
-				$this->mValuesFromSubmit = $allValuesFromSubmit[$instanceKey];
-			}
-		} else {
+		if ( !$this->mAllowMultiple ) {
 			$this->mValuesFromSubmit = $allValuesFromSubmit;
+			return;
+		}
+		// If this data came from a spreadsheet, unescape some characters.
+		$spreadsheetTemplates = $request->getArray( 'spreadsheet_templates' );
+		if ( is_array( $spreadsheetTemplates ) &&
+			array_key_exists( $query_template_name, $spreadsheetTemplates ) ) {
+			$allValuesFromSubmit = self::unescapeSpreadsheetValues( $allValuesFromSubmit );
+		}
+		$this->setValuesFromSubmitOfThisInstance( $allValuesFromSubmit );
+	}
+
+	/**
+	 * @param array $allValuesFromSubmit The values of all instances, by row
+	 * @return array
+	 */
+	private static function unescapeSpreadsheetValues( array $allValuesFromSubmit ): array {
+		foreach ( $allValuesFromSubmit as &$rowValues ) {
+			foreach ( $rowValues as &$curValue ) {
+				$curValue = str_replace( [ '&lt;', '&gt;' ], [ '<', '>' ], $curValue );
+			}
+		}
+		return $allValuesFromSubmit;
+	}
+
+	/**
+	 * Gets the values for this instance of a multiple-instance template.
+	 *
+	 * @param array $allValuesFromSubmit The values of all instances, by instance key
+	 */
+	private function setValuesFromSubmitOfThisInstance( array $allValuesFromSubmit ): void {
+		$valuesFromSubmitKeys = [];
+		foreach ( array_keys( $allValuesFromSubmit ) as $key ) {
+			if ( $key != 'num' ) {
+				$valuesFromSubmitKeys[] = $key;
+			}
+		}
+		$this->mNumInstancesFromSubmit = count( $valuesFromSubmitKeys );
+		# First search if there are keys \d+a? (keys are made of an integer plus optional letter a),
+		# return them if the main loop modify existing templates
+		for ( $i = 0; $i < $this->mNumInstancesFromSubmit; $i++ ) {
+			$intkey = preg_filter( '/^(\d+)a?$/', '$1', (string)$valuesFromSubmitKeys[$i] );
+			if ( $intkey !== null ) {
+				$intkey = (int)$intkey;
+			}
+			if ( $intkey !== null && $this->mNumSeenInstancesOnThisPage !== null &&
+				$intkey < $this->mNumSeenInstancesOnThisPage ) {
+				if ( $intkey === $this->mInstanceNum ) {
+					$instanceKey = $valuesFromSubmitKeys[$intkey];
+					$this->mValuesFromSubmit = $allValuesFromSubmit[$instanceKey];
+					return;
+				}
+				unset( $valuesFromSubmitKeys[$i] );
+			} else {
+				break;
+			}
+		}
+		# The main loop is still in existing templates
+		if ( $this->mInstanceNum < $this->mNumSeenInstancesOnThisPage ) {
+			return;
+		}
+		# Now the main loop is adding new templates
+		$valuesFromSubmitKeys = array_values( $valuesFromSubmitKeys );
+		$offset = $this->mInstanceNum - $this->mNumSeenInstancesOnThisPage;
+		if ( $offset < count( $valuesFromSubmitKeys ) ) {
+			$instanceKey = $valuesFromSubmitKeys[$offset];
+			$this->mValuesFromSubmit = $allValuesFromSubmit[$instanceKey];
 		}
 	}
 
