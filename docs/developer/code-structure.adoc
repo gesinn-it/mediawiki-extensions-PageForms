@@ -48,7 +48,8 @@ The wikitext of a template that Special:CreateTemplate and Special:CreateClass c
 `Template::createText()` calls the hook `PageForms::CreateTemplateText` and hands the rest to
 `TemplateWikitextWriter`. The markup of the display formats (`standard`, `infobox`, `plain`,
 `sections`) is one `TemplateFormat` class each; `InternalObjectCall` and `SetCall` build the
-calls that store the fields.
+calls that store the fields. `TemplateFieldParser` does the reverse: it finds the fields of a
+template in its text, and `Template` loads the text and keeps the result.
 
 `tests/`::
 PHPUnit and QUnit test suites.
@@ -87,3 +88,8 @@ only for a change that is meant.
 
 One snapshot records a defect: for a field in the main namespace, the calls of `#set`,
 `#set_internal` and `#subobject` get `0:` in front of the field parameter.
+
+`tests/phpunit/integration/src/TemplateFieldsCharacterizationTest.php` does the same for the
+reverse, the fields that `TemplateFieldParser` finds in the text of a template, with snapshots in
+`golden/templatefields/`. It records two quirks: a field whose name is not followed by `|` gets the
+key 0 and replaces another field with that key, and names that are numbers are compared loosely.

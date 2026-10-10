@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Extension\PageForms\TemplateText\TemplateFieldParser;
 use MediaWiki\Extension\PageForms\TemplateText\TemplateWikitextWriter;
 use MediaWiki\MediaWikiServices;
 use PFUtils;
@@ -114,141 +115,22 @@ class Template {
 	 * attached to each one (if any), by parsing the text of the template.
 	 */
 	public function loadTemplateFieldsSMWAndOther() {
-		$templateFields = [];
-		$fieldNamesArray = [];
+		$parser = new TemplateFieldParser( static function () {
+			print 'Page Forms error: backtrace limit exceeded during parsing!' .
+				' Please increase the value of <a href="http://www.php.net/manual/en/' .
+				'pcre.configuration.php#ini.pcre.backtrack-limit">pcre.backtrack_limit' .
+				'</a> in php.ini or LocalSettings.php.';
+		} );
+		foreach ( $parser->parse( (string)$this->mTemplateText, $this->mTemplateParams ) as $key => $field ) {
+			$this->mTemplateFields[$key] = $field;
+		}
 
-		// The way this works is that fields are found and then stored
-		// in an array based on their location in the template text, so
-		// that they can be returned in the order in which they appear
+		// The fields are returned in the order in which they appear
 		// in the template, not the order in which they were found.
-		// Some fields can be found more than once (especially if
-		// they're part of an "#if" statement), so they're only
-		// recorded the first time they're found.
-
-		// Replace all calls to #set within #arraymap with standard
-		// SMW tags. This is done so that they will later get
-		// parsed correctly.
-		// This is "cheating", since it modifies the template text
-		// (the rest of the function doesn't do that), but trying to
-		// get the #arraymap check regexp to find both kinds of SMW
-		// property tags seemed too hard to do.
-		$this->mTemplateText = preg_replace(
-			'/#arraymap.*{{\s*#set:\s*([^=]*)=([^}]*)}}/',
-			'[[$1:$2]]',
-			$this->mTemplateText
-		);
-
-		// Look for "arraymap" parser function calls that map a
-		// property onto a list.
-		$ret = preg_match_all(
-			'/{{#arraymap:{{{([^|}]*:?[^|}]*)[^\[]*\[\[([^:]*:?[^:]*)::/mis',
-			$this->mTemplateText,
-			$matches
-		);
-		if ( $ret ) {
-			foreach ( $matches[1] as $i => $field_name ) {
-				if ( !in_array( $field_name, $fieldNamesArray ) ) {
-					$propertyName = $matches[2][$i];
-					$this->loadPropertySettingInTemplate( $field_name, $propertyName, true );
-					$fieldNamesArray[] = $field_name;
-				}
-			}
-		} elseif ( $ret === false ) {
-			// There was an error in the preg_match_all()
-			// call - let the user know about it.
-			if ( preg_last_error() == PREG_BACKTRACK_LIMIT_ERROR ) {
-					print 'Page Forms error: backtrace limit exceeded during parsing!' .
-						' Please increase the value of <a href="http://www.php.net/manual/en/' .
-						'pcre.configuration.php#ini.pcre.backtrack-limit">pcre.backtrack_limit' .
-						'</a> in php.ini or LocalSettings.php.';
-			}
+		// The ones of #template_params stay as they are declared.
+		if ( $this->mTemplateParams === null ) {
+			ksort( $this->mTemplateFields );
 		}
-
-		// Look for normal property calls.
-		if ( preg_match_all(
-			'/\[\[([^:|\[\]]*:*?[^:|\[\]]*)::{{{([^\]\|}]*).*?\]\]/mis',
-			$this->mTemplateText,
-			$matches
-		) ) {
-			foreach ( $matches[1] as $i => $propertyName ) {
-				$field_name = trim( $matches[2][$i] );
-				if ( !in_array( $field_name, $fieldNamesArray ) ) {
-					$propertyName = trim( $propertyName );
-					$this->loadPropertySettingInTemplate( $field_name, $propertyName, false );
-					$fieldNamesArray[] = $field_name;
-				}
-			}
-		}
-
-		// Then, get calls to #set, #set_internal and #subobject.
-		// (Thankfully, they all have similar syntax).
-		if ( preg_match_all( '/#(set|set_internal|subobject):(.*?}}})\s*}}/mis', $this->mTemplateText, $matches ) ) {
-			foreach ( $matches[2] as $match ) {
-				if ( preg_match_all( '/([^|{]*?)=\s*{{{([^|}]*)/mis', $match, $matches2 ) ) {
-					foreach ( $matches2[1] as $i => $propertyName ) {
-						$fieldName = trim( $matches2[2][$i] );
-						if ( !in_array( $fieldName, $fieldNamesArray ) ) {
-							$propertyName = trim( $propertyName );
-							$this->loadPropertySettingInTemplate( $fieldName, $propertyName, false );
-							$fieldNamesArray[] = $fieldName;
-						}
-					}
-				}
-			}
-		}
-
-		// Then, get calls to #declare. (This is really rather
-		// optional, since no one seems to use #declare.)
-		if ( preg_match_all( '/#declare:(.*?)}}/mis', $this->mTemplateText, $matches ) ) {
-			foreach ( $matches[1] as $match ) {
-				$setValues = explode( '|', $match );
-				foreach ( $setValues as $valuePair ) {
-					$keyAndVal = explode( '=', $valuePair );
-					if ( count( $keyAndVal ) == 2 ) {
-						$propertyName = trim( $keyAndVal[0] );
-						$fieldName = trim( $keyAndVal[1] );
-						if ( !in_array( $fieldName, $fieldNamesArray ) ) {
-							$this->loadPropertySettingInTemplate( $fieldName, $propertyName, false );
-							$fieldNamesArray[] = $fieldName;
-						}
-					}
-				}
-			}
-		}
-
-		// Finally, get any non-semantic fields defined.
-		if ( preg_match_all( '/{{{([^|}]*)/mis', $this->mTemplateText, $matches ) ) {
-			foreach ( $matches[1] as $fieldName ) {
-				$fieldName = trim( $fieldName );
-				if ( $fieldName !== '' && ( !in_array( $fieldName, $fieldNamesArray ) ) ) {
-					$cur_pos = stripos( $this->mTemplateText, $fieldName );
-					$this->mTemplateFields[$cur_pos] = TemplateField::create(
-						$fieldName, PFUtils::getContLang()->ucfirst( $fieldName )
-					);
-					$fieldNamesArray[] = $fieldName;
-				}
-			}
-		}
-
-		// If #template_params was declared for this template, go
-		// through the declared fields, and, for any that were not
-		// already found by parsing the template, populate
-		// $mTemplateFields with it.
-		// @todo - it would be good to combine the #template_params
-		// data with any SMW data found, instead of just getting one
-		// or the other. In practice, though, it doesn't really matter.
-		if ( $this->mTemplateParams !== null ) {
-			foreach ( $this->mTemplateParams as $fieldName => $fieldParams ) {
-				if ( in_array( $fieldName, $fieldNamesArray ) ) {
-					continue;
-				}
-				$templateField = TemplateField::newFromParams( $fieldName, $fieldParams );
-				$this->mTemplateFields[$fieldName] = $templateField;
-			}
-			return;
-		}
-
-		ksort( $this->mTemplateFields );
 	}
 
 	/**
@@ -260,12 +142,10 @@ class Template {
 	 * @param bool $isList
 	 */
 	public function loadPropertySettingInTemplate( $fieldName, $propertyName, $isList ) {
-		$templateField = TemplateField::create(
-			$fieldName, PFUtils::getContLang()->ucfirst( $fieldName ), $propertyName,
-			$isList
+		[ $position, $templateField ] = ( new TemplateFieldParser() )->propertyField(
+			(string)$this->mTemplateText, $fieldName, $propertyName, $isList
 		);
-		$cur_pos = stripos( $this->mTemplateText, $fieldName . '|' );
-		$this->mTemplateFields[$cur_pos] = $templateField;
+		$this->mTemplateFields[$position] = $templateField;
 	}
 
 	public function getTemplateFields() {
