@@ -95,8 +95,10 @@ class TemplateFieldsCharacterizationTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * Fields that are there already stay, and the new ones are put among them in the order of the
-	 * text.
+	 * Fields that are there already stay, and the new ones are put among them.
+	 *
+	 * The order is not asserted: the keys are a position (a number) and a name, and ksort() puts
+	 * the two kinds in a different order before PHP 8.2 than since.
 	 */
 	public function testFieldsOfTheTemplateAreKept() {
 		$template = new Template( 'Probe', [ 'Own' => TemplateField::create( 'Own', 'Own' ) ] );
@@ -105,10 +107,13 @@ class TemplateFieldsCharacterizationTest extends MediaWikiIntegrationTestCase {
 
 		$template->loadTemplateFieldsSMWAndOther();
 
-		$this->assertSame( [ 3 => 'A', 'Own' => 'Own' ], array_map(
-			static fn ( $field ) => $field->getFieldName(),
-			$template->getTemplateFields()
-		) );
+		$this->assertEquals(
+			[ 3 => 'A', 'Own' => 'Own' ],
+			array_map(
+				static fn ( $field ) => $field->getFieldName(),
+				$template->getTemplateFields()
+			)
+		);
 	}
 
 	private function set( Template $template, string $property, $value ): void {
