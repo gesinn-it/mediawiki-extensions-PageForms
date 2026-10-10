@@ -49,7 +49,7 @@ class PFUtils {
 	 * does not set $mOutputType/$ot - only setOutputType() does - so a call
 	 * path reaching braceSubstitution() (template expansion) needs both.
 	 *
-	 * Idempotent: if the parser is already initialized (getOutput() is set),
+	 * Idempotent: if the parser is already initialized (its output is set),
 	 * calling this again does not reset its accumulated state.
 	 *
 	 * @param Parser $parser
@@ -60,11 +60,29 @@ class PFUtils {
 		if ( !$parser->getOptions() ) {
 			$parser->setOptions( ParserOptions::newFromUser( $user ) );
 		}
-		if ( !$parser->getOutput() ) {
+		if ( !self::hasParserOutput( $parser ) ) {
 			$parser->clearState();
 			$parser->setOutputType( Parser::OT_HTML );
 		}
 		return $parser;
+	}
+
+	/**
+	 * Whether the parser has its output yet, which it gets from clearState().
+	 *
+	 * Parser::getOutput() cannot tell: since MW 1.42 it reports a deprecation if it is called before
+	 * the initialization, and there is no other public way to ask that works with MW 1.39 as well.
+	 * So the property is read; it is unset in MW 1.42 and later and null before that.
+	 *
+	 * @param Parser $parser
+	 * @return bool
+	 */
+	private static function hasParserOutput( Parser $parser ): bool {
+		$property = new ReflectionProperty( Parser::class, 'mOutput' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
+		return $property->isInitialized( $parser ) && $property->getValue( $parser ) !== null;
 	}
 
 	/**

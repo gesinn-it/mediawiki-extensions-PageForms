@@ -148,4 +148,34 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
+	public function testEnsureParserInitializedDoesNotAskAFreshParserForItsOutput() {
+		$parser = $this->getServiceContainer()->getParserFactory()->create();
+		$deprecations = [];
+		set_error_handler( static function ( int $errno, string $message ) use ( &$deprecations ): bool {
+			$deprecations[] = $message;
+			return true;
+		}, E_USER_DEPRECATED );
+		try {
+			PFUtils::ensureParserInitialized( $parser, RequestContext::getMain()->getUser() );
+		} finally {
+			restore_error_handler();
+		}
+
+		$this->assertSame( [], $deprecations );
+		$this->assertInstanceOf( ParserOutput::class, $parser->getOutput() );
+	}
+
+	public function testEnsureParserInitializedKeepsTheOutputOfAParserThatIsInitialized() {
+		$parser = $this->getServiceContainer()->getParserFactory()->create();
+		$user = RequestContext::getMain()->getUser();
+		PFUtils::ensureParserInitialized( $parser, $user );
+		$output = $parser->getOutput();
+		$output->setExtensionData( 'PFTestKept', 'kept' );
+
+		PFUtils::ensureParserInitialized( $parser, $user );
+
+		$this->assertSame( $output, $parser->getOutput() );
+		$this->assertSame( 'kept', $parser->getOutput()->getExtensionData( 'PFTestKept' ) );
+	}
+
 }
