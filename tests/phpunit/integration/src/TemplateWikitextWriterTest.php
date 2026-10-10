@@ -120,18 +120,23 @@ class TemplateWikitextWriterTest extends MediaWikiIntegrationTestCase {
 	public function testAFieldInAnotherNamespaceIsStoredWithTheNameOfTheNamespace() {
 		$photo = TemplateField::create( 'Photo', 'Photo', 'Has photo' );
 		$photo->setFieldType( 'File' );
-		$hidden = TemplateField::create( 'Logo', 'Logo', 'Has logo', false, null, 'hidden' );
-		$hidden->setFieldType( 'File' );
-		$template = $this->template( [ $photo, $hidden ] );
+		$template = $this->template( [ $photo ] );
 		$template->setConnectingProperty( 'Has book' );
 
-		$text = $this->writer()->write( $template );
+		$this->assertStringContainsString(
+			'<includeonly>{{#subobject:-|Has book={{PAGENAME}}|Has photo=File:{{{Photo|}}}}}',
+			$this->writer()->write( $template )
+		);
+	}
 
-		$this->assertStringContainsString( '|Has photo=File:{{{Photo|}}}|', $text . '|' );
-		$this->assertStringNotContainsString( '6:{{{', $text );
+	public function testAHiddenFieldInAnotherNamespaceIsStoredWithTheNameOfTheNamespace() {
+		$logo = TemplateField::create( 'Logo', 'Logo', 'Has logo', false, null, 'hidden' );
+		$logo->setFieldType( 'File' );
 
-		$template = $this->template( [ $hidden ] );
-		$this->assertStringContainsString( '{{#set:Has logo=File:{{{Logo|}}}|}}', $this->writer()->write( $template ) );
+		$this->assertStringContainsString(
+			"<includeonly>{{#set:Has logo=File:{{{Logo|}}}|}}\n",
+			$this->writer()->write( $this->template( [ $logo ] ) )
+		);
 	}
 
 	public function testNoSetCallWithoutAHiddenField() {
