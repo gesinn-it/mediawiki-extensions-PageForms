@@ -7,6 +7,8 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
+- The template text created by Special:CreateTemplate and Special:CreateClass no longer puts `0:` (or the number of the namespace, as in `6:`) in front of a field in the calls that store it for a template with a connecting property and for hidden fields, so the stored property value is the value of the field [`751c07f9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/751c07f9)
+- A field of a template is no longer dropped when its parameter has no `|` (as in `{{{Name}}}`) or when its name starts another field's name (`{{{AB|}}}` and `{{{A|}}}`) [`7eefbc66`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/7eefbc66)
 - `restricted` fields are no longer enforced by `#autoedit`, the `pfautoedit` API and form saves, as before 2.3.0: it only governs who may change a field in the form, and a page saved through the form no longer loses the values of its restricted fields
 
 ## [2.3.1] - 2026-10-09
