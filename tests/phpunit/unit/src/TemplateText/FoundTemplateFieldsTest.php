@@ -48,4 +48,26 @@ class FoundTemplateFieldsTest extends TestCase {
 		$this->assertTrue( $found->has( '1.0' ) );
 		$this->assertFalse( $found->has( 'one' ) );
 	}
+
+	public function testAFieldWithAKeyInUseTakesTheNextFreeOneAndReplacesNone() {
+		$found = new FoundTemplateFields();
+		$first = $this->createMock( TemplateField::class );
+		$second = $this->createMock( TemplateField::class );
+		$third = $this->createMock( TemplateField::class );
+
+		$found->add( 'A', 3, $first );
+		$found->add( 'B', 3, $second );
+		$found->add( 'C', 3, $third );
+
+		$this->assertSame( [ 3 => $first, 4 => $second, 5 => $third ], $found->fields() );
+	}
+
+	public function testAFieldWithANameAsItsKeyKeepsIt() {
+		$found = new FoundTemplateFields();
+		$field = $this->createMock( TemplateField::class );
+
+		$found->add( 'Title', 'Title', $field );
+
+		$this->assertSame( [ 'Title' => $field ], $found->fields() );
+	}
 }

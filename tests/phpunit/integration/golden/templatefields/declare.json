@@ -1,6 +1,6 @@
 [
     {
-        "key": 21,
+        "key": 15,
         "name": "Color",
         "label": "Color",
         "property": "Has color",
@@ -8,19 +8,19 @@
         "delimiter": null
     },
     {
-        "key": 33,
-        "name": "Z",
-        "label": "Z",
-        "property": "",
-        "list": null,
-        "delimiter": null
-    },
-    {
-        "key": 36,
+        "key": 31,
         "name": "Size",
         "label": "Size",
         "property": "Has size",
         "list": false,
+        "delimiter": null
+    },
+    {
+        "key": 50,
+        "name": "Z",
+        "label": "Z",
+        "property": "",
+        "list": null,
         "delimiter": null
     }
 ]

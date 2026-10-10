@@ -153,4 +153,18 @@ class TemplateFieldParserTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( [ 'AB', 'A' ], array_values( $names ) );
 	}
+
+	public function testAFieldWhoseNameStartsAnotherNameKeepsTheOrderOfTheText() {
+		$names = $this->names( new TemplateFieldParser(), '{{{AB|}}} {{{X|}}} {{{A|}}}' );
+
+		$this->assertSame( [ 'AB', 'X', 'A' ], array_values( $names ) );
+	}
+
+	public function testAFieldWhoseNameEndsAnotherNameKeepsTheOrderOfTheText() {
+		$parser = new TemplateFieldParser();
+
+		[ $position ] = $parser->propertyField( '{{{BA|}}} {{{A|}}}', 'A', 'Has a', false );
+
+		$this->assertSame( 13, $position );
+	}
 }

@@ -9,16 +9,16 @@
     },
     {
         "key": 13,
-        "name": "A",
-        "label": "A",
+        "name": "X",
+        "label": "X",
         "property": "",
         "list": null,
         "delimiter": null
     },
     {
         "key": 22,
-        "name": "ABC",
-        "label": "ABC",
+        "name": "A",
+        "label": "A",
         "property": "",
         "list": null,
         "delimiter": null

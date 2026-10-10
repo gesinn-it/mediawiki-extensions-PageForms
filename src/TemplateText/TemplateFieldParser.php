@@ -72,9 +72,7 @@ class TemplateFieldParser {
 	 * @param string $fieldName
 	 * @param string $propertyName
 	 * @param bool $isList
-	 * @return array [ the position of the field in the text, the TemplateField ]. The position is
-	 *  that of the name followed by "|", or if there is none that of the name followed by "}",
-	 *  as in "{{{Name}}}".
+	 * @return array [ the position of the field in the text, the TemplateField ]
 	 */
 	public function propertyField(
 		string $templateText, string $fieldName, string $propertyName, bool $isList
@@ -83,11 +81,22 @@ class TemplateFieldParser {
 			$fieldName, PFUtils::getContLang()->ucfirst( $fieldName ), $propertyName,
 			$isList
 		);
-		$position = stripos( $templateText, $fieldName . '|' );
-		if ( $position === false ) {
-			$position = stripos( $templateText, $fieldName . '}' );
+		return [ $this->positionOf( $templateText, $fieldName ), $templateField ];
+	}
+
+	/**
+	 * The position of the name of a field in the text, to put the fields in the order of the text.
+	 *
+	 * The name is looked for as the parameter "{{{Name|" or "{{{Name}}}", so that it is not found
+	 * inside another name that starts or ends the same. If the field is not a parameter of the
+	 * text (as in #declare), the name is looked for as it is.
+	 */
+	private function positionOf( string $templateText, string $fieldName ): int {
+		$pattern = '/{{{\s*(' . preg_quote( $fieldName, '/' ) . ')\s*[|}]/i';
+		if ( preg_match( $pattern, $templateText, $matches, PREG_OFFSET_CAPTURE ) ) {
+			return $matches[1][1];
 		}
-		return [ (int)$position, $templateField ];
+		return (int)stripos( $templateText, $fieldName );
 	}
 
 	private function findProperty(
@@ -195,7 +204,7 @@ class TemplateFieldParser {
 			if ( $fieldName !== '' && !$found->has( $fieldName ) ) {
 				$found->add(
 					$fieldName,
-					(int)stripos( $text, $fieldName ),
+					$this->positionOf( $text, $fieldName ),
 					TemplateField::create( $fieldName, PFUtils::getContLang()->ucfirst( $fieldName ) )
 				);
 			}

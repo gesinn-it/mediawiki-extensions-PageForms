@@ -55,6 +55,7 @@ class TemplateFieldsCharacterizationTest extends MediaWikiIntegrationTestCase {
 		yield 'a-name-without-a-pipe-has-its-own-position' => [
 			"[[Has a::{{{A}}}]] [[Has b::{{{B}}}]] {{{C|}}}", null ];
 		yield 'a-name-that-starts-another-name' => [ '{{{AB|}}} {{{A|}}} {{{ABC|}}}', null ];
+		yield 'a-name-that-starts-another-name-keeps-the-order' => [ '{{{AB|}}} {{{X|}}} {{{A|}}}', null ];
 		yield 'names-that-are-loosely-equal-are-one-field' => [ "{{{1|}}} {{{01|}}} {{{1e1|}}} {{{10|}}}", null ];
 		yield 'a-label-is-capitalized' => [ "{{{first name|}}} [[Has surname::{{{surname|}}}]]", null ];
 		yield 'no-fields' => [ 'Just text.', null ];
