@@ -43,7 +43,6 @@ use WebRequest;
  * @ingroup PF
  */
 class FormPrinter {
-
 	/** Owned by InputTypeRegistry; FormPrinter delegates to it for all input-type lookups. */
 	private InputTypeRegistry $inputTypeRegistry;
 
@@ -123,18 +122,6 @@ class FormPrinter {
 
 	public function __isset( $name ) {
 		return $this->deprecatedHookTable( $name ) !== null;
-	}
-
-	private function unknownProperty( string $name ): LogicException {
-		return new LogicException( 'Undefined property: ' . static::class . "::\$$name" );
-	}
-
-	private function deprecatedHookTable( string $name ): ?DeprecatedHookTable {
-		if ( $name !== 'mInputTypeHooks' && $name !== 'mSemanticTypeHooks' ) {
-			return null;
-		}
-		wfDeprecated( __CLASS__ . "::\$$name", '2.3.0' );
-		return new DeprecatedHookTable( $this->inputTypeRegistry, $name === 'mSemanticTypeHooks' );
 	}
 
 	/**
@@ -374,6 +361,139 @@ class FormPrinter {
 	 */
 	public function getRestrictedInputs( string $form_def, ?int $form_id, User $user ): RestrictedInputs {
 		return $this->formDefParser->getRestrictedInputs( $form_def, $form_id, $user );
+	}
+
+	/**
+	 * This function is the real heart of the entire Page Forms
+	 * extension. It handles two main actions: (1) displaying a form on the
+	 * screen, given a form definition and possibly page contents (if an
+	 * existing page is being edited); and (2) creating actual page
+	 * contents, if the form was already submitted by the user.
+	 *
+	 * It also does some related tasks, like figuring out the page name (if
+	 * only a page formula exists).
+	 * @param string $form_def
+	 * @param bool $form_submitted
+	 * @param bool $source_is_page
+	 * @param int|null $form_id
+	 * @param string|null $existing_page_content
+	 * @param string|null $page_name
+	 * @param string|null $page_name_formula
+	 * @param bool $is_query
+	 * @param bool $is_embedded
+	 * @param bool $is_autocreate true when called by #formredlink with "create page"
+	 * @param array $autocreate_query query parameters from #formredlink
+	 * @param User|null $user
+	 * @param WebRequest|null $request
+	 * @return FormRenderResult
+	 * @throws FatalError
+	 * @throws MWException
+	 */
+	public function render(
+		$form_def,
+		$form_submitted,
+		$source_is_page,
+		$form_id = null,
+		$existing_page_content = null,
+		$page_name = null,
+		$page_name_formula = null,
+		$is_query = false,
+		$is_embedded = false,
+		$is_autocreate = false,
+		$autocreate_query = [],
+		$user = null,
+		$request = null
+	): FormRenderResult {
+		global $wgOut, $wgPageFormsScriptPath;
+
+		$renderRequest = new FormRenderRequest(
+			(bool)$form_submitted,
+			(bool)$source_is_page,
+			(bool)$is_query,
+			(bool)$is_embedded,
+			(bool)$is_autocreate,
+			$autocreate_query,
+			$page_name,
+			$page_name_formula,
+			$form_id !== null ? (int)$form_id : null,
+			$existing_page_content,
+			$request ?? RequestContext::getMain()->getRequest(),
+			$user ?? RequestContext::getMain()->getUser(),
+			$wgOut,
+			(string)$wgPageFormsScriptPath
+		);
+		$counters = new FormCounters();
+		FormCounters::begin( $counters );
+		try {
+			return $this->renderInContext( $form_def, $renderRequest, $counters );
+		} finally {
+			$counters->mirrorToGlobals();
+			FormCounters::end();
+		}
+	}
+
+	/**
+	 * Same as render(), with the result as a list.
+	 *
+	 * @deprecated use render(), which returns a named result.
+	 * @param string $form_def
+	 * @param bool $form_submitted
+	 * @param bool $source_is_page
+	 * @param int|null $form_id
+	 * @param string|null $existing_page_content
+	 * @param string|null $page_name
+	 * @param string|null $page_name_formula
+	 * @param bool $is_query
+	 * @param bool $is_embedded
+	 * @param bool $is_autocreate
+	 * @param array $autocreate_query
+	 * @param User|null $user
+	 * @param WebRequest|null $request
+	 * @return array [ $form_text, $page_text, $form_page_title, $generated_page_name,
+	 *   $parserOutput, $runQueryFormAtTop ]
+	 * @throws FatalError
+	 * @throws MWException
+	 */
+	public function formHTML(
+		$form_def,
+		$form_submitted,
+		$source_is_page,
+		$form_id = null,
+		$existing_page_content = null,
+		$page_name = null,
+		$page_name_formula = null,
+		$is_query = false,
+		$is_embedded = false,
+		$is_autocreate = false,
+		$autocreate_query = [],
+		$user = null,
+		$request = null
+	) {
+		return $this->render(
+			$form_def, $form_submitted, $source_is_page, $form_id, $existing_page_content, $page_name,
+			$page_name_formula, $is_query, $is_embedded, $is_autocreate, $autocreate_query, $user, $request
+		)->toArray();
+	}
+
+	/**
+	 * Create the HTML to display this field within a form.
+	 */
+	public function formFieldHTML(
+		FormField $form_field, ?string $cur_value, Parser $parser, ?FormCounters $counters = null
+	): string {
+		return $this->formFieldHtmlBuilder->formFieldHTML( $form_field, $cur_value, $parser, $counters );
+	}
+
+	private function unknownProperty( string $name ): LogicException {
+		return new LogicException( 'Undefined property: ' . static::class . "::\$$name" );
+	}
+
+	private function deprecatedHookTable( string $name ): ?DeprecatedHookTable {
+		if ( $name !== 'mInputTypeHooks' && $name !== 'mSemanticTypeHooks' ) {
+			return null;
+		}
+		wfDeprecated( __CLASS__ . "::\$$name", '2.3.0' );
+		return new DeprecatedHookTable( $this->inputTypeRegistry, $name === 'mSemanticTypeHooks' );
 	}
 
 	/**
@@ -647,75 +767,6 @@ class FormPrinter {
 	}
 
 	/**
-	 * This function is the real heart of the entire Page Forms
-	 * extension. It handles two main actions: (1) displaying a form on the
-	 * screen, given a form definition and possibly page contents (if an
-	 * existing page is being edited); and (2) creating actual page
-	 * contents, if the form was already submitted by the user.
-	 *
-	 * It also does some related tasks, like figuring out the page name (if
-	 * only a page formula exists).
-	 * @param string $form_def
-	 * @param bool $form_submitted
-	 * @param bool $source_is_page
-	 * @param int|null $form_id
-	 * @param string|null $existing_page_content
-	 * @param string|null $page_name
-	 * @param string|null $page_name_formula
-	 * @param bool $is_query
-	 * @param bool $is_embedded
-	 * @param bool $is_autocreate true when called by #formredlink with "create page"
-	 * @param array $autocreate_query query parameters from #formredlink
-	 * @param User|null $user
-	 * @param WebRequest|null $request
-	 * @return FormRenderResult
-	 * @throws FatalError
-	 * @throws MWException
-	 */
-	public function render(
-		$form_def,
-		$form_submitted,
-		$source_is_page,
-		$form_id = null,
-		$existing_page_content = null,
-		$page_name = null,
-		$page_name_formula = null,
-		$is_query = false,
-		$is_embedded = false,
-		$is_autocreate = false,
-		$autocreate_query = [],
-		$user = null,
-		$request = null
-	): FormRenderResult {
-		global $wgOut, $wgPageFormsScriptPath;
-
-		$renderRequest = new FormRenderRequest(
-			(bool)$form_submitted,
-			(bool)$source_is_page,
-			(bool)$is_query,
-			(bool)$is_embedded,
-			(bool)$is_autocreate,
-			$autocreate_query,
-			$page_name,
-			$page_name_formula,
-			$form_id !== null ? (int)$form_id : null,
-			$existing_page_content,
-			$request ?? RequestContext::getMain()->getRequest(),
-			$user ?? RequestContext::getMain()->getUser(),
-			$wgOut,
-			(string)$wgPageFormsScriptPath
-		);
-		$counters = new FormCounters();
-		FormCounters::begin( $counters );
-		try {
-			return $this->renderInContext( $form_def, $renderRequest, $counters );
-		} finally {
-			$counters->mirrorToGlobals();
-			FormCounters::end();
-		}
-	}
-
-	/**
 	 * The body of render(), run with $counters as the current counters.
 	 *
 	 * @param string $form_def
@@ -770,57 +821,4 @@ class FormPrinter {
 			$context->generatedPageName, $finalized->getParserOutput(), $context->runQueryFormAtTop
 		);
 	}
-
-	/**
-	 * Same as render(), with the result as a list.
-	 *
-	 * @deprecated use render(), which returns a named result.
-	 * @param string $form_def
-	 * @param bool $form_submitted
-	 * @param bool $source_is_page
-	 * @param int|null $form_id
-	 * @param string|null $existing_page_content
-	 * @param string|null $page_name
-	 * @param string|null $page_name_formula
-	 * @param bool $is_query
-	 * @param bool $is_embedded
-	 * @param bool $is_autocreate
-	 * @param array $autocreate_query
-	 * @param User|null $user
-	 * @param WebRequest|null $request
-	 * @return array [ $form_text, $page_text, $form_page_title, $generated_page_name,
-	 *   $parserOutput, $runQueryFormAtTop ]
-	 * @throws FatalError
-	 * @throws MWException
-	 */
-	public function formHTML(
-		$form_def,
-		$form_submitted,
-		$source_is_page,
-		$form_id = null,
-		$existing_page_content = null,
-		$page_name = null,
-		$page_name_formula = null,
-		$is_query = false,
-		$is_embedded = false,
-		$is_autocreate = false,
-		$autocreate_query = [],
-		$user = null,
-		$request = null
-	) {
-		return $this->render(
-			$form_def, $form_submitted, $source_is_page, $form_id, $existing_page_content, $page_name,
-			$page_name_formula, $is_query, $is_embedded, $is_autocreate, $autocreate_query, $user, $request
-		)->toArray();
-	}
-
-	/**
-	 * Create the HTML to display this field within a form.
-	 */
-	public function formFieldHTML(
-		FormField $form_field, ?string $cur_value, Parser $parser, ?FormCounters $counters = null
-	): string {
-		return $this->formFieldHtmlBuilder->formFieldHTML( $form_field, $cur_value, $parser, $counters );
-	}
-
 }
