@@ -15,7 +15,7 @@ use MediaWiki\Extension\PageForms\FormDefinition\StandardInputSpec;
 use MediaWiki\Extension\PageForms\FormRender\ElementHandler;
 use MediaWiki\Extension\PageForms\FormRender\ElementHandlerException;
 use MediaWiki\Extension\PageForms\FormRender\FinalizedForm;
-use MediaWiki\Extension\PageForms\FormRender\PageEditability;
+use MediaWiki\Extension\PageForms\FormRender\PageEditabilityResolver;
 use MediaWiki\Extension\PageForms\FormRender\PageTextAssembler;
 use MediaWiki\Extension\PageForms\FormRender\SectionLayout;
 use MWException;
@@ -66,6 +66,8 @@ class FormPrinter {
 
 	private RenderServices $services;
 
+	private PageEditabilityResolver $pageEditabilityResolver;
+
 	/**
 	 * Build the printer from its collaborators and do nothing else: FormPrinterFactory::create()
 	 * builds the default ones and runs the setup hook.
@@ -89,6 +91,7 @@ class FormPrinter {
 		$this->pageTextAssembler = $parts->pageTextAssembler;
 		$this->elementHandlers = $parts->elementHandlers;
 		$this->services = $parts->services;
+		$this->pageEditabilityResolver = $parts->pageEditabilityResolver;
 		if ( $deprecatedRoute ) {
 			FormPrinterFactory::runSetupHook( $this, $this->services );
 		}
@@ -374,73 +377,6 @@ class FormPrinter {
 	}
 
 	/**
-	 * Resolve the title of the page (needed for permission testing even when the real
-	 * page name isn't known yet) and compute the edit-permission errors for formHTML().
-	 *
-	 * Also shows the page's previous deletion log, as a side effect, matching the
-	 * original inline behavior in formHTML().
-	 *
-	 * @param FormRenderRequest $request
-	 * @return PageEditability
-	 */
-	private function resolvePageTitleAndPermissions( FormRenderRequest $request ): PageEditability {
-		// Disable all form elements if user doesn't have edit
-		// permission - two different checks are needed, because
-		// editing permissions can be set in different ways.
-		// HACK - sometimes we don't know the page name in advance, but
-		// we still need to set a title here for testing permissions.
-		$placeholderTitle = static fn (): Title => Title::newFromText(
-			$request->webRequest->getVal( 'namespace' ) . ":Page Forms permissions test"
-		) ?? Title::makeTitle( NS_MAIN, 'Page Forms permissions test' );
-		if ( $request->isEmbedded || $request->isQuery ) {
-			// If this is an embedded form (probably a 'RunQuery') or we're in Special:RunQuery,
-			// just use the name of the actual page we're on.
-			$pageTitle = RequestContext::getMain()->getTitle() ?? $placeholderTitle();
-		} elseif ( $request->pageName === '' || $request->pageName === null ) {
-			$pageTitle = $placeholderTitle();
-		} else {
-			// $request->pageName may not be a syntactically valid title (e.g. it was
-			// generated from a page name formula, or came from an untrusted
-			// request value); fall back to the placeholder title used above for
-			// permission-testing purposes, which would otherwise fatal in
-			// getPermissionErrors() and other unguarded uses below.
-			$pageTitle = Title::newFromText( $request->pageName ) ?? $placeholderTitle();
-		}
-
-		global $wgOut;
-		// Show previous set of deletions for this page, if it's been
-		// deleted before.
-		if ( !$request->formSubmitted &&
-			( $pageTitle && !$pageTitle->exists() &&
-			$request->pageNameFormula === null )
-		) {
-			$this->showDeletionLog( $wgOut, $pageTitle );
-		}
-
-		$permissionErrors = [];
-		$userCanEditPage = true;
-		// Unfortunately, we can't just call userCan() or its
-		// equivalent here because it seems to ignore the setting
-		// "$wgEmailConfirmToEdit = true;". Instead, we'll just get the
-		// permission errors from the start, and use those to determine
-		// whether the page is editable.
-		if ( !$request->isQuery ) {
-			$permissionErrors = $this->services->permissionManager()
-				->getPermissionErrors( 'edit', $request->user, $pageTitle );
-			$readOnlyMode = $this->services->readOnlyMode();
-			if ( $readOnlyMode->isReadOnly() ) {
-				$permissionErrors = [ [ 'readonlytext', [ $readOnlyMode->getReason() ] ] ];
-			}
-			$userCanEditPage = count( $permissionErrors ) == 0;
-			$this->services->hookContainer()->run(
-				'PageForms::UserCanEditPage', [ $pageTitle, &$userCanEditPage ]
-			);
-		}
-
-		return new PageEditability( $pageTitle, $permissionErrors, $userCanEditPage );
-	}
-
-	/**
 	 * Finish assembling $form_text and $page_text after the per-section tag-dispatch
 	 * loop in formHTML() completes: resolve free text, substitute it into both the
 	 * form and the page text, add the warning/form-bottom/hidden-fields boilerplate,
@@ -496,6 +432,19 @@ class FormPrinter {
 		}
 
 		return new FinalizedForm( $form_text, $pageTextResult->getPageText(), $form_page_title, $parserOutput );
+	}
+
+	/**
+	 * Show the previous set of deletions for the page, if it's been deleted before.
+	 *
+	 * @param FormRenderRequest $request
+	 * @param Title $pageTitle
+	 */
+	private function showDeletionLogOfNewPage( FormRenderRequest $request, Title $pageTitle ): void {
+		global $wgOut;
+		if ( !$request->formSubmitted && !$pageTitle->exists() && $request->pageNameFormula === null ) {
+			$this->showDeletionLog( $wgOut, $pageTitle );
+		}
 	}
 
 	/**
@@ -778,8 +727,9 @@ class FormPrinter {
 		$form_def, FormRenderRequest $request, FormCounters $counters
 	): FormRenderResult {
 		// Disable all form elements if user doesn't have edit permission.
-		$editability = $this->resolvePageTitleAndPermissions( $request );
+		$editability = $this->pageEditabilityResolver->resolve( $request );
 		$pageTitle = $editability->getPageTitle();
+		$this->showDeletionLogOfNewPage( $request, $pageTitle );
 		$formIsDisabled = !( $request->isQuery || $editability->userCanEdit() );
 
 		$formText = $this->openForm( $request, $editability->getPermissionErrors(), $formIsDisabled );

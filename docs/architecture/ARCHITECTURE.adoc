@@ -189,7 +189,7 @@ FormPrinter
 ----
 
 `FormPrinter::render()` collects what the caller asked for in a read-only `FormRenderRequest`,
-resolves the page title and the edit permissions, and creates a `FormRenderContext` from them (the
+resolves the page title and the edit permissions (`PageEditabilityResolver`), and creates a `FormRenderContext` from them (the
 request, the page title, the parser, the counters and everything the elements build up while they
 are processed). It then goes through the elements of the form definition. One `ElementHandler` in `src/FormRender/` handles each type of element
 (`TemplateHandler`, `FieldHandler`, `EndTemplateHandler`, `StandardInputHandler`, `SectionHandler`,

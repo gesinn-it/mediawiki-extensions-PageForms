@@ -6,6 +6,7 @@ namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormRender\ElementHandler;
+use MediaWiki\Extension\PageForms\FormRender\PageEditabilityResolver;
 use MediaWiki\Extension\PageForms\FormRender\PageTextAssembler;
 use MediaWiki\Extension\PageForms\FormRender\SectionLayout;
 
@@ -31,6 +32,7 @@ final class FormPrinterParts {
 	 * @param array<class-string<FormElement>, ElementHandler> $elementHandlers The handler of each type
 	 *   of form definition element
 	 * @param RenderServices $services
+	 * @param PageEditabilityResolver $pageEditabilityResolver
 	 */
 	public function __construct(
 		public readonly InputTypeRegistry $inputTypeRegistry,
@@ -42,7 +44,8 @@ final class FormPrinterParts {
 		public readonly SectionLayout $sectionLayout,
 		public readonly PageTextAssembler $pageTextAssembler,
 		public readonly array $elementHandlers,
-		public readonly RenderServices $services
+		public readonly RenderServices $services,
+		public readonly PageEditabilityResolver $pageEditabilityResolver
 	) {
 	}
 }

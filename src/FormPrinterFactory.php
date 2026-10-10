@@ -17,6 +17,7 @@ use MediaWiki\Extension\PageForms\FormRender\ElementHandler;
 use MediaWiki\Extension\PageForms\FormRender\EndTemplateHandler;
 use MediaWiki\Extension\PageForms\FormRender\FieldHandler;
 use MediaWiki\Extension\PageForms\FormRender\InfoHandler;
+use MediaWiki\Extension\PageForms\FormRender\PageEditabilityResolver;
 use MediaWiki\Extension\PageForms\FormRender\PageTextAssembler;
 use MediaWiki\Extension\PageForms\FormRender\SectionHandler;
 use MediaWiki\Extension\PageForms\FormRender\SectionLayout;
@@ -130,7 +131,8 @@ class FormPrinterFactory {
 			),
 			new PageTextAssembler( $services->hookContainer() ),
 			$elementHandlers ?? self::newElementHandlers( $formFieldHtmlBuilder, $services ),
-			$services
+			$services,
+			new PageEditabilityResolver( $services )
 		);
 	}
 
