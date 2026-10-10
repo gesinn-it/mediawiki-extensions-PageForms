@@ -88,5 +88,5 @@ only for a change that is meant.
 
 `tests/phpunit/integration/src/TemplateFieldsCharacterizationTest.php` does the same for the
 reverse, the fields that `TemplateFieldParser` finds in the text of a template, with snapshots in
-`golden/templatefields/`. It records two quirks: a field whose name is not followed by `|` gets the
-key 0 and replaces another field with that key, and names that are numbers are compared loosely.
+`golden/templatefields/`. It records one quirk: names that are numbers are compared loosely, so `1` and
+`01` are one field.

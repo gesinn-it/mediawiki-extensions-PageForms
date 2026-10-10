@@ -20,11 +20,8 @@ if ( !class_exists( 'MediaWikiIntegrationTestCase' ) ) {
  *
  * The result for each text is kept as a snapshot in tests/phpunit/integration/golden/templatefields,
  * so that the structure of the code that reads the text can change without a change of what it
- * finds. The snapshots also hold two quirks on purpose, because a refactoring must not change them:
- *
- * - A field is found under the position of its name in the text, and a name that is not followed by
- *   "|" has no position, so that it gets the key 0 and replaces another field with that key.
- * - Names count as found already if they are loosely equal, so "1" and "01" are one field.
+ * finds. The snapshots also hold one quirk on purpose, because a refactoring must not change it:
+ * names count as found already if they are loosely equal, so "1" and "01" are one field.
  *
  * To record the snapshots again after an intended change, run the tests with the environment
  * variable PF_UPDATE_GOLDEN=1 and review the diff of the snapshot files.
@@ -55,8 +52,9 @@ class TemplateFieldsCharacterizationTest extends MediaWikiIntegrationTestCase {
 			"{{{Zebra|}}}\n[[Has apple::{{{Apple|}}}]]\n{{#arraymap:{{{Mango|}}}|,|x|[[Has mango::x]]}}", null ];
 		yield 'noinclude-and-includeonly-are-not-looked-at-here' => [
 			"<includeonly>{{{Shown|}}}</includeonly><noinclude>{{{Hidden|}}}</noinclude>", null ];
-		yield 'a-name-without-a-pipe-has-no-position' => [
+		yield 'a-name-without-a-pipe-has-its-own-position' => [
 			"[[Has a::{{{A}}}]] [[Has b::{{{B}}}]] {{{C|}}}", null ];
+		yield 'a-name-that-starts-another-name' => [ '{{{AB|}}} {{{A|}}} {{{ABC|}}}', null ];
 		yield 'names-that-are-loosely-equal-are-one-field' => [ "{{{1|}}} {{{01|}}} {{{1e1|}}} {{{10|}}}", null ];
 		yield 'a-label-is-capitalized' => [ "{{{first name|}}} [[Has surname::{{{surname|}}}]]", null ];
 		yield 'no-fields' => [ 'Just text.', null ];

@@ -72,7 +72,9 @@ class TemplateFieldParser {
 	 * @param string $fieldName
 	 * @param string $propertyName
 	 * @param bool $isList
-	 * @return array [ the position of the field in the text, the TemplateField ]
+	 * @return array [ the position of the field in the text, the TemplateField ]. The position is
+	 *  that of the name followed by "|", or if there is none that of the name followed by "}",
+	 *  as in "{{{Name}}}".
 	 */
 	public function propertyField(
 		string $templateText, string $fieldName, string $propertyName, bool $isList
@@ -81,7 +83,11 @@ class TemplateFieldParser {
 			$fieldName, PFUtils::getContLang()->ucfirst( $fieldName ), $propertyName,
 			$isList
 		);
-		return [ (int)stripos( $templateText, $fieldName . '|' ), $templateField ];
+		$position = stripos( $templateText, $fieldName . '|' );
+		if ( $position === false ) {
+			$position = stripos( $templateText, $fieldName . '}' );
+		}
+		return [ (int)$position, $templateField ];
 	}
 
 	private function findProperty(

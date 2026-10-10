@@ -27,10 +27,15 @@ class FoundTemplateFields {
 
 	/**
 	 * @param string $fieldName
-	 * @param int|string $key The position of the field in the text of the template, or its name
+	 * @param int|string $key The position of the field in the text of the template, or its name.
+	 *  If another field has the position already, the field gets the next free one, so that it
+	 *  follows that field and replaces none.
 	 * @param TemplateField $field
 	 */
 	public function add( string $fieldName, $key, TemplateField $field ): void {
+		while ( is_int( $key ) && isset( $this->fields[$key] ) ) {
+			$key++;
+		}
 		$this->fields[$key] = $field;
 		$this->names[] = $fieldName;
 	}

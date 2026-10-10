@@ -1,6 +1,14 @@
 [
     {
-        "key": 0,
+        "key": 12,
+        "name": "A",
+        "label": "A",
+        "property": "Has a",
+        "list": false,
+        "delimiter": null
+    },
+    {
+        "key": 31,
         "name": "B",
         "label": "B",
         "property": "Has b",

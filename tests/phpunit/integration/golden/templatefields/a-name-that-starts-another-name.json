@@ -1,0 +1,26 @@
+[
+    {
+        "key": 3,
+        "name": "AB",
+        "label": "AB",
+        "property": "",
+        "list": null,
+        "delimiter": null
+    },
+    {
+        "key": 4,
+        "name": "A",
+        "label": "A",
+        "property": "",
+        "list": null,
+        "delimiter": null
+    },
+    {
+        "key": 22,
+        "name": "ABC",
+        "label": "ABC",
+        "property": "",
+        "list": null,
+        "delimiter": null
+    }
+]

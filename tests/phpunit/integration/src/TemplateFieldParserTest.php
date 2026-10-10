@@ -101,10 +101,10 @@ class TemplateFieldParserTest extends MediaWikiIntegrationTestCase {
 		$this->assertTrue( $field->isList() );
 	}
 
-	public function testAFieldWithoutAPipeAfterItsNameGetsThePositionZero() {
+	public function testPropertyFieldWithoutAPipeAfterTheNameGetsThePositionOfTheName() {
 		[ $position ] = ( new TemplateFieldParser() )->propertyField( '{{{Tags}}}', 'Tags', 'Has tag', false );
 
-		$this->assertSame( 0, $position );
+		$this->assertSame( 3, $position );
 	}
 
 	public function testATextThatIsTooComplexIsReportedAndNotThrown() {
@@ -133,5 +133,24 @@ class TemplateFieldParserTest extends MediaWikiIntegrationTestCase {
 		}
 
 		$this->assertIsArray( $fields );
+	}
+
+	public function testTwoFieldsWithoutAPipeAfterTheirNamesAreBothFound() {
+		$names = $this->names( new TemplateFieldParser(), '[[Has a::{{{A}}}]] [[Has b::{{{B}}}]]' );
+
+		$this->assertSame( [ 'A', 'B' ], array_values( $names ) );
+	}
+
+	public function testAFieldWithoutAPipeKeepsThePositionOfItsName() {
+		$this->assertSame(
+			[ 12 => 'A' ],
+			$this->names( new TemplateFieldParser(), '[[Has a::{{{A}}}]]' )
+		);
+	}
+
+	public function testAFieldWhoseNameStartsAnotherNameIsNotLost() {
+		$names = $this->names( new TemplateFieldParser(), '{{{AB|}}} {{{A|}}}' );
+
+		$this->assertSame( [ 'AB', 'A' ], array_values( $names ) );
 	}
 }
