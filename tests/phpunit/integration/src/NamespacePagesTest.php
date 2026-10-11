@@ -75,6 +75,13 @@ class NamespacePagesTest extends MediaWikiIntegrationTestCase {
 		$this->assertNotContains( 'PFNamespacePagesTestHelp', $titles );
 	}
 
+	public function testGetReportsAnUnknownNamespaceInsteadOfListingTheMainNamespace(): void {
+		$this->expectException( MWException::class );
+		$this->expectExceptionMessage( 'PFNamespacePagesTestNoSuchNamespace' );
+
+		NamespacePages::get( 'PFNamespacePagesTestNoSuchNamespace' );
+	}
+
 	public function testGetFindsTheNamespaceByItsNameInAnyCase(): void {
 		$titles = array_keys( NamespacePages::get( 'template' ) );
 

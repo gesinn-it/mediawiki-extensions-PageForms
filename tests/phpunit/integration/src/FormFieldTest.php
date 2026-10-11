@@ -235,9 +235,9 @@ class FormFieldTest extends TestCase {
 				[ 'PFTestFormFieldCategory01', [] ],
 			],
 			'values from namespace' => [
-				[ '', '', 'values from namespace=PFTestFormFieldNamespace01' ],
+				[ '', '', 'values from namespace=Help' ],
 				static fn ( FormField $field ) => $field->getFieldArgs()['values from namespace'],
-				'PFTestFormFieldNamespace01',
+				'Help',
 			],
 			'unique for category' => [
 				[ '', '', 'unique for category=PFTestFormFieldUniqueCategory01' ],
@@ -881,7 +881,7 @@ class FormFieldTest extends TestCase {
 		// without throwing, rather than depending on a real SMW store lookup.
 		$tag_components = [
 			'', 'test_field',
-			'values from namespace=PFTestFormFieldNS01',
+			'values from namespace=Help',
 			'values=val1;val2',
 			'delimiter=;',
 			'mapping property=PFTestFormFieldMappingProp01',
@@ -896,7 +896,7 @@ class FormFieldTest extends TestCase {
 		);
 
 		$this->assertSame(
-			'PFTestFormFieldNS01', $formField->getFieldArgs()['values from namespace']
+			'Help', $formField->getFieldArgs()['values from namespace']
 		);
 		$this->assertFalse( $formField->getUseDisplayTitle() );
 	}

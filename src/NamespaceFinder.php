@@ -17,12 +17,16 @@ class NamespaceFinder {
 	/**
 	 * Get the exact canonical namespace string, given a user-created string
 	 *
+	 * A string that is not the name of a namespace is returned unchanged: "Foo:ABC" is a page of the
+	 * main namespace, whose blank namespace text must not be taken for the name.
+	 *
 	 * @param string $namespaceStr
 	 * @return string
 	 */
 	public static function standardize( string $namespaceStr ): string {
 		$pageValue = PageValue::newFromText( "$namespaceStr:ABC" );
-		return $pageValue ? $pageValue->getNamespaceText() : $namespaceStr;
+		$namespaceText = $pageValue ? $pageValue->getNamespaceText() : '';
+		return $namespaceText === '' ? $namespaceStr : $namespaceText;
 	}
 
 	/**

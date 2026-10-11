@@ -14,6 +14,13 @@ class NamespaceFinderTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 'Help', NamespaceFinder::standardize( 'HELP' ) );
 	}
 
+	public function testStandardizeKeepsTheNameOfAMissingNamespace(): void {
+		$name = 'PFNamespaceFinderNoSuchNamespace';
+
+		$this->assertSame( $name, NamespaceFinder::standardize( $name ) );
+		$this->assertSame( $name, NamespaceFinder::normalize( $name ) );
+	}
+
 	public function testNormalizeTurnsMainIntoTheBlankName(): void {
 		$this->assertSame( '', NamespaceFinder::normalize( 'Main' ) );
 		$this->assertSame( '', NamespaceFinder::normalize( 'main' ) );
