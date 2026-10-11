@@ -101,15 +101,23 @@ the fields whose value is a label that has to be mapped back (`mapping template`
 Used by `FormPrinter::render()`; they mix structure, request state and values.
 
 * `TemplateInForm` — a template used within a form: mapping template parameters to
-  form fields, template multiplicity, template-level configuration.
+  form fields, template multiplicity, template-level configuration. The values a
+  submitted form has for one instance are read by `TemplateSubmittedValues`.
 * `FormField` — a field of the form for the current request: field configuration,
   input type selection, default values, value sources and the possible values
   (including the labels of `mapping template` and `mapping property`, which
   `MappingLabels` provides). It does not build HTML and does not write form
-  definition wikitext. `FormField::newFromFormFieldTag()` reads a `FieldSpec` in named
-  steps (template field, flags, arguments, possible values, delimiter, semantic property,
-  mapping, input name); the one side effect on its arguments is that it clears the state of
-  the parser it is given.
+  definition wikitext. `FormField::newFromFormFieldTag()` creates the field and
+  `FormFieldTagReader` reads a `FieldSpec` into it in named steps (template field, flags,
+  arguments, possible values, delimiter, semantic property, mapping, input name); the one
+  side effect on its arguments is that it clears the state of the parser it is given.
+  `FormFieldCurrentValue` determines the value the field has when the form is shown.
+* Sources of the values of a field (`values from ...`), chosen by `ValuesUtils` by their type:
+  `CategoryPages`, `NamespacePages`, `ConceptPages`, `QueryPages`, `PropertyValues`,
+  `WikidataValues` and `ExternalUrlValues`. `DisplayTitles` looks up display titles for them,
+  `AutocompleteSql` holds the SQL they share, `NamespaceFinder` finds a namespace by name and
+  `AutocompleteSourceCount` counts a source cheaply. `AutocompleteSettings` decides, from the
+  arguments of a field, whether its values are loaded into the form or fetched while the user types.
 * `FormInstanceField` — what belongs to one instance of a field in the form being
   rendered: the name of its input, whether it is disabled, and the possible values that are
   fetched later for `remote autocompletion`.
