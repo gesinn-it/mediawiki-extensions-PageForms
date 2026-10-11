@@ -12,6 +12,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - A form that a `PageForms::UserCanEditPage` hook handler denies editing no longer fails with an error; it is disabled and shows the generic "no permission" message [`c5101618`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/c5101618)
 - The "Minor edit" checkbox of a form is now honoured when the form is saved by `#autoedit` or the `pfautoedit` API; the edit of an existing page was always saved as a major edit before [`81502324`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/81502324)
 - `restricted` fields are no longer enforced by `#autoedit`, the `pfautoedit` API and form saves, as before 2.3.0: it only governs who may change a field in the form, and a page saved through the form no longer loses the values of its restricted fields
+- A section anchor that an extension sets in the `ArticleUpdateBeforeRedirect` hook is now also kept in the redirect after `#autoedit` or the `pfautoedit` API created a page; it was only kept after a page was updated [`da659852`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/da659852)
 
 ## [2.3.1] - 2026-10-09
 
