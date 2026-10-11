@@ -1928,4 +1928,75 @@ class PFAutoeditAPITest extends ApiTestCase {
 		$method->setAccessible( true );
 		$method->invoke( $module, $generatedTargetNameFormula, $targetContent );
 	}
+
+	// -------------------------------------------------------------------------
+	// handleSaveStatus – where a successful save redirects to
+	// -------------------------------------------------------------------------
+
+	/**
+	 * A save goes to the page of the "returnto" parameter instead of the saved page, whether the
+	 * saved page was created or updated.
+	 *
+	 * @dataProvider provideCreatedAndUpdated
+	 * @covers \PFAutoeditAPI::redirectTo
+	 */
+	public function testSaveRedirectsToTheReturnToPage( bool $targetExists ): void {
+		$formName = $this->createTestForm( 'AEHandleFormReturnTo' . (int)$targetExists );
+		$targetName = 'AEHandleTargetReturnTo' . (int)$targetExists;
+		if ( $targetExists ) {
+			$this->insertPage( $targetName, "{{AEStoreTpl\n|text=old\n}}\n" );
+		}
+		$this->insertPage( 'AEHandleReturnToPage', 'back here' );
+
+		$module = $this->executeStore( $formName, $targetName, [
+			'returnto' => 'AEHandleReturnToPage',
+			// "reload" purges the returnto page; the redirect is the same.
+			'reload' => '1',
+			'AEStoreTpl' => [ 'text' => 'new' ],
+		] );
+
+		$this->assertSame( 200, $module->getStatus(), json_encode( $module->getResult()->getResultData() ) );
+		$this->assertSame(
+			Title::newFromText( 'AEHandleReturnToPage' )->getFullURL(),
+			$module->getResult()->getResultData()['redirect']
+		);
+	}
+
+	/**
+	 * Without "returnto" a save goes to the saved page, and extensions can add to the query.
+	 *
+	 * @dataProvider provideCreatedAndUpdated
+	 * @covers \PFAutoeditAPI::redirectAfterCreate
+	 * @covers \PFAutoeditAPI::redirectAfterUpdate
+	 */
+	public function testSaveRedirectsToTheSavedPageWithTheQueryOfTheHook( bool $targetExists ): void {
+		$formName = $this->createTestForm( 'AEHandleFormQuery' . (int)$targetExists );
+		$targetName = 'AEHandleTargetQuery' . (int)$targetExists;
+		if ( $targetExists ) {
+			$this->insertPage( $targetName, "{{AEStoreTpl\n|text=old\n}}\n" );
+		}
+		$this->setTemporaryHook(
+			'ArticleUpdateBeforeRedirect',
+			static function ( $article, &$sectionanchor, &$extraQuery ) {
+				$extraQuery = 'aehook=1';
+			}
+		);
+
+		$module = $this->executeStore( $formName, $targetName, [ 'AEStoreTpl' => [ 'text' => 'new' ] ] );
+
+		$this->assertSame( 200, $module->getStatus(), json_encode( $module->getResult()->getResultData() ) );
+		$redirect = $module->getResult()->getResultData()['redirect'];
+		$this->assertStringContainsString( 'aehook=1', $redirect );
+		$this->assertSame(
+			Title::newFromText( $targetName )->getFullURL( 'aehook=1' ),
+			$redirect
+		);
+	}
+
+	public static function provideCreatedAndUpdated(): array {
+		return [
+			'page is created' => [ false ],
+			'page is updated' => [ true ],
+		];
+	}
 }

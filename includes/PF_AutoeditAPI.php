@@ -578,31 +578,13 @@ class PFAutoeditAPI extends ApiBase {
 	 * @param \Status $status
 	 * @param EditPage $editor
 	 * @param array $resultDetails
-	 * @return false|void Always false or void; the return value is not used
-	 *  by the caller (kept only because some branches historically returned
-	 *  false to mark a non-fatal outcome — see doStore()'s docblock).
 	 */
-	private function handleSaveStatus( \Status $status, EditPage $editor, array $resultDetails ) {
-		$title = $editor->getTitle();
-
+	private function handleSaveStatus( \Status $status, EditPage $editor, array $resultDetails ): void {
 		switch ( $status->value ) {
 			case EditPage::AS_HOOK_ERROR_EXPECTED:
 				// A hook function returned an error
-				// show normal Edit page
-
-				// remove Preview and Diff standard buttons from editor page
-				MediaWikiServices::getInstance()->getHookContainer()->register(
-					'EditPageBeforeEditButtons', static function ( &$editor, &$buttons, &$tabindex ){
-						foreach ( array_keys( $buttons ) as $key ) {
-							if ( $key !== 'save' ) {
-								unset( $buttons[$key] );
-							}
-						}
-					} );
-
-				$editor->showEditForm();
-				// success
-				return false;
+				$this->showEditFormWithSaveButtonOnly( $editor );
+				return;
 
 			case EditPage::AS_CONTENT_TOO_BIG:
 				// Content too big (> $wgMaxArticleSize)
@@ -628,7 +610,7 @@ class PFAutoeditAPI extends ApiBase {
 			case EditPage::AS_HOOK_ERROR:
 				// Article update aborted by a hook function
 				$this->logMessage( 'Article update aborted by a hook function', self::DEBUG );
-				return false;
+				return;
 
 			case EditPage::AS_PARSE_ERROR:
 				// Can't parse content
@@ -636,77 +618,13 @@ class PFAutoeditAPI extends ApiBase {
 
 			case EditPage::AS_SUCCESS_NEW_ARTICLE:
 				// Article successfully created
-				$query = $resultDetails['redirect'] ? 'redirect=no' : '';
-				$anchor = $resultDetails['sectionanchor'] ?? '';
-
-				// Give extensions a chance to modify URL query on create
-				$sectionanchor = null;
-				$extraQuery = null;
-				MediaWikiServices::getInstance()->getHookContainer()->run(
-					'ArticleUpdateBeforeRedirect', [ $editor->getArticle(), &$sectionanchor, &$extraQuery ]
-				);
-				// @phan-suppress-next-line PhanImpossibleCondition -- hook may set $extraQuery
-				if ( $extraQuery ) {
-					if ( $query ) {
-						$query .= '&' . $extraQuery;
-					} else {
-						$query .= $extraQuery;
-					}
-				}
-
-				$redirect = $title->getFullURL( $query ) . $anchor;
-
-				$returnto = Title::newFromText( $this->getRequest()->getText( 'returnto' ) );
-				$reload = $this->getRequest()->getText( 'reload' );
-				if ( $returnto !== null ) {
-					// Purge the returnto page
-					$returntoPage = PFUtils::newWikiPageFromTitle( $returnto );
-					if ( $returntoPage->exists() && $reload ) {
-						$returntoPage->doPurge();
-					}
-					$redirect = $returnto->getFullURL();
-				}
-
-				$this->getOutput()->redirect( $redirect );
-				$this->getResult()->addValue( null, 'redirect', $redirect );
-				return false;
+				$this->redirectAfterCreate( $editor, $resultDetails );
+				return;
 
 			case EditPage::AS_SUCCESS_UPDATE:
 				// Article successfully updated
-				$extraQuery = '';
-				$sectionanchor = $resultDetails['sectionanchor'];
-
-				// Give extensions a chance to modify URL query on update
-				MediaWikiServices::getInstance()->getHookContainer()->run(
-					'ArticleUpdateBeforeRedirect', [ $editor->getArticle(), &$sectionanchor, &$extraQuery ]
-				);
-
-				if ( $resultDetails['redirect'] ) {
-					// @phan-suppress-next-line PhanRedundantValueComparison -- hook may set $extraQuery
-					if ( $extraQuery == '' ) {
-						$extraQuery = 'redirect=no';
-					} else {
-						$extraQuery = 'redirect=no&' . $extraQuery;
-					}
-				}
-
-				$redirect = $title->getFullURL( $extraQuery ) . $sectionanchor;
-
-				$returnto = Title::newFromText( $this->getRequest()->getText( 'returnto' ) );
-				$reload = $this->getRequest()->getText( 'reload' );
-				if ( $returnto !== null ) {
-					// Purge the returnto page
-					$returntoPage = PFUtils::newWikiPageFromTitle( $returnto );
-					if ( $returntoPage->exists() && $reload ) {
-						$returntoPage->doPurge();
-					}
-					$redirect = $returnto->getFullURL();
-				}
-
-				$this->getOutput()->redirect( $redirect );
-				$this->getResult()->addValue( null, 'redirect', $redirect );
-
-				return false;
+				$this->redirectAfterUpdate( $editor, $resultDetails );
+				return;
 
 			case EditPage::AS_BLANK_ARTICLE:
 				// user tried to create a blank page
@@ -714,8 +632,7 @@ class PFAutoeditAPI extends ApiBase {
 
 				$this->getOutput()->redirect( $editor->getContextTitle()->getFullURL() );
 				$this->getResult()->addValue( null, 'redirect', $editor->getContextTitle()->getFullURL() );
-
-				return false;
+				return;
 
 			case EditPage::AS_SPAM_ERROR:
 				// summary contained spam according to one of the regexes in $wgSummarySpamRegex
@@ -755,7 +672,7 @@ class PFAutoeditAPI extends ApiBase {
 			case EditPage::AS_NO_CREATE_PERMISSION:
 				// user tried to create editor page, but is not allowed to do
 				// that ( Title->usercan('create') == false )
-				$permission = $title->isTalkPage() ? 'createtalk' : 'createpage';
+				$permission = $editor->getTitle()->isTalkPage() ? 'createtalk' : 'createpage';
 				throw new PermissionsError( $permission );
 
 			default:
@@ -763,6 +680,88 @@ class PFAutoeditAPI extends ApiBase {
 				// happen if some other extension set the value.
 				throw new MWException( $status->getHTML() );
 		}
+	}
+
+	/**
+	 * Shows the normal edit page again after a hook function returned an error, with the
+	 * standard Preview and Diff buttons removed.
+	 */
+	private function showEditFormWithSaveButtonOnly( EditPage $editor ): void {
+		MediaWikiServices::getInstance()->getHookContainer()->register(
+			'EditPageBeforeEditButtons', static function ( &$editor, &$buttons, &$tabindex ){
+				foreach ( array_keys( $buttons ) as $key ) {
+					if ( $key !== 'save' ) {
+						unset( $buttons[$key] );
+					}
+				}
+			} );
+
+		$editor->showEditForm();
+	}
+
+	/**
+	 * Redirects to the page that was just created, or to the page of the "returnto" parameter.
+	 */
+	private function redirectAfterCreate( EditPage $editor, array $resultDetails ): void {
+		$query = $resultDetails['redirect'] ? 'redirect=no' : '';
+		$anchor = $resultDetails['sectionanchor'] ?? '';
+
+		// Give extensions a chance to modify URL query on create
+		$sectionanchor = null;
+		$extraQuery = null;
+		MediaWikiServices::getInstance()->getHookContainer()->run(
+			'ArticleUpdateBeforeRedirect', [ $editor->getArticle(), &$sectionanchor, &$extraQuery ]
+		);
+		// @phan-suppress-next-line PhanImpossibleCondition -- hook may set $extraQuery
+		if ( $extraQuery ) {
+			$query = $query === '' ? $extraQuery : $query . '&' . $extraQuery;
+		}
+
+		$this->redirectTo( $editor->getTitle()->getFullURL( $query ) . $anchor );
+	}
+
+	/**
+	 * Redirects to the page that was just updated, or to the page of the "returnto" parameter.
+	 */
+	private function redirectAfterUpdate( EditPage $editor, array $resultDetails ): void {
+		$extraQuery = '';
+		$sectionanchor = $resultDetails['sectionanchor'];
+
+		// Give extensions a chance to modify URL query on update
+		MediaWikiServices::getInstance()->getHookContainer()->run(
+			'ArticleUpdateBeforeRedirect', [ $editor->getArticle(), &$sectionanchor, &$extraQuery ]
+		);
+
+		if ( $resultDetails['redirect'] ) {
+			// @phan-suppress-next-line PhanRedundantValueComparison -- hook may set $extraQuery
+			if ( $extraQuery == '' ) {
+				$extraQuery = 'redirect=no';
+			} else {
+				$extraQuery = 'redirect=no&' . $extraQuery;
+			}
+		}
+
+		$this->redirectTo( $editor->getTitle()->getFullURL( $extraQuery ) . $sectionanchor );
+	}
+
+	/**
+	 * Sends the client to $redirect, or to the page of the "returnto" parameter if there is one.
+	 * That page is purged first if "reload" asks for it.
+	 */
+	private function redirectTo( string $redirect ): void {
+		$returnto = Title::newFromText( $this->getRequest()->getText( 'returnto' ) );
+		$reload = $this->getRequest()->getText( 'reload' );
+		if ( $returnto !== null ) {
+			// Purge the returnto page
+			$returntoPage = PFUtils::newWikiPageFromTitle( $returnto );
+			if ( $returntoPage->exists() && $reload ) {
+				$returntoPage->doPurge();
+			}
+			$redirect = $returnto->getFullURL();
+		}
+
+		$this->getOutput()->redirect( $redirect );
+		$this->getResult()->addValue( null, 'redirect', $redirect );
 	}
 
 	protected function finalizeResults() {
