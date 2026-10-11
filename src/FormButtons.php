@@ -165,6 +165,7 @@ class FormButtons {
 	 * @param string $type
 	 * @param array $attrs
 	 * @return ButtonInputWidget
+	 * @return-taint escaped The widget escapes its label and attributes when it is rendered.
 	 */
 	private static function buttonHTML( $name, $value, $type, $attrs ) {
 		$attrs += [
