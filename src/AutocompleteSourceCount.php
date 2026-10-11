@@ -123,7 +123,7 @@ class AutocompleteSourceCount {
 		// $limit"; callers only care whether the count exceeds $limit, not
 		// its exact size once it does.
 		$requestOptions->limit = $limit + 1;
-		return count( ValuesUtils::getSMWPropertyValues( $store, null, $propertyName, $requestOptions ) );
+		return count( PropertyValues::forSubject( $store, null, $propertyName, $requestOptions ) );
 	}
 
 	/**

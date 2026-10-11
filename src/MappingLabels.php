@@ -119,7 +119,7 @@ class MappingLabels {
 			$labels[$value] = $value;
 			$subject = Title::newFromText( (string)$value );
 			if ( $subject != null ) {
-				$vals = ValuesUtils::getSMWPropertyValues( $store, $subject, $propertyName );
+				$vals = PropertyValues::forSubject( $store, $subject, $propertyName );
 				if ( count( $vals ) > 0 ) {
 					$labels[$value] = trim( $vals[0] );
 				}

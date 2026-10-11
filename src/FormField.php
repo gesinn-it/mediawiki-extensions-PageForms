@@ -685,7 +685,7 @@ class FormField {
 			if ( $this->canDeferAutocompleteFetch( 'property', $valuesFromPropertyName, $display ) ) {
 				$this->mInstanceField->deferPossibleValues( 'property' );
 			} else {
-				$this->mPossibleValues = ValuesUtils::getAllValuesForProperty( $valuesFromPropertyName );
+				$this->mPossibleValues = PropertyValues::all( $valuesFromPropertyName );
 				$this->mUseDisplayTitle = is_string( array_key_first( $this->mPossibleValues ) );
 			}
 		}

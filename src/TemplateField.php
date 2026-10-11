@@ -151,11 +151,11 @@ class TemplateField {
 
 		$store ??= PFUtils::getSMWStore();
 		// this returns an array of objects
-		$allowed_values = ValuesUtils::getSMWPropertyValues( $store, $proptitle, "Allows value" );
+		$allowed_values = PropertyValues::forSubject( $store, $proptitle, "Allows value" );
 		if ( $allowed_values === [] ) {
-			$allowed_values = ValuesUtils::getSMWPropertyValues( $store, $proptitle, "Allows value list" );
+			$allowed_values = PropertyValues::forSubject( $store, $proptitle, "Allows value list" );
 		}
-		$label_formats = ValuesUtils::getSMWPropertyValues( $store, $proptitle, "Has field label format" );
+		$label_formats = PropertyValues::forSubject( $store, $proptitle, "Has field label format" );
 		$propValue = DIProperty::newFromUserLabel( $this->mSemanticProperty );
 		$this->mPropertyType = $propValue->findPropertyValueType();
 
