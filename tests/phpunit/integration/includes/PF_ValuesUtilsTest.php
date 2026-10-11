@@ -144,6 +144,14 @@ class PFValuesUtilsTest extends TestCase {
 			$this->markTestSkipped( 'SMW not installed' );
 		}
 
+		// SMW remembers the first wgLanguageCode it sees and refuses a later change (#4680). Whether
+		// that was already 'en' depends on the tests that ran before, so start from a clean value
+		// and put the old one back before the language is switched back.
+		$initLanguageCode = new ReflectionProperty( \SMW\NamespaceManager::class, 'initLanguageCode' );
+		$initLanguageCode->setAccessible( true );
+		$oldInitLanguageCode = $initLanguageCode->getValue();
+		$initLanguageCode->setValue( null, '' );
+
 		global $wgLanguageCode;
 		$oldLanguageCode = $wgLanguageCode;
 		$wgLanguageCode = 'de';
@@ -162,6 +170,7 @@ class PFValuesUtilsTest extends TestCase {
 			$this->assertSame( [ 'Category:Product Aspect Dimensions' ], $result );
 		} finally {
 			$wgLanguageCode = $oldLanguageCode;
+			$initLanguageCode->setValue( null, $oldInitLanguageCode );
 			MediaWiki\MediaWikiServices::getInstance()->resetServiceForTesting( 'ContentLanguage' );
 		}
 	}
