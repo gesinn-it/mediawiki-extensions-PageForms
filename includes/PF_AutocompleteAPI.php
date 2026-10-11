@@ -4,6 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\AutocompleteSql;
+use MediaWiki\Extension\PageForms\CategoryPages;
 use MediaWiki\Extension\PageForms\DisplayTitles;
 use MediaWiki\Extension\PageForms\FormCache;
 use MediaWiki\Extension\PageForms\NamespacePages;
@@ -52,7 +53,7 @@ class PFAutocompleteAPI extends ApiBase {
 		} elseif ( $wikidata !== null ) {
 			$data = WikidataValues::fetch( urlencode( $wikidata ), $substr );
 		} elseif ( $category !== null ) {
-			$data = ValuesUtils::getAllPagesForCategory( $category, 3, $substr );
+			$data = CategoryPages::get( $category, 3, $substr );
 			$map = $useDisplayTitle;
 		} elseif ( $concept !== null ) {
 			$data = ValuesUtils::getAllPagesForConcept( $concept, $substr );

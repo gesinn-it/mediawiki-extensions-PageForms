@@ -157,135 +157,6 @@ class ValuesUtils {
 	}
 
 	/**
-	 * Get all the pages that belong to a category and all its
-	 * subcategories, down a certain number of levels - heavily based on
-	 * SMW's SMWInlineQuery::includeSubcategories().
-	 *
-	 * @param string $top_category
-	 * @param int $num_levels
-	 * @param string|null $substring
-	 * @return string[]
-	 */
-	public static function getAllPagesForCategory( $top_category, $num_levels, $substring = null ) {
-		if ( $num_levels == 0 ) {
-			return [ $top_category ];
-		}
-		global $wgPageFormsMaxAutocompleteValues, $wgPageFormsUseDisplayTitle;
-
-		$db = PFUtils::getReplicaDB();
-		$top_category = str_replace( ' ', '_', $top_category );
-		$categories = [ $top_category ];
-		$checkcategories = [ $top_category ];
-		$pages = [];
-		$sortkeys = [];
-		for ( $level = $num_levels; $level > 0; $level-- ) {
-			$newcategories = [];
-			foreach ( $checkcategories as $category ) {
-				$tables = [ 'categorylinks', 'page' ];
-				$columns = [ 'page_title', 'page_namespace' ];
-				$conditions = [];
-				$conditions[] = 'cl_from = page_id';
-				$conditions['cl_to'] = $category;
-				if ( $wgPageFormsUseDisplayTitle ) {
-					[ $displayTables, $displayColumns, $join ] = AutocompleteSql::displayTitleAndSortKeyParts();
-					$tables = array_merge( $tables, $displayTables );
-					$columns = array_merge( $columns, $displayColumns );
-					if ( $substring != null ) {
-						$conditions[] = '((pp_displaytitle.pp_value IS NULL OR pp_displaytitle.pp_value = \'\') AND (' .
-							AutocompleteSql::conditionForColumn( 'page_title', $substring ) .
-							')) OR ' .
-							AutocompleteSql::conditionForColumn(
-								'pp_displaytitle.pp_value', $substring, false
-							) .
-							' OR page_namespace = ' . NS_CATEGORY;
-					}
-				} else {
-					$join = [];
-					if ( $substring != null ) {
-						$conditions[] = AutocompleteSql::conditionForColumn(
-							'page_title', $substring
-						) . ' OR page_namespace = ' . NS_CATEGORY;
-					}
-				}
-				// Make the query.
-				$res = $db->select(
-					$tables,
-					$columns,
-					$conditions,
-					__METHOD__,
-					$options = [
-						'ORDER BY' => 'cl_type, cl_sortkey',
-						'LIMIT' => $wgPageFormsMaxAutocompleteValues
-					],
-					$join );
-				if ( $res ) {
-					for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
-						if ( !array_key_exists( 'page_title', $row ) ) {
-							continue;
-						}
-						$page_namespace = $row['page_namespace'];
-						$page_name = $row[ 'page_title' ];
-						if ( $page_namespace == NS_CATEGORY ) {
-							if ( !in_array( $page_name, $categories ) ) {
-								$newcategories[] = $page_name;
-							}
-						} else {
-							$cur_title = Title::makeTitleSafe( $page_namespace, $page_name );
-							if ( $cur_title === null ) {
-								// This can happen if it's
-								// a "phantom" page, in a
-								// namespace that no longer exists.
-								continue;
-							}
-							$cur_value = $cur_title->getPrefixedText();
-							if ( !in_array( $cur_value, $pages ) ) {
-								$pages[ $cur_value . '@' ] = DisplayTitles::resolve(
-									$row['pp_displaytitle_value'] ?? null, $cur_value );
-								if ( array_key_exists( 'pp_defaultsort_value', $row ) &&
-									( $row[ 'pp_defaultsort_value' ] ) !== null ) {
-									$sortkeys[ $cur_value ] = $row[ 'pp_defaultsort_value'];
-								} else {
-									$sortkeys[ $cur_value ] = $cur_value;
-								}
-							}
-						}
-					}
-					$res->free();
-				}
-			}
-			if ( count( $newcategories ) == 0 ) {
-				return self::fixedMultiSort( $sortkeys, $pages );
-			} else {
-				$categories = array_merge( $categories, $newcategories );
-			}
-			$checkcategories = array_diff( $newcategories, [] );
-		}
-		return self::fixedMultiSort( $sortkeys, $pages );
-	}
-
-	/**
-	 * array_multisort() unfortunately messes up array keys that are
-	 * numeric - they get converted to 0, 1, etc. There are a few ways to
-	 * get around this, but I (Yaron) couldn't get those working, so
-	 * instead we're going with this hack, where all key values get
-	 * appended with a '@' before sorting, which is then removed after
-	 * sorting. It's inefficient, but it's probably good enough.
-	 *
-	 * @param string[] $sortkeys
-	 * @param string[] $pages
-	 * @return string[] a sorted version of $pages, sorted via $sortkeys
-	 */
-	public static function fixedMultiSort( $sortkeys, $pages ) {
-		array_multisort( $sortkeys, $pages );
-		$newPages = [];
-		foreach ( $pages as $key => $value ) {
-			$fixedKey = rtrim( $key, '@' );
-			$newPages[$fixedKey] = $value;
-		}
-		return $newPages;
-	}
-
-	/**
 	 * @param string $conceptName
 	 * @param string|null $substring
 	 * @return string[]
@@ -448,7 +319,7 @@ class ValuesUtils {
 		if ( $source_type == 'property' ) {
 			$names_array = self::getAllValuesForProperty( $source_name );
 		} elseif ( $source_type == 'category' ) {
-			$names_array = self::getAllPagesForCategory( $source_name, 10 );
+			$names_array = CategoryPages::get( $source_name, 10 );
 		} elseif ( $source_type == 'concept' ) {
 			$names_array = self::getAllPagesForConcept( $source_name );
 		} elseif ( $source_type == 'query' ) {
@@ -1020,5 +891,26 @@ class ValuesUtils {
 	 */
 	public static function standardizeNamespace( $namespaceStr ) {
 		return NamespaceFinder::standardize( $namespaceStr );
+	}
+
+	/**
+	 * @deprecated use CategoryPages::get()
+	 * @param string $top_category
+	 * @param int $num_levels
+	 * @param string|null $substring
+	 * @return string[]
+	 */
+	public static function getAllPagesForCategory( $top_category, $num_levels, $substring = null ) {
+		return CategoryPages::get( $top_category, $num_levels, $substring );
+	}
+
+	/**
+	 * @deprecated use CategoryPages::fixedMultiSort()
+	 * @param string[] $sortkeys
+	 * @param string[] $pages
+	 * @return string[]
+	 */
+	public static function fixedMultiSort( $sortkeys, $pages ) {
+		return CategoryPages::fixedMultiSort( $sortkeys, $pages );
 	}
 }
