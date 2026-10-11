@@ -6,6 +6,7 @@
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\PossibleValueList;
+use MediaWiki\Extension\PageForms\ValuesUtils;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -93,7 +94,7 @@ class PFTokensInput extends PFFormInput {
 			}
 		} else {
 			[ $autocompleteSettings, $remoteDataType, $delimiter ] =
-				PFValuesUtils::setAutocompleteValues( $other_args, true );
+				ValuesUtils::setAutocompleteValues( $other_args, true );
 		}
 
 		if ( is_array( $cur_value ) ) {
@@ -153,7 +154,7 @@ class PFTokensInput extends PFFormInput {
 
 		// This code adds predefined tokens in the form of <options>
 
-		$cur_values = PFValuesUtils::getValuesArray( $cur_value, $delimiter );
+		$cur_values = ValuesUtils::getValuesArray( $cur_value, $delimiter );
 		$optionsText = '';
 
 		$possible_values = $other_args['possible_values'];

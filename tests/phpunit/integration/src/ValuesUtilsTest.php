@@ -1,13 +1,14 @@
 <?php
 
 use MediaWiki\Extension\PageForms\FormCounters;
+use MediaWiki\Extension\PageForms\ValuesUtils;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \PFValuesUtils
+ * @covers \MediaWiki\Extension\PageForms\ValuesUtils
  * @group PF
  */
-class PFValuesUtilsTest extends TestCase {
+class ValuesUtilsTest extends TestCase {
 	private const GLOBAL_UNSET = '__PF_GLOBAL_UNSET__';
 
 	private $oldUseDisplayTitle;
@@ -48,7 +49,7 @@ class PFValuesUtilsTest extends TestCase {
 	}
 
 	/**
-	 * @covers \PFValuesUtils::maybeDisambiguateAutocompleteLabels
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::maybeDisambiguateAutocompleteLabels
 	 */
 	public function testMaybeDisambiguateAutocompleteLabelsOnlyForMappedSources() {
 		$labels = [
@@ -61,15 +62,15 @@ class PFValuesUtilsTest extends TestCase {
 		];
 
 		foreach ( [ 'category', 'concept', 'namespace', 'property' ] as $sourceType ) {
-			$this->assertSame( $expected, PFValuesUtils::maybeDisambiguateAutocompleteLabels( $labels, $sourceType ) );
+			$this->assertSame( $expected, ValuesUtils::maybeDisambiguateAutocompleteLabels( $labels, $sourceType ) );
 		}
 
 		$GLOBALS['wgPageFormsUseDisplayTitle'] = false;
-		$this->assertSame( $labels, PFValuesUtils::maybeDisambiguateAutocompleteLabels( $labels, 'category' ) );
+		$this->assertSame( $labels, ValuesUtils::maybeDisambiguateAutocompleteLabels( $labels, 'category' ) );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::getRemoteDataTypeAndPossiblySetAutocompleteValues
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getRemoteDataTypeAndPossiblySetAutocompleteValues
 	 */
 	public function testGetRemoteDataTypeAndPossiblySetAutocompleteValuesReturnsRemoteForCategoryWhenSmwAbsent() {
 		// When SMW is not installed, getSourceCount() returns null → always remote.
@@ -84,7 +85,7 @@ class PFValuesUtilsTest extends TestCase {
 			]
 		];
 
-		$remoteDataType = PFValuesUtils::getRemoteDataTypeAndPossiblySetAutocompleteValues(
+		$remoteDataType = ValuesUtils::getRemoteDataTypeAndPossiblySetAutocompleteValues(
 			'category',
 			'DisambiguationCategory',
 			$fieldArgs,
@@ -101,7 +102,7 @@ class PFValuesUtilsTest extends TestCase {
 	 * regardless of the actual sort order. This broke enum value ordering for input types
 	 * such as radiobutton, dropdown, and checkboxes when values came from a property.
 	 *
-	 * @covers \PFValuesUtils::getSMWPropertyValues
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getSMWPropertyValues
 	 */
 	public function testGetSMWPropertyValuesPreservesStoreOrderWithoutShortestFirstShift(): void {
 		if ( !class_exists( '\SMW\Store' ) ) {
@@ -121,7 +122,7 @@ class PFValuesUtilsTest extends TestCase {
 		$store->method( 'getPropertyValues' )->willReturn( [ $item1, $item2, $item3 ] );
 
 		// Act
-		$result = PFValuesUtils::getSMWPropertyValues( $store, null, 'IssueType' );
+		$result = ValuesUtils::getSMWPropertyValues( $store, null, 'IssueType' );
 
 		// Assert: store insertion order must be preserved — no shortest-first reordering.
 		$this->assertSame( [ '(0) Emergency', '(7) Bug', '(1) Security' ], $result );
@@ -137,7 +138,7 @@ class PFValuesUtilsTest extends TestCase {
 	 * value unable to match the value actually stored on the page, breaking
 	 * the DisplayTitle mapping done by addDisplayTitlesForPageValues().
 	 *
-	 * @covers \PFValuesUtils::getSMWPropertyValues
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getSMWPropertyValues
 	 */
 	public function testGetSMWPropertyValuesUsesCanonicalNamespaceNameOnNonEnglishWiki(): void {
 		if ( !class_exists( '\SMW\DIWikiPage' ) ) {
@@ -165,7 +166,7 @@ class PFValuesUtilsTest extends TestCase {
 			$store = $this->createMock( \SMW\Store::class );
 			$store->method( 'getPropertyValues' )->willReturn( [ $item ] );
 
-			$result = PFValuesUtils::getSMWPropertyValues( $store, null, 'AvailableProductAspectCategory' );
+			$result = ValuesUtils::getSMWPropertyValues( $store, null, 'AvailableProductAspectCategory' );
 
 			$this->assertSame( [ 'Category:Product Aspect Dimensions' ], $result );
 		} finally {
@@ -176,45 +177,45 @@ class PFValuesUtilsTest extends TestCase {
 	}
 
 	/**
-	 * @covers \PFValuesUtils::resolveDisplayTitle
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::resolveDisplayTitle
 	 */
 	public function testResolveDisplayTitleReturnsFallbackForNull(): void {
-		$this->assertSame( 'Page', PFValuesUtils::resolveDisplayTitle( null, 'Page' ) );
+		$this->assertSame( 'Page', ValuesUtils::resolveDisplayTitle( null, 'Page' ) );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::resolveDisplayTitle
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::resolveDisplayTitle
 	 */
 	public function testResolveDisplayTitleReturnsFallbackForBlankString(): void {
-		$this->assertSame( 'Page', PFValuesUtils::resolveDisplayTitle( '   ', 'Page' ) );
+		$this->assertSame( 'Page', ValuesUtils::resolveDisplayTitle( '   ', 'Page' ) );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::resolveDisplayTitle
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::resolveDisplayTitle
 	 */
 	public function testResolveDisplayTitleReturnsFallbackForTagsOnly(): void {
-		$this->assertSame( 'Page', PFValuesUtils::resolveDisplayTitle( '<b></b>', 'Page' ) );
+		$this->assertSame( 'Page', ValuesUtils::resolveDisplayTitle( '<b></b>', 'Page' ) );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::resolveDisplayTitle
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::resolveDisplayTitle
 	 */
 	public function testResolveDisplayTitleReturnsFallbackForNbspOnly(): void {
-		$this->assertSame( 'Page', PFValuesUtils::resolveDisplayTitle( '&#160;', 'Page' ) );
+		$this->assertSame( 'Page', ValuesUtils::resolveDisplayTitle( '&#160;', 'Page' ) );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::resolveDisplayTitle
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::resolveDisplayTitle
 	 */
 	public function testResolveDisplayTitleReturnsRawWhenSet(): void {
-		$this->assertSame( 'My Display Title', PFValuesUtils::resolveDisplayTitle( 'My Display Title', 'Page' ) );
+		$this->assertSame( 'My Display Title', ValuesUtils::resolveDisplayTitle( 'My Display Title', 'Page' ) );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::resolveDisplayTitle
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::resolveDisplayTitle
 	 */
 	public function testResolveDisplayTitleDecodesHtmlEntities(): void {
-		$this->assertSame( 'Hello "World"', PFValuesUtils::resolveDisplayTitle( 'Hello &quot;World&quot;', 'Page' ) );
+		$this->assertSame( 'Hello "World"', ValuesUtils::resolveDisplayTitle( 'Hello &quot;World&quot;', 'Page' ) );
 	}
 
 	/**
@@ -222,54 +223,54 @@ class PFValuesUtilsTest extends TestCase {
 	 * resolveDisplayTitle must return plain text, not raw HTML, so that Select2
 	 * renders the label correctly in the tokens dropdown.
 	 *
-	 * @covers \PFValuesUtils::resolveDisplayTitle
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::resolveDisplayTitle
 	 */
 	public function testResolveDisplayTitleStripsHtmlTagsFromParsedTitle(): void {
-		$this->assertSame( 'MyPage', PFValuesUtils::resolveDisplayTitle( '<i>MyPage</i>', 'Page' ) );
+		$this->assertSame( 'MyPage', ValuesUtils::resolveDisplayTitle( '<i>MyPage</i>', 'Page' ) );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::resolveDisplayTitle
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::resolveDisplayTitle
 	 */
 	public function testResolveDisplayTitleStripsNestedHtmlTags(): void {
-		$this->assertSame( 'My Page', PFValuesUtils::resolveDisplayTitle( '<b><i>My Page</i></b>', 'Page' ) );
+		$this->assertSame( 'My Page', ValuesUtils::resolveDisplayTitle( '<b><i>My Page</i></b>', 'Page' ) );
 	}
 
 	/**
 	 * HTML entities inside tagged content must be decoded to plain text.
 	 *
-	 * @covers \PFValuesUtils::resolveDisplayTitle
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::resolveDisplayTitle
 	 */
 	public function testResolveDisplayTitleDecodesEntitiesInsideHtmlTags(): void {
 		$raw = '<i>Hello &quot;World&quot;</i>';
-		$this->assertSame( 'Hello "World"', PFValuesUtils::resolveDisplayTitle( $raw, 'Page' ) );
+		$this->assertSame( 'Hello "World"', ValuesUtils::resolveDisplayTitle( $raw, 'Page' ) );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::disambiguateLabels
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::disambiguateLabels
 	 */
 	public function testDisambiguateLabelsReturnsUnchangedWhenNoDuplicates(): void {
 		$input = [ 'paris_fr' => 'Alpha', 'paris_tx' => 'Beta' ];
-		$result = PFValuesUtils::disambiguateLabels( $input );
+		$result = ValuesUtils::disambiguateLabels( $input );
 		$this->assertSame( 'Alpha', $result['paris_fr'] );
 		$this->assertSame( 'Beta', $result['paris_tx'] );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::disambiguateLabels
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::disambiguateLabels
 	 */
 	public function testDisambiguateLabelsSuffixesDuplicateValues(): void {
 		$input = [ 'Paris_FR' => 'Paris', 'Paris_TX' => 'Paris' ];
-		$result = PFValuesUtils::disambiguateLabels( $input );
+		$result = ValuesUtils::disambiguateLabels( $input );
 		$this->assertSame( 'Paris (Paris_FR)', $result['Paris_FR'] );
 		$this->assertSame( 'Paris (Paris_TX)', $result['Paris_TX'] );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::getAutocompleteValues
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getAutocompleteValues
 	 */
 	public function testGetAutocompleteValuesReturnsEmptyArrayWhenSourceIsNull(): void {
-		$this->assertSame( [], PFValuesUtils::getAutocompleteValues( null, 'property' ) );
+		$this->assertSame( [], ValuesUtils::getAutocompleteValues( null, 'property' ) );
 	}
 
 	/**
@@ -279,7 +280,7 @@ class PFValuesUtilsTest extends TestCase {
 	 * that 'remote autocompletion' callers stay remote rather than risking
 	 * an unbounded local fetch (see #187).
 	 *
-	 * @covers \PFValuesUtils::exceedsLocalAutocompleteThreshold
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::exceedsLocalAutocompleteThreshold
 	 */
 	public function testExceedsLocalAutocompleteThresholdReturnsTrueWhenSmwAbsent(): void {
 		if ( class_exists( '\SMW\StoreFactory' ) ) {
@@ -287,16 +288,16 @@ class PFValuesUtilsTest extends TestCase {
 		}
 
 		$this->assertTrue(
-			PFValuesUtils::exceedsLocalAutocompleteThreshold( 'category', 'PFTestValuesUtilsLargeCat01' )
+			ValuesUtils::exceedsLocalAutocompleteThreshold( 'category', 'PFTestValuesUtilsLargeCat01' )
 		);
 	}
 
 	/**
-	 * @covers \PFValuesUtils::getAutocompletionTypeAndSource
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getAutocompletionTypeAndSource
 	 * @dataProvider provideGetAutocompletionTypeAndSource
 	 */
 	public function testGetAutocompletionTypeAndSource( array $fieldArgs, array $expected ): void {
-		$this->assertSame( $expected, PFValuesUtils::getAutocompletionTypeAndSource( $fieldArgs ) );
+		$this->assertSame( $expected, ValuesUtils::getAutocompletionTypeAndSource( $fieldArgs ) );
 	}
 
 	public static function provideGetAutocompletionTypeAndSource(): array {
@@ -341,12 +342,12 @@ class PFValuesUtilsTest extends TestCase {
 	}
 
 	/**
-	 * @covers \PFValuesUtils::getAutocompletionTypeAndSource
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getAutocompletionTypeAndSource
 	 */
 	public function testGetAutocompletionTypeAndSourceForValues(): void {
 		FormCounters::current()->fieldNum = 7;
 		$fieldArgs = [ 'values' => 'a,b,c' ];
-		$this->assertSame( [ 'values', 'values-7' ], PFValuesUtils::getAutocompletionTypeAndSource( $fieldArgs ) );
+		$this->assertSame( [ 'values', 'values-7' ], ValuesUtils::getAutocompletionTypeAndSource( $fieldArgs ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -354,7 +355,7 @@ class PFValuesUtilsTest extends TestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @covers \PFValuesUtils::getAllValuesForProperty
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getAllValuesForProperty
 	 */
 	public function testGetAllValuesForPropertyReturnsSortedValues(): void {
 		if ( !class_exists( '\SMW\Store' ) ) {
@@ -363,13 +364,13 @@ class PFValuesUtilsTest extends TestCase {
 
 		$store = $this->mockStoreReturning( [ 'Zebra', 'Apple', 'Mango' ] );
 
-		$result = PFValuesUtils::getAllValuesForProperty( 'SomeProp', $store, 100, false );
+		$result = ValuesUtils::getAllValuesForProperty( 'SomeProp', $store, 100, false );
 
 		$this->assertSame( [ 'Apple', 'Mango', 'Zebra' ], $result );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::getAllValuesForProperty
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getAllValuesForProperty
 	 */
 	public function testGetAllValuesForPropertyRespectsMaxValues(): void {
 		if ( !class_exists( '\SMW\Store' ) ) {
@@ -386,11 +387,11 @@ class PFValuesUtilsTest extends TestCase {
 			)
 			->willReturn( [] );
 
-		PFValuesUtils::getAllValuesForProperty( 'SomeProp', $store, 2, false );
+		ValuesUtils::getAllValuesForProperty( 'SomeProp', $store, 2, false );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::getAllValuesForProperty
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getAllValuesForProperty
 	 */
 	public function testGetAllValuesForPropertySkipsDisplayTitleWhenDisabled(): void {
 		if ( !class_exists( '\SMW\Store' ) ) {
@@ -399,7 +400,7 @@ class PFValuesUtilsTest extends TestCase {
 
 		$store = $this->mockStoreReturning( [ 'Charlie', 'Alpha' ] );
 
-		$result = PFValuesUtils::getAllValuesForProperty( 'SomeProp', $store, 100, false );
+		$result = ValuesUtils::getAllValuesForProperty( 'SomeProp', $store, 100, false );
 
 		// Plain sorted array — no display-title keys
 		$this->assertSame( [ 'Alpha', 'Charlie' ], $result );
@@ -419,7 +420,7 @@ class PFValuesUtilsTest extends TestCase {
 	 * annotation count — otherwise it's wrongly pushed into remote
 	 * autocompletion even though the full value set would easily fit locally.
 	 *
-	 * @covers \PFValuesUtils::getSourceCount
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getSourceCount
 	 */
 	public function testGetSourceCountForPropertyCountsDistinctValuesNotAnnotations(): void {
 		if ( !class_exists( '\SMW\Store' ) ) {
@@ -432,13 +433,13 @@ class PFValuesUtilsTest extends TestCase {
 		// re-count annotations via a SomeProperty MODE_COUNT query.
 		$store = $this->mockStoreReturning( [ 'Apple', 'Banana', 'Cherry', 'Date', 'Elderberry' ] );
 
-		$count = PFValuesUtils::getSourceCount( 'property', 'Foo', $store );
+		$count = ValuesUtils::getSourceCount( 'property', 'Foo', $store );
 
 		$this->assertSame( 5, $count );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::getSourceCount
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getSourceCount
 	 */
 	public function testGetSourceCountForPropertyCapsAtLimitPlusOne(): void {
 		if ( !class_exists( '\SMW\Store' ) ) {
@@ -463,7 +464,7 @@ class PFValuesUtilsTest extends TestCase {
 				return $item;
 			}, [ 'A', 'B', 'C', 'D' ] ) );
 
-		$count = PFValuesUtils::getSourceCount( 'property', 'Foo', $store );
+		$count = ValuesUtils::getSourceCount( 'property', 'Foo', $store );
 
 		$this->assertSame( 4, $count );
 	}
@@ -472,7 +473,7 @@ class PFValuesUtilsTest extends TestCase {
 	 * A property with zero values (e.g. newly created, never annotated)
 	 * must count as 0, not be mistaken for "count unavailable → remote".
 	 *
-	 * @covers \PFValuesUtils::getSourceCount
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getSourceCount
 	 */
 	public function testGetSourceCountForPropertyReturnsZeroForUnusedProperty(): void {
 		if ( !class_exists( '\SMW\Store' ) ) {
@@ -481,7 +482,7 @@ class PFValuesUtilsTest extends TestCase {
 
 		$store = $this->mockStoreReturning( [] );
 
-		$count = PFValuesUtils::getSourceCount( 'property', 'Foo', $store );
+		$count = ValuesUtils::getSourceCount( 'property', 'Foo', $store );
 
 		$this->assertSame( 0, $count );
 	}
@@ -492,7 +493,7 @@ class PFValuesUtilsTest extends TestCase {
 	 * category's "member count" and "distinct value count" are the same
 	 * thing), i.e. the 'property' special-case must not affect other types.
 	 *
-	 * @covers \PFValuesUtils::getSourceCount
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getSourceCount
 	 */
 	public function testGetSourceCountForCategoryDoesNotUseDistinctValuePath(): void {
 		if ( !class_exists( '\SMW\Store' ) ) {
@@ -503,7 +504,7 @@ class PFValuesUtilsTest extends TestCase {
 		$store->expects( $this->never() )->method( 'getPropertyValues' );
 		$store->method( 'getQueryResult' )->willReturn( null );
 
-		PFValuesUtils::getSourceCount( 'category', 'SomeCategory', $store );
+		ValuesUtils::getSourceCount( 'category', 'SomeCategory', $store );
 	}
 
 	// -------------------------------------------------------------------------
@@ -539,13 +540,13 @@ class PFValuesUtilsTest extends TestCase {
 	 * arbitrary SPARQL. The payload must end up inside the label literal, with
 	 * its quotes escaped.
 	 *
-	 * @covers \PFValuesUtils::buildWikidataSparqlQuery
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::buildWikidataSparqlQuery
 	 */
 	public function testWikidataQueryEscapesInjectionInFilterValue(): void {
 		$payload = 'nomatch"@en . } UNION { BIND("INJECTED-MARKER" AS ?valueLabel) } #';
 
 		$sparql = $this->withGlobals( [ 'wgLanguageCode' => 'en' ], static function () use ( $payload ) {
-			return PFValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=' . $payload ) );
+			return ValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=' . $payload ) );
 		} );
 
 		$this->assertStringContainsString(
@@ -559,7 +560,7 @@ class PFValuesUtilsTest extends TestCase {
 	 * Same injection class, but via the $substring parameter (the autocomplete
 	 * search term), which is spliced into a REGEX() string literal.
 	 *
-	 * @covers \PFValuesUtils::buildWikidataSparqlQuery
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::buildWikidataSparqlQuery
 	 */
 	public function testWikidataQueryEscapesInjectionInSubstring(): void {
 		$substringPayload = 'x")) } UNION { BIND("INJECTED-MARKER" AS ?valueLabel) } #';
@@ -567,7 +568,7 @@ class PFValuesUtilsTest extends TestCase {
 		$sparql = $this->withGlobals(
 			[ 'wgLanguageCode' => 'en', 'wgPageFormsMaxAutocompleteValues' => 100 ],
 			static function () use ( $substringPayload ) {
-				return PFValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=Q6256' ), $substringPayload );
+				return ValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=Q6256' ), $substringPayload );
 			}
 		);
 
@@ -585,13 +586,13 @@ class PFValuesUtilsTest extends TestCase {
 	 * anything but a Wikidata property id would let a Form editor inject query structure
 	 * through it. Such filters are dropped; the valid ones are kept.
 	 *
-	 * @covers \PFValuesUtils::buildWikidataSparqlQuery
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::buildWikidataSparqlQuery
 	 */
 	public function testWikidataQueryDropsFiltersWithAnInvalidPropertyKey(): void {
 		$injectedKey = 'P31 wd:Q1 . } UNION { BIND("INJECTED-MARKER" AS ?valueLabel) } #';
 
 		$sparql = $this->withGlobals( [ 'wgLanguageCode' => 'en' ], static function () use ( $injectedKey ) {
-			return PFValuesUtils::buildWikidataSparqlQuery(
+			return ValuesUtils::buildWikidataSparqlQuery(
 				urlencode( $injectedKey . '=Q6256&P17=Q183' )
 			);
 		} );
@@ -605,11 +606,11 @@ class PFValuesUtilsTest extends TestCase {
 	 * A filter without a value ("P31") has nothing to compare with and is dropped
 	 * instead of raising an undefined array key warning.
 	 *
-	 * @covers \PFValuesUtils::buildWikidataSparqlQuery
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::buildWikidataSparqlQuery
 	 */
 	public function testWikidataQueryDropsFiltersWithoutAValue(): void {
 		$sparql = $this->withGlobals( [ 'wgLanguageCode' => 'en' ], static function () {
-			return PFValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31&P17=Q183' ) );
+			return ValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31&P17=Q183' ) );
 		} );
 
 		$this->assertStringNotContainsString( 'wdt:P31', $sparql );
@@ -620,16 +621,16 @@ class PFValuesUtilsTest extends TestCase {
 	 * A numeric (item) filter is used as a plain wd: reference, a text filter
 	 * becomes a label match, and the autocomplete limits only apply with a substring.
 	 *
-	 * @covers \PFValuesUtils::buildWikidataSparqlQuery
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::buildWikidataSparqlQuery
 	 */
 	public function testWikidataQueryBuildsItemAndLabelFiltersAndLimits(): void {
 		[ $itemOnly, $labelOnly, $withSubstring ] = $this->withGlobals(
 			[ 'wgLanguageCode' => 'en', 'wgPageFormsMaxAutocompleteValues' => 100 ],
 			static function () {
 				return [
-					PFValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=Q6256' ) ),
-					PFValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=Some "quoted" label' ) ),
-					PFValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=Q6256' ), 'Ger' ),
+					ValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=Q6256' ) ),
+					ValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=Some "quoted" label' ) ),
+					ValuesUtils::buildWikidataSparqlQuery( urlencode( 'P31=Q6256' ), 'Ger' ),
 				];
 			}
 		);
@@ -642,7 +643,7 @@ class PFValuesUtilsTest extends TestCase {
 	}
 
 	/**
-	 * @covers \PFValuesUtils::parseWikidataResponse
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::parseWikidataResponse
 	 */
 	public function testParseWikidataResponseReturnsTheLabelsOfAllBindings(): void {
 		$response = json_encode( [ 'results' => [ 'bindings' => [
@@ -650,15 +651,15 @@ class PFValuesUtilsTest extends TestCase {
 			[ 'valueLabel' => [ 'type' => 'literal', 'value' => 'France' ] ],
 		] ] ] );
 
-		$this->assertSame( [ 'Germany', 'France' ], PFValuesUtils::parseWikidataResponse( $response ) );
+		$this->assertSame( [ 'Germany', 'France' ], ValuesUtils::parseWikidataResponse( $response ) );
 	}
 
 	/**
-	 * @covers \PFValuesUtils::parseWikidataResponse
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::parseWikidataResponse
 	 */
 	public function testParseWikidataResponseReturnsNothingForAnUnusableResponse(): void {
-		$this->assertSame( [], PFValuesUtils::parseWikidataResponse( false ) );
-		$this->assertSame( [], PFValuesUtils::parseWikidataResponse( 'not json' ) );
+		$this->assertSame( [], ValuesUtils::parseWikidataResponse( false ) );
+		$this->assertSame( [], ValuesUtils::parseWikidataResponse( 'not json' ) );
 	}
 
 	/**
@@ -689,21 +690,21 @@ class PFValuesUtilsTest extends TestCase {
 	}
 
 	/**
-	 * @covers \PFValuesUtils::getSourceCount
-	 * @covers \PFValuesUtils::resetSourceCounts
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getSourceCount
+	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::resetSourceCounts
 	 */
 	public function testGetSourceCountOfTheLiveStoreIsRememberedUntilReset(): void {
 		if ( !class_exists( '\SMW\StoreFactory' ) ) {
 			$this->markTestSkipped( 'SMW not installed' );
 		}
-		$remembered = new ReflectionProperty( PFValuesUtils::class, 'sourceCounts' );
-		PFValuesUtils::resetSourceCounts();
+		$remembered = new ReflectionProperty( ValuesUtils::class, 'sourceCounts' );
+		ValuesUtils::resetSourceCounts();
 
-		$count = PFValuesUtils::getSourceCount( 'category', 'PFSourceCountTestCategory' );
+		$count = ValuesUtils::getSourceCount( 'category', 'PFSourceCountTestCategory' );
 
 		$this->assertSame( 0, $count );
 		$this->assertCount( 1, $remembered->getValue() );
-		PFValuesUtils::resetSourceCounts();
+		ValuesUtils::resetSourceCounts();
 		$this->assertSame( [], $remembered->getValue() );
 	}
 }

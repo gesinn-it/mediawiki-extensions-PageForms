@@ -9,7 +9,6 @@ use MediaWiki\MediaWikiServices;
 use Parser;
 use ParserOptions;
 use PFUtils;
-use PFValuesUtils;
 use RequestContext;
 use User;
 
@@ -238,7 +237,7 @@ class FormField {
 		) {
 			return false;
 		}
-		return PFValuesUtils::exceedsLocalAutocompleteThreshold( $autocompleteType, $autocompleteSource );
+		return ValuesUtils::exceedsLocalAutocompleteThreshold( $autocompleteType, $autocompleteSource );
 	}
 
 	/**
@@ -686,7 +685,7 @@ class FormField {
 			if ( $this->canDeferAutocompleteFetch( 'property', $valuesFromPropertyName, $display ) ) {
 				$this->mInstanceField->deferPossibleValues( 'property' );
 			} else {
-				$this->mPossibleValues = PFValuesUtils::getAllValuesForProperty( $valuesFromPropertyName );
+				$this->mPossibleValues = ValuesUtils::getAllValuesForProperty( $valuesFromPropertyName );
 				$this->mUseDisplayTitle = is_string( array_key_first( $this->mPossibleValues ) );
 			}
 		}
@@ -698,7 +697,7 @@ class FormField {
 			) {
 				$this->mInstanceField->deferPossibleValues( $valuesSourceType );
 			} else {
-				$this->mPossibleValues = PFValuesUtils::getAutocompleteValues( $valuesSource, $valuesSourceType );
+				$this->mPossibleValues = ValuesUtils::getAutocompleteValues( $valuesSource, $valuesSourceType );
 				if ( in_array( $valuesSourceType, [ 'category', 'namespace', 'concept' ], true ) ) {
 					global $wgPageFormsUseDisplayTitle;
 					$this->mUseDisplayTitle = $wgPageFormsUseDisplayTitle;
@@ -784,7 +783,7 @@ class FormField {
 		} elseif ( array_key_exists( 'mapping property', $this->mFieldArgs ) ) {
 			$mappingType = 'property';
 		} elseif ( $this->mUseDisplayTitle ) {
-			$this->mPossibleValues = PFValuesUtils::disambiguateLabels( $this->mPossibleValues );
+			$this->mPossibleValues = ValuesUtils::disambiguateLabels( $this->mPossibleValues );
 		}
 
 		if ( $mappingType !== null && $this->mPossibleValues !== [] ) {
@@ -1047,7 +1046,7 @@ class FormField {
 			$this->setValuesWithMappingProperty();
 		}
 
-		$this->mPossibleValues = PFValuesUtils::disambiguateLabels( $this->mPossibleValues );
+		$this->mPossibleValues = ValuesUtils::disambiguateLabels( $this->mPossibleValues );
 	}
 
 	/**

@@ -240,7 +240,7 @@ class PFTextInputTest extends MediaWikiIntegrationTestCase {
 
 		// No page named "Requirement:PFTITestReqUuidNotInList" exists in this test's
 		// DB, so it has no DisplayTitle page property to fall back to - the raw
-		// stored value is kept as-is (see PFValuesUtils::addDisplayTitlesForPageValues()).
+		// stored value is kept as-is (see ValuesUtils::addDisplayTitlesForPageValues()).
 		$this->assertStringContainsString( 'value="Requirement:PFTITestReqUuidNotInList"', $html );
 	}
 

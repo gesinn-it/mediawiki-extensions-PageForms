@@ -1540,7 +1540,7 @@ class FormFieldTest extends TestCase {
 
 	/**
 	 * Without SMW installed, getSourceCount() (via
-	 * PFValuesUtils::exceedsLocalAutocompleteThreshold()) returns null, which
+	 * ValuesUtils::exceedsLocalAutocompleteThreshold()) returns null, which
 	 * is conservatively treated as "exceeds threshold" - so a
 	 * 'remote autocompletion' field must defer, leaving mPossibleValues
 	 * empty right after parsing, rather than eagerly fetching the source.

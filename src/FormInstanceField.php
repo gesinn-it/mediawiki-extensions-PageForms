@@ -6,7 +6,6 @@ namespace MediaWiki\Extension\PageForms;
 
 use Parser;
 use ParserOptions;
-use PFValuesUtils;
 
 /**
  * Holds the state of a FormField that is specific to one instance of the
@@ -119,7 +118,7 @@ class FormInstanceField {
 			return;
 		}
 
-		$this->formField->setPossibleValues( PFValuesUtils::addDisplayTitlesForPageValues( $rawValues ) );
+		$this->formField->setPossibleValues( ValuesUtils::addDisplayTitlesForPageValues( $rawValues ) );
 	}
 
 	/**

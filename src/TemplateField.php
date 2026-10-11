@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use PFUtils;
-use PFValuesUtils;
 use SMW\DIProperty;
 use Title;
 
@@ -152,11 +151,11 @@ class TemplateField {
 
 		$store ??= PFUtils::getSMWStore();
 		// this returns an array of objects
-		$allowed_values = PFValuesUtils::getSMWPropertyValues( $store, $proptitle, "Allows value" );
+		$allowed_values = ValuesUtils::getSMWPropertyValues( $store, $proptitle, "Allows value" );
 		if ( $allowed_values === [] ) {
-			$allowed_values = PFValuesUtils::getSMWPropertyValues( $store, $proptitle, "Allows value list" );
+			$allowed_values = ValuesUtils::getSMWPropertyValues( $store, $proptitle, "Allows value list" );
 		}
-		$label_formats = PFValuesUtils::getSMWPropertyValues( $store, $proptitle, "Has field label format" );
+		$label_formats = ValuesUtils::getSMWPropertyValues( $store, $proptitle, "Has field label format" );
 		$propValue = DIProperty::newFromUserLabel( $this->mSemanticProperty );
 		$this->mPropertyType = $propValue->findPropertyValueType();
 

@@ -4,8 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use PFValuesUtils;
-
 /**
  * The set of possible values for a selection-based form input (dropdown,
  * radiobutton, checkboxes, tokens, combobox), built once from the raw
@@ -139,7 +137,7 @@ class PossibleValueList {
 			return $rawValue;
 		}
 
-		$displayTitles = PFValuesUtils::addDisplayTitlesForPageValues( [ $rawValue ] );
+		$displayTitles = ValuesUtils::addDisplayTitlesForPageValues( [ $rawValue ] );
 		return $displayTitles[$rawValue] ?? $pageValue->getCanonicalString();
 	}
 

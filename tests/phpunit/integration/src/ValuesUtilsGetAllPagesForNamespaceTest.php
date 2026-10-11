@@ -1,11 +1,13 @@
 <?php
 
+use MediaWiki\Extension\PageForms\ValuesUtils;
+
 /**
- * @covers \PFValuesUtils::getAllPagesForNamespace
+ * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getAllPagesForNamespace
  * @group Database
  * @group PF
  */
-class PFValuesUtilsGetAllPagesForNamespaceTest extends MediaWikiIntegrationTestCase {
+class ValuesUtilsGetAllPagesForNamespaceTest extends MediaWikiIntegrationTestCase {
 
 	public function addDBData(): void {
 		// Regular (non-redirect) template page
@@ -24,7 +26,7 @@ class PFValuesUtilsGetAllPagesForNamespaceTest extends MediaWikiIntegrationTestC
 	public function testGetAllPagesForNamespaceExcludesRedirects(): void {
 		$GLOBALS['wgPageFormsUseDisplayTitle'] = false;
 
-		$result = PFValuesUtils::getAllPagesForNamespace( 'Template' );
+		$result = ValuesUtils::getAllPagesForNamespace( 'Template' );
 
 		$titles = array_keys( $result );
 		$this->assertContains(

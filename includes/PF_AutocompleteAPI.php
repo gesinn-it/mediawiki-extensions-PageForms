@@ -4,6 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormCache;
+use MediaWiki\Extension\PageForms\ValuesUtils;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -45,18 +46,18 @@ class PFAutocompleteAPI extends ApiBase {
 			$data = $this->getAllValuesForProperty( $property, $substr );
 			$map = is_string( array_key_first( $data ) );
 		} elseif ( $wikidata !== null ) {
-			$data = PFValuesUtils::getAllValuesFromWikidata( urlencode( $wikidata ), $substr );
+			$data = ValuesUtils::getAllValuesFromWikidata( urlencode( $wikidata ), $substr );
 		} elseif ( $category !== null ) {
-			$data = PFValuesUtils::getAllPagesForCategory( $category, 3, $substr );
+			$data = ValuesUtils::getAllPagesForCategory( $category, 3, $substr );
 			$map = $useDisplayTitle;
 		} elseif ( $concept !== null ) {
-			$data = PFValuesUtils::getAllPagesForConcept( $concept, $substr );
+			$data = ValuesUtils::getAllPagesForConcept( $concept, $substr );
 			$map = $useDisplayTitle;
 		} elseif ( $namespace !== null ) {
-			$data = PFValuesUtils::getAllPagesForNamespace( $namespace, $substr );
+			$data = ValuesUtils::getAllPagesForNamespace( $namespace, $substr );
 			$map = $useDisplayTitle;
 		} elseif ( $external_url !== null ) {
-			$data = PFValuesUtils::getValuesFromExternalURL( $external_url, $substr );
+			$data = ValuesUtils::getValuesFromExternalURL( $external_url, $substr );
 		} else {
 			$data = [];
 		}
@@ -70,7 +71,7 @@ class PFAutocompleteAPI extends ApiBase {
 		}
 
 		if ( $map ) {
-			$data = PFValuesUtils::disambiguateLabels( $data );
+			$data = ValuesUtils::disambiguateLabels( $data );
 		}
 
 		// Format data as the API requires it - this is not needed
@@ -297,14 +298,14 @@ class PFAutocompleteAPI extends ApiBase {
 				// Search in displaytitle when set, fall back to internal title.
 				$conditions[] =
 					'((pp_displaytitle.pp_value IS NULL OR pp_displaytitle.pp_value = \'\') AND (' .
-					PFValuesUtils::getSQLConditionForAutocompleteInColumn( $valueField, $substring, true ) .
+					ValuesUtils::getSQLConditionForAutocompleteInColumn( $valueField, $substring, true ) .
 					')) OR (' .
-						PFValuesUtils::getSQLConditionForAutocompleteInColumn(
+						ValuesUtils::getSQLConditionForAutocompleteInColumn(
 							'pp_displaytitle.pp_value', $substring, false
 						) .
 					')';
 			} else {
-				$conditions[] = PFValuesUtils::getSQLConditionForAutocompleteInColumn(
+				$conditions[] = ValuesUtils::getSQLConditionForAutocompleteInColumn(
 					$valueField, $substring, $propertyHasTypePage
 				);
 			}
@@ -327,7 +328,7 @@ class PFAutocompleteAPI extends ApiBase {
 						->getCanonicalName( $smwNamespace );
 					$prefixedTitle = $nsText . ':' . $smwTitle;
 				}
-				$displayTitle = PFValuesUtils::resolveDisplayTitle( $row[2], $prefixedTitle );
+				$displayTitle = ValuesUtils::resolveDisplayTitle( $row[2], $prefixedTitle );
 				$values[$prefixedTitle] = $displayTitle;
 			}
 			$res->free();

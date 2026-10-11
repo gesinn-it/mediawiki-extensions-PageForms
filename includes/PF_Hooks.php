@@ -18,6 +18,7 @@ use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWiki\Extension\PageForms\TemplateInForm;
+use MediaWiki\Extension\PageForms\ValuesUtils;
 use MediaWiki\MediaWikiServices;
 
 class PFHooks {
@@ -45,6 +46,7 @@ class PFHooks {
 		class_alias( Template::class, 'PFTemplate' );
 		class_alias( TemplateField::class, 'PFTemplateField' );
 		class_alias( TemplateInForm::class, 'PFTemplateInForm' );
+		class_alias( ValuesUtils::class, 'PFValuesUtils' );
 
 		$GLOBALS['wgPageFormsIP'] = dirname( __DIR__ ) . '/../';
 

@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use PFUtils;
-use PFValuesUtils;
 use RequestContext;
 use Title;
 
@@ -120,7 +119,7 @@ class MappingLabels {
 			$labels[$value] = $value;
 			$subject = Title::newFromText( (string)$value );
 			if ( $subject != null ) {
-				$vals = PFValuesUtils::getSMWPropertyValues( $store, $subject, $propertyName );
+				$vals = ValuesUtils::getSMWPropertyValues( $store, $subject, $propertyName );
 				if ( count( $vals ) > 0 ) {
 					$labels[$value] = trim( $vals[0] );
 				}

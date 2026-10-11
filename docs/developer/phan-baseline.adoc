@@ -24,7 +24,7 @@ Those parsed arguments never become the free text.
 
 `FormField::newFromFormFieldTag`::
 The values of `values from ...` arguments are parsed with `Parser::recursiveTagParse()` and used as
-the name of the source to look up. `wfEscapeWikiText()` in `PFValuesUtils::getAllPagesForConcept()`
+the name of the source to look up. `wfEscapeWikiText()` in `ValuesUtils::getAllPagesForConcept()`
 escapes that name once more, but only in the message that says the concept does not exist; the
 lookup itself uses the name unescaped. A source name with a character that the parser turns into an
 entity would be shown wrongly in that message. Not changed, because a change to the parsing would

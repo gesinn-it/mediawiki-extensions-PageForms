@@ -7,6 +7,7 @@ use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\PossibleValue;
 use MediaWiki\Extension\PageForms\PossibleValueList;
+use MediaWiki\Extension\PageForms\ValuesUtils;
 
 /**
  * @ingroup PFFormInput
@@ -41,7 +42,7 @@ class PFCheckboxesInput extends PFMultiEnumInput {
 		} else {
 			$delimiter = ',';
 		}
-		$cur_values = PFValuesUtils::getValuesArray( $cur_value, $delimiter );
+		$cur_values = ValuesUtils::getValuesArray( $cur_value, $delimiter );
 
 		$possible_values = $other_args['possible_values'];
 		if ( $possible_values == null ) {

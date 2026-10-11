@@ -8,6 +8,8 @@
  * @author thomas-topway-it (search-input)
  */
 
+use MediaWiki\Extension\PageForms\ValuesUtils;
+
 /**
  * @ingroup PFFormInput
  */
@@ -60,7 +62,7 @@ class PFTreeInput extends PFFormInput {
 			$delimiter = ',';
 		}
 
-		$cur_values = PFValuesUtils::getValuesArray( $cur_value, $delimiter );
+		$cur_values = ValuesUtils::getValuesArray( $cur_value, $delimiter );
 		if ( array_key_exists( 'height', $other_args ) ) {
 			$height = Sanitizer::checkCSS( $other_args['height'] );
 		} else {

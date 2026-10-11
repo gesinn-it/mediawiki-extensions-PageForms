@@ -8,7 +8,6 @@ use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\MediaWikiServices;
 use PFCreatePageJob;
 use PFUtils;
-use PFValuesUtils;
 use RequestContext;
 use Title;
 use User;
@@ -184,7 +183,7 @@ class FormLinker {
 		$namespace = $title->getNamespace();
 		if ( NS_CATEGORY !== $namespace ) {
 			$default_forms = [];
-			$categories = PFValuesUtils::getCategoriesForPage( $title );
+			$categories = ValuesUtils::getCategoriesForPage( $title );
 			foreach ( $categories as $category ) {
 				$categoryPage = Title::makeTitleSafe( NS_CATEGORY, $category );
 				$defaultFormForCategory = self::getDefaultForm( $categoryPage );

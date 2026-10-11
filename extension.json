@@ -90,7 +90,6 @@
 		"PFUploadSourceField": "specials/PF_UploadSourceField.php",
 		"PFUploadWindow": "specials/PF_UploadWindow.php",
 		"PFUtils": "includes/PF_Utils.php",
-		"PFValuesUtils": "includes/PF_ValuesUtils.php",
 		"PFHooks": "includes/PF_Hooks.php",
 		"PFParserFunctionHelpers": "includes/parserfunctions/PF_ParserFunctionHelpers.php",
 		"PFArrayMap": "includes/parserfunctions/PF_ArrayMap.php",

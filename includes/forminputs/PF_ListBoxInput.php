@@ -6,6 +6,7 @@
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\PossibleValueList;
+use MediaWiki\Extension\PageForms\ValuesUtils;
 
 /**
  * @ingroup PFFormInput
@@ -44,7 +45,7 @@ class PFListBoxInput extends PFMultiEnumInput {
 		} else {
 			$delimiter = ',';
 		}
-		$cur_values = PFValuesUtils::getValuesArray( $this->mCurrentValue, $delimiter );
+		$cur_values = ValuesUtils::getValuesArray( $this->mCurrentValue, $delimiter );
 
 		$possible_values = $this->mOtherArgs['possible_values'];
 		if ( $possible_values == null ) {

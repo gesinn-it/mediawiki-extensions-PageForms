@@ -104,7 +104,7 @@ class TemplateFieldTest extends MediaWikiIntegrationTestCase {
 	private function makeDataItem( string $sortKey ): object {
 		$item = $this->createMock( \SMW\DataItemFactory::class );
 		// Use a simple anonymous stub: getSortKey() returns the value,
-		// and it is not SMWDIUri or SMW\DIWikiPage, so PFValuesUtils takes the else branch.
+		// and it is not SMWDIUri or SMW\DIWikiPage, so ValuesUtils takes the else branch.
 		return new class( $sortKey ) {
 			public function __construct( private string $key ) {
 			}

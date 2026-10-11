@@ -1,16 +1,26 @@
 <?php
+
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use MediaWiki\MediaWikiServices;
+use MWException;
+use PFUtils;
+use SMW\DataValueFactory;
+use SMW\DataValues\PropertyValue;
+use SMWDIUri;
+use SMWQuery;
+use SMWQueryProcessor;
+use Title;
+
 /**
  * Static functions for handling lists of values and labels.
  *
  * @author Yaron Koren
  * @ingroup PF
  */
-
-use MediaWiki\Extension\PageForms\FormCounters;
-use MediaWiki\Extension\PageForms\PageValue;
-use MediaWiki\MediaWikiServices;
-
-class PFValuesUtils {
+class ValuesUtils {
 
 	/** @var array<string, int> Source counts of the live store, by type and source */
 	private static array $sourceCounts = [];
@@ -138,8 +148,8 @@ class PFValuesUtils {
 			return $values;
 		}
 
-		$property = SMW\DataValueFactory::getInstance()->newPropertyValueByLabel( $property_name );
-		if ( !( $property instanceof SMW\DataValues\PropertyValue ) || $property->getPropertyTypeID() !== '_wpg' ) {
+		$property = DataValueFactory::getInstance()->newPropertyValueByLabel( $property_name );
+		if ( !( $property instanceof PropertyValue ) || $property->getPropertyTypeID() !== '_wpg' ) {
 			return $values;
 		}
 
@@ -326,8 +336,12 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 	 * @return string[]
 	 */
 	public static function parseWikidataResponse( $response ) {
-		$apiResults = json_decode( $response, true );
 		$results = [];
+		if ( !is_string( $response ) ) {
+			// The request failed.
+			return $results;
+		}
+		$apiResults = json_decode( $response, true );
 		if ( $apiResults != null ) {
 			$apiResults = $apiResults[ 'results' ][ 'bindings' ];
 			foreach ( $apiResults as $result ) {
@@ -504,7 +518,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 
 		// Escape if there's no such concept.
 		if ( $conceptTitle == null || !$conceptTitle->exists() ) {
-			throw new MWException( wfMessage( 'pf-missingconcept', wfEscapeWikiText( $conceptName ) ) );
+			throw new MWException( wfMessage( 'pf-missingconcept', wfEscapeWikiText( $conceptName ) )->parse() );
 		}
 
 		global $wgPageFormsUseDisplayTitle;
@@ -672,7 +686,9 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			}
 
 			if ( $matchingNamespaceCode === null ) {
-				throw new MWException( wfMessage( 'pf-missingnamespace', wfEscapeWikiText( $namespace_name ) ) );
+				throw new MWException(
+					wfMessage( 'pf-missingnamespace', wfEscapeWikiText( $namespace_name ) )->parse()
+				);
 			}
 
 			$queriedNamespaces[] = $matchingNamespaceCode;
