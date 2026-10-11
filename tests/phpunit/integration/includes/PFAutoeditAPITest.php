@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\MainConfigNames;
 use OOUI\BlankTheme;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
 
@@ -1680,5 +1681,251 @@ class PFAutoeditAPITest extends ApiTestCase {
 		] );
 
 		$this->assertSame( 200, $module->getStatus() );
+	}
+
+	// -------------------------------------------------------------------------
+	// doAction – read-only mode, target name formula, preload
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Calls the private checkReadOnlyMode() of a module that performs $action. (A read-only wiki
+	 * already refuses a write module in ApiMain, so the check is only reached from the module
+	 * itself.)
+	 */
+	private function callCheckReadOnlyMode( int $action ): PFAutoeditAPI {
+		$this->overrideConfigValue( MainConfigNames::ReadOnly, 'AEDoActionReadOnlyReason' );
+		[ $module ] = $this->newModule();
+		$ref = new ReflectionClass( PFAutoeditAPI::class );
+		$mAction = $ref->getProperty( 'mAction' );
+		$mAction->setAccessible( true );
+		$mAction->setValue( $module, $action );
+		$check = $ref->getMethod( 'checkReadOnlyMode' );
+		$check->setAccessible( true );
+		$check->invoke( $module );
+		return $module;
+	}
+
+	/**
+	 * A save is refused while the wiki is read-only.
+	 *
+	 * @covers \PFAutoeditAPI::checkReadOnlyMode
+	 */
+	public function testSaveIsRefusedWhileTheWikiIsReadOnly(): void {
+		$this->expectException( MWException::class );
+		$this->expectExceptionMessage( 'AEDoActionReadOnlyReason' );
+
+		$this->callCheckReadOnlyMode( PFAutoeditAPI::ACTION_SAVE );
+	}
+
+	/**
+	 * Any other action only reports that the wiki is read-only, and goes on.
+	 *
+	 * @covers \PFAutoeditAPI::checkReadOnlyMode
+	 */
+	public function testPreviewWhileTheWikiIsReadOnlyReportsANoticeAndGoesOn(): void {
+		$module = $this->callCheckReadOnlyMode( PFAutoeditAPI::ACTION_PREVIEW );
+
+		$errors = $module->getResult()->getResultData()['errors'];
+		$this->assertCount( 1, $errors );
+		$this->assertSame( PFAutoeditAPI::NOTICE, $errors[0]['level'] );
+		$this->assertStringContainsString( 'AEDoActionReadOnlyReason', $errors[0]['message'] );
+	}
+
+	/**
+	 * A wiki that is not read-only reports nothing.
+	 *
+	 * @covers \PFAutoeditAPI::checkReadOnlyMode
+	 */
+	public function testCheckReadOnlyModeReportsNothingOnAWritableWiki(): void {
+		[ $module ] = $this->newModule();
+		$check = ( new ReflectionClass( PFAutoeditAPI::class ) )->getMethod( 'checkReadOnlyMode' );
+		$check->setAccessible( true );
+		$check->invoke( $module );
+
+		$this->assertArrayNotHasKey( 'errors', $module->getResult()->getResultData() ?? [] );
+	}
+
+	/**
+	 * Without a target, the name of the page comes from the "page name" of the form.
+	 *
+	 * @covers \PFAutoeditAPI::findTargetNameFormula
+	 * @covers \PFAutoeditAPI::performSubmittedAction
+	 */
+	public function testStoreWithoutTargetTakesTheNameFromThePageNameOfTheForm(): void {
+		$formName = 'AEDoActionFormPageName';
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, $formName ),
+			"{{{info|page name=AEDoActionGeneratedPage}}}\n{{{for template|AEDoActionTpl}}}\n"
+			. "{{{field|text}}}\n{{{end template}}}\n{{{standard input|save}}}"
+		);
+
+		$module = $this->executeStore( $formName, '', [ 'AEDoActionTpl' => [ 'text' => 'generated' ] ] );
+
+		$this->assertSame( 200, $module->getStatus(), json_encode( $module->getResult()->getResultData() ) );
+		$text = $this->getExistingTestPage( 'AEDoActionGeneratedPage' )->getContent()->getText();
+		$this->assertStringContainsString( 'text=generated', $text );
+	}
+
+	/**
+	 * Without a target and without a "page name" in the form, there is no page to save.
+	 *
+	 * @covers \PFAutoeditAPI::findTargetNameFormula
+	 */
+	public function testStoreWithoutTargetAndWithoutPageNameOfTheFormFails(): void {
+		$formName = $this->createTestForm( 'AEDoActionFormNoPageName' );
+
+		$module = $this->executeStore( $formName, '' );
+
+		$this->assertSame( 400, $module->getStatus() );
+		$this->assertCount( 1, $module->getResult()->getResultData()['errors'] );
+	}
+
+	/**
+	 * A "preload" option that names no existing page is reported as a warning; the save goes on
+	 * without preloaded text.
+	 *
+	 * @covers \PFAutoeditAPI::loadPreloadContent
+	 */
+	public function testStoreWithAnUnknownPreloadPageWarnsAndGoesOn(): void {
+		$formName = $this->createTestForm( 'AEDoActionFormUnknownPreload' );
+
+		$module = $this->executeStore( $formName, 'AEDoActionTargetUnknownPreload', [
+			'preload' => 'AEDoActionPreloadPageThatDoesNotExist',
+			'AEStoreTpl' => [ 'text' => 'kept' ],
+		] );
+
+		$this->assertSame( 200, $module->getStatus() );
+		$errors = $module->getResult()->getResultData()['errors'];
+		$this->assertSame( PFAutoeditAPI::WARNING, $errors[0]['level'] );
+		$this->assertTrue( Title::newFromText( 'AEDoActionTargetUnknownPreload' )->exists() );
+	}
+
+	/**
+	 * The values of the page named by "preload" are the ones a new target starts with, and the
+	 * request is laid over them.
+	 *
+	 * @covers \PFAutoeditAPI::loadPreloadContent
+	 * @covers \PFAutoeditAPI::doAction
+	 */
+	public function testStoreStartsFromTheValuesOfThePreloadPage(): void {
+		$formName = 'AEDoActionFormPreload';
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, $formName ),
+			"{{{for template|AEDoActionPreloadTpl}}}\n{{{field|first}}}\n{{{field|second}}}\n"
+			. "{{{end template}}}\n{{{standard input|save}}}"
+		);
+		$this->insertPage(
+			'AEDoActionPreloadSource',
+			"{{AEDoActionPreloadTpl\n|first=from source\n|second=also\n}}\n"
+		);
+
+		$module = $this->executeStore( $formName, 'AEDoActionTargetPreload', [
+			'preload' => 'AEDoActionPreloadSource',
+			'AEDoActionPreloadTpl' => [ 'second' => 'from request' ],
+		] );
+
+		$this->assertSame( 200, $module->getStatus(), json_encode( $module->getResult()->getResultData() ) );
+		$text = $this->getExistingTestPage( 'AEDoActionTargetPreload' )->getContent()->getText();
+		$this->assertStringContainsString( 'first=from source', $text );
+		$this->assertStringContainsString( 'second=from request', $text );
+	}
+
+	/**
+	 * A submitted form is previewed, diffed or stored, as the action says.
+	 *
+	 * @dataProvider provideSubmittedActions
+	 * @covers \PFAutoeditAPI::performSubmittedAction
+	 */
+	public function testPerformSubmittedActionRunsTheRequestedAction( int $action, string $expectedMethod ): void {
+		$methods = [ 'doPreview', 'doDiff', 'doStore' ];
+		$module = $this->getMockBuilder( PFAutoeditAPI::class )
+			->disableOriginalConstructor()
+			->onlyMethods( array_merge( $methods, [ 'setupEditPage' ] ) )
+			->getMock();
+		$editor = $this->createMock( EditPage::class );
+		$module->method( 'setupEditPage' )->willReturn( $editor );
+		foreach ( $methods as $method ) {
+			$module->expects( $method === $expectedMethod ? $this->once() : $this->never() )
+				->method( $method )->with( $editor );
+		}
+		$this->setProtectedProperties( $module, [
+			'mAction' => $action,
+			'mOptions' => [ 'form' => 'AEDoActionDispatchForm', 'target' => 'AEDoActionDispatchTarget' ],
+		] );
+
+		$this->callPerformSubmittedAction( $module, '', 'text' );
+	}
+
+	public static function provideSubmittedActions(): array {
+		return [
+			'preview' => [ PFAutoeditAPI::ACTION_PREVIEW, 'doPreview' ],
+			'diff' => [ PFAutoeditAPI::ACTION_DIFF, 'doDiff' ],
+			'save' => [ PFAutoeditAPI::ACTION_SAVE, 'doStore' ],
+		];
+	}
+
+	/**
+	 * Without a target, the name generated from the page name formula is the target, and the text
+	 * is the one other code changed in the PageForms::WritePageData hook.
+	 *
+	 * @covers \PFAutoeditAPI::performSubmittedAction
+	 */
+	public function testPerformSubmittedActionNamesTheTargetAndLetsHooksChangeTheText(): void {
+		$module = $this->getMockBuilder( PFAutoeditAPI::class )
+			->disableOriginalConstructor()
+			->onlyMethods( [ 'setupEditPage', 'doStore' ] )
+			->getMock();
+		$module->expects( $this->once() )->method( 'setupEditPage' )
+			->with( 'text changed by hook' )
+			->willReturn( $this->createMock( EditPage::class ) );
+		$this->setTemporaryHook( 'PageForms::WritePageData', static function ( $form, $target, &$text ) {
+			$text = 'text changed by hook';
+		} );
+		$this->setProtectedProperties( $module, [
+			'mAction' => PFAutoeditAPI::ACTION_SAVE,
+			'mOptions' => [ 'form' => 'AEDoActionDispatchForm', 'target' => '' ],
+		] );
+
+		$this->callPerformSubmittedAction( $module, 'AEDoActionNamedPage', 'text' );
+
+		$this->assertSame( 'AEDoActionNamedPage', $module->getOptions()['target'] );
+	}
+
+	/**
+	 * Without a target and without a generated page name, there is nothing to save.
+	 *
+	 * @covers \PFAutoeditAPI::performSubmittedAction
+	 */
+	public function testPerformSubmittedActionWithoutAnyTargetNameFails(): void {
+		$module = $this->getMockBuilder( PFAutoeditAPI::class )
+			->disableOriginalConstructor()
+			->onlyMethods( [ 'setupEditPage' ] )
+			->getMock();
+		$module->expects( $this->never() )->method( 'setupEditPage' );
+		$this->setProtectedProperties( $module, [
+			'mAction' => PFAutoeditAPI::ACTION_SAVE,
+			'mOptions' => [ 'form' => 'AEDoActionDispatchForm', 'target' => '' ],
+		] );
+
+		$this->expectException( MWException::class );
+
+		$this->callPerformSubmittedAction( $module, '', 'text' );
+	}
+
+	private function setProtectedProperties( PFAutoeditAPI $module, array $values ): void {
+		$ref = new ReflectionClass( PFAutoeditAPI::class );
+		foreach ( $values as $name => $value ) {
+			$property = $ref->getProperty( $name );
+			$property->setAccessible( true );
+			$property->setValue( $module, $value );
+		}
+	}
+
+	private function callPerformSubmittedAction(
+		PFAutoeditAPI $module, string $generatedTargetNameFormula, string $targetContent
+	): void {
+		$method = ( new ReflectionClass( PFAutoeditAPI::class ) )->getMethod( 'performSubmittedAction' );
+		$method->setAccessible( true );
+		$method->invoke( $module, $generatedTargetNameFormula, $targetContent );
 	}
 }

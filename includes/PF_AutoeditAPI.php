@@ -8,7 +8,9 @@ declare( strict_types=1 );
 
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Extension\PageForms\FormLinker;
+use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
+use MediaWiki\Extension\PageForms\FormRenderResult;
 use MediaWiki\Extension\PageForms\NestedInputValues;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
@@ -970,30 +972,11 @@ class PFAutoeditAPI extends ApiBase {
 	public function doAction() {
 		$formPrinter = FormPrinterFactory::get();
 
-		// If the wiki is read-only, do not save.
-		if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
-			if ( $this->mAction === self::ACTION_SAVE ) {
-				throw new MWException( $this->msg(
-					'pf_autoedit_readonly',
-					MediaWikiServices::getInstance()->getReadOnlyMode()->getReason()
-				)->parse() );
-			}
-
-			// even if not saving notify client anyway. Might want to display a notice
-			$this->logMessage( $this->msg(
-				'pf_autoedit_readonly',
-				MediaWikiServices::getInstance()->getReadOnlyMode()->getReason()
-			)->parse(), self::NOTICE );
-		}
+		$this->checkReadOnlyMode();
 
 		// find the title of the form to be used
 		$formTitle = $this->getFormTitle();
-
-		// Get the form content - remove the <noinclude> tags from the text of the Form: page.
-		$formContent = StringUtils::delimiterReplace(
-			'<noinclude>', '</noinclude>', '',
-			PFUtils::getPageText( $formTitle, RevisionRecord::RAW ) ?? ''
-		);
+		$formContent = $this->readFormContent( $formTitle );
 
 		// signals that the form was submitted
 		// always true, else we would not be here
@@ -1017,18 +1000,7 @@ class PFAutoeditAPI extends ApiBase {
 		// if the target page was not specified, try finding the page name formula
 		// (Why is this not done in FormPrinter::formHTML?)
 		if ( $targetName === '' ) {
-			// Parse the form to see if it has a 'page name' value set.
-			// The (?!}) lookahead ensures the closing "}}}" matched is the
-			// tag's actual end, not an early match against extra closing
-			// braces from a "{num}"-style formula immediately before it
-			// (e.g. "page name=Thing_{num}}}}" has 4 closing braces).
-			if ( preg_match( '/{{{\s*info.*page name\s*=\s*(.*)}}}(?!})/msU', $formContent, $matches ) ) {
-				$pageNameElements = PFUtils::getFormTagComponents( trim( $matches[1] ) );
-				$targetNameFormula = $pageNameElements[0];
-			} else {
-				throw new MWException( $this->msg( 'pf_autoedit_notargetspecified' )->parse() );
-			}
-
+			$targetNameFormula = $this->findTargetNameFormula( $formContent );
 			$targetTitle = null;
 		} else {
 			$targetNameFormula = null;
@@ -1036,68 +1008,16 @@ class PFAutoeditAPI extends ApiBase {
 		}
 
 		if ( $this->mIsAutoEdit && $targetTitle instanceof Title && $targetTitle->exists() ) {
-			// The base of the save: the revision the new text is computed from. EditPage compares
-			// it with the latest revision when saving. If the target was changed in between
-			// (e.g. by another #autoedit running at the same time), EditPage merges the changes
-			// or reports a conflict, instead of silently overwriting the other change.
-			//
-			// It has to be taken BEFORE the page text is read below: if a change slips in
-			// between the two, the text is newer than the base, which at worst makes EditPage
-			// merge two identical changes. The other way round, the text would be older than
-			// the base, and the change would be lost unnoticed.
-			//
-			// Only the revision ID is given, not the timestamp. EditPage compares timestamps by
-			// the second, and going by the timestamp it ignores changes made by others within
-			// the same second (the reason for T58849); the revision ID is exact.
-			$targetPage = PFUtils::newWikiPageFromTitle( $targetTitle );
-			$targetPage->clear();
-			$this->mOptions['editRevId'] = $targetPage->getLatest();
+			$this->rememberEditBaseRevision( $targetTitle );
 		}
 
-		$preloadContent = '';
+		[ $preloadContent, $pageExists ] = $this->loadPreloadContent( $targetTitle, $formTitle );
 
-		$pageExists = false;
 		$formHTML = '';
 		$targetContent = '';
 		$form_page_title = '';
 		$generatedTargetNameFormula = '';
 		$formParserOutput = null;
-
-		// preload data if not explicitly excluded and if the preload page exists
-		$preloadOption = $this->mOptions['preload'] ?? null;
-		if ( $preloadOption !== false ) {
-			if ( is_string( $preloadOption ) ) {
-				$preloadTitle = Title::newFromText( $preloadOption );
-			} else {
-				$preloadTitle = Title::newFromText( $targetName );
-			}
-
-			if ( $preloadTitle !== null && $preloadTitle->exists() ) {
-				// the content of the page that was specified to be used for preloading
-				$preloadContent = PFUtils::getPageText( $preloadTitle, RevisionRecord::RAW ) ?? '';
-
-				$pageExists = true;
-
-			} else {
-				if ( $preloadOption !== null ) {
-					$this->logMessage( $this->msg(
-						'pf_autoedit_invalidpreloadspecified', $preloadOption
-					)->parse(), self::WARNING );
-				}
-			}
-		}
-
-		// Allow extensions to set/change the preload text, for new
-		// pages.
-		if ( !$pageExists ) {
-			MediaWikiServices::getInstance()->getHookContainer()->run(
-				'PageForms::EditFormPreloadText', [ &$preloadContent, $targetTitle, $formTitle ]
-			);
-		} else {
-			MediaWikiServices::getInstance()->getHookContainer()->run(
-				'PageForms::EditFormInitialText', [ &$preloadContent, $targetTitle, $formTitle ]
-			);
-		}
 
 		if ( $preloadContent !== '' ) {
 			// @HACK - we need to set this for the preload to take
@@ -1113,13 +1033,9 @@ class PFAutoeditAPI extends ApiBase {
 				$this->mOptions = $values->mergeRequest( $this->mOptions );
 			} else {
 				// FORMEDIT: formHTML() is needed to produce the HTML for the browser.
-				$session = RequestContext::getMain()->getRequest()->getSession();
-				$fauxRequest = new FauxRequest( $this->mOptions, true, $session );
-				$result = $formPrinter->render(
-					$formContent, false, $pageExists,
-					$formArticleId, $preloadContent, $targetName, $targetNameFormula,
-					$is_query = false, $is_embedded = false, $is_autocreate = false,
-					$autocreate_query = [], $this->getUser(), $fauxRequest
+				$result = $this->renderForm(
+					$formPrinter, $formContent, false, $pageExists,
+					$formArticleId, $preloadContent, $targetName, $targetNameFormula
 				);
 				$formHTML = $result->getFormText();
 				$targetContent = $result->getPageText();
@@ -1141,13 +1057,9 @@ class PFAutoeditAPI extends ApiBase {
 
 		// Get wikitext for submitted data and form.
 		if ( $preloadContent == '' ) {
-			$session = RequestContext::getMain()->getRequest()->getSession();
-			$fauxRequest = new FauxRequest( $this->mOptions, true, $session );
-			$result = $formPrinter->render(
-				$formContent, $isFormSubmitted, $pageExists,
-				$formArticleId, $preloadContent, $targetName, $targetNameFormula,
-				$is_query = false, $is_embedded = false, $is_autocreate = false,
-				$autocreate_query = [], $this->getUser(), $fauxRequest
+			$result = $this->renderForm(
+				$formPrinter, $formContent, $isFormSubmitted, $pageExists,
+				$formArticleId, $preloadContent, $targetName, $targetNameFormula
 			);
 			$formHTML = $result->getFormText();
 			$targetContent = $result->getPageText();
@@ -1165,33 +1077,7 @@ class PFAutoeditAPI extends ApiBase {
 		$this->mOptions['formHTML'] = $formHTML;
 
 		if ( $isFormSubmitted ) {
-			// If the target page was not specified, see if
-			// something was generated from the target name formula.
-			if ( $this->mOptions['target'] === '' ) {
-				// If no name was generated, we cannot save => give up
-				if ( $generatedTargetNameFormula === '' ) {
-					throw new MWException( $this->msg( 'pf_autoedit_notargetspecified' )->parse() );
-				}
-
-				$this->mOptions['target'] = $this->generateTargetName( $generatedTargetNameFormula );
-			}
-
-			// Lets other code process additional form-definition syntax
-			MediaWikiServices::getInstance()->getHookContainer()->run(
-				'PageForms::WritePageData',
-				[ $this->mOptions['form'], Title::newFromText( $this->mOptions['target'] ), &$targetContent ]
-			);
-
-			$editor = $this->setupEditPage( $targetContent );
-
-			// Perform the requested action.
-			if ( $this->mAction === self::ACTION_PREVIEW ) {
-				$this->doPreview( $editor );
-			} elseif ( $this->mAction === self::ACTION_DIFF ) {
-				$this->doDiff( $editor );
-			} else {
-				$this->doStore( $editor );
-			}
+			$this->performSubmittedAction( $generatedTargetNameFormula, $targetContent );
 		} elseif ( $this->mAction === self::ACTION_FORMEDIT ) {
 			$out = $this->getOutput();
 			if ( $formParserOutput !== null ) {
@@ -1199,6 +1085,172 @@ class PFAutoeditAPI extends ApiBase {
 			}
 
 			$this->getResult()->addValue( [ 'form' ], 'HTML', $formHTML );
+		}
+	}
+
+	/**
+	 * Refuses to save while the wiki is read-only; any other action only gets a notice.
+	 *
+	 * @throws MWException
+	 */
+	private function checkReadOnlyMode(): void {
+		$readOnlyMode = MediaWikiServices::getInstance()->getReadOnlyMode();
+		if ( !$readOnlyMode->isReadOnly() ) {
+			return;
+		}
+
+		if ( $this->mAction === self::ACTION_SAVE ) {
+			throw new MWException( $this->msg( 'pf_autoedit_readonly', $readOnlyMode->getReason() )->parse() );
+		}
+
+		// even if not saving notify client anyway. Might want to display a notice
+		$this->logMessage( $this->msg( 'pf_autoedit_readonly', $readOnlyMode->getReason() )->parse(), self::NOTICE );
+	}
+
+	/**
+	 * Get the form content - remove the <noinclude> tags from the text of the Form: page.
+	 */
+	private function readFormContent( Title $formTitle ): string {
+		return StringUtils::delimiterReplace(
+			'<noinclude>', '</noinclude>', '',
+			PFUtils::getPageText( $formTitle, RevisionRecord::RAW ) ?? ''
+		);
+	}
+
+	/**
+	 * Parses the form to see if it has a 'page name' value set.
+	 *
+	 * @throws MWException if the form has none
+	 */
+	private function findTargetNameFormula( string $formContent ): string {
+		// The (?!}) lookahead ensures the closing "}}}" matched is the
+		// tag's actual end, not an early match against extra closing
+		// braces from a "{num}"-style formula immediately before it
+		// (e.g. "page name=Thing_{num}}}}" has 4 closing braces).
+		if ( !preg_match( '/{{{\s*info.*page name\s*=\s*(.*)}}}(?!})/msU', $formContent, $matches ) ) {
+			throw new MWException( $this->msg( 'pf_autoedit_notargetspecified' )->parse() );
+		}
+
+		$pageNameElements = PFUtils::getFormTagComponents( trim( $matches[1] ) );
+		return $pageNameElements[0];
+	}
+
+	/**
+	 * The base of the save: the revision the new text is computed from. EditPage compares
+	 * it with the latest revision when saving. If the target was changed in between
+	 * (e.g. by another #autoedit running at the same time), EditPage merges the changes
+	 * or reports a conflict, instead of silently overwriting the other change.
+	 *
+	 * It has to be taken BEFORE the page text is read: if a change slips in
+	 * between the two, the text is newer than the base, which at worst makes EditPage
+	 * merge two identical changes. The other way round, the text would be older than
+	 * the base, and the change would be lost unnoticed.
+	 *
+	 * Only the revision ID is given, not the timestamp. EditPage compares timestamps by
+	 * the second, and going by the timestamp it ignores changes made by others within
+	 * the same second (the reason for T58849); the revision ID is exact.
+	 */
+	private function rememberEditBaseRevision( Title $targetTitle ): void {
+		$targetPage = PFUtils::newWikiPageFromTitle( $targetTitle );
+		$targetPage->clear();
+		$this->mOptions['editRevId'] = $targetPage->getLatest();
+	}
+
+	/**
+	 * Reads the text to preload, if not explicitly excluded and if the preload page exists.
+	 *
+	 * @return array{0: string, 1: bool} the preload text and whether it comes from an existing page
+	 */
+	private function loadPreloadContent( ?Title $targetTitle, Title $formTitle ): array {
+		$preloadContent = '';
+		$pageExists = false;
+
+		$preloadOption = $this->mOptions['preload'] ?? null;
+		if ( $preloadOption !== false ) {
+			if ( is_string( $preloadOption ) ) {
+				$preloadTitle = Title::newFromText( $preloadOption );
+			} else {
+				$preloadTitle = Title::newFromText( $this->mOptions['target'] );
+			}
+
+			if ( $preloadTitle !== null && $preloadTitle->exists() ) {
+				// the content of the page that was specified to be used for preloading
+				$preloadContent = PFUtils::getPageText( $preloadTitle, RevisionRecord::RAW ) ?? '';
+
+				$pageExists = true;
+
+			} elseif ( $preloadOption !== null ) {
+				$this->logMessage( $this->msg(
+					'pf_autoedit_invalidpreloadspecified', $preloadOption
+				)->parse(), self::WARNING );
+			}
+		}
+
+		// Allow extensions to set/change the preload text, for new
+		// pages.
+		$hookContainer = MediaWikiServices::getInstance()->getHookContainer();
+		if ( !$pageExists ) {
+			$hookContainer->run( 'PageForms::EditFormPreloadText', [ &$preloadContent, $targetTitle, $formTitle ] );
+		} else {
+			$hookContainer->run( 'PageForms::EditFormInitialText', [ &$preloadContent, $targetTitle, $formTitle ] );
+		}
+
+		return [ $preloadContent, $pageExists ];
+	}
+
+	private function renderForm(
+		FormPrinter $formPrinter,
+		string $formContent,
+		bool $isFormSubmitted,
+		bool $pageExists,
+		int $formArticleId,
+		string $preloadContent,
+		string $targetName,
+		?string $targetNameFormula
+	): FormRenderResult {
+		$session = RequestContext::getMain()->getRequest()->getSession();
+		$fauxRequest = new FauxRequest( $this->mOptions, true, $session );
+
+		return $formPrinter->render(
+			$formContent, $isFormSubmitted, $pageExists,
+			$formArticleId, $preloadContent, $targetName, $targetNameFormula,
+			false, false, false, [], $this->getUser(), $fauxRequest
+		);
+	}
+
+	/**
+	 * Names the target page if needed, lets other code change its text and
+	 * previews, diffs or stores it.
+	 *
+	 * @throws MWException
+	 */
+	private function performSubmittedAction( string $generatedTargetNameFormula, string $targetContent ): void {
+		// If the target page was not specified, see if
+		// something was generated from the target name formula.
+		if ( $this->mOptions['target'] === '' ) {
+			// If no name was generated, we cannot save => give up
+			if ( $generatedTargetNameFormula === '' ) {
+				throw new MWException( $this->msg( 'pf_autoedit_notargetspecified' )->parse() );
+			}
+
+			$this->mOptions['target'] = $this->generateTargetName( $generatedTargetNameFormula );
+		}
+
+		// Lets other code process additional form-definition syntax
+		MediaWikiServices::getInstance()->getHookContainer()->run(
+			'PageForms::WritePageData',
+			[ $this->mOptions['form'], Title::newFromText( $this->mOptions['target'] ), &$targetContent ]
+		);
+
+		$editor = $this->setupEditPage( $targetContent );
+
+		// Perform the requested action.
+		if ( $this->mAction === self::ACTION_PREVIEW ) {
+			$this->doPreview( $editor );
+		} elseif ( $this->mAction === self::ACTION_DIFF ) {
+			$this->doDiff( $editor );
+		} else {
+			$this->doStore( $editor );
 		}
 	}
 
