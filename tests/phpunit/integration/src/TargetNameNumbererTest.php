@@ -83,12 +83,17 @@ class TargetNameNumbererTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testARandomNumberIsAnotherOneIfThePageExists(): void {
-		// With one digit there are ten names; all but one are taken, so the free one is found.
+		// With one digit there are ten names, and all but one are taken. After 20 tries that
+		// found no free name the numbers get one digit longer, so the free name is the one with
+		// the digit 9, or one with two digits.
 		foreach ( range( 0, 8 ) as $digit ) {
 			$this->insertPage( "TNRandomTaken_$digit", 'text' );
 		}
 
-		$this->assertSame( 'TNRandomTaken 9', $this->number( 'TNRandomTaken_{num;random;1}' ) );
+		$this->assertMatchesRegularExpression(
+			'/^TNRandomTaken (9|\d\d)$/',
+			$this->number( 'TNRandomTaken_{num;random;1}' )
+		);
 	}
 
 	public function testANameThatIsNoTitleIsRefusedWithTheFormulaWithoutItsTag(): void {
