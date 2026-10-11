@@ -34,9 +34,8 @@ class SectionHandler implements ElementHandler {
 		$context->counters->fieldNum++;
 		$context->counters->tabIndex++;
 
-		// The builder takes the section out of the text it is given by reference. A copy is
-		// passed on purpose: the page content of the context has always been left as it was,
-		// so the text of the section also stays part of the free text.
+		// The builder takes the section out of the text it is given by reference, so that
+		// the text of the section does not also end up in the free text of the page.
 		$existingPageContent = $context->existingPageContent;
 
 		$context->section .= $this->htmlBuilder->buildHtml(
@@ -50,5 +49,7 @@ class SectionHandler implements ElementHandler {
 			$context->request->user,
 			$context->counters
 		);
+
+		$context->existingPageContent = $existingPageContent;
 	}
 }

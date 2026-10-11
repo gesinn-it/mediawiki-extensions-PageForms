@@ -229,6 +229,43 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * The text of a section that is edited in its own input must not be offered a second time as
+	 * the free text of the page, or saving the form without a change doubles the section (issue #256).
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\FormRender\SectionHandler::handle
+	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML
+	 */
+	public function testFormHTMLWithSourceIsPageDoesNotRepeatSectionTextInFreeText(): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{section|PFTestSectionDescription|level=2}}}"
+			. "{{{section|PFTestSectionLicense|level=2|hide if empty|hidden|rows=1}}}\n"
+			. "{{{standard input|save}}}";
+
+		$pageContent = "==PFTestSectionDescription==\nA description of the file.\n";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef,
+			$form_submitted = false,
+			$source_is_page = true,
+			$form_id = null,
+			$pageContent,
+			$page_name = 'PFTestSectionPage01',
+			$page_name_formula = null,
+			$is_query = false, $is_embedded = false, $is_autocreate = false,
+			$autocreate_query = [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'A description of the file.', $formHtml );
+		$this->assertSame( 1, substr_count( $formHtml, 'A description of the file.' ) );
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
 	 * preparePreloadData() must return the field values of the existing page.
 	 *
 	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::preparePreloadData
