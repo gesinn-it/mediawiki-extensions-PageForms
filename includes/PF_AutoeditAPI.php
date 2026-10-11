@@ -704,10 +704,9 @@ class PFAutoeditAPI extends ApiBase {
 	 */
 	private function redirectAfterCreate( EditPage $editor, array $resultDetails ): void {
 		$query = $resultDetails['redirect'] ? 'redirect=no' : '';
-		$anchor = $resultDetails['sectionanchor'] ?? '';
+		$sectionanchor = $resultDetails['sectionanchor'] ?? '';
 
-		// Give extensions a chance to modify URL query on create
-		$sectionanchor = null;
+		// Give extensions a chance to modify URL query and section anchor on create
 		$extraQuery = null;
 		MediaWikiServices::getInstance()->getHookContainer()->run(
 			'ArticleUpdateBeforeRedirect', [ $editor->getArticle(), &$sectionanchor, &$extraQuery ]
@@ -717,7 +716,7 @@ class PFAutoeditAPI extends ApiBase {
 			$query = $query === '' ? $extraQuery : $query . '&' . $extraQuery;
 		}
 
-		$this->redirectTo( $editor->getTitle()->getFullURL( $query ) . $anchor );
+		$this->redirectTo( $editor->getTitle()->getFullURL( $query ) . $sectionanchor );
 	}
 
 	/**

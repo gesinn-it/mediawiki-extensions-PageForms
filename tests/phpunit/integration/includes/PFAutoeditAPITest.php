@@ -1993,6 +1993,36 @@ class PFAutoeditAPITest extends ApiTestCase {
 		);
 	}
 
+	/**
+	 * The section anchor an extension sets in the ArticleUpdateBeforeRedirect hook ends the
+	 * redirect, for a created page as well as for an updated one.
+	 *
+	 * @dataProvider provideCreatedAndUpdated
+	 * @covers \PFAutoeditAPI::redirectAfterCreate
+	 * @covers \PFAutoeditAPI::redirectAfterUpdate
+	 */
+	public function testSaveRedirectsToTheSectionAnchorOfTheHook( bool $targetExists ): void {
+		$formName = $this->createTestForm( 'AEHandleFormAnchor' . (int)$targetExists );
+		$targetName = 'AEHandleTargetAnchor' . (int)$targetExists;
+		if ( $targetExists ) {
+			$this->insertPage( $targetName, "{{AEStoreTpl\n|text=old\n}}\n" );
+		}
+		$this->setTemporaryHook(
+			'ArticleUpdateBeforeRedirect',
+			static function ( $article, &$sectionanchor, &$extraQuery ) {
+				$sectionanchor = '#AEHookAnchor';
+			}
+		);
+
+		$module = $this->executeStore( $formName, $targetName, [ 'AEStoreTpl' => [ 'text' => 'new' ] ] );
+
+		$this->assertSame( 200, $module->getStatus(), json_encode( $module->getResult()->getResultData() ) );
+		$this->assertSame(
+			Title::newFromText( $targetName )->getFullURL() . '#AEHookAnchor',
+			$module->getResult()->getResultData()['redirect']
+		);
+	}
+
 	public static function provideCreatedAndUpdated(): array {
 		return [
 			'page is created' => [ false ],
