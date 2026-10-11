@@ -6,9 +6,9 @@ declare( strict_types=1 );
  * @ingroup PageForms
  */
 
+use MediaWiki\Extension\PageForms\AutoeditFormResolver;
 use MediaWiki\Extension\PageForms\AutoeditRequest;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
-use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Extension\PageForms\FormRenderResult;
@@ -177,50 +177,17 @@ class PFAutoeditAPI extends ApiBase {
 	 * @throws MWException
 	 */
 	protected function getFormTitle() {
+		$resolver = new AutoeditFormResolver( $this );
+
 		// if no form was explicitly specified, try for explicitly set alternate forms
 		if ( $this->mOptions['form'] === '' ) {
 			$this->logMessage(
-					'No form specified. Will try to find the default form for the target page.', self::DEBUG
-				);
+				'No form specified. Will try to find the default form for the target page.', self::DEBUG
+			);
 
-			$formNames = [];
-
-			// try explicitly set alternative forms
-			if ( array_key_exists( 'alt_form', $this->mOptions ) ) {
-				// cast to array to make sure we get an array, even if only a string was sent.
-				$formNames = (array)$this->mOptions['alt_form'];
-			}
-
-			// if no alternate forms were explicitly set, try finding a default form for the target page
-			if ( count( $formNames ) === 0 ) {
-				// if no form and and no alt forms and no target page was specified, give up
-				if ( $this->mOptions['target'] === '' ) {
-					throw new MWException( $this->msg( 'pf_autoedit_notargetspecified' )->parse() );
-				}
-
-				$targetTitle = Title::newFromText( $this->mOptions['target'] );
-
-				// if the specified target title is invalid, give up
-				if ( !$targetTitle instanceof Title ) {
-					throw new MWException( $this->msg(
-						'pf_autoedit_invalidtargetspecified', $this->mOptions['target']
-					)->parse() );
-				}
-
-				$formNames = FormLinker::getDefaultFormsForPage( $targetTitle );
-				if ( count( $formNames ) === 0 ) {
-					throw new MWException( $this->msg( 'pf_autoedit_noformfound' )->parse() );
-				}
-
-			}
-
-			// if more than one form was found, issue a notice and give up
-			// this happens if no default form but several alternate forms are defined
-			if ( count( $formNames ) > 1 ) {
-				throw new MWException( $this->msg( 'pf_autoedit_toomanyformsfound' )->parse(), self::DEBUG );
-			}
-
-			$this->mOptions['form'] = $formNames[0];
+			$this->mOptions['form'] = $resolver->findDefaultFormName(
+				$this->mOptions['target'], (array)( $this->mOptions['alt_form'] ?? [] )
+			);
 
 			$this->logMessage( 'Using ' . $this->mOptions['form'] . ' as default form.', self::DEBUG );
 		}
@@ -236,33 +203,7 @@ class PFAutoeditAPI extends ApiBase {
 		if ( $formTitle->isRedirect() ) {
 			$this->logMessage( 'Form ' . $this->mOptions['form'] . ' is a redirect. Finding target.', self::DEBUG );
 
-			// MediaWiki core has no built-in "resolve the whole redirect
-			// chain" helper, so follow it one hop at a time, same as
-			// MediaWiki's own redirect handling; a fixed hop limit
-			// guards against redirect loops.
-			$maxRedirectHops = 5;
-			for ( $i = 0; $i < $maxRedirectHops && $formTitle->isRedirect(); $i++ ) {
-				$newTitle = PFUtils::newWikiPageFromTitle( $formTitle )->getRedirectTarget();
-				if ( !( $newTitle instanceof Title ) || !$newTitle->isValidRedirectTarget() ) {
-					break;
-				}
-				$formTitle = $newTitle;
-			}
-
-			// if we exceeded the hop limit or encountered an invalid redirect target, give up
-			if ( $formTitle->isRedirect() ) {
-				$newTitle = PFUtils::newWikiPageFromTitle( $formTitle )->getRedirectTarget();
-
-				if ( $newTitle instanceof Title && $newTitle->isValidRedirectTarget() ) {
-					throw new MWException( $this->msg(
-						'pf_autoedit_redirectlimitexeeded', $this->mOptions['form']
-					)->parse() );
-				} else {
-					throw new MWException( $this->msg(
-						'pf_autoedit_invalidredirecttarget', $newTitle->getFullText(), $this->mOptions['form']
-					)->parse() );
-				}
-			}
+			$formTitle = $resolver->followRedirects( $formTitle, $this->mOptions['form'] );
 		}
 
 		// if specified or found form does not exist (e.g. is a red link), give up
