@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.3.2] - 2026-10-11
+
+Fixes several form and `#autoedit` problems (templates created from forms, permission errors, minor edits, random numbers in page names, doubled section text). Behind the scenes the `pfautoedit` API, the autocomplete value sources, `FormField` and `TemplateInForm` were split into smaller classes; the old class names keep working but are deprecated.
+
 ### Changed
 - Moved the `pfautoedit` API module out of `includes/` and into `src/` under the `MediaWiki\Extension\PageForms\` namespace, per the convention decided in [#166](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/166): `includes/PF_AutoeditAPI.php` (`PFAutoeditAPI`) → `src/AutoeditApi.php` (`AutoeditApi`). The API action name `pfautoedit` is unchanged ([#168](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/168), [`c53f3434`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/c53f3434))
 - Moved the sources of autocomplete values out of `includes/PF_ValuesUtils.php` (`PFValuesUtils`) into `src/` under the `MediaWiki\Extension\PageForms\` namespace and split them by concern: `ValuesUtils`, `CategoryPages`, `NamespacePages`, `ConceptPages`, `QueryPages`, `PropertyValues`, `WikidataValues`, `ExternalUrlValues`, `DisplayTitles`, `AutocompleteSettings` and others. The reading of the form tag of a field, the current value of a field and the submitted values of a template instance are split out of `FormField` and `TemplateInForm` in the same way ([#267](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/267), [#168](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/168))
@@ -368,7 +372,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.1...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.2...HEAD
+[2.3.2]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.1...2.3.2
 [2.3.1]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.1.12...2.2.0
