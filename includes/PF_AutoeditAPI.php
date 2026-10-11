@@ -12,6 +12,7 @@ use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Extension\PageForms\FormRenderResult;
+use MediaWiki\Extension\PageForms\TargetNameNumberer;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
@@ -728,76 +729,7 @@ class PFAutoeditAPI extends ApiBase {
 			$targetName, $parserOptions, $this->getTitle()
 		);
 
-		$titleNumber = '';
-		$isRandom = false;
-		$randomNumHasPadding = false;
-		$randomNumDigits = 6;
-
-		if ( preg_match( '/{num.*}/', $targetName, $matches ) && str_contains( $targetName, '{num' ) ) {
-			// Random number
-			if ( preg_match( '/{num;random(;(0)?([1-9][0-9]*))?}/', $targetName, $matches ) ) {
-				$isRandom = true;
-				$randomNumHasPadding = array_key_exists( 2, $matches );
-				$randomNumDigits = ( array_key_exists( 3, $matches ) ? $matches[3] : $randomNumDigits );
-				$titleNumber = self::makeRandomNumber( $randomNumDigits, $randomNumHasPadding );
-			} elseif ( preg_match( '/{num.*start[_]*=[_]*([^;]*).*}/', $targetName, $matches ) ) {
-				// get unique number start value
-				// from target name; if it's not
-				// there, or it's not a positive
-				// number, start it out as blank
-				if ( count( $matches ) == 2 && is_numeric( $matches[1] ) && $matches[1] >= 0 ) {
-					// the "start" value"
-					$titleNumber = $matches[1];
-				}
-			} elseif ( preg_match( '/^(_?{num.*}?)*$/', $targetName, $matches ) ) {
-				// the target name contains only underscores and number fields,
-				// i.e. would result in an empty title without the number set
-				$titleNumber = '1';
-			}
-
-			// set target title
-			$targetTitle = Title::newFromText( preg_replace( '/{num.*}/', $titleNumber, $targetName ) );
-
-			// if the specified target title is invalid, give up
-			if ( !$targetTitle instanceof Title ) {
-				$targetString = trim( preg_replace( '/<unique number(.*)>/', $titleNumber, $targetNameFormula ) );
-				throw new MWException( $this->msg( 'pf_autoedit_invalidtargetspecified', $targetString )->parse() );
-			}
-
-			// If title exists already, cycle through numbers for
-			// this tag until we find one that gives a nonexistent
-			// page title.
-			// We cannot use $targetTitle->exists(); it does not read
-			// the latest data from the primary DB, which is needed to
-			// get correct data instead of a stale cached result; use
-			// $targetTitle->getArticleID() instead.
-			$numAttemptsAtTitle = 0;
-			while ( $targetTitle->getArticleID( IDBAccessObject::READ_LATEST ) !== 0 ) {
-				$numAttemptsAtTitle++;
-
-				if ( $isRandom ) {
-					// If the set of pages is "crowded"
-					// already, go one digit higher.
-					if ( $numAttemptsAtTitle > 20 ) {
-						$randomNumDigits++;
-					}
-					$titleNumber = self::makeRandomNumber( $randomNumDigits, $randomNumHasPadding );
-				} elseif ( $titleNumber == "" ) {
-					// If title number is blank, change it to 2;
-					// otherwise, increment it, and if necessary
-					// pad it with leading 0s as well.
-					$titleNumber = 2;
-				} else {
-					$titleNumber = str_pad( (string)( $titleNumber + 1 ), strlen( $titleNumber ), '0', STR_PAD_LEFT );
-				}
-
-				$targetTitle = Title::newFromText( preg_replace( '/{num.*}/', $titleNumber, $targetName ) );
-			}
-
-			$targetName = $targetTitle->getPrefixedText();
-		}
-
-		return $targetName;
+		return ( new TargetNameNumberer( $this ) )->numberTargetName( $targetName, $targetNameFormula );
 	}
 
 	/**
@@ -808,11 +740,7 @@ class PFAutoeditAPI extends ApiBase {
 	 * @return string
 	 */
 	public static function makeRandomNumber( int $numDigits = 1, bool $hasPadding = false ): string {
-		$maxValue = (int)min( 10 ** $numDigits - 1, PHP_INT_MAX );
-		$value = random_int( 0, $maxValue );
-		$format = '%' . ( $hasPadding ? '0' : '' ) . $numDigits . 'd';
-		// trim() removes leading spaces when padding is disabled
-		return trim( sprintf( $format, $value ) );
+		return TargetNameNumberer::makeRandomNumber( $numDigits, $hasPadding );
 	}
 
 	/**

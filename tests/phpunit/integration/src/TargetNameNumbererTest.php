@@ -1,0 +1,77 @@
+<?php
+
+use MediaWiki\Extension\PageForms\TargetNameNumberer;
+
+/**
+ * @covers \MediaWiki\Extension\PageForms\TargetNameNumberer
+ * @group PF
+ * @group Database
+ */
+class TargetNameNumbererTest extends MediaWikiIntegrationTestCase {
+
+	private function number( string $targetName, string $formula = '' ): string {
+		return ( new TargetNameNumberer( RequestContext::getMain() ) )->numberTargetName( $targetName, $formula );
+	}
+
+	public function testAnotherNameWithoutATagIsLeftAsItIs(): void {
+		$this->assertSame( 'TNNoTag_page', $this->number( 'TNNoTag_page' ) );
+	}
+
+	public function testATagWithoutAStartValueStartsAtBlank(): void {
+		$this->assertSame( 'TNBlank x', $this->number( 'TNBlank_x{num}' ) );
+	}
+
+	public function testATagThatIsAloneInTheNameStartsAtOne(): void {
+		$this->assertSame( '1', $this->number( '{num}' ) );
+		$this->assertSame( '1', $this->number( '_{num}_{num}' ) );
+	}
+
+	public function testTheStartValueOfATagIsTheFirstNumber(): void {
+		$this->assertSame( 'TNStart 5', $this->number( 'TNStart_{num;start=5}' ) );
+	}
+
+	/**
+	 * @dataProvider provideStartValuesThatAreNoNumber
+	 */
+	public function testAStartValueThatIsNoPositiveNumberStartsAtBlank( string $start ): void {
+		$this->assertSame( 'TNBadStart', $this->number( "TNBadStart_{num;start=$start}" ) );
+	}
+
+	public static function provideStartValuesThatAreNoNumber(): array {
+		return [
+			'text' => [ 'abc' ],
+			'negative' => [ '-3' ],
+			'empty' => [ '' ],
+		];
+	}
+
+	public function testAnExistingPageMakesTheNextNumber(): void {
+		$this->insertPage( 'TNTaken_1', 'text' );
+		$this->insertPage( 'TNTaken_2', 'text' );
+
+		$this->assertSame( 'TNTaken 3', $this->number( 'TNTaken_{num;start=1}' ) );
+	}
+
+	public function testAnExistingPageWithABlankStartMakesNumberTwo(): void {
+		$this->insertPage( 'TNBlankTaken_x', 'text' );
+
+		$this->assertSame( 'TNBlankTaken x2', $this->number( 'TNBlankTaken_x{num}' ) );
+	}
+
+	public function testTheNextNumberKeepsTheLeadingZerosOfTheStartValue(): void {
+		$this->insertPage( 'TNPadded_007', 'text' );
+
+		$this->assertSame( 'TNPadded 008', $this->number( 'TNPadded_{num;start=007}' ) );
+	}
+
+	public function testARandomNumberHasUpToSixDigitsByDefault(): void {
+		$this->assertMatchesRegularExpression( '/^TNRandom \d{1,6}$/', $this->number( 'TNRandom_{num;random}' ) );
+	}
+
+	public function testANameThatIsNoTitleIsRefusedWithTheFormulaWithoutItsTag(): void {
+		$this->expectException( MWException::class );
+		$this->expectExceptionMessage( wfMessage( 'pf_autoedit_invalidtargetspecified', 'TN[Bad]_' )->parse() );
+
+		$this->number( 'TN[Bad]_{num}', ' TN[Bad]_<unique number> ' );
+	}
+}
