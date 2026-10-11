@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\AutocompleteSql;
 use MediaWiki\Extension\PageForms\DisplayTitles;
 use MediaWiki\Extension\PageForms\FormCache;
 use MediaWiki\Extension\PageForms\ValuesUtils;
@@ -300,14 +301,14 @@ class PFAutocompleteAPI extends ApiBase {
 				// Search in displaytitle when set, fall back to internal title.
 				$conditions[] =
 					'((pp_displaytitle.pp_value IS NULL OR pp_displaytitle.pp_value = \'\') AND (' .
-					ValuesUtils::getSQLConditionForAutocompleteInColumn( $valueField, $substring, true ) .
+					AutocompleteSql::conditionForColumn( $valueField, $substring, true ) .
 					')) OR (' .
-						ValuesUtils::getSQLConditionForAutocompleteInColumn(
+						AutocompleteSql::conditionForColumn(
 							'pp_displaytitle.pp_value', $substring, false
 						) .
 					')';
 			} else {
-				$conditions[] = ValuesUtils::getSQLConditionForAutocompleteInColumn(
+				$conditions[] = AutocompleteSql::conditionForColumn(
 					$valueField, $substring, $propertyHasTypePage
 				);
 			}

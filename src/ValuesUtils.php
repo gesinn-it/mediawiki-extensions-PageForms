@@ -187,29 +187,14 @@ class ValuesUtils {
 				$conditions[] = 'cl_from = page_id';
 				$conditions['cl_to'] = $category;
 				if ( $wgPageFormsUseDisplayTitle ) {
-					$tables['pp_displaytitle'] = 'page_props';
-					$tables['pp_defaultsort'] = 'page_props';
-					$columns['pp_displaytitle_value'] = 'pp_displaytitle.pp_value';
-					$columns['pp_defaultsort_value'] = 'pp_defaultsort.pp_value';
-					$join = [
-						'pp_displaytitle' => [
-							'LEFT JOIN', [
-								'pp_displaytitle.pp_page = page_id',
-								'pp_displaytitle.pp_propname = \'displaytitle\''
-							]
-						],
-						'pp_defaultsort' => [
-							'LEFT JOIN', [
-								'pp_defaultsort.pp_page = page_id',
-								'pp_defaultsort.pp_propname = \'defaultsort\''
-							]
-						]
-					];
+					[ $displayTables, $displayColumns, $join ] = AutocompleteSql::displayTitleAndSortKeyParts();
+					$tables = array_merge( $tables, $displayTables );
+					$columns = array_merge( $columns, $displayColumns );
 					if ( $substring != null ) {
 						$conditions[] = '((pp_displaytitle.pp_value IS NULL OR pp_displaytitle.pp_value = \'\') AND (' .
-							self::getSQLConditionForAutocompleteInColumn( 'page_title', $substring ) .
+							AutocompleteSql::conditionForColumn( 'page_title', $substring ) .
 							')) OR ' .
-							self::getSQLConditionForAutocompleteInColumn(
+							AutocompleteSql::conditionForColumn(
 								'pp_displaytitle.pp_value', $substring, false
 							) .
 							' OR page_namespace = ' . NS_CATEGORY;
@@ -217,7 +202,7 @@ class ValuesUtils {
 				} else {
 					$join = [];
 					if ( $substring != null ) {
-						$conditions[] = self::getSQLConditionForAutocompleteInColumn(
+						$conditions[] = AutocompleteSql::conditionForColumn(
 							'page_title', $substring
 						) . ' OR page_namespace = ' . NS_CATEGORY;
 					}
@@ -508,29 +493,14 @@ class ValuesUtils {
 			$columns[] = 'page_namespace';
 		}
 		if ( $wgPageFormsUseDisplayTitle ) {
-			$tables['pp_displaytitle'] = 'page_props';
-			$tables['pp_defaultsort'] = 'page_props';
-			$columns['pp_displaytitle_value'] = 'pp_displaytitle.pp_value';
-			$columns['pp_defaultsort_value'] = 'pp_defaultsort.pp_value';
-			$join = [
-				'pp_displaytitle' => [
-					'LEFT JOIN', [
-						'pp_displaytitle.pp_page = page_id',
-						'pp_displaytitle.pp_propname = \'displaytitle\''
-					]
-				],
-				'pp_defaultsort' => [
-					'LEFT JOIN', [
-						'pp_defaultsort.pp_page = page_id',
-						'pp_defaultsort.pp_propname = \'defaultsort\''
-					]
-				]
-			];
+			[ $displayTables, $displayColumns, $join ] = AutocompleteSql::displayTitleAndSortKeyParts();
+			$tables = array_merge( $tables, $displayTables );
+			$columns = array_merge( $columns, $displayColumns );
 			if ( $substring != null ) {
 				$substringCondition = '(pp_displaytitle.pp_value IS NULL AND (' .
-					self::getSQLConditionForAutocompleteInColumn( 'page_title', $substring ) .
+					AutocompleteSql::conditionForColumn( 'page_title', $substring ) .
 					')) OR ' .
-					self::getSQLConditionForAutocompleteInColumn( 'pp_displaytitle.pp_value', $substring, false );
+					AutocompleteSql::conditionForColumn( 'pp_displaytitle.pp_value', $substring, false );
 				if ( !in_array( NS_CATEGORY, $queriedNamespaces ) ) {
 					$substringCondition .= ' OR page_namespace = ' . NS_CATEGORY;
 				}
@@ -539,7 +509,7 @@ class ValuesUtils {
 		} else {
 			$join = [];
 			if ( $substring != null ) {
-				$conditions[] = self::getSQLConditionForAutocompleteInColumn( 'page_title', $substring );
+				$conditions[] = AutocompleteSql::conditionForColumn( 'page_title', $substring );
 			}
 		}
 		$res = $db->select( $tables, $columns, $conditions, __METHOD__, $options = [], $join );
@@ -1052,47 +1022,6 @@ class ValuesUtils {
 	}
 
 	/**
-	 * Returns a SQL condition for autocompletion substring value in a column.
-	 *
-	 * @param string $column Value column name
-	 * @param string $substring Substring to look for
-	 * @param bool $replaceSpaces
-	 * @return string SQL condition for use in WHERE clause
-	 */
-	public static function getSQLConditionForAutocompleteInColumn( $column, $substring, $replaceSpaces = true ) {
-		global $wgPageFormsAutocompleteOnAllChars;
-
-		$db = PFUtils::getReplicaDB();
-
-		// CONVERT() is also supported in PostgreSQL, but it doesn't
-		// seem to work the same way.
-		if ( $db->getType() == 'mysql' ) {
-			$column_value = "LOWER(CONVERT($column USING utf8))";
-		} else {
-			$column_value = "LOWER($column)";
-		}
-
-		$substring = strtolower( $substring );
-		if ( $replaceSpaces ) {
-			$substring = str_replace( ' ', '_', $substring );
-		}
-
-		if ( $wgPageFormsAutocompleteOnAllChars ) {
-			return $column_value . $db->buildLike( $db->anyString(), $substring, $db->anyString() );
-		} else {
-			$sqlCond = $column_value . $db->buildLike( $substring, $db->anyString() );
-			$spaceRepresentation = $replaceSpaces ? '_' : ' ';
-			$wordSeparators = [ $spaceRepresentation, '/', '(', ')', '-', '\'', '\"' ];
-			foreach ( $wordSeparators as $wordSeparator ) {
-				$sqlCond .= ' OR ' . $column_value .
-					$db->buildLike( $db->anyString(), $wordSeparator . $substring, $db->anyString() );
-			}
-			return $sqlCond;
-
-		}
-	}
-
-	/**
 	 * Returns an array of the names of pages that are the result of an SMW query.
 	 *
 	 * @param string $rawQuery the query string like [[Category:Trees]][[age::>1000]]
@@ -1208,5 +1137,16 @@ class ValuesUtils {
 	 */
 	public static function parseWikidataResponse( $response ) {
 		return WikidataValues::parseResponse( $response );
+	}
+
+	/**
+	 * @deprecated use AutocompleteSql::conditionForColumn()
+	 * @param string $column
+	 * @param string $substring
+	 * @param bool $replaceSpaces
+	 * @return string
+	 */
+	public static function getSQLConditionForAutocompleteInColumn( $column, $substring, $replaceSpaces = true ) {
+		return AutocompleteSql::conditionForColumn( $column, $substring, $replaceSpaces );
 	}
 }
