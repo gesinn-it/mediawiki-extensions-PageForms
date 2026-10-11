@@ -163,4 +163,12 @@ class AutoeditRequestTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( 'nested', $data['AEReqTpl']['field'] );
 		$this->assertSame( '1', $data['top'] );
 	}
+
+	public function testParseQueryStringIgnoresAnEmptyNestedQuery(): void {
+		$this->assertSame( [ 'top' => '1' ], AutoeditRequest::parseQueryString( [], 'query&top=1' ) );
+	}
+
+	public function testParseQueryStringIgnoresEmptyParameters(): void {
+		$this->assertSame( [ 'a' => '1', 'b' => '2' ], AutoeditRequest::parseQueryString( [], '&a=1&&b=2&' ) );
+	}
 }

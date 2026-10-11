@@ -71,6 +71,11 @@ final class AutoeditRequest {
 		$queryString = str_replace( '+', '%2B', $queryString );
 
 		foreach ( explode( '&', $queryString ) as $param ) {
+			// A trailing "&" or an empty query is no parameter; it would add a null value as option "0".
+			if ( $param === '' ) {
+				continue;
+			}
+
 			$elements = explode( '=', $param, 2 );
 
 			$key = trim( urldecode( $elements[0] ) );
