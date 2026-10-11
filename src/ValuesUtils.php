@@ -430,116 +430,6 @@ class ValuesUtils {
 		return $pages;
 	}
 
-	public static function getAllPagesForNamespace( $namespaceStr, $substring = null ) {
-		global $wgLanguageCode, $wgPageFormsUseDisplayTitle;
-
-		$namespaceNames = explode( ',', $namespaceStr );
-
-		$allNamespaces = PFUtils::getContLang()->getNamespaces();
-
-		$allEnglishNamespaces = [];
-		if ( $wgLanguageCode !== 'en' ) {
-			$englishLang = MediaWikiServices::getInstance()->getLanguageFactory()->getLanguage( 'en' );
-			$allEnglishNamespaces = $englishLang->getNamespaces();
-		}
-
-		$queriedNamespaces = [];
-		$namespaceConditions = [];
-
-		foreach ( $namespaceNames as $namespace_name ) {
-			$namespace_name = self::standardizeNamespace( $namespace_name );
-			// Cycle through all the namespace names for this language, and
-			// if one matches the namespace specified in the form, get the
-			// names of all the pages in that namespace.
-
-			// Switch to blank for the string 'Main'.
-			if ( $namespace_name == 'Main' || $namespace_name == 'main' ) {
-				$namespace_name = '';
-			}
-			$matchingNamespaceCode = null;
-			foreach ( $allNamespaces as $curNSCode => $curNSName ) {
-				if ( $curNSName == $namespace_name ) {
-					$matchingNamespaceCode = $curNSCode;
-				}
-			}
-
-			// If that didn't find anything, and we're in a language
-			// other than English, check English as well.
-			if ( $matchingNamespaceCode === null && $wgLanguageCode != 'en' ) {
-				foreach ( $allEnglishNamespaces as $curNSCode => $curNSName ) {
-					if ( $curNSName == $namespace_name ) {
-						$matchingNamespaceCode = $curNSCode;
-					}
-				}
-			}
-
-			if ( $matchingNamespaceCode === null ) {
-				throw new MWException(
-					wfMessage( 'pf-missingnamespace', wfEscapeWikiText( $namespace_name ) )->parse()
-				);
-			}
-
-			$queriedNamespaces[] = $matchingNamespaceCode;
-			$namespaceConditions[] = "page_namespace = $matchingNamespaceCode";
-		}
-
-		$db = PFUtils::getReplicaDB();
-		$conditions = [];
-		$conditions[] = implode( ' OR ', $namespaceConditions );
-		$conditions['page_is_redirect'] = 0;
-		$tables = [ 'page' ];
-		$columns = [ 'page_title' ];
-		if ( count( $namespaceNames ) > 1 ) {
-			$columns[] = 'page_namespace';
-		}
-		if ( $wgPageFormsUseDisplayTitle ) {
-			[ $displayTables, $displayColumns, $join ] = AutocompleteSql::displayTitleAndSortKeyParts();
-			$tables = array_merge( $tables, $displayTables );
-			$columns = array_merge( $columns, $displayColumns );
-			if ( $substring != null ) {
-				$substringCondition = '(pp_displaytitle.pp_value IS NULL AND (' .
-					AutocompleteSql::conditionForColumn( 'page_title', $substring ) .
-					')) OR ' .
-					AutocompleteSql::conditionForColumn( 'pp_displaytitle.pp_value', $substring, false );
-				if ( !in_array( NS_CATEGORY, $queriedNamespaces ) ) {
-					$substringCondition .= ' OR page_namespace = ' . NS_CATEGORY;
-				}
-				$conditions[] = $substringCondition;
-			}
-		} else {
-			$join = [];
-			if ( $substring != null ) {
-				$conditions[] = AutocompleteSql::conditionForColumn( 'page_title', $substring );
-			}
-		}
-		$res = $db->select( $tables, $columns, $conditions, __METHOD__, $options = [], $join );
-
-		$pages = [];
-		$sortkeys = [];
-		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
-			// If there's more than one namespace, include the
-			// namespace prefix in the results - otherwise, don't.
-			if ( array_key_exists( 'page_namespace', $row ) ) {
-				$actualTitle = Title::newFromText( $row['page_title'], $row['page_namespace'] );
-				$title = $actualTitle->getPrefixedText();
-			} else {
-				$title = str_replace( '_', ' ', $row['page_title'] );
-			}
-			$pages[ $title ] = DisplayTitles::resolve(
-				$row['pp_displaytitle_value'] ?? null, $title );
-			if ( array_key_exists( 'pp_defaultsort_value', $row ) &&
-				( $row[ 'pp_defaultsort_value' ] ) !== null ) {
-				$sortkeys[ $title ] = $row[ 'pp_defaultsort_value'];
-			} else {
-				$sortkeys[ $title ] = $title;
-			}
-		}
-		$res->free();
-
-		array_multisort( $sortkeys, $pages );
-		return $pages;
-	}
-
 	/**
 	 * Creates an array of values that match the specified source name and
 	 * type, for use by both Javascript autocompletion and comboboxes.
@@ -568,7 +458,7 @@ class ValuesUtils {
 			sort( $names_array );
 		} else {
 			// i.e., $source_type == 'namespace'
-			$names_array = self::getAllPagesForNamespace( $source_name );
+			$names_array = NamespacePages::get( $source_name );
 		}
 		return $names_array;
 	}
@@ -645,35 +535,9 @@ class ValuesUtils {
 				);
 
 			case 'namespace':
-				global $wgLanguageCode;
-				$namespaceNames = explode( ',', $autocompletionSource );
-				$allNamespaces = PFUtils::getContLang()->getNamespaces();
-				$allEnglishNamespaces = [];
-				if ( $wgLanguageCode !== 'en' ) {
-					$allEnglishNamespaces = MediaWikiServices::getInstance()
-						->getLanguageFactory()->getLanguage( 'en' )->getNamespaces();
-				}
 				$nsDescriptions = [];
-				foreach ( $namespaceNames as $namespaceName ) {
-					$namespaceName = self::standardizeNamespace( $namespaceName );
-					if ( $namespaceName === 'Main' || $namespaceName === 'main' ) {
-						$namespaceName = '';
-					}
-					$nsId = null;
-					foreach ( $allNamespaces as $code => $name ) {
-						if ( $name === $namespaceName ) {
-							$nsId = $code;
-							break;
-						}
-					}
-					if ( $nsId === null ) {
-						foreach ( $allEnglishNamespaces as $code => $name ) {
-							if ( $name === $namespaceName ) {
-								$nsId = $code;
-								break;
-							}
-						}
-					}
+				foreach ( explode( ',', $autocompletionSource ) as $namespaceName ) {
+					$nsId = NamespaceFinder::findCode( NamespaceFinder::normalize( $namespaceName ) );
 					if ( $nsId === null ) {
 						return null;
 					}
@@ -1081,17 +945,6 @@ class ValuesUtils {
 	}
 
 	/**
-	 * Get the exact canonical namespace string, given a user-created string
-	 *
-	 * @param string $namespaceStr
-	 * @return string
-	 */
-	public static function standardizeNamespace( $namespaceStr ) {
-		$pageValue = PageValue::newFromText( "$namespaceStr:ABC" );
-		return $pageValue ? $pageValue->getNamespaceText() : $namespaceStr;
-	}
-
-	/**
 	 * @deprecated use DisplayTitles::resolve()
 	 * @param string|null $raw
 	 * @param string $fallback
@@ -1148,5 +1001,24 @@ class ValuesUtils {
 	 */
 	public static function getSQLConditionForAutocompleteInColumn( $column, $substring, $replaceSpaces = true ) {
 		return AutocompleteSql::conditionForColumn( $column, $substring, $replaceSpaces );
+	}
+
+	/**
+	 * @deprecated use NamespacePages::get()
+	 * @param string $namespaceStr
+	 * @param string|null $substring
+	 * @return array
+	 */
+	public static function getAllPagesForNamespace( $namespaceStr, $substring = null ) {
+		return NamespacePages::get( $namespaceStr, $substring );
+	}
+
+	/**
+	 * @deprecated use NamespaceFinder::standardize()
+	 * @param string $namespaceStr
+	 * @return string
+	 */
+	public static function standardizeNamespace( $namespaceStr ) {
+		return NamespaceFinder::standardize( $namespaceStr );
 	}
 }
