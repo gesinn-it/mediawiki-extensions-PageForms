@@ -123,7 +123,6 @@ class PFOpenLayersInput extends PFFormInput {
 		// ==== GESINN PATCH BEGIN ====
 		// handle restricted and mandatory params
 		if ( $is_disabled ) {
-			$className .= ' pfCoordsInputDisabled';
 			$coordsInputAttrs['disabled'] = 'disabled';
 		}
 		// ==== GESINN PATCH END ====

@@ -66,11 +66,8 @@ class PFOpenLayersInputMapLookupHtmlTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * Pins existing behavior: disabling the input appends 'pfCoordsInputDisabled'
-	 * to a local $className variable that is never written back into the
-	 * coordsInput's class attribute after it is set - so the class string on
-	 * the rendered <input> does not change when disabled, only the disabled
-	 * attribute is added.
+	 * A disabled input is marked by the disabled attribute only; its class string does not change.
+	 * No stylesheet knows a class for it, so none is added.
 	 */
 	public function testGetHtmlDisabledDoesNotChangeCoordsInputClassButAddsDisabledAttribute(): void {
 		$html = $this->getHtml( '', false, true );
