@@ -23,7 +23,7 @@ class CategoryPagesTest extends MediaWikiIntegrationTestCase {
 		$this->insertPage( 'PFCategoryPagesTestInSub', '[[Category:PFCategoryPagesTestSub]]' );
 		$this->insertPage( 'Category:PFCategoryPagesTestSubSub', '[[Category:PFCategoryPagesTestSub]]' );
 		$this->insertPage( 'PFCategoryPagesTestInSubSub', '[[Category:PFCategoryPagesTestSubSub]]' );
-		$this->insertPage( 'Help:PFCategoryPagesTestInOtherNamespace', '[[Category:PFCategoryPagesTestTop]]' );
+		$this->insertPage( 'User talk:PFCategoryPagesTestInOtherNamespace', '[[Category:PFCategoryPagesTestTop]]' );
 		$this->insertPage( 'PFCategoryPagesTestSpacedMember', '[[Category:PFCategoryPagesTest Spaced]]' );
 		// The sort key puts the page before the others, the display title changes its label.
 		$this->insertPage( 'PFCategoryPagesTestTitled', '[[Category:PFCategoryPagesTestTop]]' );
@@ -76,7 +76,7 @@ class CategoryPagesTest extends MediaWikiIntegrationTestCase {
 	public function testGetPrefixesThePagesOfOtherNamespaces(): void {
 		$names = array_keys( CategoryPages::get( 'PFCategoryPagesTestTop', 1 ) );
 
-		$this->assertContains( 'Help:PFCategoryPagesTestInOtherNamespace', $names );
+		$this->assertContains( 'User talk:PFCategoryPagesTestInOtherNamespace', $names );
 	}
 
 	public function testGetKeepsOnlyThePagesWithTheSubstringButStillFollowsSubcategories(): void {

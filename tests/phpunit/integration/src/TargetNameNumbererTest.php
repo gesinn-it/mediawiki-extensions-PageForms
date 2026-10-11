@@ -65,14 +65,14 @@ class TargetNameNumbererTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testARandomNumberHasUpToSixDigitsByDefault(): void {
-		$this->assertMatchesRegularExpression( '/^TNRandom \d{1,6}$/', $this->number( 'TNRandom_{num;random}' ) );
+		$this->assertSame( 1, preg_match( '/^TNRandom \d{1,6}$/', $this->number( 'TNRandom_{num;random}' ) ) );
 	}
 
 	/**
 	 * @dataProvider provideRandomNumberTags
 	 */
 	public function testARandomNumberHasTheDigitsTheTagAsksFor( string $tag, string $pattern ): void {
-		$this->assertMatchesRegularExpression( $pattern, $this->number( "TNDigits_$tag" ) );
+		$this->assertSame( 1, preg_match( $pattern, $this->number( "TNDigits_$tag" ) ) );
 	}
 
 	public static function provideRandomNumberTags(): array {
@@ -90,10 +90,10 @@ class TargetNameNumbererTest extends MediaWikiIntegrationTestCase {
 			$this->insertPage( "TNRandomTaken_$digit", 'text' );
 		}
 
-		$this->assertMatchesRegularExpression(
+		$this->assertSame( 1, preg_match(
 			'/^TNRandomTaken (9|\d\d)$/',
 			$this->number( 'TNRandomTaken_{num;random;1}' )
-		);
+		) );
 	}
 
 	public function testANameThatIsNoTitleIsRefusedWithTheFormulaWithoutItsTag(): void {

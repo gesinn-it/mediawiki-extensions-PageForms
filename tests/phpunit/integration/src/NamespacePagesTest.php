@@ -26,7 +26,7 @@ class NamespacePagesTest extends MediaWikiIntegrationTestCase {
 			'Template:PFNamespacePagesTestRedirect',
 			'#REDIRECT [[Template:PFNamespacePagesTestRegular]]'
 		);
-		$this->insertPage( 'Help:PFNamespacePagesTestHelp', 'Help content' );
+		$this->insertPage( 'User talk:PFNamespacePagesTestHelp', 'User talk content' );
 		$this->insertPage( 'PFNamespacePagesTestMain', 'Main content' );
 	}
 
@@ -62,10 +62,10 @@ class NamespacePagesTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetPrefixesTheNamesOfSeveralNamespaces(): void {
-		$titles = array_keys( NamespacePages::get( 'Template,Help' ) );
+		$titles = array_keys( NamespacePages::get( 'Template,User talk' ) );
 
 		$this->assertContains( 'Template:PFNamespacePagesTestRegular', $titles );
-		$this->assertContains( 'Help:PFNamespacePagesTestHelp', $titles );
+		$this->assertContains( 'User talk:PFNamespacePagesTestHelp', $titles );
 	}
 
 	public function testGetTakesMainAsTheMainNamespace(): void {

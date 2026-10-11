@@ -10,7 +10,7 @@ use MediaWiki\Extension\PageForms\AutocompleteSql;
 class AutocompleteSqlTest extends MediaWikiIntegrationTestCase {
 
 	private function like( string ...$parts ): string {
-		$db = $this->getDb();
+		$db = PFUtils::getReplicaDB();
 		return $db->buildLike( ...array_map(
 			static fn ( $part ) => $part === '*' ? $db->anyString() : $part,
 			$parts
@@ -50,7 +50,7 @@ class AutocompleteSqlTest extends MediaWikiIntegrationTestCase {
 	public function testConditionLowersTheColumn(): void {
 		$condition = AutocompleteSql::conditionForColumn( 'page_title', 'Foo' );
 
-		$this->assertMatchesRegularExpression( '/^LOWER\(.*page_title.*\) LIKE /', $condition );
+		$this->assertSame( 1, preg_match( '/^LOWER\(.*page_title.*\) LIKE /', $condition ) );
 	}
 
 	public function testDisplayTitleAndSortKeyPartsJoinBothPagePropsOnThePage(): void {
