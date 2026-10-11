@@ -4,9 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use MediaWiki\MediaWikiServices;
-use PFUtils;
-use SMWQueryProcessor;
 use Title;
 
 /**
@@ -16,55 +13,6 @@ use Title;
  * @ingroup PF
  */
 class ValuesUtils {
-
-	/**
-	 * Helper function - gets names of categories for a page;
-	 * based on Title::getParentCategories(), but simpler.
-	 *
-	 * @param Title $title
-	 * @return array
-	 */
-	public static function getCategoriesForPage( $title ) {
-		$categories = [];
-		$db = PFUtils::getReplicaDB();
-		$titlekey = $title->getArticleID();
-		if ( $titlekey == 0 ) {
-			// Something's wrong - exit
-			return $categories;
-		}
-		$conditions = [ 'cl_from' => $titlekey ];
-		$res = $db->select(
-			'categorylinks',
-			'DISTINCT cl_to',
-			$conditions,
-			__METHOD__
-		);
-		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
-			$categories[] = $row['cl_to'];
-		}
-		$res->free();
-		return $categories;
-	}
-
-	/**
-	 * Helper function - returns names of all the categories.
-	 * @return array
-	 */
-	public static function getAllCategories() {
-		$categories = [];
-		$db = PFUtils::getReplicaDB();
-		$res = $db->select(
-			'category',
-			'cat_title',
-			[],
-			__METHOD__
-		);
-		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
-			$categories[] = $row['cat_title'];
-		}
-		$res->free();
-		return $categories;
-	}
 
 	/**
 	 * Creates an array of values that match the specified source name and
@@ -88,7 +36,7 @@ class ValuesUtils {
 		} elseif ( $source_type == 'concept' ) {
 			$names_array = ConceptPages::get( $source_name );
 		} elseif ( $source_type == 'query' ) {
-			$names_array = self::getAllPagesForQuery( $source_name );
+			$names_array = QueryPages::get( $source_name );
 		} elseif ( $source_type == 'wikidata' ) {
 			$names_array = WikidataValues::fetch( $source_name );
 			sort( $names_array );
@@ -114,93 +62,6 @@ class ValuesUtils {
 			// Remove extra spaces.
 			return array_map( 'trim', explode( $delimiter, $value ?? '' ) );
 		}
-	}
-
-	public static function getValuesFromExternalURL( $external_url_alias, $substring ) {
-		global $wgPageFormsAutocompletionURLs;
-		if ( $wgPageFormsAutocompletionURLs === [] ) {
-			return wfMessage( 'pf-nocompletionurls' );
-		}
-		if ( !array_key_exists( $external_url_alias, $wgPageFormsAutocompletionURLs ) ) {
-			return wfMessage( 'pf-invalidexturl' );
-		}
-		$url = $wgPageFormsAutocompletionURLs[$external_url_alias];
-		if ( $url === '' ) {
-			return wfMessage( 'pf-blankexturl' );
-		}
-		$url = str_replace( '<substr>', urlencode( $substring ), $url );
-		$page_contents = MediaWikiServices::getInstance()->getHttpRequestFactory()->get( $url, [], __METHOD__ );
-		if ( $page_contents === null || $page_contents === '' ) {
-			return wfMessage( 'pf-externalpageempty' );
-		}
-		$data = json_decode( $page_contents );
-		if ( $data === null || $data === [] ) {
-			return wfMessage( 'pf-externalpagebadjson' );
-		}
-		$return_values = [];
-		foreach ( $data->pfautocomplete as $val ) {
-			$return_values[] = (array)$val;
-		}
-		return $return_values;
-	}
-
-	/**
-	 * Returns an array of the names of pages that are the result of an SMW query.
-	 *
-	 * @param string $rawQuery the query string like [[Category:Trees]][[age::>1000]]
-	 * @return array
-	 */
-	public static function getAllPagesForQuery( $rawQuery ) {
-		$rawQueryArray = [ $rawQuery ];
-		[ $queryObj ] = SMWQueryProcessor::getQueryAndParamsFromFunctionParams(
-			$rawQueryArray, SMW_OUTPUT_WIKI, SMWQueryProcessor::SPECIAL_PAGE, false
-		);
-		$res = PFUtils::getSMWStore()->getQueryResult( $queryObj );
-		$rows = $res->getResults();
-		$pages = [];
-		foreach ( $rows as $row ) {
-			$pages[] = $row->getDbKey();
-		}
-
-		return $pages;
-	}
-
-	/**
-	 * Doing "mapping" on values can potentially lead to more than one
-	 * value having the same "label". To avoid this, we find duplicate
-	 * labels, if there are any, add on the real value, in parentheses,
-	 * to all of them.
-	 *
-	 * @param array $labels
-	 * @return array
-	 */
-	public static function disambiguateLabels( array $labels ) {
-		asort( $labels );
-		if ( count( $labels ) == count( array_unique( $labels ) ) ) {
-			return $labels;
-		}
-		$fixed_labels = [];
-		foreach ( $labels as $value => $label ) {
-			$fixed_labels[$value] = $labels[$value];
-		}
-		$counts = array_count_values( $fixed_labels );
-		foreach ( $counts as $current_label => $count ) {
-			if ( $count > 1 ) {
-				$matching_keys = array_keys( $labels, $current_label );
-				foreach ( $matching_keys as $key ) {
-					$fixed_labels[$key] .= ' (' . $key . ')';
-				}
-			}
-		}
-		if ( count( $fixed_labels ) == count( array_unique( $fixed_labels ) ) ) {
-			return $fixed_labels;
-		}
-		// If that didn't work, just add on " (value)" to *all* the
-		// labels. @TODO - is this necessary?
-		foreach ( $labels as $value => $label ) {
-			$labels[$value] .= ' (' . $value . ')';
-		}
-		return $labels;
 	}
 
 	/**
@@ -416,5 +277,50 @@ class ValuesUtils {
 		$property_name, $store = null, $maxValues = null, $useDisplayTitle = null
 	) {
 		return PropertyValues::all( $property_name, $store, $maxValues, $useDisplayTitle );
+	}
+
+	/**
+	 * @deprecated use PageCategories::forPage()
+	 * @param Title $title
+	 * @return array
+	 */
+	public static function getCategoriesForPage( $title ) {
+		return PageCategories::forPage( $title );
+	}
+
+	/**
+	 * @deprecated use PageCategories::all()
+	 * @return array
+	 */
+	public static function getAllCategories() {
+		return PageCategories::all();
+	}
+
+	/**
+	 * @deprecated use ExternalUrlValues::get()
+	 * @param string $external_url_alias
+	 * @param string|null $substring
+	 * @return array|\Message
+	 */
+	public static function getValuesFromExternalURL( $external_url_alias, $substring ) {
+		return ExternalUrlValues::get( $external_url_alias, $substring );
+	}
+
+	/**
+	 * @deprecated use QueryPages::get()
+	 * @param string $rawQuery
+	 * @return array
+	 */
+	public static function getAllPagesForQuery( $rawQuery ) {
+		return QueryPages::get( $rawQuery );
+	}
+
+	/**
+	 * @deprecated use MappingLabels::disambiguate()
+	 * @param array $labels
+	 * @return array
+	 */
+	public static function disambiguateLabels( array $labels ) {
+		return MappingLabels::disambiguate( $labels );
 	}
 }

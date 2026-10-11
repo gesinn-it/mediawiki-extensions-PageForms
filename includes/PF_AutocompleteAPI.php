@@ -7,9 +7,10 @@ use MediaWiki\Extension\PageForms\AutocompleteSql;
 use MediaWiki\Extension\PageForms\CategoryPages;
 use MediaWiki\Extension\PageForms\ConceptPages;
 use MediaWiki\Extension\PageForms\DisplayTitles;
+use MediaWiki\Extension\PageForms\ExternalUrlValues;
 use MediaWiki\Extension\PageForms\FormCache;
+use MediaWiki\Extension\PageForms\MappingLabels;
 use MediaWiki\Extension\PageForms\NamespacePages;
-use MediaWiki\Extension\PageForms\ValuesUtils;
 use MediaWiki\Extension\PageForms\WikidataValues;
 use MediaWiki\MediaWikiServices;
 
@@ -63,7 +64,7 @@ class PFAutocompleteAPI extends ApiBase {
 			$data = NamespacePages::get( $namespace, $substr );
 			$map = $useDisplayTitle;
 		} elseif ( $external_url !== null ) {
-			$data = ValuesUtils::getValuesFromExternalURL( $external_url, $substr );
+			$data = ExternalUrlValues::get( $external_url, $substr );
 		} else {
 			$data = [];
 		}
@@ -77,7 +78,7 @@ class PFAutocompleteAPI extends ApiBase {
 		}
 
 		if ( $map ) {
-			$data = ValuesUtils::disambiguateLabels( $data );
+			$data = MappingLabels::disambiguate( $data );
 		}
 
 		// Format data as the API requires it - this is not needed

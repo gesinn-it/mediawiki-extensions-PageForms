@@ -183,7 +183,7 @@ class FormLinker {
 		$namespace = $title->getNamespace();
 		if ( NS_CATEGORY !== $namespace ) {
 			$default_forms = [];
-			$categories = ValuesUtils::getCategoriesForPage( $title );
+			$categories = PageCategories::forPage( $title );
 			foreach ( $categories as $category ) {
 				$categoryPage = Title::makeTitleSafe( NS_CATEGORY, $category );
 				$defaultFormForCategory = self::getDefaultForm( $categoryPage );

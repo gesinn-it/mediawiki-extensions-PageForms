@@ -224,6 +224,6 @@ class AutocompleteSettings {
 			return $autocompleteValues;
 		}
 
-		return ValuesUtils::disambiguateLabels( $autocompleteValues );
+		return MappingLabels::disambiguate( $autocompleteValues );
 	}
 }

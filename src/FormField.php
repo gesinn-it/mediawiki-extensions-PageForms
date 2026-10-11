@@ -783,7 +783,7 @@ class FormField {
 		} elseif ( array_key_exists( 'mapping property', $this->mFieldArgs ) ) {
 			$mappingType = 'property';
 		} elseif ( $this->mUseDisplayTitle ) {
-			$this->mPossibleValues = ValuesUtils::disambiguateLabels( $this->mPossibleValues );
+			$this->mPossibleValues = MappingLabels::disambiguate( $this->mPossibleValues );
 		}
 
 		if ( $mappingType !== null && $this->mPossibleValues !== [] ) {
@@ -1046,7 +1046,7 @@ class FormField {
 			$this->setValuesWithMappingProperty();
 		}
 
-		$this->mPossibleValues = ValuesUtils::disambiguateLabels( $this->mPossibleValues );
+		$this->mPossibleValues = MappingLabels::disambiguate( $this->mPossibleValues );
 	}
 
 	/**

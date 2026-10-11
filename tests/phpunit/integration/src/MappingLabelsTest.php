@@ -115,4 +115,49 @@ class MappingLabelsTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame( [ 'PageA' => 'PageA' ], $labels );
 	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\MappingLabels::disambiguate
+	 */
+	public function testDisambiguateReturnsUnchangedWhenNoDuplicates(): void {
+		$input = [ 'paris_fr' => 'Alpha', 'paris_tx' => 'Beta' ];
+		$result = MappingLabels::disambiguate( $input );
+		$this->assertSame( 'Alpha', $result['paris_fr'] );
+		$this->assertSame( 'Beta', $result['paris_tx'] );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\MappingLabels::disambiguate
+	 */
+	public function testDisambiguateSuffixesDuplicateValues(): void {
+		$input = [ 'Paris_FR' => 'Paris', 'Paris_TX' => 'Paris' ];
+		$result = MappingLabels::disambiguate( $input );
+		$this->assertSame( 'Paris (Paris_FR)', $result['Paris_FR'] );
+		$this->assertSame( 'Paris (Paris_TX)', $result['Paris_TX'] );
+	}
+
+	/**
+	 * @covers \MediaWiki\Extension\PageForms\MappingLabels::disambiguate
+	 */
+	public function testDisambiguateOnlySuffixesTheLabelsThatAreDuplicates(): void {
+		$result = MappingLabels::disambiguate( [ 'A' => 'Paris', 'B' => 'Paris', 'C' => 'London' ] );
+
+		$this->assertSame( 'Paris (A)', $result['A'] );
+		$this->assertSame( 'Paris (B)', $result['B'] );
+		$this->assertSame( 'London', $result['C'] );
+	}
+
+	/**
+	 * When suffixing the duplicates leaves labels that are equal again, every label gets its value.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\MappingLabels::disambiguate
+	 */
+	public function testDisambiguateSuffixesEveryLabelIfTheSuffixedOnesStillCollide(): void {
+		// B and C are suffixed to "X (B)" and "X (C)", and "X (B)" is the label of A already.
+		$result = MappingLabels::disambiguate( [ 'A' => 'X (B)', 'B' => 'X', 'C' => 'X' ] );
+
+		$this->assertSame( 'X (B) (A)', $result['A'] );
+		$this->assertSame( 'X (B)', $result['B'] );
+		$this->assertSame( 'X (C)', $result['C'] );
+	}
 }

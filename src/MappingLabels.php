@@ -173,4 +173,42 @@ class MappingLabels {
 		// Callers expect a string.
 		return (string)$value;
 	}
+
+	/**
+	 * Doing "mapping" on values can potentially lead to more than one
+	 * value having the same "label". To avoid this, we find duplicate
+	 * labels, if there are any, add on the real value, in parentheses,
+	 * to all of them.
+	 *
+	 * @param array $labels
+	 * @return array
+	 */
+	public static function disambiguate( array $labels ): array {
+		asort( $labels );
+		if ( count( $labels ) == count( array_unique( $labels ) ) ) {
+			return $labels;
+		}
+		$fixed_labels = [];
+		foreach ( $labels as $value => $label ) {
+			$fixed_labels[$value] = $labels[$value];
+		}
+		$counts = array_count_values( $fixed_labels );
+		foreach ( $counts as $current_label => $count ) {
+			if ( $count > 1 ) {
+				$matching_keys = array_keys( $labels, $current_label );
+				foreach ( $matching_keys as $key ) {
+					$fixed_labels[$key] .= ' (' . $key . ')';
+				}
+			}
+		}
+		if ( count( $fixed_labels ) == count( array_unique( $fixed_labels ) ) ) {
+			return $fixed_labels;
+		}
+		// If that didn't work, just add on " (value)" to *all* the
+		// labels. @TODO - is this necessary?
+		foreach ( $labels as $value => $label ) {
+			$labels[$value] .= ' (' . $value . ')';
+		}
+		return $labels;
+	}
 }
