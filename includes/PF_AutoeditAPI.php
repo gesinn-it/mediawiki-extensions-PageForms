@@ -6,12 +6,12 @@ declare( strict_types=1 );
  * @ingroup PageForms
  */
 
+use MediaWiki\Extension\PageForms\AutoeditRequest;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Extension\PageForms\FormRenderResult;
-use MediaWiki\Extension\PageForms\NestedInputValues;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
@@ -21,10 +21,10 @@ use MediaWiki\Revision\RevisionRecord;
  */
 class PFAutoeditAPI extends ApiBase {
 
-	public const ACTION_FORMEDIT = 0;
-	public const ACTION_SAVE = 1;
-	public const ACTION_PREVIEW = 2;
-	public const ACTION_DIFF = 3;
+	public const ACTION_FORMEDIT = AutoeditRequest::ACTION_FORMEDIT;
+	public const ACTION_SAVE = AutoeditRequest::ACTION_SAVE;
+	public const ACTION_PREVIEW = AutoeditRequest::ACTION_PREVIEW;
+	public const ACTION_DIFF = AutoeditRequest::ACTION_DIFF;
 
 	/**
 	 * Error level used when a non-recoverable error occurred.
@@ -58,7 +58,8 @@ class PFAutoeditAPI extends ApiBase {
 	 * @return array Options
 	 */
 	public function addOptionsFromString( $options ) {
-		return $this->parseDataFromQueryString( $this->mOptions, $options );
+		$this->mOptions = AutoeditRequest::parseQueryString( $this->mOptions, $options );
+		return $this->mOptions;
 	}
 
 	/**
@@ -149,7 +150,6 @@ class PFAutoeditAPI extends ApiBase {
 	public function prepareAction() {
 		// Get options from the request, but keep the explicitly set options.
 		$data = $this->getRequest()->getValues();
-		$this->mOptions = PFUtils::arrayMergeRecursiveDistinct( $data, $this->mOptions );
 
 		PFUtils::getParser()->startExternalParse(
 			null,
@@ -157,92 +157,13 @@ class PFAutoeditAPI extends ApiBase {
 			Parser::OT_WIKI
 		);
 
-		// MW uses the parameter 'title' instead of 'target' when submitting
-		// data for formedit action => use that
-		if ( !array_key_exists( 'target', $this->mOptions ) && array_key_exists( 'title', $this->mOptions ) ) {
-			$this->mOptions['target'] = $this->mOptions['title'];
-			unset( $this->mOptions['title'] );
-		}
-
-		// if the 'query' parameter was used, unpack the param string
-		if ( array_key_exists( 'query', $this->mOptions ) ) {
-			$this->addOptionsFromString( $this->mOptions['query'] );
-			unset( $this->mOptions['query'] );
-		}
-
-		// if an action is explicitly set in the form data, use that
-		if ( array_key_exists( 'wpSave', $this->mOptions ) ) {
-			// set action to 'save' if requested
-			$this->mAction = self::ACTION_SAVE;
-			unset( $this->mOptions['wpSave'] );
-		} elseif ( array_key_exists( 'wpPreview', $this->mOptions ) ) {
-			// set action to 'preview' if requested
-			$this->mAction = self::ACTION_PREVIEW;
-			unset( $this->mOptions['wpPreview'] );
-		} elseif ( array_key_exists( 'wpDiff', $this->mOptions ) ) {
-			// set action to 'preview' if requested
-			$this->mAction = self::ACTION_DIFF;
-			unset( $this->mOptions['wpDiff'] );
-		} elseif ( array_key_exists( 'action', $this->mOptions ) ) {
-			switch ( $this->mOptions['action'] ) {
-				case 'pfautoedit':
-					$this->mIsAutoEdit = true;
-					$this->mAction = self::ACTION_SAVE;
-					// #autoedit embeds the target's wpEdittime and editRevId into its form when the
-					// page containing it is rendered. That can be long before the click (or be
-					// served from the parser cache), so it is not the revision this save is based
-					// on: the new page text is computed from the target as it is now. EditPage
-					// would report an edit conflict for every change made to the target since
-					// the rendering (AS_CONFLICT_DETECTED, "Modifying ... failed"), although
-					// nothing is overwritten. The values are therefore dropped here, and the base
-					// of the save is determined when the page text is read (see doAction()).
-					// This only applies to #autoedit requests; saves from a form (wpSave) keep the
-					// base the user was shown.
-					unset( $this->mOptions['wpEdittime'], $this->mOptions['editRevId'] );
-					break;
-				case 'preview':
-					$this->mAction = self::ACTION_PREVIEW;
-					break;
-				default:
-					$this->mAction = self::ACTION_FORMEDIT;
-			}
-		} else {
-			// set default action
-			$this->mAction = self::ACTION_FORMEDIT;
-		}
-
-		$hookQuery = null;
-
-		// ensure 'form' key exists
-		if ( array_key_exists( 'form', $this->mOptions ) ) {
-			$hookQuery = $this->mOptions['form'];
-		} else {
-			$this->mOptions['form'] = '';
-		}
-
-		// ensure 'target' key exists
-		if ( array_key_exists( 'target', $this->mOptions ) ) {
-			if ( $hookQuery !== null ) {
-				$hookQuery .= '/' . $this->mOptions['target'];
-			}
-		} else {
-			$this->mOptions['target'] = '';
-		}
-
-		// Normalize form and target names
-
-		$form = Title::newFromText( $this->mOptions['form'] );
-		if ( $form !== null ) {
-			$this->mOptions['form'] = $form->getPrefixedText();
-		}
-
-		$target = Title::newFromText( $this->mOptions['target'] );
-		if ( $target !== null ) {
-			$this->mOptions['target'] = $target->getPrefixedText();
-		}
+		$request = AutoeditRequest::fromOptions( PFUtils::arrayMergeRecursiveDistinct( $data, $this->mOptions ) );
+		$this->mOptions = $request->options;
+		$this->mAction = $request->action;
+		$this->mIsAutoEdit = $request->isAutoEdit;
 
 		MediaWikiServices::getInstance()->getHookContainer()->run(
-			'PageForms::SetTargetName', [ &$this->mOptions['target'], $hookQuery ]
+			'PageForms::SetTargetName', [ &$this->mOptions['target'], $request->hookQuery ]
 		);
 
 		// set html return status. If all goes well, this will not be changed
@@ -768,7 +689,6 @@ class PFAutoeditAPI extends ApiBase {
 		if ( $this->mStatus === 200 ) {
 			if ( array_key_exists( 'ok text', $this->mOptions ) ) {
 				$targetTitle = Title::newFromText( $this->mOptions['target'] );
-				// @phan-suppress-next-line SecurityCheck-DoubleEscaped -- the text is wikitext, parsed here once
 				$responseText = $this->getMessageCache()->parse(
 					$this->mOptions['ok text'], $targetTitle
 				)->getText();
@@ -785,7 +705,6 @@ class PFAutoeditAPI extends ApiBase {
 			// get errortext (or use default)
 			if ( array_key_exists( 'error text', $this->mOptions ) ) {
 				$targetTitle = Title::newFromText( $this->mOptions['target'] );
-				// @phan-suppress-next-line SecurityCheck-DoubleEscaped -- the text is wikitext, parsed here once
 				$responseText = $this->getMessageCache()->parse(
 					$this->mOptions['error text'], $targetTitle
 				)->getText();
@@ -1256,36 +1175,6 @@ class PFAutoeditAPI extends ApiBase {
 		$token = $request->getVal( 'wpEditToken' );
 		$user = $this->getUser();
 		return $user->matchEditToken( $token );
-	}
-
-	/**
-	 * Parses data from a query string into the $data array
-	 *
-	 * @param array &$data
-	 * @param string $queryString
-	 * @return array
-	 */
-	private function parseDataFromQueryString( array &$data, string $queryString ): array {
-		// Pre-encode literal '+' as '%2B' before urldecode() so that plus signs
-		// in field values survive decoding as '+' rather than being collapsed to
-		// spaces (the standard URL-encoded-form meaning of '+').
-		$queryString = str_replace( '+', '%2B', $queryString );
-		$params = explode( '&', $queryString );
-
-		foreach ( $params as $param ) {
-			$elements = explode( '=', $param, 2 );
-
-			$key = trim( urldecode( $elements[0] ) );
-			$value = count( $elements ) > 1 ? urldecode( $elements[1] ) : null;
-
-			if ( $key == "query" || $key == "query string" ) {
-				$this->parseDataFromQueryString( $data, $value );
-			} else {
-				NestedInputValues::addToArray( $data, $key, $value );
-			}
-		}
-
-		return $data;
 	}
 
 	/**

@@ -214,7 +214,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// addOptionsFromString – exercises parseDataFromQueryString
+	// addOptionsFromString – exercises AutoeditRequest::parseQueryString
 	// -------------------------------------------------------------------------
 
 	/**
