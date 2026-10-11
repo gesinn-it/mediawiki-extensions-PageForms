@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\MediaWikiServices;
-use MWException;
 use PFUtils;
 use SMW\DataValueFactory;
 use SMW\DataValues\PropertyValue;
@@ -157,151 +156,6 @@ class ValuesUtils {
 	}
 
 	/**
-	 * @param string $conceptName
-	 * @param string|null $substring
-	 * @return string[]
-	 */
-	public static function getAllPagesForConcept( $conceptName, $substring = null ) {
-		global $wgPageFormsMaxAutocompleteValues, $wgPageFormsAutocompleteOnAllChars;
-
-		$store = PFUtils::getSMWStore();
-		if ( $store == null ) {
-			return [];
-		}
-
-		$conceptTitle = Title::makeTitleSafe( SMW_NS_CONCEPT, $conceptName );
-
-		if ( $substring !== null ) {
-			$substring = strtolower( $substring );
-		}
-
-		// Escape if there's no such concept.
-		if ( $conceptTitle == null || !$conceptTitle->exists() ) {
-			throw new MWException( wfMessage( 'pf-missingconcept', wfEscapeWikiText( $conceptName ) )->parse() );
-		}
-
-		global $wgPageFormsUseDisplayTitle;
-		$conceptDI = \SMW\DIWikiPage::newFromTitle( $conceptTitle );
-		$conceptDesc = new \SMW\Query\Language\ConceptDescription( $conceptDI );
-
-		// When filtering by substring there are two strategies, depending on the mode:
-		//
-		// Non-display-title mode (!$wgPageFormsUseDisplayTitle):
-		//   Push a title-LIKE condition into the SMW query via Conjunction, so the
-		//   LIMIT applies only to already-filtered results. Without this, the LIMIT
-		//   truncates the full concept list before PHP filtering, silently dropping
-		//   pages beyond the limit even if they match the search term.
-		//   ValueDescription(DIWikiPage, SMW_CMP_LIKE) maps to smw_sortkey LIKE '%pattern%'
-		//   in the SQLStore, equivalent to the [[~*pattern*]] ask-query syntax.
-		//
-		// Display-title mode ($wgPageFormsUseDisplayTitle, the default):
-		//   smw_sortkey stores the page title, not the display title, so the LIKE
-		//   filter cannot pre-screen by display title. Instead the SMW query fetches
-		//   all concept pages (up to smwgQMaxLimit) and the PHP pass below does the
-		//   authoritative display-title filtering. The result is then truncated to
-		//   $wgPageFormsMaxAutocompleteValues at the end of this function.
-		if ( $substring !== null && !$wgPageFormsUseDisplayTitle ) {
-			$pattern = $wgPageFormsAutocompleteOnAllChars
-				? '*' . $substring . '*'
-				: $substring . '*';
-			$titleDI = new \SMW\DIWikiPage( $pattern, NS_MAIN );
-			$titleFilter = new \SMW\Query\Language\ValueDescription( $titleDI, null, SMW_CMP_LIKE );
-			$desc = new \SMW\Query\Language\Conjunction( [ $conceptDesc, $titleFilter ] );
-		} else {
-			$desc = $conceptDesc;
-		}
-
-		$printout = new \SMW\Query\PrintRequest( \SMW\Query\PrintRequest::PRINT_THIS, "" );
-		$desc->addPrintRequest( $printout );
-		$query = new SMWQuery( $desc );
-
-		// In display-title mode with a substring filter the PHP pass is the authoritative
-		// filter and needs to see all concept pages. Skip the autocomplete-values cap here
-		// and let the SMW default limit ($smwgQMaxLimit, typically 10,000) apply; the result
-		// is truncated to $wgPageFormsMaxAutocompleteValues after PHP filtering below.
-		// Without a substring filter (initial page load / pre-load), apply the cap directly
-		// to SMW so the query stays bounded.
-		if ( $substring === null || !$wgPageFormsUseDisplayTitle ) {
-			$query->setLimit( $wgPageFormsMaxAutocompleteValues );
-		}
-		$query_result = $store->getQueryResult( $query );
-
-		$pages = [];
-		$sortkeys = [];
-		$titles = [];
-
-		for ( $res = $query_result->getNext(); $res; $res = $query_result->getNext() ) {
-			$page = $res[0]->getNextText( SMW_OUTPUT_WIKI );
-			if ( $wgPageFormsUseDisplayTitle ) {
-				$title = Title::newFromText( $page );
-				if ( $title !== null ) {
-					$titles[] = $title;
-				}
-			} else {
-				$pages[$page] = $page;
-				$sortkeys[$page] = $page;
-			}
-		}
-
-		if ( $wgPageFormsUseDisplayTitle ) {
-			$services = MediaWikiServices::getInstance();
-			$properties = $services->getPageProps()->getProperties( $titles,
-				[ 'displaytitle', 'defaultsort' ] );
-			foreach ( $titles as $title ) {
-				if ( array_key_exists( $title->getArticleID(), $properties ) ) {
-					$titleprops = $properties[$title->getArticleID()];
-				} else {
-					$titleprops = [];
-				}
-
-				$titleText = $title->getPrefixedText();
-				$pages[$titleText] = DisplayTitles::resolve(
-					$titleprops['displaytitle'] ?? null, $titleText );
-				if ( array_key_exists( 'defaultsort', $titleprops ) ) {
-					$sortkeys[$titleText] = $titleprops['defaultsort'];
-				} else {
-					$sortkeys[$titleText] = $titleText;
-				}
-			}
-		}
-
-		if ( $substring !== null ) {
-			$filtered_pages = [];
-			$filtered_sortkeys = [];
-			foreach ( $pages as $index => $pageName ) {
-				// For !$wgPageFormsUseDisplayTitle: the SMW query already pre-filters
-				// via title-LIKE so this pass only refines word-boundary matching
-				// when $wgPageFormsAutocompleteOnAllChars is false.
-				// For $wgPageFormsUseDisplayTitle: smw_sortkey holds the page title,
-				// not the display title, so this remains the authoritative filter.
-				$lowercasePageName = strtolower( $pageName );
-				$position = strpos( $lowercasePageName, $substring );
-				if ( $position !== false ) {
-					if ( $wgPageFormsAutocompleteOnAllChars ) {
-						if ( $position >= 0 ) {
-							$filtered_pages[$index] = $pageName;
-							$filtered_sortkeys[$index] = $sortkeys[$index];
-						}
-					} else {
-						if ( $position === 0 ||
-							strpos( $lowercasePageName, ' ' . $substring ) > 0 ) {
-							$filtered_pages[$index] = $pageName;
-							$filtered_sortkeys[$index] = $sortkeys[$index];
-						}
-					}
-				}
-			}
-			$pages = $filtered_pages;
-			$sortkeys = $filtered_sortkeys;
-		}
-		array_multisort( $sortkeys, $pages );
-		// In display-title mode with a substring filter the SMW query fetches more
-		// pages than $wgPageFormsMaxAutocompleteValues; truncate here after filtering.
-		$pages = array_slice( $pages, 0, $wgPageFormsMaxAutocompleteValues );
-		return $pages;
-	}
-
-	/**
 	 * Creates an array of values that match the specified source name and
 	 * type, for use by both Javascript autocompletion and comboboxes.
 	 *
@@ -321,7 +175,7 @@ class ValuesUtils {
 		} elseif ( $source_type == 'category' ) {
 			$names_array = CategoryPages::get( $source_name, 10 );
 		} elseif ( $source_type == 'concept' ) {
-			$names_array = self::getAllPagesForConcept( $source_name );
+			$names_array = ConceptPages::get( $source_name );
 		} elseif ( $source_type == 'query' ) {
 			$names_array = self::getAllPagesForQuery( $source_name );
 		} elseif ( $source_type == 'wikidata' ) {
@@ -912,5 +766,15 @@ class ValuesUtils {
 	 */
 	public static function fixedMultiSort( $sortkeys, $pages ) {
 		return CategoryPages::fixedMultiSort( $sortkeys, $pages );
+	}
+
+	/**
+	 * @deprecated use ConceptPages::get()
+	 * @param string $conceptName
+	 * @param string|null $substring
+	 * @return string[]
+	 */
+	public static function getAllPagesForConcept( $conceptName, $substring = null ) {
+		return ConceptPages::get( $conceptName, $substring );
 	}
 }

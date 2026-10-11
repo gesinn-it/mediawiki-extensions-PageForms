@@ -5,6 +5,7 @@
 
 use MediaWiki\Extension\PageForms\AutocompleteSql;
 use MediaWiki\Extension\PageForms\CategoryPages;
+use MediaWiki\Extension\PageForms\ConceptPages;
 use MediaWiki\Extension\PageForms\DisplayTitles;
 use MediaWiki\Extension\PageForms\FormCache;
 use MediaWiki\Extension\PageForms\NamespacePages;
@@ -56,7 +57,7 @@ class PFAutocompleteAPI extends ApiBase {
 			$data = CategoryPages::get( $category, 3, $substr );
 			$map = $useDisplayTitle;
 		} elseif ( $concept !== null ) {
-			$data = ValuesUtils::getAllPagesForConcept( $concept, $substr );
+			$data = ConceptPages::get( $concept, $substr );
 			$map = $useDisplayTitle;
 		} elseif ( $namespace !== null ) {
 			$data = NamespacePages::get( $namespace, $substr );
