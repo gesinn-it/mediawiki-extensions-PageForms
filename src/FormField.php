@@ -6,7 +6,6 @@ namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use Parser;
-use PFUtils;
 use User;
 
 /**
@@ -366,54 +365,27 @@ class FormField {
 		);
 	}
 
+	/**
+	 * @param string $mappingType 'template' or 'property'
+	 * @see FormFieldMapping::apply()
+	 */
 	public function setMappedValues( $mappingType ) {
-		if ( $mappingType == 'template' ) {
-			$this->setValuesWithMappingTemplate();
-		} elseif ( $mappingType == 'property' ) {
-			$this->setValuesWithMappingProperty();
-		}
-
-		$this->mPossibleValues = MappingLabels::disambiguate( $this->mPossibleValues );
+		( new FormFieldMapping( $this ) )->apply( $mappingType );
 	}
 
 	/**
-	 * Helper function to get an array of labels from an array of values
-	 * given a mapping template.
+	 * @see FormFieldMapping::withTemplate()
 	 */
 	public function setValuesWithMappingTemplate() {
-		$this->mPossibleValues = $this->getMappingLabels()->forTemplate(
-			$this->mFieldArgs['mapping template'], $this->getMappingKeys()
-		);
+		( new FormFieldMapping( $this ) )->withTemplate();
 	}
 
 	/**
-	 * Helper function to get an array of labels from an array of values
-	 * given a mapping property.
 	 * @param \SMW\Store|null $store
+	 * @see FormFieldMapping::withProperty()
 	 */
 	public function setValuesWithMappingProperty( $store = null ) {
-		$store ??= PFUtils::getSMWStore();
-		if ( $store == null ) {
-			return;
-		}
-
-		$this->mPossibleValues = $this->getMappingLabels()->forProperty(
-			$store, $this->mFieldArgs['mapping property'], $this->getMappingKeys()
-		);
-	}
-
-	/**
-	 * The values to look the labels up for: the page names, which are the keys of the possible
-	 * values when those are display titles.
-	 *
-	 * @return array<int, string|int>
-	 */
-	private function getMappingKeys(): array {
-		$keys = [];
-		foreach ( $this->mPossibleValues as $index => $value ) {
-			$keys[] = $this->mUseDisplayTitle ? $index : $value;
-		}
-		return $keys;
+		( new FormFieldMapping( $this ) )->withProperty( $store );
 	}
 
 	/**
@@ -423,7 +395,7 @@ class FormField {
 		$this->mappingLabels = $mappingLabels;
 	}
 
-	private function getMappingLabels(): MappingLabels {
+	public function getMappingLabels(): MappingLabels {
 		$this->mappingLabels ??= new MappingLabels();
 		return $this->mappingLabels;
 	}

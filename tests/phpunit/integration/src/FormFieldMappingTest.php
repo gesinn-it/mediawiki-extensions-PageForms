@@ -21,6 +21,7 @@ use ReflectionClass;
  * unit tests.
  *
  * @covers \MediaWiki\Extension\PageForms\FormField
+ * @covers \MediaWiki\Extension\PageForms\FormFieldMapping
  *
  * @group PF
  * @group Database

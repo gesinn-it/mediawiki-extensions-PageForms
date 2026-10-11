@@ -111,7 +111,8 @@ Used by `FormPrinter::render()`; they mix structure, request state and values.
   `FormFieldTagReader` reads a `FieldSpec` into it in named steps (template field, flags,
   arguments, possible values, delimiter, semantic property, mapping, input name); the one
   side effect on its arguments is that it clears the state of the parser it is given.
-  `FormFieldCurrentValue` determines the value the field has when the form is shown.
+  `FormFieldCurrentValue` determines the value the field has when the form is shown and
+  `FormFieldMapping` replaces its possible values with the labels of a mapping.
 * Sources of the values of a field (`values from ...`), chosen by `ValuesUtils` by their type:
   `CategoryPages`, `NamespacePages`, `ConceptPages`, `QueryPages`, `PropertyValues`,
   `WikidataValues` and `ExternalUrlValues`. `DisplayTitles` looks up display titles for them,
