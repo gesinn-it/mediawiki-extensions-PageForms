@@ -139,7 +139,7 @@ class FormLinkerTest extends MediaWikiIntegrationTestCase {
 	// FormPrinterTest cases (data sets #5/#6, which depend on the *current*
 	// test user's effective groups) fail when run in the same PHPUnit process
 	// afterwards. Detailed formHTML()/page-text rendering behaviour for this
-	// call path is already covered by FormPrinterTest and PFAutoeditAPITest,
+	// call path is already covered by FormPrinterTest and AutoeditApiTest,
 	// so the risk of a brittle, order-dependent test here outweighs the
 	// coverage gained.
 	// -------------------------------------------------------------------------

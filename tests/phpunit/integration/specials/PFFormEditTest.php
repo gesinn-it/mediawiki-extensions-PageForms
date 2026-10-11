@@ -4,7 +4,7 @@ use MediaWiki\MediaWikiServices;
 
 /**
  * @covers \PFFormEdit
- * @covers \PFAutoeditAPI
+ * @covers \MediaWiki\Extension\PageForms\AutoeditApi
  * @group Database
  * @group medium
  *
@@ -89,21 +89,21 @@ class PFFormEditTest extends SpecialPageTestBase {
 	}
 
 	public function testSubmittingFormWithUniqueNumberFormulaAndNoTargetGeneratesNewPageTitle() {
-		// Regression test: PFAutoeditAPI::generateTargetName() is only reached
+		// Regression test: AutoeditApi::generateTargetName() is only reached
 		// when the form is being submitted (wpSave/wpPreview/wpDiff) with no
 		// explicit target and a page name formula containing a "{num}" tag.
 		// It then probes $targetTitle->getArticleID( IDBAccessObject::READ_LATEST )
 		// to find a free page name. Fixed-target-name tests such as
 		// testValidForm() never submit the form, so they do not cover it.
 		//
-		// PFFormEdit builds its own PFAutoeditAPI/ApiMain without passing a
-		// request through, so PFAutoeditAPI::prepareAction() reads
+		// PFFormEdit builds its own AutoeditApi/ApiMain without passing a
+		// request through, so AutoeditApi::prepareAction() reads
 		// RequestContext::getMain()->getRequest() rather than the WebRequest
 		// passed to executeSpecialPage(); the wpPreview param must be set
 		// there. Restored in finally to avoid leaking into later tests.
 		// The formula's "{num}" tag sits directly against the info tag's
 		// closing "}}}" (4 closing braces in a row) - a regression test for
-		// PF_AutoeditAPI::doAction()'s 'page name' extraction regex, which
+		// AutoeditApi::doAction()'s 'page name' extraction regex, which
 		// used to match the first "}}}" it found and truncate the formula
 		// to "Thing_{num" instead of "Thing_{num}".
 		$formText = <<<EOF
@@ -154,12 +154,12 @@ class PFFormEditTest extends SpecialPageTestBase {
 
 	public function testNullTargetTitleDoesNotFatalOnExists() {
 		// PFFormEdit::printForm() derives $targetTitle from $result['target']
-		// (PFAutoeditAPI::getOptions(), read after $module->execute() has run) and
+		// (AutoeditApi::getOptions(), read after $module->execute() has run) and
 		// calls $targetTitle->exists() when $targetName (the original request
 		// value) is non-empty. $result['target'] can be a string for which
 		// Title::newFromText() returns null (e.g. via the 'PageForms::SetTargetName'
 		// hook, or a page-name formula with no "{num}" tag, which
-		// PFAutoeditAPI::generateTargetName() returns unvalidated). There is no
+		// AutoeditApi::generateTargetName() returns unvalidated). There is no
 		// realistic end-to-end request that reaches this guard without first
 		// hitting an unrelated, unguarded Title::newFromText() call in
 		// FormPrinter::formHTML() (src/FormPrinter.php:444, out of scope here) -

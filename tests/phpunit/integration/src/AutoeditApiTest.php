@@ -1,20 +1,29 @@
 <?php
 
+use MediaWiki\Extension\PageForms\AutoeditApi;
+use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\MainConfigNames;
 use OOUI\BlankTheme;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
 
 /**
- * @covers \PFAutoeditAPI
+ * @covers \MediaWiki\Extension\PageForms\AutoeditApi
  * @group PF
  * @group Database
  * @group medium
  */
-class PFAutoeditAPITest extends ApiTestCase {
+class AutoeditApiTest extends ApiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
 		\OOUI\Theme::setSingleton( new BlankTheme() );
+
+		// $wgPageFormsFormPrinter is a global singleton that captures services of the container it
+		// was built in. Tests that run earlier in the same process can leave one behind from a
+		// container that was reset since (ContainerDisabledException when a form is saved), so
+		// every test here starts from a form printer bound to the current container.
+		global $wgPageFormsFormPrinter;
+		$wgPageFormsFormPrinter = FormPrinterFactory::create();
 	}
 
 	// -------------------------------------------------------------------------
@@ -22,39 +31,39 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @covers \PFAutoeditAPI::makeRandomNumber
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::makeRandomNumber
 	 */
 	public function testMakeRandomNumberDefaultIsOneDigit(): void {
-		$result = PFAutoeditAPI::makeRandomNumber();
+		$result = AutoeditApi::makeRandomNumber();
 		$this->assertRegex( '/^\d$/', $result );
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::makeRandomNumber
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::makeRandomNumber
 	 */
 	public function testMakeRandomNumberWithSixDigitsHasAtMostSixChars(): void {
-		$result = PFAutoeditAPI::makeRandomNumber( 6 );
+		$result = AutoeditApi::makeRandomNumber( 6 );
 		$this->assertLessThanOrEqual( 6, strlen( $result ) );
 		$this->assertRegex( '/^\d+$/', $result );
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::makeRandomNumber
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::makeRandomNumber
 	 */
 	public function testMakeRandomNumberWithPaddingHasExactLength(): void {
-		$result = PFAutoeditAPI::makeRandomNumber( 4, true );
+		$result = AutoeditApi::makeRandomNumber( 4, true );
 		$this->assertSame( 4, strlen( $result ) );
 		$this->assertRegex( '/^\d{4}$/', $result );
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::makeRandomNumber
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::makeRandomNumber
 	 */
 	public function testMakeRandomNumberWithoutPaddingHasNoLeadingZeros(): void {
 		// Run several times to reduce the probability of a false pass.
 		$allTrimmed = true;
 		for ( $i = 0; $i < 20; $i++ ) {
-			$result = PFAutoeditAPI::makeRandomNumber( 6, false );
+			$result = AutoeditApi::makeRandomNumber( 6, false );
 			if ( strlen( $result ) > 1 && $result[0] === '0' ) {
 				$allTrimmed = false;
 				break;
@@ -76,14 +85,14 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * the 200 branch.  With PHP 8 and convertWarningsToExceptions="true", this
 	 * throws an exception when 'error text' is absent.
 	 *
-	 * @covers \PFAutoeditAPI::finalizeResults
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::finalizeResults
 	 */
 	public function testFinalizeResultsUsesOkTextOptionOnSuccess(): void {
 		$context = RequestContext::getMain();
 		$main = new ApiMain( $context );
-		$module = new PFAutoeditAPI( $main, 'pfautoedit' );
+		$module = new AutoeditApi( $main, 'pfautoedit' );
 
-		$ref = new ReflectionClass( PFAutoeditAPI::class );
+		$ref = new ReflectionClass( AutoeditApi::class );
 
 		$mStatus = $ref->getProperty( 'mStatus' );
 		$mStatus->setAccessible( true );
@@ -101,7 +110,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 
 		$mAction = $ref->getProperty( 'mAction' );
 		$mAction->setAccessible( true );
-		$mAction->setValue( $module, PFAutoeditAPI::ACTION_SAVE );
+		$mAction->setValue( $module, AutoeditApi::ACTION_SAVE );
 
 		$finalizeResults = $ref->getMethod( 'finalizeResults' );
 		$finalizeResults->setAccessible( true );
@@ -118,8 +127,8 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @covers \PFAutoeditAPI::getOptions
-	 * @covers \PFAutoeditAPI::setOptions
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::getOptions
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::setOptions
 	 */
 	public function testSetAndGetOptions(): void {
 		[ $module ] = $this->newModule();
@@ -128,8 +137,8 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::setOption
-	 * @covers \PFAutoeditAPI::getOptions
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::setOption
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::getOptions
 	 */
 	public function testSetOptionUpdatesASingleKey(): void {
 		[ $module ] = $this->newModule();
@@ -140,7 +149,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::getAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::getAction
 	 */
 	public function testGetActionReturnsNullByDefault(): void {
 		[ $module ] = $this->newModule();
@@ -148,7 +157,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::getStatus
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::getStatus
 	 */
 	public function testGetStatusReturnsNullByDefault(): void {
 		[ $module ] = $this->newModule();
@@ -160,7 +169,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @covers \PFAutoeditAPI::isWriteMode
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::isWriteMode
 	 */
 	public function testIsWriteModeReturnsTrue(): void {
 		[ $module ] = $this->newModule();
@@ -168,7 +177,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::getAllowedParams
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::getAllowedParams
 	 */
 	public function testGetAllowedParamsContainsRequiredKeys(): void {
 		[ $module ] = $this->newModule();
@@ -180,7 +189,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::getParamDescription
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::getParamDescription
 	 */
 	public function testGetParamDescriptionReturnsStringsForAllAllowedParams(): void {
 		[ $module ] = $this->newModule();
@@ -196,16 +205,16 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @covers \PFAutoeditAPI::getVersion
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::getVersion
 	 */
 	public function testGetVersionContainsClassName(): void {
 		[ $module ] = $this->newModule();
 		$version = $module->getVersion();
-		$this->assertStringContainsString( 'PFAutoeditAPI', $version );
+		$this->assertStringContainsString( 'AutoeditApi', $version );
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::getVersion
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::getVersion
 	 */
 	public function testGetVersionContainsPFVersion(): void {
 		[ $module ] = $this->newModule();
@@ -218,7 +227,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @covers \PFAutoeditAPI::addOptionsFromString
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::addOptionsFromString
 	 */
 	public function testAddOptionsFromStringParsesSimpleKeyValue(): void {
 		[ $module ] = $this->newModule();
@@ -229,7 +238,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::addOptionsFromString
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::addOptionsFromString
 	 */
 	public function testAddOptionsFromStringPreservesLiteralPlusSign(): void {
 		// A literal '+' in a field value must survive round-trip as '+', not
@@ -240,7 +249,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::addOptionsFromString
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::addOptionsFromString
 	 */
 	public function testAddOptionsFromStringHandlesMultipleFields(): void {
 		[ $module ] = $this->newModule();
@@ -258,7 +267,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * The button that was used to submit the form chooses the action; without one it is the form editor.
 	 * Whichever it is, preparing the action leaves the status at 200.
 	 *
-	 * @covers \PFAutoeditAPI::prepareAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::prepareAction
 	 * @dataProvider provideActionRequests
 	 * @param array $requestParams
 	 * @param int $expectedAction
@@ -275,15 +284,15 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 */
 	public static function provideActionRequests(): array {
 		return [
-			'no button defaults to the form editor' => [ [], PFAutoeditAPI::ACTION_FORMEDIT ],
-			'save button' => [ [ 'wpSave' => '1' ], PFAutoeditAPI::ACTION_SAVE ],
-			'preview button' => [ [ 'wpPreview' => '1' ], PFAutoeditAPI::ACTION_PREVIEW ],
-			'show changes button' => [ [ 'wpDiff' => '1' ], PFAutoeditAPI::ACTION_DIFF ],
+			'no button defaults to the form editor' => [ [], AutoeditApi::ACTION_FORMEDIT ],
+			'save button' => [ [ 'wpSave' => '1' ], AutoeditApi::ACTION_SAVE ],
+			'preview button' => [ [ 'wpPreview' => '1' ], AutoeditApi::ACTION_PREVIEW ],
+			'show changes button' => [ [ 'wpDiff' => '1' ], AutoeditApi::ACTION_DIFF ],
 		];
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::prepareAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::prepareAction
 	 */
 	public function testPrepareActionActionPfautoeditSetsSaveAndIsAutoEdit(): void {
 		[ $module ] = $this->newModule( [
@@ -292,15 +301,15 @@ class PFAutoeditAPITest extends ApiTestCase {
 			'action' => 'pfautoedit',
 		] );
 		$module->prepareAction();
-		$this->assertSame( PFAutoeditAPI::ACTION_SAVE, $module->getAction() );
+		$this->assertSame( AutoeditApi::ACTION_SAVE, $module->getAction() );
 
-		$ref = ( new ReflectionClass( PFAutoeditAPI::class ) )->getProperty( 'mIsAutoEdit' );
+		$ref = ( new ReflectionClass( AutoeditApi::class ) )->getProperty( 'mIsAutoEdit' );
 		$ref->setAccessible( true );
 		$this->assertTrue( $ref->getValue( $module ) );
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::prepareAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::prepareAction
 	 */
 	public function testPrepareActionTitleParamAliasesTarget(): void {
 		// MW submits 'title' instead of 'target' in some contexts;
@@ -317,7 +326,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::prepareAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::prepareAction
 	 */
 	public function testPrepareActionQueryParamIsUnpacked(): void {
 		// If 'query' is present it must be parsed and merged into mOptions.
@@ -333,7 +342,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutoeditAPI::prepareAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::prepareAction
 	 */
 	public function testPrepareActionNormalizesFormAndTargetNames(): void {
 		[ $module ] = $this->newModule( [
@@ -352,16 +361,16 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Build a PFAutoeditAPI instance with request values pre-set.
+	 * Build a AutoeditApi instance with request values pre-set.
 	 *
 	 * @param array $requestData Key-value pairs for the FauxRequest
-	 * @return array{0: PFAutoeditAPI}
+	 * @return array{0: AutoeditApi}
 	 */
 	private function newModule( array $requestData = [] ): array {
 		$context = new RequestContext();
 		$context->setRequest( new FauxRequest( $requestData, true ) );
 		$main = new ApiMain( $context );
-		$module = new PFAutoeditAPI( $main, 'pfautoedit' );
+		$module = new AutoeditApi( $main, 'pfautoedit' );
 		return [ $module ];
 	}
 
@@ -373,8 +382,8 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * Sets $module's protected mOptions['form'] via reflection and invokes
 	 * the protected getFormTitle(), returning its result.
 	 */
-	private function callGetFormTitle( PFAutoeditAPI $module, string $formName ): Title {
-		$ref = new ReflectionClass( PFAutoeditAPI::class );
+	private function callGetFormTitle( AutoeditApi $module, string $formName ): Title {
+		$ref = new ReflectionClass( AutoeditApi::class );
 
 		$mOptions = $ref->getProperty( 'mOptions' );
 		$mOptions->setAccessible( true );
@@ -436,8 +445,8 @@ class PFAutoeditAPITest extends ApiTestCase {
 	/**
 	 * Invokes the protected generateTargetName() via reflection.
 	 */
-	private function callGenerateTargetName( PFAutoeditAPI $module, string $targetNameFormula ): string {
-		$ref = new ReflectionClass( PFAutoeditAPI::class );
+	private function callGenerateTargetName( AutoeditApi $module, string $targetNameFormula ): string {
+		$ref = new ReflectionClass( AutoeditApi::class );
 		$generateTargetName = $ref->getMethod( 'generateTargetName' );
 		$generateTargetName->setAccessible( true );
 		return $generateTargetName->invoke( $module, $targetNameFormula );
@@ -455,7 +464,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * loop body (i.e. an actual collision) rather than just the loop
 	 * condition on a free name.
 	 *
-	 * @covers \PFAutoeditAPI::generateTargetName
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::generateTargetName
 	 */
 	public function testGenerateTargetNameSkipsExistingPagesWithNumFormula(): void {
 		$this->insertPage( 'PFTestGenTargetNameCollision_1', 'existing page' );
@@ -472,7 +481,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * digits (the random-number branch), rather than falling through to the
 	 * "start=" or plain-numbering branches.
 	 *
-	 * @covers \PFAutoeditAPI::generateTargetName
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::generateTargetName
 	 */
 	public function testGenerateTargetNameWithRandomFormulaProducesNumericSuffix(): void {
 		[ $module ] = $this->newModule();
@@ -486,7 +495,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * with zeros.
 	 *
 	 * @dataProvider provideRandomNumberTags
-	 * @covers \PFAutoeditAPI::generateTargetName
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::generateTargetName
 	 */
 	public function testGenerateTargetNameHonoursTheDigitsOfARandomNumberTag( string $tag, string $pattern ): void {
 		[ $module ] = $this->newModule();
@@ -509,7 +518,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * generateTargetName() must throw rather than pass an invalid title on
 	 * to the caller.
 	 *
-	 * @covers \PFAutoeditAPI::generateTargetName
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::generateTargetName
 	 */
 	public function testGenerateTargetNameThrowsOnInvalidGeneratedTitle(): void {
 		[ $module ] = $this->newModule();
@@ -526,14 +535,14 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * When the action failed (status 400) and the caller provided an
 	 * 'error text' option, finalizeResults() must read from mOptions['error text'].
 	 *
-	 * @covers \PFAutoeditAPI::finalizeResults
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::finalizeResults
 	 */
 	public function testFinalizeResultsUsesErrorTextOptionOnFailure(): void {
 		$context = RequestContext::getMain();
 		$main = new ApiMain( $context );
-		$module = new PFAutoeditAPI( $main, 'pfautoedit' );
+		$module = new AutoeditApi( $main, 'pfautoedit' );
 
-		$ref = new ReflectionClass( PFAutoeditAPI::class );
+		$ref = new ReflectionClass( AutoeditApi::class );
 
 		$mStatus = $ref->getProperty( 'mStatus' );
 		$mStatus->setAccessible( true );
@@ -549,7 +558,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 
 		$mAction = $ref->getProperty( 'mAction' );
 		$mAction->setAccessible( true );
-		$mAction->setValue( $module, PFAutoeditAPI::ACTION_SAVE );
+		$mAction->setValue( $module, AutoeditApi::ACTION_SAVE );
 
 		$finalizeResults = $ref->getMethod( 'finalizeResults' );
 		$finalizeResults->setAccessible( true );
@@ -562,7 +571,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	// -------------------------------------------------------------------------
 	// FauxRequest / formHTML integration
 	//
-	// These tests guard against the "dual request-access" bug: PF_AutoeditAPI
+	// These tests guard against the "dual request-access" bug: AutoeditApi
 	// passes a FauxRequest with the submitted options directly into formHTML().
 	// Any call site that reads 'global $wgRequest' instead of the passed-in
 	// $request silently loses all submitted field values, producing a bare
@@ -591,7 +600,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 			. "{{{field|$fieldName}}}\n"
 			. "{{{end template}}}";
 
-		// Build the same FauxRequest that PF_AutoeditAPI would pass into formHTML().
+		// Build the same FauxRequest that AutoeditApi would pass into formHTML().
 		$options = [
 			$templateName => [ $fieldName => $fieldValue ],
 		];
@@ -963,13 +972,13 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * Drives PFAutoeditAPI::execute() as a real 'save' submission and returns
+	 * Drives AutoeditApi::execute() as a real 'save' submission and returns
 	 * the module so the caller can inspect getStatus() / getResult().
 	 *
 	 * Uses ApiTestCase::doApiRequest() (rather than hand-building an ApiMain
 	 * with a local RequestContext) so that RequestContext::getMain() is set
 	 * up and torn down the same way the MediaWiki test framework expects —
-	 * PFAutoeditAPI reads RequestContext::getMain() internally (e.g. in
+	 * AutoeditApi reads RequestContext::getMain() internally (e.g. in
 	 * doStore()/formHTML()'s preload path), and a hand-rolled local context
 	 * left that global context mutated for later tests in the same process.
 	 *
@@ -982,7 +991,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * caller needs to act on that same user afterwards (e.g. blocking it).
 	 *
 	 * Explicitly restores RequestContext::getMain()'s title and user
-	 * afterwards: PFAutoeditAPI::doStore() temporarily repoints
+	 * afterwards: AutoeditApi::doStore() temporarily repoints
 	 * RequestContext::getMain() at the target title for the duration of
 	 * attemptSave(), and ApiTestCase::doApiRequest() itself points
 	 * RequestContext::getMain() at $testUser for the duration of the
@@ -994,7 +1003,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 */
 	private function executeStore(
 		string $formName, string $targetName, array $extraOptions = [], ?TestUser $testUser = null
-	): PFAutoeditAPI {
+	): AutoeditApi {
 		$testUser ??= $this->getMutableTestUser();
 		$user = $testUser->getUser();
 
@@ -1025,7 +1034,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * logs the permission errors via logMessage() (default ERROR level) and
 	 * returns early, without throwing. This must surface as status 400.
 	 *
-	 * @covers \PFAutoeditAPI::doStore
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doStore
 	 */
 	public function testDoStoreWithoutEditRightsReturnsErrorStatus(): void {
 		$this->setGroupPermissions( '*', 'edit', false );
@@ -1054,7 +1063,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * A page that is new needs the right to create it as well as the right to edit it. If the user
 	 * has only the right to edit, the error of the missing right to create is the one shown.
 	 *
-	 * @covers \PFAutoeditAPI::doStore
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doStore
 	 */
 	public function testDoStoreOfANewPageWithoutTheRightToCreateIsRefused(): void {
 		$this->setGroupPermissions( '*', 'createpage', false );
@@ -1076,7 +1085,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * The errors of the right to edit and of the right to create are listed together, and an error
 	 * that both have is listed once.
 	 *
-	 * @covers \PFAutoeditAPI::doStore
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doStore
 	 */
 	public function testDoStoreListsAnErrorOfTheEditAndCreateRightsOnce(): void {
 		$this->setGroupPermissions( '*', 'edit', false );
@@ -1098,7 +1107,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * with it checked is a minor edit, and without it it is not.
 	 *
 	 * @dataProvider provideMinorEditFlags
-	 * @covers \PFAutoeditAPI::doStore
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doStore
 	 */
 	public function testDoStoreMarksAnEditAsMinorOnlyIfAsked( ?string $minorFlag, bool $expectedMinor ): void {
 		$formName = 'AEMinorForm' . (int)$expectedMinor;
@@ -1132,7 +1141,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * An invalid edit token makes tokenOk() fail, which throws MWException
 	 * (session_fail_preview). execute() catches it and reports status 400.
 	 *
-	 * @covers \PFAutoeditAPI::doStore
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doStore
 	 */
 	public function testDoStoreWithBadEditTokenReturnsErrorStatus(): void {
 		$formName = $this->createTestForm( 'AEStoreFormBadToken' );
@@ -1155,7 +1164,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * A malformed form definition throws a FormDefinitionException, whose message is plain
 	 * text; the error shown to the caller is its escaped HTML, with the detail in a pre element.
 	 *
-	 * @covers \PFAutoeditAPI::execute
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::execute
 	 */
 	public function testAFormDefinitionErrorIsShownAsHtml(): void {
 		$formName = 'AEStoreFormMalformed';
@@ -1182,7 +1191,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * keep status 200 and set a 'redirect' result value, and the page must
 	 * actually be created.
 	 *
-	 * @covers \PFAutoeditAPI::doStore
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doStore
 	 */
 	public function testDoStoreCreatingNewPageSucceeds(): void {
 		$formName = $this->createTestForm( 'AEStoreFormNewPage' );
@@ -1205,7 +1214,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * Successfully updating an existing page (AS_SUCCESS_UPDATE) must keep
 	 * status 200, set a 'redirect' result value, and persist the new content.
 	 *
-	 * @covers \PFAutoeditAPI::doStore
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doStore
 	 */
 	public function testDoStoreUpdatingExistingPageSucceeds(): void {
 		$formName = $this->createTestForm( 'AEStoreFormUpdatePage' );
@@ -1236,7 +1245,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * branches central to issue #126 — pinned down explicitly so a future
 	 * refactor cannot silently turn it into an error.
 	 *
-	 * @covers \PFAutoeditAPI::doStore
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doStore
 	 */
 	public function testDoStoreWithBlankArticleIsNonFatal(): void {
 		// A free-text-only form maps directly onto the page's wikitext, so
@@ -1271,7 +1280,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * a DEBUG-level logMessage(), no exception, status stays 200. This is the
 	 * second branch central to issue #126.
 	 *
-	 * @covers \PFAutoeditAPI::doStore
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doStore
 	 */
 	public function testDoStoreWithHookAbortedSaveIsNonFatal(): void {
 		$this->setTemporaryHook( 'EditFilterMergedContent', static function ( $context, $content, $status, $summary ) {
@@ -1302,7 +1311,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * caught by execute() and reported as status 400 — one of the genuinely
 	 * fatal branches, to contrast with the two non-fatal ones above.
 	 *
-	 * @covers \PFAutoeditAPI::doStore
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doStore
 	 */
 	public function testDoStoreWithSpamSummaryReturnsErrorStatus(): void {
 		$this->setMwGlobals( 'wgSummarySpamRegex', [ '/viagra/i' ] );
@@ -1328,7 +1337,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * which throws UserBlockedError. execute() catches it and reports status
 	 * 400.
 	 *
-	 * @covers \PFAutoeditAPI::doStore
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doStore
 	 */
 	public function testDoStoreWithBlockedUserReturnsErrorStatus(): void {
 		// A dedicated mutable user, not the shared getTestUser() one: blocking
@@ -1373,7 +1382,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * the first one — otherwise the existing instance is dropped and replaced
 	 * by empty ones.
 	 *
-	 * @covers \PFAutoeditAPI::execute
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::execute
 	 * @covers \MediaWiki\Extension\PageForms\FormDefParser::preparePreloadData
 	 */
 	public function testStoreAddsInstanceToMultipleInstanceTemplateKeepingExistingOnes(): void {
@@ -1441,7 +1450,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * their restricted fields when they were saved through the form).
 	 *
 	 * @dataProvider provideRestrictedFieldCases
-	 * @covers \PFAutoeditAPI::doAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doAction
 	 */
 	public function testStoreDoesNotEnforceRestrictedFields( string $restriction, ?string $wpSave ): void {
 		static $counter = 0;
@@ -1481,7 +1490,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * on a save and takes the request as complete, so the form has to post the values of its
 	 * restricted fields (it does, as hidden inputs). That is why the API must not drop them.
 	 *
-	 * @covers \PFAutoeditAPI::doAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doAction
 	 */
 	public function testStoreKeepsRestrictedFieldTheRequestDoesNotCarry(): void {
 		$formName = 'AEStoreFormRestrictedKept';
@@ -1544,11 +1553,11 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * revision the request claims to be based on (what #autoedit embeds when it is rendered),
 	 * which EditPage reports as an edit conflict.
 	 *
-	 * @return PFAutoeditAPI
+	 * @return AutoeditApi
 	 */
 	private function executeStoreWithStaleBaseRevision(
 		string $formName, string $targetName, bool $asForm = true
-	): PFAutoeditAPI {
+	): AutoeditApi {
 		$this->insertPage(
 			Title::makeTitle( PF_NS_FORM, $formName ),
 			"{{{for template|AEStoreConflictTpl|multiple}}}\n{{{field|text}}}\n{{{end template}}}\n"
@@ -1587,7 +1596,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * before the click (or served from the parser cache). A change made to the target since then
 	 * must not be reported as an edit conflict: the new text is computed from the current text.
 	 *
-	 * @covers \PFAutoeditAPI::doAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doAction
 	 */
 	public function testAutoeditIgnoresTheRevisionEmbeddedAtRenderTime(): void {
 		$module = $this->executeStoreWithStaleBaseRevision( 'AEStoreFormStale', 'AEStoreTargetStale', false );
@@ -1611,7 +1620,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * the base: going by the timestamp, EditPage would take the second edit for the saving
 	 * user's own and let it pass.
 	 *
-	 * @covers \PFAutoeditAPI::doAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doAction
 	 */
 	public function testAutoeditDoesNotOverwriteAChangeMadeWhileSaving(): void {
 		$formName = 'AEStoreFormRace';
@@ -1654,7 +1663,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * text as five other EditPage outcomes, so nobody could tell why a save failed. The
 	 * message must now name the EditPage status.
 	 *
-	 * @covers \PFAutoeditAPI::handleSaveStatus
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::handleSaveStatus
 	 */
 	public function testEditConflictIsReportedWithItsReason(): void {
 		$module = $this->executeStoreWithStaleBaseRevision( 'AEStoreFormConflict', 'AEStoreTargetConflict' );
@@ -1669,7 +1678,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * A failed save is written to the "PageForms" log channel with the form, target and user,
 	 * so that the reason can be found on the server and not only in the browser's response.
 	 *
-	 * @covers \PFAutoeditAPI::logMessage
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::logMessage
 	 */
 	public function testFailedSaveIsLogged(): void {
 		$logger = $this->createMock( \Psr\Log\LoggerInterface::class );
@@ -1689,7 +1698,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	/**
 	 * Successful saves and non-error messages must not be logged as failures.
 	 *
-	 * @covers \PFAutoeditAPI::logMessage
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::logMessage
 	 */
 	public function testSuccessfulSaveIsNotLoggedAsFailure(): void {
 		$formName = $this->createTestForm( 'AEStoreFormNoLog' );
@@ -1714,10 +1723,10 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * already refuses a write module in ApiMain, so the check is only reached from the module
 	 * itself.)
 	 */
-	private function callCheckReadOnlyMode( int $action ): PFAutoeditAPI {
+	private function callCheckReadOnlyMode( int $action ): AutoeditApi {
 		$this->overrideConfigValue( MainConfigNames::ReadOnly, 'AEDoActionReadOnlyReason' );
 		[ $module ] = $this->newModule();
-		$ref = new ReflectionClass( PFAutoeditAPI::class );
+		$ref = new ReflectionClass( AutoeditApi::class );
 		$mAction = $ref->getProperty( 'mAction' );
 		$mAction->setAccessible( true );
 		$mAction->setValue( $module, $action );
@@ -1730,37 +1739,37 @@ class PFAutoeditAPITest extends ApiTestCase {
 	/**
 	 * A save is refused while the wiki is read-only.
 	 *
-	 * @covers \PFAutoeditAPI::checkReadOnlyMode
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::checkReadOnlyMode
 	 */
 	public function testSaveIsRefusedWhileTheWikiIsReadOnly(): void {
 		$this->expectException( MWException::class );
 		$this->expectExceptionMessage( 'AEDoActionReadOnlyReason' );
 
-		$this->callCheckReadOnlyMode( PFAutoeditAPI::ACTION_SAVE );
+		$this->callCheckReadOnlyMode( AutoeditApi::ACTION_SAVE );
 	}
 
 	/**
 	 * Any other action only reports that the wiki is read-only, and goes on.
 	 *
-	 * @covers \PFAutoeditAPI::checkReadOnlyMode
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::checkReadOnlyMode
 	 */
 	public function testPreviewWhileTheWikiIsReadOnlyReportsANoticeAndGoesOn(): void {
-		$module = $this->callCheckReadOnlyMode( PFAutoeditAPI::ACTION_PREVIEW );
+		$module = $this->callCheckReadOnlyMode( AutoeditApi::ACTION_PREVIEW );
 
 		$errors = $module->getResult()->getResultData()['errors'];
 		$this->assertCount( 1, $errors );
-		$this->assertSame( PFAutoeditAPI::NOTICE, $errors[0]['level'] );
+		$this->assertSame( AutoeditApi::NOTICE, $errors[0]['level'] );
 		$this->assertStringContainsString( 'AEDoActionReadOnlyReason', $errors[0]['message'] );
 	}
 
 	/**
 	 * A wiki that is not read-only reports nothing.
 	 *
-	 * @covers \PFAutoeditAPI::checkReadOnlyMode
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::checkReadOnlyMode
 	 */
 	public function testCheckReadOnlyModeReportsNothingOnAWritableWiki(): void {
 		[ $module ] = $this->newModule();
-		$check = ( new ReflectionClass( PFAutoeditAPI::class ) )->getMethod( 'checkReadOnlyMode' );
+		$check = ( new ReflectionClass( AutoeditApi::class ) )->getMethod( 'checkReadOnlyMode' );
 		$check->setAccessible( true );
 		$check->invoke( $module );
 
@@ -1770,8 +1779,8 @@ class PFAutoeditAPITest extends ApiTestCase {
 	/**
 	 * Without a target, the name of the page comes from the "page name" of the form.
 	 *
-	 * @covers \PFAutoeditAPI::findTargetNameFormula
-	 * @covers \PFAutoeditAPI::performSubmittedAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::findTargetNameFormula
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::performSubmittedAction
 	 */
 	public function testStoreWithoutTargetTakesTheNameFromThePageNameOfTheForm(): void {
 		$formName = 'AEDoActionFormPageName';
@@ -1791,7 +1800,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	/**
 	 * Without a target and without a "page name" in the form, there is no page to save.
 	 *
-	 * @covers \PFAutoeditAPI::findTargetNameFormula
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::findTargetNameFormula
 	 */
 	public function testStoreWithoutTargetAndWithoutPageNameOfTheFormFails(): void {
 		$formName = $this->createTestForm( 'AEDoActionFormNoPageName' );
@@ -1806,7 +1815,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * A "preload" option that names no existing page is reported as a warning; the save goes on
 	 * without preloaded text.
 	 *
-	 * @covers \PFAutoeditAPI::loadPreloadContent
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::loadPreloadContent
 	 */
 	public function testStoreWithAnUnknownPreloadPageWarnsAndGoesOn(): void {
 		$formName = $this->createTestForm( 'AEDoActionFormUnknownPreload' );
@@ -1818,7 +1827,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 
 		$this->assertSame( 200, $module->getStatus() );
 		$errors = $module->getResult()->getResultData()['errors'];
-		$this->assertSame( PFAutoeditAPI::WARNING, $errors[0]['level'] );
+		$this->assertSame( AutoeditApi::WARNING, $errors[0]['level'] );
 		$this->assertTrue( Title::newFromText( 'AEDoActionTargetUnknownPreload' )->exists() );
 	}
 
@@ -1826,8 +1835,8 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * The values of the page named by "preload" are the ones a new target starts with, and the
 	 * request is laid over them.
 	 *
-	 * @covers \PFAutoeditAPI::loadPreloadContent
-	 * @covers \PFAutoeditAPI::doAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::loadPreloadContent
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doAction
 	 */
 	public function testStoreStartsFromTheValuesOfThePreloadPage(): void {
 		$formName = 'AEDoActionFormPreload';
@@ -1856,11 +1865,11 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * A submitted form is previewed, diffed or stored, as the action says.
 	 *
 	 * @dataProvider provideSubmittedActions
-	 * @covers \PFAutoeditAPI::performSubmittedAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::performSubmittedAction
 	 */
 	public function testPerformSubmittedActionRunsTheRequestedAction( int $action, string $expectedMethod ): void {
 		$methods = [ 'doPreview', 'doDiff', 'doStore' ];
-		$module = $this->getMockBuilder( PFAutoeditAPI::class )
+		$module = $this->getMockBuilder( AutoeditApi::class )
 			->disableOriginalConstructor()
 			->onlyMethods( array_merge( $methods, [ 'setupEditPage' ] ) )
 			->getMock();
@@ -1880,9 +1889,9 @@ class PFAutoeditAPITest extends ApiTestCase {
 
 	public static function provideSubmittedActions(): array {
 		return [
-			'preview' => [ PFAutoeditAPI::ACTION_PREVIEW, 'doPreview' ],
-			'diff' => [ PFAutoeditAPI::ACTION_DIFF, 'doDiff' ],
-			'save' => [ PFAutoeditAPI::ACTION_SAVE, 'doStore' ],
+			'preview' => [ AutoeditApi::ACTION_PREVIEW, 'doPreview' ],
+			'diff' => [ AutoeditApi::ACTION_DIFF, 'doDiff' ],
+			'save' => [ AutoeditApi::ACTION_SAVE, 'doStore' ],
 		];
 	}
 
@@ -1890,10 +1899,10 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * Without a target, the name generated from the page name formula is the target, and the text
 	 * is the one other code changed in the PageForms::WritePageData hook.
 	 *
-	 * @covers \PFAutoeditAPI::performSubmittedAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::performSubmittedAction
 	 */
 	public function testPerformSubmittedActionNamesTheTargetAndLetsHooksChangeTheText(): void {
-		$module = $this->getMockBuilder( PFAutoeditAPI::class )
+		$module = $this->getMockBuilder( AutoeditApi::class )
 			->disableOriginalConstructor()
 			->onlyMethods( [ 'setupEditPage', 'doStore' ] )
 			->getMock();
@@ -1904,7 +1913,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 			$text = 'text changed by hook';
 		} );
 		$this->setProtectedProperties( $module, [
-			'mAction' => PFAutoeditAPI::ACTION_SAVE,
+			'mAction' => AutoeditApi::ACTION_SAVE,
 			'mOptions' => [ 'form' => 'AEDoActionDispatchForm', 'target' => '' ],
 		] );
 
@@ -1916,16 +1925,16 @@ class PFAutoeditAPITest extends ApiTestCase {
 	/**
 	 * Without a target and without a generated page name, there is nothing to save.
 	 *
-	 * @covers \PFAutoeditAPI::performSubmittedAction
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::performSubmittedAction
 	 */
 	public function testPerformSubmittedActionWithoutAnyTargetNameFails(): void {
-		$module = $this->getMockBuilder( PFAutoeditAPI::class )
+		$module = $this->getMockBuilder( AutoeditApi::class )
 			->disableOriginalConstructor()
 			->onlyMethods( [ 'setupEditPage' ] )
 			->getMock();
 		$module->expects( $this->never() )->method( 'setupEditPage' );
 		$this->setProtectedProperties( $module, [
-			'mAction' => PFAutoeditAPI::ACTION_SAVE,
+			'mAction' => AutoeditApi::ACTION_SAVE,
 			'mOptions' => [ 'form' => 'AEDoActionDispatchForm', 'target' => '' ],
 		] );
 
@@ -1934,8 +1943,8 @@ class PFAutoeditAPITest extends ApiTestCase {
 		$this->callPerformSubmittedAction( $module, '', 'text' );
 	}
 
-	private function setProtectedProperties( PFAutoeditAPI $module, array $values ): void {
-		$ref = new ReflectionClass( PFAutoeditAPI::class );
+	private function setProtectedProperties( AutoeditApi $module, array $values ): void {
+		$ref = new ReflectionClass( AutoeditApi::class );
 		foreach ( $values as $name => $value ) {
 			$property = $ref->getProperty( $name );
 			$property->setAccessible( true );
@@ -1944,9 +1953,9 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	private function callPerformSubmittedAction(
-		PFAutoeditAPI $module, string $generatedTargetNameFormula, string $targetContent
+		AutoeditApi $module, string $generatedTargetNameFormula, string $targetContent
 	): void {
-		$method = ( new ReflectionClass( PFAutoeditAPI::class ) )->getMethod( 'performSubmittedAction' );
+		$method = ( new ReflectionClass( AutoeditApi::class ) )->getMethod( 'performSubmittedAction' );
 		$method->setAccessible( true );
 		$method->invoke( $module, $generatedTargetNameFormula, $targetContent );
 	}
@@ -1960,7 +1969,7 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * saved page was created or updated.
 	 *
 	 * @dataProvider provideCreatedAndUpdated
-	 * @covers \PFAutoeditAPI::redirectTo
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::redirectTo
 	 */
 	public function testSaveRedirectsToTheReturnToPage( bool $targetExists ): void {
 		$formName = $this->createTestForm( 'AEHandleFormReturnTo' . (int)$targetExists );
@@ -1988,8 +1997,8 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * Without "returnto" a save goes to the saved page, and extensions can add to the query.
 	 *
 	 * @dataProvider provideCreatedAndUpdated
-	 * @covers \PFAutoeditAPI::redirectAfterCreate
-	 * @covers \PFAutoeditAPI::redirectAfterUpdate
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::redirectAfterCreate
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::redirectAfterUpdate
 	 */
 	public function testSaveRedirectsToTheSavedPageWithTheQueryOfTheHook( bool $targetExists ): void {
 		$formName = $this->createTestForm( 'AEHandleFormQuery' . (int)$targetExists );
@@ -2020,8 +2029,8 @@ class PFAutoeditAPITest extends ApiTestCase {
 	 * redirect, for a created page as well as for an updated one.
 	 *
 	 * @dataProvider provideCreatedAndUpdated
-	 * @covers \PFAutoeditAPI::redirectAfterCreate
-	 * @covers \PFAutoeditAPI::redirectAfterUpdate
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::redirectAfterCreate
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::redirectAfterUpdate
 	 */
 	public function testSaveRedirectsToTheSectionAnchorOfTheHook( bool $targetExists ): void {
 		$formName = $this->createTestForm( 'AEHandleFormAnchor' . (int)$targetExists );

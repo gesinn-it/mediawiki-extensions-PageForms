@@ -32,7 +32,7 @@ Page Forms provides the following hooks. Register them in your extension's `exte
 | Replace or modify the wikitext loaded into the form when an *existing* page is edited.
 
 | `PageForms::EditFormPreloadText`
-| `FormLinker`, `PFAutoeditAPI`
+| `FormLinker`, `AutoeditApi`
 | Supply or modify preloaded wikitext when a *new* page is created via a form.
 
 | `PageForms::FormInputEnd`
@@ -56,7 +56,7 @@ Page Forms provides the following hooks. Register them in your extension's `exte
 | Inspect or modify the complete rendered form HTML string, including the closing `</form>` tag.
 
 | `PageForms::SetTargetName`
-| `PFAutoeditAPI::prepareAction()`
+| `AutoeditApi::prepareAction()`
 | Override the target page name used by the `pfautoedit` API.
 
 | `PageForms::TemplateFieldEnd`
@@ -76,7 +76,7 @@ Page Forms provides the following hooks. Register them in your extension's `exte
 | Override the permission check that determines whether the user may submit the form.
 
 | `PageForms::WritePageData`
-| `PFAutoeditAPI`
+| `AutoeditApi`
 | Inspect or modify the wikitext content just before it is saved to the target page.
 |===
 
@@ -419,7 +419,7 @@ has been loaded into `$initialContent` but before that content is handed to
 the form printer.
 It fires only when the target page already exists (`$pageExists === true`).
 
-Source: `includes/PF_AutoeditAPI.php`
+Source: `src/AutoeditApi.php`
 
 === Registration
 
@@ -488,7 +488,7 @@ The `Title` object for the Page Forms form being used.
 The hook is run in two situations:
 
 * When a red link on a page triggers automatic page creation via `FormLinker::createPageWithForm()`.
-* When the autoedit API (`PFAutoeditAPI`) processes a form submission for a page that does not yet exist.
+* When the autoedit API (`AutoeditApi`) processes a form submission for a page that does not yet exist.
 
 === Registration
 
@@ -794,7 +794,7 @@ class Hooks {
 
 == PageForms::SetTargetName
 
-Called by `PFAutoeditAPI::prepareAction()` after the target page name has been normalized through `Title::newFromText()`. Allows an extension or LocalSettings.php hook handler to override the target page name that the autoedit API will use when saving or previewing a form submission.
+Called by `AutoeditApi::prepareAction()` after the target page name has been normalized through `Title::newFromText()`. Allows an extension or LocalSettings.php hook handler to override the target page name that the autoedit API will use when saving or previewing a form submission.
 
 The hook fires during the `pfautoedit` API action, after both the `form` and `target` option values have been resolved and normalized to their prefixed text form, and before the actual form edit or save is executed.
 
@@ -820,7 +820,7 @@ $wgHooks['PageForms::SetTargetName'][] = function ( &$targetName, $hookQuery ) {
 
 === Source location
 
-`includes/PF_AutoeditAPI.php` — `PFAutoeditAPI::prepareAction()`
+`src/AutoeditApi.php` — `AutoeditApi::prepareAction()`
 
 == PageForms::TemplateFieldEnd
 
@@ -1041,7 +1041,7 @@ Modify this value to change what gets written.
 
 === Source
 
-Defined and called in `includes/PF_AutoeditAPI.php`.
+Defined and called in `src/AutoeditApi.php`.
 
 [source,php]
 ----

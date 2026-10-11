@@ -6,21 +6,39 @@ declare( strict_types=1 );
  * @ingroup PageForms
  */
 
-use MediaWiki\Extension\PageForms\AutoeditFormResolver;
-use MediaWiki\Extension\PageForms\AutoeditRequest;
+namespace MediaWiki\Extension\PageForms;
+
+use ApiBase;
+use ApiResult;
+use Article;
+use EditPage;
+use Exception;
+use FauxRequest;
+use Html;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
-use MediaWiki\Extension\PageForms\FormPrinter;
-use MediaWiki\Extension\PageForms\FormPrinterFactory;
-use MediaWiki\Extension\PageForms\FormRenderResult;
-use MediaWiki\Extension\PageForms\TargetNameNumberer;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
+use MessageCache;
+use MWException;
+use Parser;
+use ParserOptions;
+use PermissionsError;
+use PFUtils;
+use ReadOnlyError;
+use ReflectionClass;
+use RequestContext;
+use StringUtils;
+use ThrottledError;
+use Throwable;
+use Title;
+use UserBlockedError;
+use WebRequest;
 
 /**
  * @ingroup PageForms
  */
-class PFAutoeditAPI extends ApiBase {
+class AutoeditApi extends ApiBase {
 
 	public const ACTION_FORMEDIT = AutoeditRequest::ACTION_FORMEDIT;
 	public const ACTION_SAVE = AutoeditRequest::ACTION_SAVE;

@@ -321,7 +321,7 @@ class FormPrinter {
 	 *
 	 * The returned keys use the same underscore-normalisation as
 	 * NestedInputValues::addToArray(), so the result can be merged directly
-	 * into PFAutoeditAPI::$mOptions without further transformation.
+	 * into AutoeditApi::$mOptions without further transformation.
 	 *
 	 * Every instance of a multiple-instance template (one with the `multiple` attribute) is
 	 * read and keyed "0a", "1a", ... as NestedInputValues::addToArray() names them. For all

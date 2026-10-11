@@ -32,7 +32,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		// $wgPageFormsFormPrinter is a global singleton (constructed once by
 		// PFHooks::initialize()) that captures a ParserFactory reference at
 		// construction time. If an earlier test in the same process calls
-		// resetServices() (e.g. PFAutoeditAPITest, to invalidate a cached
+		// resetServices() (e.g. AutoeditApiTest, to invalidate a cached
 		// PermissionManager result), that reference goes stale and
 		// preparePreloadData() throws ContainerDisabledException. Rebuild the
 		// singleton here so every test in this class starts from a FormPrinter
@@ -366,7 +366,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * formHTML() must return a ParserOutput as its 5th element containing any
 	 * ResourceLoader modules registered by parser tag hooks during rendering.
-	 * The caller (e.g. PFAutoeditAPI) uses addParserOutputMetadata() to forward
+	 * The caller (e.g. AutoeditApi) uses addParserOutputMetadata() to forward
 	 * these to the real OutputPage.
 	 *
 	 * @covers \MediaWiki\Extension\PageForms\FormPrinter::formHTML

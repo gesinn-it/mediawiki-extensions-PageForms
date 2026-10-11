@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Extension\PageForms\AutoeditApi;
 use MediaWiki\Extension\PageForms\AutoeditFormResolver;
 
 /**
@@ -40,7 +41,7 @@ class AutoeditFormResolverTest extends MediaWikiIntegrationTestCase {
 			$this->newResolver()->findDefaultFormName( 'AEResolverTarget', [ 'AEResolverFormA', 'AEResolverFormB' ] );
 			$this->fail( 'Expected an MWException' );
 		} catch ( MWException $e ) {
-			$this->assertSame( PFAutoeditAPI::DEBUG, $e->getCode() );
+			$this->assertSame( AutoeditApi::DEBUG, $e->getCode() );
 			$this->assertSame( wfMessage( 'pf_autoedit_toomanyformsfound' )->parse(), $e->getMessage() );
 		}
 	}

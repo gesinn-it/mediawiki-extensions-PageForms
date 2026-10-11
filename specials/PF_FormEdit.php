@@ -7,6 +7,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\AutoeditApi;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -95,7 +96,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 		// "show changes" mode for some MW versions, for some reason.
 		PFUtils::addFormRLModules();
 
-		$module = new PFAutoeditAPI( new ApiMain(), 'pfautoedit' );
+		$module = new AutoeditApi( new ApiMain(), 'pfautoedit' );
 		$module->setOption( 'form', $form_name );
 		$module->setOption( 'target', $targetName );
 
@@ -122,7 +123,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 
 		// If action was successful and action was a save, return.
 		if ( $module->getStatus() === 200 ) {
-			if ( $module->getAction() === PFAutoeditAPI::ACTION_SAVE ) {
+			if ( $module->getAction() === AutoeditApi::ACTION_SAVE ) {
 				return;
 			}
 		} else {
@@ -135,7 +136,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 			if ( array_key_exists( 'errors', $resultData ) ) {
 				foreach ( $resultData['errors'] as $error ) {
 					// FIXME: This should probably not be hard-coded to WARNING but put into a setting
-					if ( $error[ 'level' ] <= PFAutoeditAPI::WARNING ) {
+					if ( $error[ 'level' ] <= AutoeditApi::WARNING ) {
 						$text .= Html::rawElement( 'div', [ 'class' => 'error' ], $error[ 'message' ] ) . "\n";
 					}
 				}

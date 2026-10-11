@@ -154,7 +154,7 @@ class PFSFSelectInputTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * PFAutoeditAPI::prepareAction() can leave the global Parser singleton in
+	 * AutoeditApi::prepareAction() can leave the global Parser singleton in
 	 * Parser::OT_WIKI mode (via startExternalParse()) earlier in the same
 	 * request - e.g. an autoedit-driven preload/submit that runs before this
 	 * SF_Select field is rendered on the resulting edit form. In OT_WIKI mode,

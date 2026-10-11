@@ -226,7 +226,7 @@ class FormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * The global Parser singleton returned by PFUtils::getParser() can be left
 	 * in OT_WIKI mode by other code that used it earlier this request without
-	 * resetting it - e.g. PFAutoeditAPI::prepareAction() calls
+	 * resetting it - e.g. AutoeditApi::prepareAction() calls
 	 * startExternalParse( null, ..., Parser::OT_WIKI ) on this same singleton
 	 * while processing a form submission/preload, which runs before these
 	 * fields are rendered on the resulting edit form. In OT_WIKI mode,
@@ -244,7 +244,7 @@ class FormFieldMappingTest extends MediaWikiIntegrationTestCase {
 			'PFTestLabel'
 		);
 
-		// Simulate PFAutoeditAPI::prepareAction() having used the global
+		// Simulate AutoeditApi::prepareAction() having used the global
 		// singleton earlier this request and left it in OT_WIKI mode.
 		$parser = MediaWikiServices::getInstance()->getParser();
 		$parser->startExternalParse( null, ParserOptions::newFromAnon(), Parser::OT_WIKI );

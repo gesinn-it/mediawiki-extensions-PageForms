@@ -121,7 +121,7 @@ final class AutoeditRequest {
 				// the rendering (AS_CONFLICT_DETECTED, "Modifying ... failed"), although
 				// nothing is overwritten. The values are therefore dropped here, and the base
 				// of the save is determined when the page text is read (see
-				// PFAutoeditAPI::rememberEditBaseRevision()).
+				// AutoeditApi::rememberEditBaseRevision()).
 				// This only applies to #autoedit requests; saves from a form (wpSave) keep the
 				// base the user was shown.
 				unset( $options['wpEdittime'], $options['editRevId'] );

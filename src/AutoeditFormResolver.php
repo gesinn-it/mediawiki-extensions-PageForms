@@ -6,7 +6,6 @@ namespace MediaWiki\Extension\PageForms;
 
 use MessageLocalizer;
 use MWException;
-use PFAutoeditAPI;
 use PFUtils;
 use Title;
 
@@ -64,7 +63,7 @@ final class AutoeditFormResolver {
 		// this happens if no default form but several alternate forms are defined
 		if ( count( $formNames ) > 1 ) {
 			throw new MWException(
-				$this->messages->msg( 'pf_autoedit_toomanyformsfound' )->parse(), PFAutoeditAPI::DEBUG
+				$this->messages->msg( 'pf_autoedit_toomanyformsfound' )->parse(), AutoeditApi::DEBUG
 			);
 		}
 

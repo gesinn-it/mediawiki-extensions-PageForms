@@ -28,7 +28,7 @@ Form Definition Model (value-free)
         │
         ├─────────────────────────────┐
         ▼                             ▼
-Interactive Form             PF_AutoeditAPI
+Interactive Form             AutoeditApi
 (FormPrinter + JS)           (API / #autoedit)
         │                             │
         │                     Values (page + request)
@@ -48,7 +48,7 @@ At the *form definition model* stage the pipeline forks into two paths:
 * *Interactive path* — `FormPrinter` renders the form as HTML, ResourceLoader
   modules initialize client-side widgets, and the user submits the form via the
   browser.
-* *API path* — `PF_AutoeditAPI` (invoked directly via the MediaWiki API or
+* *API path* — `AutoeditApi` (invoked directly via the MediaWiki API or
   through the `#autoedit` / `#autoeditrating` parser functions) applies field
   values programmatically, without any browser interaction. It reads the values
   of the existing page through `FormDefParser` and `FormValues` (no HTML
@@ -94,7 +94,7 @@ the fields whose value is a label that has to be mapped back (`mapping template`
   against the values of the page.
 * `RestrictedInputs` lists the fields, sections and the free text a user may not
   change (`restricted`) and can take their values out of a request. The API does
-  not use it: see the comment in `PFAutoeditAPI::doAction()`.
+  not use it: see the comment in `AutoeditApi::doAction()`.
 
 === Rendering classes
 
@@ -214,12 +214,12 @@ Responsibilities include:
 * preparing submission metadata
 
 The renderer transforms the form definition model and the values into the interactive
-form presented in the browser. `PF_AutoeditAPI` also calls it, without sending
+form presented in the browser. `AutoeditApi` also calls it, without sending
 the HTML anywhere, to produce the wikitext of the page from the submitted values.
 
 == Programmatic Editing (API Path)
 
-`PF_AutoeditAPI` is a MediaWiki API module that allows pages to be created or
+`AutoeditApi` is a MediaWiki API module that allows pages to be created or
 updated without user interaction.
 
 Entry points:
@@ -242,7 +242,7 @@ Behavior:
   that is current when the page text is read (so a change made in between is
   merged or reported as an edit conflict).
 
-This makes `PF_AutoeditAPI` the primary integration point for automated or
+This makes `AutoeditApi` the primary integration point for automated or
 inline page updates triggered from wiki pages or external scripts.
 
 == Page Generation Pipeline
@@ -483,7 +483,7 @@ Examples include:
 Future refactoring could focus on improving separation of concerns and modularization.
 Deliberately left open for now:
 
-* The FORMEDIT branch of `PFAutoeditAPI` still gets the values of an existing page from
+* The FORMEDIT branch of `AutoeditApi` still gets the values of an existing page from
   `formHTML()` and `NestedInputValues`. Moving it to `readPageValues()` would change which
   values `mOptions` holds (defaults, query values, mapping labels) and is a change in
   behaviour, not only in structure.

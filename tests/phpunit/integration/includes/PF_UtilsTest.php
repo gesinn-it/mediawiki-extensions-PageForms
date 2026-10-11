@@ -102,7 +102,7 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * ensureParserReadyForTagParse() must reset the output type unconditionally,
 	 * even when the parser was already "initialized" (getOutput() non-null) by
-	 * other code earlier this request - e.g. PFAutoeditAPI::prepareAction()
+	 * other code earlier this request - e.g. AutoeditApi::prepareAction()
 	 * leaves the global singleton in Parser::OT_WIKI mode via startExternalParse().
 	 * In that mode, recursiveTagParse() would return "{{Template|value}}"
 	 * unexpanded instead of the template's actual output.
@@ -125,7 +125,7 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * ensureParserReadyForTagParse() must retitle the parser when its current
 	 * title is the "Badtitle" placeholder (e.g. left there by
-	 * PFAutoeditAPI::prepareAction()'s startExternalParse( null, ... ) call) -
+	 * AutoeditApi::prepareAction()'s startExternalParse( null, ... ) call) -
 	 * otherwise title-sensitive content like "{{FULLPAGENAME}}" resolves
 	 * against the placeholder instead of the page actually being processed.
 	 */

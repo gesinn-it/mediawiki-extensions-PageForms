@@ -7,6 +7,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\AutoeditApi;
 use MediaWiki\Extension\PageForms\Form;
 use MediaWiki\Extension\PageForms\FormCache;
 use MediaWiki\Extension\PageForms\FormField;
@@ -34,6 +35,7 @@ class PFHooks {
 		// BC shims for classes moved to the MediaWiki\Extension\PageForms namespace
 		// during the includes/ -> src/ PSR-4 migration. Registered here so the old
 		// global names are resolvable before any hook fires. See docs/developer/psr4-migration.adoc.
+		class_alias( AutoeditApi::class, 'PFAutoeditAPI' );
 		class_alias( Form::class, 'PFForm' );
 		class_alias( FormCache::class, 'PFFormCache' );
 		class_alias( FormField::class, 'PFFormField' );

@@ -4,7 +4,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 /**
- * Builds the nested array of field values that PFAutoeditAPI::$mOptions holds from input
+ * Builds the nested array of field values that AutoeditApi::$mOptions holds from input
  * names such as "Template[field]".
  *
  * This class has no MediaWiki dependencies and can be unit-tested directly

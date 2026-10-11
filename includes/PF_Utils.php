@@ -94,7 +94,7 @@ class PFUtils {
 	 * the parser has never been touched this request. But the global Parser singleton
 	 * can also have already been initialized *and left in the wrong mode* by other code
 	 * that used it earlier in the same request for its own purposes without resetting
-	 * it afterward - e.g. PFAutoeditAPI::prepareAction() calls
+	 * it afterward - e.g. AutoeditApi::prepareAction() calls
 	 * startExternalParse( null, ..., Parser::OT_WIKI ) on this same singleton while
 	 * processing a form submission/preload that precedes rendering the fields below it.
 	 * In OT_WIKI mode, braceSubstitution() deliberately leaves "{{TemplateName|value}}"
