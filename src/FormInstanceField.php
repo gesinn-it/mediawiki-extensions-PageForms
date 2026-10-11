@@ -118,7 +118,7 @@ class FormInstanceField {
 			return;
 		}
 
-		$this->formField->setPossibleValues( ValuesUtils::addDisplayTitlesForPageValues( $rawValues ) );
+		$this->formField->setPossibleValues( DisplayTitles::forPages( $rawValues ) );
 	}
 
 	/**

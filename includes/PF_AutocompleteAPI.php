@@ -3,8 +3,10 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\DisplayTitles;
 use MediaWiki\Extension\PageForms\FormCache;
 use MediaWiki\Extension\PageForms\ValuesUtils;
+use MediaWiki\Extension\PageForms\WikidataValues;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -46,7 +48,7 @@ class PFAutocompleteAPI extends ApiBase {
 			$data = $this->getAllValuesForProperty( $property, $substr );
 			$map = is_string( array_key_first( $data ) );
 		} elseif ( $wikidata !== null ) {
-			$data = ValuesUtils::getAllValuesFromWikidata( urlencode( $wikidata ), $substr );
+			$data = WikidataValues::fetch( urlencode( $wikidata ), $substr );
 		} elseif ( $category !== null ) {
 			$data = ValuesUtils::getAllPagesForCategory( $category, 3, $substr );
 			$map = $useDisplayTitle;
@@ -328,7 +330,7 @@ class PFAutocompleteAPI extends ApiBase {
 						->getCanonicalName( $smwNamespace );
 					$prefixedTitle = $nsText . ':' . $smwTitle;
 				}
-				$displayTitle = ValuesUtils::resolveDisplayTitle( $row[2], $prefixedTitle );
+				$displayTitle = DisplayTitles::resolve( $row[2], $prefixedTitle );
 				$values[$prefixedTitle] = $displayTitle;
 			}
 			$res->free();

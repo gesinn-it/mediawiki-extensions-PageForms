@@ -153,204 +153,7 @@ class ValuesUtils {
 			return $values;
 		}
 
-		return self::addDisplayTitlesForPageValues( $values );
-	}
-
-	/**
-	 * Returns the decoded display title if it is non-empty after stripping
-	 * HTML tags and non-breaking spaces, or $fallback otherwise.
-	 *
-	 * @param string|null $raw Raw pp_value or PageProps value
-	 * @param string $fallback Value to return when $raw is absent or blank
-	 * @return string
-	 */
-	public static function resolveDisplayTitle( ?string $raw, string $fallback ): string {
-		if ( $raw !== null ) {
-			$decoded = htmlspecialchars_decode( $raw );
-			$plain = trim( str_replace( '&#160;', '', strip_tags( $decoded ) ) );
-			if ( $plain !== '' ) {
-				return $plain;
-			}
-		}
-		return $fallback;
-	}
-
-	/**
-	 * Given an array of page title strings (possibly namespace-prefixed),
-	 * returns a map of [pageTitle => displayTitle], falling back to the
-	 * title itself when no display title is set.
-	 *
-	 * @param string[] $pageTitles
-	 * @return array
-	 */
-	public static function addDisplayTitlesForPageValues( array $pageTitles ): array {
-		if ( $pageTitles === [] ) {
-			return [];
-		}
-
-		$titleMap = [];
-		foreach ( $pageTitles as $titleText ) {
-			$t = Title::newFromText( $titleText );
-			if ( $t !== null ) {
-				$titleMap[$titleText] = $t;
-			}
-		}
-
-		$services = MediaWikiServices::getInstance();
-		$properties = $services->getPageProps()->getProperties( array_values( $titleMap ), [ 'displaytitle' ] );
-
-		$result = [];
-		foreach ( $pageTitles as $titleText ) {
-			if ( !isset( $titleMap[$titleText] ) ) {
-				$result[$titleText] = $titleText;
-				continue;
-			}
-			$articleId = $titleMap[$titleText]->getArticleID();
-			$displayTitle = $properties[$articleId]['displaytitle'] ?? null;
-			$result[$titleText] = self::resolveDisplayTitle( $displayTitle, $titleText );
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Escape a string for safe interpolation into a SPARQL string literal
-	 * delimited by double quotes (SPARQL 1.1 grammar: STRING_LITERAL2).
-	 *
-	 * Backslash must be escaped first, otherwise escaping the quotes
-	 * afterwards would double-escape the backslashes just introduced.
-	 *
-	 * @param string $value
-	 * @return string
-	 */
-	private static function escapeSparqlStringLiteral( string $value ): string {
-		$value = str_replace( '\\', '\\\\', $value );
-		$value = str_replace( '"', '\\"', $value );
-		$value = str_replace( "\n", '\\n', $value );
-		$value = str_replace( "\r", '\\r', $value );
-		$value = str_replace( "\t", '\\t', $value );
-		return $value;
-	}
-
-	/**
-	 * This function is used for fetching the values from wikidata based on the provided
-	 * annotations. For queries with substring, the function returns all the values which
-	 * have the substring in it.
-	 *
-	 * @param string $query
-	 * @param string|null $substring
-	 * @return array
-	 */
-	public static function getAllValuesFromWikidata( $query, $substring = null ) {
-		$endpointUrl = "https://query.wikidata.org/sparql";
-		$sparqlQueryString = self::buildWikidataSparqlQuery( $query, $substring );
-		$opts = [
-			'http' => [
-				'method' => 'GET',
-				'header' => [
-					'Accept: application/sparql-results+json',
-					'User-Agent: PageForms_API PHP/8.0'
-				],
-			],
-		];
-		$context = stream_context_create( $opts );
-
-		$url = $endpointUrl . '?query=' . urlencode( $sparqlQueryString );
-		$response = file_get_contents( $url, false, $context );
-		return self::parseWikidataResponse( $response );
-	}
-
-	/**
-	 * Builds the SPARQL query for a "values from wikidata" annotation.
-	 *
-	 * @internal Only public so that the query can be tested without calling the endpoint.
-	 * @param string $query The urlencoded filters, e.g. "P31=Q6256"
-	 * @param string|null $substring
-	 * @return string
-	 */
-	public static function buildWikidataSparqlQuery( $query, $substring = null ) {
-		global $wgLanguageCode;
-
-		$query = urldecode( $query );
-
-		$filter_strings = explode( '&', $query );
-		$filters = [];
-
-		foreach ( $filter_strings as $filter ) {
-			$temp = explode( "=", $filter );
-			// The key is placed into the query as a property reference, so only
-			// Wikidata property ids are accepted.
-			if ( count( $temp ) < 2 || !preg_match( '/^P\d+$/', $temp[ 0 ] ) ) {
-				continue;
-			}
-			$filters[ $temp[ 0 ] ] = $temp[ 1 ];
-		}
-
-		$attributesQuery = "";
-		$count = 0;
-		foreach ( $filters as $key => $val ) {
-			$attributesQuery .= "wdt:" . $key;
-			if ( is_numeric( str_replace( "Q", "", $val ) ) ) {
-				$attributesQuery .= " wd:" . $val . ";";
-			} else {
-				$escapedVal = self::escapeSparqlStringLiteral( $val );
-				$attributesQuery .= "?customLabel" . $count . " .
-				?customLabel" . $count . " rdfs:label \"" . $escapedVal . "\"@" . $wgLanguageCode . " . ";
-				$count++;
-				$attributesQuery .= "?value ";
-			}
-		}
-		unset( $count );
-		$attributesQuery = rtrim( $attributesQuery, ";" );
-		$attributesQuery = rtrim( $attributesQuery, ". ?value " );
-
-		$escapedSubstring = self::escapeSparqlStringLiteral( strtolower( $substring ?? '' ) );
-		$sparqlQueryString = "
-SELECT DISTINCT ?valueLabel WHERE {
-{
-SELECT ?value  WHERE {
-?value " . $attributesQuery . " .
-?value rdfs:label ?valueLabel .
-FILTER(LANG(?valueLabel) = \"" . $wgLanguageCode . "\") .
-FILTER(REGEX(LCASE(?valueLabel), \"\\\\b" . $escapedSubstring . "\"))
-} ";
-		if ( $substring != null ) {
-			global $wgPageFormsMaxAutocompleteValues;
-			$sparqlQueryString .= "LIMIT " . ( $wgPageFormsMaxAutocompleteValues + 10 );
-		}
-		$sparqlQueryString .= "}
-SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode . "\". }
-}";
-		if ( $substring != null ) {
-			global $wgPageFormsMaxAutocompleteValues;
-			$sparqlQueryString .= "LIMIT " . $wgPageFormsMaxAutocompleteValues;
-		}
-		return $sparqlQueryString;
-	}
-
-	/**
-	 * Extracts the values from the JSON response of the Wikidata SPARQL endpoint.
-	 *
-	 * @internal Only public so that the parsing can be tested without calling the endpoint.
-	 * @param string|false $response
-	 * @return string[]
-	 */
-	public static function parseWikidataResponse( $response ) {
-		$results = [];
-		if ( !is_string( $response ) ) {
-			// The request failed.
-			return $results;
-		}
-		$apiResults = json_decode( $response, true );
-		if ( $apiResults != null ) {
-			$apiResults = $apiResults[ 'results' ][ 'bindings' ];
-			foreach ( $apiResults as $result ) {
-				foreach ( $result as $key => $val ) {
-					array_push( $results, $val[ 'value' ] );
-				}
-			}
-		}
-		return $results;
+		return DisplayTitles::forPages( $values );
 	}
 
 	/**
@@ -451,7 +254,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 							}
 							$cur_value = $cur_title->getPrefixedText();
 							if ( !in_array( $cur_value, $pages ) ) {
-								$pages[ $cur_value . '@' ] = self::resolveDisplayTitle(
+								$pages[ $cur_value . '@' ] = DisplayTitles::resolve(
 									$row['pp_displaytitle_value'] ?? null, $cur_value );
 								if ( array_key_exists( 'pp_defaultsort_value', $row ) &&
 									( $row[ 'pp_defaultsort_value' ] ) !== null ) {
@@ -596,7 +399,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 				}
 
 				$titleText = $title->getPrefixedText();
-				$pages[$titleText] = self::resolveDisplayTitle(
+				$pages[$titleText] = DisplayTitles::resolve(
 					$titleprops['displaytitle'] ?? null, $titleText );
 				if ( array_key_exists( 'defaultsort', $titleprops ) ) {
 					$sortkeys[$titleText] = $titleprops['defaultsort'];
@@ -752,7 +555,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 			} else {
 				$title = str_replace( '_', ' ', $row['page_title'] );
 			}
-			$pages[ $title ] = self::resolveDisplayTitle(
+			$pages[ $title ] = DisplayTitles::resolve(
 				$row['pp_displaytitle_value'] ?? null, $title );
 			if ( array_key_exists( 'pp_defaultsort_value', $row ) &&
 				( $row[ 'pp_defaultsort_value' ] ) !== null ) {
@@ -791,7 +594,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 		} elseif ( $source_type == 'query' ) {
 			$names_array = self::getAllPagesForQuery( $source_name );
 		} elseif ( $source_type == 'wikidata' ) {
-			$names_array = self::getAllValuesFromWikidata( $source_name );
+			$names_array = WikidataValues::fetch( $source_name );
 			sort( $names_array );
 		} else {
 			// i.e., $source_type == 'namespace'
@@ -1357,5 +1160,53 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"" . $wgLanguageCode
 	public static function standardizeNamespace( $namespaceStr ) {
 		$pageValue = PageValue::newFromText( "$namespaceStr:ABC" );
 		return $pageValue ? $pageValue->getNamespaceText() : $namespaceStr;
+	}
+
+	/**
+	 * @deprecated use DisplayTitles::resolve()
+	 * @param string|null $raw
+	 * @param string $fallback
+	 * @return string
+	 */
+	public static function resolveDisplayTitle( ?string $raw, string $fallback ): string {
+		return DisplayTitles::resolve( $raw, $fallback );
+	}
+
+	/**
+	 * @deprecated use DisplayTitles::forPages()
+	 * @param string[] $pageTitles
+	 * @return array
+	 */
+	public static function addDisplayTitlesForPageValues( array $pageTitles ): array {
+		return DisplayTitles::forPages( $pageTitles );
+	}
+
+	/**
+	 * @deprecated use WikidataValues::fetch()
+	 * @param string $query
+	 * @param string|null $substring
+	 * @return array
+	 */
+	public static function getAllValuesFromWikidata( $query, $substring = null ) {
+		return WikidataValues::fetch( $query, $substring );
+	}
+
+	/**
+	 * @deprecated use WikidataValues::buildQuery()
+	 * @param string $query
+	 * @param string|null $substring
+	 * @return string
+	 */
+	public static function buildWikidataSparqlQuery( $query, $substring = null ) {
+		return WikidataValues::buildQuery( $query, $substring );
+	}
+
+	/**
+	 * @deprecated use WikidataValues::parseResponse()
+	 * @param string|false $response
+	 * @return string[]
+	 */
+	public static function parseWikidataResponse( $response ) {
+		return WikidataValues::parseResponse( $response );
 	}
 }

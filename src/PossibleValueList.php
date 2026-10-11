@@ -137,7 +137,7 @@ class PossibleValueList {
 			return $rawValue;
 		}
 
-		$displayTitles = ValuesUtils::addDisplayTitlesForPageValues( [ $rawValue ] );
+		$displayTitles = DisplayTitles::forPages( [ $rawValue ] );
 		return $displayTitles[$rawValue] ?? $pageValue->getCanonicalString();
 	}
 
