@@ -13,6 +13,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - The "Minor edit" checkbox of a form is now honoured when the form is saved by `#autoedit` or the `pfautoedit` API; the edit of an existing page was always saved as a major edit before [`81502324`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/81502324)
 - `restricted` fields are no longer enforced by `#autoedit`, the `pfautoedit` API and form saves, as before 2.3.0: it only governs who may change a field in the form, and a page saved through the form no longer loses the values of its restricted fields
 - A section anchor that an extension sets in the `ArticleUpdateBeforeRedirect` hook is now also kept in the redirect after `#autoedit` or the `pfautoedit` API created a page; it was only kept after a page was updated [`da659852`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/da659852)
+- A page name formula with a random number of a given length (`{num;random;4}` or `{num;random;04}`) no longer fails when a page is created by `#autoedit`, the `pfautoedit` API or a form; only `{num;random}` worked before [`24a90426`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/24a90426)
 
 ## [2.3.1] - 2026-10-09
 
