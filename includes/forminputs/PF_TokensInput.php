@@ -3,6 +3,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\AutocompleteSettings;
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\PossibleValueList;
@@ -94,7 +95,7 @@ class PFTokensInput extends PFFormInput {
 			}
 		} else {
 			[ $autocompleteSettings, $remoteDataType, $delimiter ] =
-				ValuesUtils::setAutocompleteValues( $other_args, true );
+				AutocompleteSettings::forField( $other_args, true );
 		}
 
 		if ( is_array( $cur_value ) ) {

@@ -1,7 +1,7 @@
 <?php
+use MediaWiki\Extension\PageForms\AutocompleteSettings;
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
-use MediaWiki\Extension\PageForms\ValuesUtils;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -120,7 +120,7 @@ class PFFormLink {
 				$sourceKey = str_replace( 'target from ', 'values from ', $param_name );
 				$fieldArgs = [ $sourceKey => $value ];
 				[ $inTargetAutocompleteSettings, $inTargetRemoteDataType ] =
-					array_slice( ValuesUtils::setAutocompleteValues( $fieldArgs, false, true ), 0, 2 );
+					array_slice( AutocompleteSettings::forField( $fieldArgs, false, true ), 0, 2 );
 			} elseif ( $param_name == null && $value == 'popup' ) {
 				self::loadScriptsForPopupForm( $parser );
 				$classStr = 'popupformlink';

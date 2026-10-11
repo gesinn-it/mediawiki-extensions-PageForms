@@ -49,54 +49,6 @@ class ValuesUtilsTest extends TestCase {
 	}
 
 	/**
-	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::maybeDisambiguateAutocompleteLabels
-	 */
-	public function testMaybeDisambiguateAutocompleteLabelsOnlyForMappedSources() {
-		$labels = [
-			'FooAlpha' => 'Paris',
-			'FooBeta' => 'Paris'
-		];
-		$expected = [
-			'FooAlpha' => 'Paris (FooAlpha)',
-			'FooBeta' => 'Paris (FooBeta)'
-		];
-
-		foreach ( [ 'category', 'concept', 'namespace', 'property' ] as $sourceType ) {
-			$this->assertSame( $expected, ValuesUtils::maybeDisambiguateAutocompleteLabels( $labels, $sourceType ) );
-		}
-
-		$GLOBALS['wgPageFormsUseDisplayTitle'] = false;
-		$this->assertSame( $labels, ValuesUtils::maybeDisambiguateAutocompleteLabels( $labels, 'category' ) );
-	}
-
-	/**
-	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getRemoteDataTypeAndPossiblySetAutocompleteValues
-	 */
-	public function testGetRemoteDataTypeAndPossiblySetAutocompleteValuesReturnsRemoteForCategoryWhenSmwAbsent() {
-		// When SMW is not installed, getSourceCount() returns null → always remote.
-		if ( class_exists( '\SMW\StoreFactory' ) ) {
-			$this->markTestSkipped( 'SMW is installed; this test requires SMW to be absent.' );
-		}
-
-		$fieldArgs = [
-			'possible_values' => [
-				'FooAlpha' => 'Paris',
-				'FooBeta' => 'Paris'
-			]
-		];
-
-		$remoteDataType = ValuesUtils::getRemoteDataTypeAndPossiblySetAutocompleteValues(
-			'category',
-			'DisambiguationCategory',
-			$fieldArgs,
-			'disambiguation-settings'
-		);
-
-		$this->assertSame( 'category', $remoteDataType );
-		$this->assertArrayNotHasKey( 'disambiguation-settings', $GLOBALS['wgPageFormsAutocompleteValues'] );
-	}
-
-	/**
 	 * Regression test: getSMWPropertyValues() must preserve the order the SMW store returns.
 	 * Previously, shiftShortestMatch() was applied, moving the shortest value to position 0
 	 * regardless of the actual sort order. This broke enum value ordering for input types
@@ -201,64 +153,6 @@ class ValuesUtilsTest extends TestCase {
 	 */
 	public function testGetAutocompleteValuesReturnsEmptyArrayWhenSourceIsNull(): void {
 		$this->assertSame( [], ValuesUtils::getAutocompleteValues( null, 'property' ) );
-	}
-
-	/**
-	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getAutocompletionTypeAndSource
-	 * @dataProvider provideGetAutocompletionTypeAndSource
-	 */
-	public function testGetAutocompletionTypeAndSource( array $fieldArgs, array $expected ): void {
-		$this->assertSame( $expected, ValuesUtils::getAutocompletionTypeAndSource( $fieldArgs ) );
-	}
-
-	public static function provideGetAutocompletionTypeAndSource(): array {
-		return [
-			'values from property' => [
-				[ 'values from property' => 'MyProp' ],
-				[ 'property', 'MyProp' ],
-			],
-			'values from category' => [
-				[ 'values from category' => 'MyCat' ],
-				[ 'category', 'MyCat' ],
-			],
-			'values from concept' => [
-				[ 'values from concept' => 'MyConcept' ],
-				[ 'concept', 'MyConcept' ],
-			],
-			'values from namespace' => [
-				[ 'values from namespace' => 'Template' ],
-				[ 'namespace', 'Template' ],
-			],
-			'values from url' => [
-				[ 'values from url' => 'myalias' ],
-				[ 'external_url', 'myalias' ],
-			],
-			'values from wikidata' => [
-				[ 'values from wikidata' => 'Q123' ],
-				[ 'wikidata', 'Q123' ],
-			],
-			'autocomplete field type passthrough' => [
-				[ 'autocomplete field type' => 'custom', 'autocompletion source' => 'src' ],
-				[ 'custom', 'src' ],
-			],
-			'semantic_property' => [
-				[ 'semantic_property' => 'HasName' ],
-				[ 'property', 'HasName' ],
-			],
-			'no match returns nulls' => [
-				[],
-				[ null, null ],
-			],
-		];
-	}
-
-	/**
-	 * @covers \MediaWiki\Extension\PageForms\ValuesUtils::getAutocompletionTypeAndSource
-	 */
-	public function testGetAutocompletionTypeAndSourceForValues(): void {
-		FormCounters::current()->fieldNum = 7;
-		$fieldArgs = [ 'values' => 'a,b,c' ];
-		$this->assertSame( [ 'values', 'values-7' ], ValuesUtils::getAutocompletionTypeAndSource( $fieldArgs ) );
 	}
 
 	// -------------------------------------------------------------------------

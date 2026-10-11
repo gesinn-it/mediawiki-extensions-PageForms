@@ -3,10 +3,10 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\AutocompleteSettings;
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\PossibleValueList;
-use MediaWiki\Extension\PageForms\ValuesUtils;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -81,7 +81,7 @@ class PFComboBoxInput extends PFFormInput {
 			}
 		} else {
 			[ $autocompleteSettings, $remoteDataType, $delimiter ] =
-				ValuesUtils::setAutocompleteValues( $other_args, false );
+				AutocompleteSettings::forField( $other_args, false );
 			$autocompleteSettings = str_replace( "'", "\'", $autocompleteSettings ?? '' );
 		}
 

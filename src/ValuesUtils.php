@@ -184,180 +184,6 @@ class ValuesUtils {
 		return $names_array;
 	}
 
-	public static function getAutocompletionTypeAndSource( &$field_args ) {
-		global $wgCapitalLinks;
-
-		if ( array_key_exists( 'values from property', $field_args ) ) {
-			$autocompletionSource = $field_args['values from property'];
-			$autocompleteFieldType = 'property';
-		} elseif ( array_key_exists( 'values from category', $field_args ) ) {
-			$autocompleteFieldType = 'category';
-			$autocompletionSource = $field_args['values from category'];
-		} elseif ( array_key_exists( 'values from concept', $field_args ) ) {
-			$autocompleteFieldType = 'concept';
-			$autocompletionSource = $field_args['values from concept'];
-		} elseif ( array_key_exists( 'values from namespace', $field_args ) ) {
-			$autocompleteFieldType = 'namespace';
-			$autocompletionSource = $field_args['values from namespace'];
-		} elseif ( array_key_exists( 'values from url', $field_args ) ) {
-			$autocompleteFieldType = 'external_url';
-			$autocompletionSource = $field_args['values from url'];
-		} elseif ( array_key_exists( 'values from wikidata', $field_args ) ) {
-			$autocompleteFieldType = 'wikidata';
-			$autocompletionSource = $field_args['values from wikidata'];
-		} elseif ( array_key_exists( 'values', $field_args ) ) {
-			$counters = FormCounters::current();
-			$autocompleteFieldType = 'values';
-			$autocompletionSource = "values-$counters->fieldNum";
-		} elseif ( array_key_exists( 'autocomplete field type', $field_args ) ) {
-			$autocompleteFieldType = $field_args['autocomplete field type'];
-			$autocompletionSource = $field_args['autocompletion source'];
-		} elseif ( array_key_exists( 'semantic_property', $field_args ) ) {
-			$autocompletionSource = $field_args['semantic_property'];
-			$autocompleteFieldType = 'property';
-		} else {
-			$autocompleteFieldType = null;
-			$autocompletionSource = null;
-		}
-
-		if ( $autocompletionSource !== null && $wgCapitalLinks &&
-			$autocompleteFieldType != 'external_url' ) {
-			$autocompletionSource = PFUtils::getContLang()->ucfirst( $autocompletionSource );
-		}
-
-		return [ $autocompleteFieldType, $autocompletionSource ];
-	}
-
-	public static function getRemoteDataTypeAndPossiblySetAutocompleteValues(
-		$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings,
-		bool $forceRemote = false
-	) {
-		global $wgPageFormsAutocompleteValues;
-
-		if ( $autocompleteFieldType == 'external_url' || $autocompleteFieldType == 'wikidata' ) {
-			// Autocompletion from URL is always done remotely.
-			return $autocompleteFieldType;
-		}
-		if ( $autocompletionSource == '' ) {
-			// No autocompletion.
-			return null;
-		}
-
-		// For wiki-sourced types, do a cheap MODE_COUNT query to decide between
-		// local and remote autocompletion. If the count is at or below the local
-		// threshold, pre-load values into wgPageFormsAutocompleteValues so the
-		// dropdown button shows all values without the user having to type.
-		// When SMW is unavailable or the count cannot be determined, fall back to
-		// always-remote (safe, same as the previous unconditional behaviour).
-		//
-		// Exceptions that skip the count and stay remote:
-		// - $forceRemote: caller requires remote (e.g. FormLink target-input where
-		//   no values are pre-loaded into the form).
-		// - possible_values is a string-keyed (canonical→display) map: the remote
-		//   type must be preserved so PF_ComboBoxInput writes the canonical title
-		//   into the option's value attribute for DisplayTitle support.
-		$countableTypes = [ 'concept', 'category', 'namespace', 'property' ];
-		if ( in_array( $autocompleteFieldType, $countableTypes, true ) ) {
-			// Stay remote when a mapping template/property is active: PF_ComboBoxInput
-			// encodes the canonical title in the <option value> attribute so the JS can
-			// bootstrap its DisplayTitle↔canonical maps from the DOM without an AJAX
-			// round-trip.  wgPageFormsUseDisplayTitle also produces a string-keyed
-			// possible_values map, but _fetchStaticValues() handles that correctly, so
-			// we do NOT force remote for that case.
-			$hasMappingArg = array_key_exists( 'mapping template', $field_args )
-				|| array_key_exists( 'mapping property', $field_args );
-			if ( $forceRemote || $hasMappingArg ) {
-				return $autocompleteFieldType;
-			}
-			global $wgPageFormsMaxLocalAutocompleteValues;
-			$count = AutocompleteSourceCount::get( $autocompleteFieldType, $autocompletionSource );
-			if ( $count === null || $count > $wgPageFormsMaxLocalAutocompleteValues ) {
-				return $autocompleteFieldType;
-			}
-			// count <= threshold: fall through to load values locally below
-		}
-
-		if ( array_key_exists( 'possible_values', $field_args ) &&
-		$field_args['possible_values'] !== [] ) {
-			$autocompleteValues = $field_args['possible_values'];
-		} elseif ( $autocompleteFieldType == 'values' ) {
-			$autocompleteValues = explode( ',', $field_args['values'] );
-		} else {
-			$autocompleteValues = self::getAutocompleteValues( $autocompletionSource, $autocompleteFieldType );
-		}
-
-		$autocompleteValues = self::maybeDisambiguateAutocompleteLabels(
-			$autocompleteValues,
-			$autocompleteFieldType
-		);
-
-		global $wgPageFormsMaxLocalAutocompleteValues;
-		if ( count( $autocompleteValues ) > $wgPageFormsMaxLocalAutocompleteValues &&
-			$autocompleteFieldType != 'values' &&
-			!array_key_exists( 'values dependent on', $field_args ) &&
-			!array_key_exists( 'mapping template', $field_args ) &&
-			!array_key_exists( 'mapping property', $field_args )
-		) {
-			return $autocompleteFieldType;
-		} else {
-			$wgPageFormsAutocompleteValues[$autocompleteSettings] = $autocompleteValues;
-			return null;
-		}
-	}
-
-	/**
-	 * For local autocomplete values, disambiguate duplicate displaytitle labels
-	 * for sources that map page titles to display titles.
-	 *
-	 * @param array $autocompleteValues
-	 * @param string|null $autocompleteFieldType
-	 * @return array
-	 */
-	public static function maybeDisambiguateAutocompleteLabels( array $autocompleteValues, $autocompleteFieldType ) {
-		global $wgPageFormsUseDisplayTitle;
-
-		if ( !$wgPageFormsUseDisplayTitle ) {
-			return $autocompleteValues;
-		}
-
-		if ( !in_array( $autocompleteFieldType, [ 'category', 'concept', 'namespace', 'property' ], true ) ) {
-			return $autocompleteValues;
-		}
-
-		return self::disambiguateLabels( $autocompleteValues );
-	}
-
-	/**
-	 * Get all autocomplete-related values, plus delimiter value
-	 * (it's needed also for the 'uploadable' link, if there is one).
-	 *
-	 * @param array $field_args
-	 * @param bool $is_list
-	 * @param bool $forceRemote Skip the count check and always return the remote data type
-	 * @return string[]
-	 */
-	public static function setAutocompleteValues( $field_args, $is_list, bool $forceRemote = false ) {
-		[ $autocompleteFieldType, $autocompletionSource ] =
-			self::getAutocompletionTypeAndSource( $field_args );
-		$autocompleteSettings = $autocompletionSource;
-		if ( $is_list ) {
-			$autocompleteSettings .= ',list';
-			if ( array_key_exists( 'delimiter', $field_args ) ) {
-				$delimiter = $field_args['delimiter'];
-				$autocompleteSettings .= ',' . $delimiter;
-			} else {
-				$delimiter = ',';
-			}
-		} else {
-			$delimiter = null;
-		}
-
-		$remoteDataType = self::getRemoteDataTypeAndPossiblySetAutocompleteValues(
-			$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings, $forceRemote
-		);
-		return [ $autocompleteSettings, $remoteDataType, $delimiter ];
-	}
-
 	/**
 	 * Helper function to get an array of values out of what may be either
 	 * an array or a delimited string.
@@ -601,5 +427,53 @@ class ValuesUtils {
 		string $autocompleteFieldType, string $autocompletionSource
 	): bool {
 		return AutocompleteSourceCount::exceedsLocalThreshold( $autocompleteFieldType, $autocompletionSource );
+	}
+
+	/**
+	 * @deprecated use AutocompleteSettings::typeAndSource()
+	 * @param array &$field_args
+	 * @return array
+	 */
+	public static function getAutocompletionTypeAndSource( &$field_args ) {
+		return AutocompleteSettings::typeAndSource( $field_args );
+	}
+
+	/**
+	 * @deprecated use AutocompleteSettings::remoteDataType()
+	 * @param string|null $autocompleteFieldType
+	 * @param string|null $autocompletionSource
+	 * @param array $field_args
+	 * @param string|null $autocompleteSettings
+	 * @param bool $forceRemote
+	 * @return string|null
+	 */
+	public static function getRemoteDataTypeAndPossiblySetAutocompleteValues(
+		$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings,
+		bool $forceRemote = false
+	) {
+		return AutocompleteSettings::remoteDataType(
+			$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings, $forceRemote
+		);
+	}
+
+	/**
+	 * @deprecated use AutocompleteSettings::maybeDisambiguateLabels()
+	 * @param array $autocompleteValues
+	 * @param string|null $autocompleteFieldType
+	 * @return array
+	 */
+	public static function maybeDisambiguateAutocompleteLabels( array $autocompleteValues, $autocompleteFieldType ) {
+		return AutocompleteSettings::maybeDisambiguateLabels( $autocompleteValues, $autocompleteFieldType );
+	}
+
+	/**
+	 * @deprecated use AutocompleteSettings::forField()
+	 * @param array $field_args
+	 * @param bool $is_list
+	 * @param bool $forceRemote
+	 * @return array
+	 */
+	public static function setAutocompleteValues( $field_args, $is_list, bool $forceRemote = false ) {
+		return AutocompleteSettings::forField( $field_args, (bool)$is_list, $forceRemote );
 	}
 }
