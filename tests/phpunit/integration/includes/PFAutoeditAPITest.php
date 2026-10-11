@@ -482,6 +482,28 @@ class PFAutoeditAPITest extends ApiTestCase {
 	}
 
 	/**
+	 * "{num;random;4}" asks for a random number of 4 digits, and "{num;random;04}" for one padded
+	 * with zeros.
+	 *
+	 * @dataProvider provideRandomNumberTags
+	 * @covers \PFAutoeditAPI::generateTargetName
+	 */
+	public function testGenerateTargetNameHonoursTheDigitsOfARandomNumberTag( string $tag, string $pattern ): void {
+		[ $module ] = $this->newModule();
+
+		$targetName = $this->callGenerateTargetName( $module, "PFTestGenTargetNameDigits_$tag" );
+
+		$this->assertRegex( $pattern, $targetName );
+	}
+
+	public static function provideRandomNumberTags(): array {
+		return [
+			'up to 4 digits' => [ '{num;random;4}', '/^PFTestGenTargetNameDigits \d{1,4}$/' ],
+			'padded to 4 digits' => [ '{num;random;04}', '/^PFTestGenTargetNameDigits \d{4}$/' ],
+		];
+	}
+
+	/**
 	 * When the "{num}" substitution still leaves a syntactically invalid
 	 * title (e.g. via forbidden characters coming from the formula itself),
 	 * generateTargetName() must throw rather than pass an invalid title on

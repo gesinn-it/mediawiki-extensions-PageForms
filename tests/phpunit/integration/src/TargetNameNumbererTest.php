@@ -68,6 +68,29 @@ class TargetNameNumbererTest extends MediaWikiIntegrationTestCase {
 		$this->assertMatchesRegularExpression( '/^TNRandom \d{1,6}$/', $this->number( 'TNRandom_{num;random}' ) );
 	}
 
+	/**
+	 * @dataProvider provideRandomNumberTags
+	 */
+	public function testARandomNumberHasTheDigitsTheTagAsksFor( string $tag, string $pattern ): void {
+		$this->assertMatchesRegularExpression( $pattern, $this->number( "TNDigits_$tag" ) );
+	}
+
+	public static function provideRandomNumberTags(): array {
+		return [
+			'up to 4 digits' => [ '{num;random;4}', '/^TNDigits \d{1,4}$/' ],
+			'padded to 4 digits' => [ '{num;random;04}', '/^TNDigits \d{4}$/' ],
+		];
+	}
+
+	public function testARandomNumberIsAnotherOneIfThePageExists(): void {
+		// With one digit there are ten names; all but one are taken, so the free one is found.
+		foreach ( range( 0, 8 ) as $digit ) {
+			$this->insertPage( "TNRandomTaken_$digit", 'text' );
+		}
+
+		$this->assertSame( 'TNRandomTaken 9', $this->number( 'TNRandomTaken_{num;random;1}' ) );
+	}
+
 	public function testANameThatIsNoTitleIsRefusedWithTheFormulaWithoutItsTag(): void {
 		$this->expectException( MWException::class );
 		$this->expectExceptionMessage( wfMessage( 'pf_autoedit_invalidtargetspecified', 'TN[Bad]_' )->parse() );

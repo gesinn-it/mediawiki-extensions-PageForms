@@ -60,7 +60,7 @@ final class TargetNameNumberer {
 		if ( preg_match( '/{num;random(;(0)?([1-9][0-9]*))?}/', $targetName, $matches ) ) {
 			$isRandom = true;
 			$randomNumHasPadding = array_key_exists( 2, $matches );
-			$randomNumDigits = array_key_exists( 3, $matches ) ? $matches[3] : $randomNumDigits;
+			$randomNumDigits = array_key_exists( 3, $matches ) ? (int)$matches[3] : $randomNumDigits;
 			$titleNumber = self::makeRandomNumber( $randomNumDigits, $randomNumHasPadding );
 		} elseif ( preg_match( '/{num.*start[_]*=[_]*([^;]*).*}/', $targetName, $matches ) ) {
 			// get unique number start value
