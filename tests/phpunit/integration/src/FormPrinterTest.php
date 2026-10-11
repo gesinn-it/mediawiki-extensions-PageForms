@@ -1802,6 +1802,74 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Values that are parsed once and must be escaped once — #269
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @return array<string, array{0: string, 1: string, 2: string}> tag component, input name, tag value
+	 */
+	public static function provideUniqueScopes(): array {
+		$cases = [];
+		foreach ( [ 'category', 'namespace', 'concept' ] as $scope ) {
+			$cases["$scope, character"] = [ "unique for $scope", "unique_for_$scope", 'PFTest Fish & Chips' ];
+			$cases["$scope, character reference"] = [
+				"unique for $scope", "unique_for_$scope", 'PFTest Fish &amp; Chips'
+			];
+		}
+		return $cases;
+	}
+
+	/**
+	 * The tag value is wikitext: "&amp;" in it is an "&" in the name, which the check for unique values reads
+	 * back from the hidden input, so the input must hold "&amp;" once, not "&amp;amp;".
+	 *
+	 * @dataProvider provideUniqueScopes
+	 */
+	public function testFormHTMLUniqueScopeIsEscapedOnceInTheHiddenInput(
+		string $component, string $inputSuffix, string $value
+	): void {
+		global $wgPageFormsFormPrinter, $wgOut;
+
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+
+		$formDef = "{{{for template|PFTestUniqueEscapeTpl01}}}\n"
+			. "{{{field|Name|property=PFTestUniqueEscapeProp01|$component=$value}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestUniqueEscapePage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString(
+			'value="PFTest Fish &amp; Chips" name="input_1_' . $inputSuffix . '"', $formHtml
+		);
+	}
+
+	public function testFormHTMLDefaultFilenameIsEncodedOnceInTheUploadLink(): void {
+		global $wgPageFormsFormPrinter, $wgOut, $wgPageFormsSimpleUpload;
+
+		$wgPageFormsSimpleUpload = false;
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+		RequestContext::getMain()->setTitle( Title::makeTitle( NS_MAIN, 'PFTestDefaultFilenameContextPage02' ) );
+
+		$formDef = "{{{for template|PFTestDefaultFilenameTpl02}}}\n"
+			. "{{{field|Upload|uploadable|default filename=PFTest Fish & Chips.jpg}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestDefaultFilenamePage02', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$this->assertStringContainsString( 'wpDestFile=PFTest+Fish+%26+Chips.jpg', $formHtml );
+	}
+
+	// -------------------------------------------------------------------------
 	// #freetext# field with 'hidden' and 'edittools' components — #1062, #1082-1091
 	// -------------------------------------------------------------------------
 

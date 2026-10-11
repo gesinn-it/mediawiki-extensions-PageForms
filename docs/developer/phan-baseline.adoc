@@ -19,7 +19,7 @@ The free text is wikitext: the text of the page that is edited, the text submitt
 or the default of the free text field. `FormPrinter` escapes it once, with
 `Sanitizer::safeEncodeAttribute()`, where it goes into the form as an attribute. Phan reaches the
 "already escaped" side through `FormField::getCurrentValue()`, which also handles the arguments of
-a field, and some of those (`values`, `unique for ...`) are parsed with `Parser::recursiveTagParse()`.
+a field, and some of those (`values`) are parsed with `Parser::recursiveTagParse()`.
 Those parsed arguments never become the free text.
 
 `FormField::newFromFormFieldTag`::

@@ -131,7 +131,7 @@ class PFTextInput extends PFFormInput {
 			$query_string .= "&pfDelimiter=$delimiter";
 		}
 		if ( $default_filename != null ) {
-			$query_string .= "&wpDestFile=$default_filename";
+			$query_string .= '&wpDestFile=' . urlencode( $default_filename );
 		}
 		$upload_window_url = $upload_window_page->getPageTitle()->getFullURL( $query_string );
 		$upload_label = wfMessage( 'upload' )->parse();

@@ -9,6 +9,7 @@ use MediaWiki\MediaWikiServices;
 use Parser;
 use ParserOptions;
 use RequestContext;
+use Sanitizer;
 use User;
 
 /**
@@ -269,8 +270,6 @@ class FormFieldTagReader {
 	 * @param User $user
 	 * @param string $fullFieldName
 	 * @param array &$args What readArguments() returns
-	 * @suppress SecurityCheck-DoubleEscaped The parsed value of 'default filename' is escaped again where the
-	 *   field argument is written into the page; the value is kept as it was before the tag reading moved here
 	 */
 	private function readArgument(
 		string $argName, $argValue, Parser $parser, User $user, string $fullFieldName, array &$args
@@ -364,8 +363,6 @@ class FormFieldTagReader {
 	 * @param string $argValue
 	 * @param Parser $parser
 	 * @return bool Whether the argument is one of these
-	 * @suppress SecurityCheck-DoubleEscaped The parsed value is escaped again when it is written into the hidden
-	 *   input for the check for unique values; the value is kept as it was before the tag reading moved here
 	 */
 	private function readUniqueArgument( string $argName, $argValue, Parser $parser ): bool {
 		if ( $argName != 'unique for category' && $argName != 'unique for namespace' &&
@@ -375,7 +372,7 @@ class FormFieldTagReader {
 		}
 		$this->field->setFieldArg( 'unique', true );
 		$scope = substr( $argName, strlen( 'unique for ' ) );
-		$this->field->setFieldArg( "unique_for_$scope", $parser->recursiveTagParse( $argValue ) );
+		$this->field->setFieldArg( "unique_for_$scope", $this->plainText( $argValue, $parser ) );
 		return true;
 	}
 
@@ -420,9 +417,16 @@ class FormFieldTagReader {
 			}
 		}
 		$default_filename = str_replace( '<page name>', $page_name, $argValue );
-		// Parse value, so default filename can
-		// include parser functions.
-		return $parser->recursiveTagParse( $default_filename );
+		// Expand the value, so default filename can include parser functions.
+		return $this->plainText( $default_filename, $parser );
+	}
+
+	/**
+	 * The text of a value that is written into the page later on, where it is escaped for its place.
+	 * The value is expanded, but not turned into HTML, because HTML would be escaped a second time.
+	 */
+	private function plainText( string $value, Parser $parser ): string {
+		return Sanitizer::decodeCharReferences( $parser->recursivePreprocess( $value ) );
 	}
 
 	/**
