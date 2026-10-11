@@ -6,6 +6,12 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Changed
+- Moved the `pfautoedit` API module out of `includes/` and into `src/` under the `MediaWiki\Extension\PageForms\` namespace, per the convention decided in [#166](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/166): `includes/PF_AutoeditAPI.php` (`PFAutoeditAPI`) → `src/AutoeditApi.php` (`AutoeditApi`). The API action name `pfautoedit` is unchanged ([#168](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/168), [`c53f3434`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/c53f3434))
+
+### Deprecated
+- The global class name `PFAutoeditAPI` is deprecated in favor of `MediaWiki\Extension\PageForms\AutoeditApi`. A `class_alias()` shim (registered in `PFHooks::registerExtension()`) keeps the old name resolvable via `class_exists()`, `instanceof`, and `new`; the shim will be removed in the next major release (3.0.0) ([#168](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/168))
+
 ### Fixed
 - Templates created by Special:CreateTemplate and Special:CreateClass no longer store a field's value with a leading `0:` (or the namespace number, as in `6:`); the stored property value is now just the field's value [`751c07f9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/751c07f9)
 - A form generated from a template no longer drops fields written as `{{{Name}}}` or whose name starts another field's name (`{{{AB|}}}` and `{{{A|}}}`), and lists its fields in the order of the template text [`7eefbc66`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/7eefbc66), [`7871b652`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/7871b652)
