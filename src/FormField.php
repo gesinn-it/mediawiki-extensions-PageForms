@@ -237,7 +237,7 @@ class FormField {
 		) {
 			return false;
 		}
-		return ValuesUtils::exceedsLocalAutocompleteThreshold( $autocompleteType, $autocompleteSource );
+		return AutocompleteSourceCount::exceedsLocalThreshold( $autocompleteType, $autocompleteSource );
 	}
 
 	/**
