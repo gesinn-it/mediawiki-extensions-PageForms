@@ -1,0 +1,62 @@
+{
+	"description": "a form tag at the end of a parser function (#272)",
+	"setup": [
+		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTagInParserFunctionTpl",
+			"contents": "{{{Name|}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestSaveShown",
+			"contents": "{{{for template|PFTestTagInParserFunctionTpl}}}\n{{{field|Name}}}\n{{{end template}}}\n{{{standard input|cancel}}}\n{{PLURAL:2||{{{standard input|save}}}}}"
+		},
+		{
+			"namespace": "PF_NS_FORM",
+			"page": "PFTestSaveHidden",
+			"contents": "{{{for template|PFTestTagInParserFunctionTpl}}}\n{{{field|Name}}}\n{{{end template}}}\n{{{standard input|cancel}}}\n{{PLURAL:1||{{{standard input|save}}}}}"
+		}
+	],
+	"tests": [
+		{
+			"type": "special",
+			"about": "the save button is shown when the condition of the parser function lets it through",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestSaveShown/PFTestTagInParserFunctionPage",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"to-contain": [
+					"name='wpSave'"
+				],
+				"not-contain": [
+					"{{PLURAL"
+				]
+			}
+		},
+		{
+			"type": "special",
+			"about": "the save button is hidden when the condition of the parser function holds it back",
+			"special-page": {
+				"page": "FormEdit",
+				"query-parameters": "PFTestSaveHidden/PFTestTagInParserFunctionPage",
+				"request-parameters": {}
+			},
+			"assert-output": {
+				"not-contain": [
+					"name='wpSave'",
+					"{{PLURAL"
+				]
+			}
+		}
+	],
+	"settings": {
+		"wgLang": "en"
+	},
+	"meta": {
+		"version": "2",
+		"is-incomplete": false,
+		"debug": false
+	}
+}

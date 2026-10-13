@@ -308,9 +308,78 @@ class FormDefinitionReaderTest extends TestCase {
 	}
 
 	public function testFindNextTagTakesTheLastThreeOfMoreClosingBraces() {
-		$tag = ( new FormDefinitionReader() )->findNextTag( '{{{field|x}}}}' );
+		$tag = ( new FormDefinitionReader() )->findNextTag( '{{{field|x|default={{y}}}}}' );
 
-		$this->assertSame( 14, $tag['end'] );
+		$this->assertSame( 27, $tag['end'] );
+	}
+
+	/**
+	 * @dataProvider provideTagsInsideOtherBraces
+	 */
+	public function testFindNextTagLeavesTheClosingBracesOfAnEnclosingConstructAlone(
+		string $text, string $tag, array $components
+	) {
+		$found = ( new FormDefinitionReader() )->findNextTag( $text );
+
+		$this->assertSame( $tag, substr( $text, $found['start'], $found['end'] - $found['start'] ) );
+		$this->assertSame( $components, $found['components'] );
+	}
+
+	public static function provideTagsInsideOtherBraces(): iterable {
+		yield 'at the end of a parser function' => [
+			'{{#ifeq:{{#rpos:{{FULLPAGENAME}}|.}}|-1||{{{standard input|save}}}}}',
+			'{{{standard input|save}}}',
+			[ 'standard input', 'save' ],
+		];
+		yield 'in the middle of a template call' => [
+			'{{#if:x|{{{standard input|save}}}|none}}',
+			'{{{standard input|save}}}',
+			[ 'standard input', 'save' ],
+		];
+		yield 'in two nested parser functions' => [
+			'{{#if:a|{{#if:b|{{{standard input|save}}}}}}}',
+			'{{{standard input|save}}}',
+			[ 'standard input', 'save' ],
+		];
+		yield 'with braces of its own' => [
+			'{{#if:a|{{{field|f|default={{PAGENAME}}}}}}}',
+			'{{{field|f|default={{PAGENAME}}}}}',
+			[ 'field', 'f', 'default={{PAGENAME}}' ],
+		];
+		yield 'with a JSON value' => [
+			'{{#if:a|{{{field|f|value_labels={"a":"A"}}}}}}}',
+			'{{{field|f|value_labels={"a":"A"}}}}',
+			[ 'field', 'f', 'value_labels={"a":"A"}' ],
+		];
+		yield 'with a template parameter of its own' => [
+			'{{#if:a|{{{field|f|default={{{1|}}}}}}}}',
+			'{{{field|f|default={{{1|}}}}}}',
+			[ 'field', 'f', 'default={{{1|}}}' ],
+		];
+	}
+
+	public function testFindNextTagIsLenientAboutUnbalancedBraces() {
+		$tag = ( new FormDefinitionReader() )->findNextTag( '{{{field|x|default={{y}}}' );
+
+		$this->assertSame( 25, $tag['end'] );
+		$this->assertSame( [ 'field', 'x', 'default={{y' ], $tag['components'] );
+	}
+
+	public function testAJsonValueEndingInTheBraceOfTheTag(): void {
+		$field = $this->field( '{{{field|f|input type=checkboxes|value_labels={"a":"A","b":"B"}}}}' );
+
+		$this->assertSame( 'f', $field->getName() );
+		$this->assertSame( '{"a":"A","b":"B"}', $field->getArg( 'value_labels' ) );
+	}
+
+	public function testATagAtTheEndOfAParserFunctionDoesNotSwallowItsBraces() {
+		$definition = $this->read( '{{#ifeq:a|b||{{{standard input|save}}}}} after' );
+
+		$elements = $definition->getElements();
+		$this->assertCount( 3, $elements );
+		$this->assertSame( '{{#ifeq:a|b||', $elements[0]->toWikitext() );
+		$this->assertInstanceOf( StandardInputSpec::class, $elements[1] );
+		$this->assertSame( '}} after', $elements[2]->toWikitext() );
 	}
 
 	public function testFindNextTagRejectsATagWithoutClosingBraces() {

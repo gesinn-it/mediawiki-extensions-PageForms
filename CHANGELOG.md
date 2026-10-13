@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- A form tag such as `{{{standard input|save}}}` at the end of a parser function (for example `{{#ifeq:…||{{{standard input|save}}}}}`) works again: the parser function is evaluated instead of being shown as text ([#272](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/272))
+
 ## [2.3.2] - 2026-10-11
 
 Fixes several form and `#autoedit` problems (templates created from forms, permission errors, minor edits, random numbers in page names, doubled section text). Behind the scenes the `pfautoedit` API, the autocomplete value sources, `FormField` and `TemplateInForm` were split into smaller classes; the old class names keep working but are deprecated.

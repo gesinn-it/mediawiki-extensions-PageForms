@@ -314,6 +314,14 @@ The allowed input names are:
 If no `standard input` tags are included in a form definition, the form will display a default set of seven inputs at the bottom: save, preview, changes, summary, minor edit, watch, and cancel.
 If at least one `standard input` tag is included, only those inputs that are explicitly declared will be shown, in the order and position they are declared.
 
+A `standard input` tag (like any other tag of a form definition) can be placed inside a parser function or a template call, for example to show a control only under a condition.
+The surrounding braces are matched with their opening braces, so a tag at the very end of a parser function works as expected:
+
+[source,wikitext]
+----
+{{#ifeq:{{#rpos:{{FULLPAGENAME}}|.}}|-1||{{{standard input|save}}}}}
+----
+
 [cols="1,3", options="header"]
 |===
 | Parameter
