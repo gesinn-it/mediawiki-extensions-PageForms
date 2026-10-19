@@ -74,26 +74,36 @@ pf.nameAttr = function ( element ) {
 };
 
 /**
- * Highlight occurrences of searchTerm inside suggestion with <strong> tags.
- * Matching is case-insensitive; the full suggestion is returned as an
- * OO.ui.HtmlSnippet so it can be used as an OOUI menu-option label.
+ * Escape the characters that are significant in HTML text and attribute values.
+ *
+ * @param {string} text
+ * @return {string}
+ */
+pf.escapeHtml = function ( text ) {
+	const replacements = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' };
+	return String( text ).replace( /[&<>"']/g, ( character ) => replacements[ character ] );
+};
+
+/**
+ * Highlight the first occurrence of searchTerm inside suggestion with <strong> tags.
+ * Matching is case-insensitive. Both strings are treated as plain text and
+ * escaped; the result is returned as an OO.ui.HtmlSnippet so it can be used as
+ * an OOUI menu-option label.
  *
  * @param {string} searchTerm  The current input / search string
  * @param {string} suggestion  The label text to highlight within
  * @return {OO.ui.HtmlSnippet}
  */
 pf.highlightText = function ( searchTerm, suggestion ) {
-	const searchRegexp = new RegExp( '(?![^&;]+;)(?!<[^<>]*)(' +
-		searchTerm.replace( /([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, '\\$1' ) +
-		')(?![^<>]*>)(?![^&;]+;)', 'gi' );
-	const loc = suggestion.search( searchRegexp );
-	let t;
-	if ( loc >= 0 ) {
-		t = suggestion.slice( 0, Math.max( 0, loc ) ) +
-			'<strong>' + suggestion.slice( loc, loc + searchTerm.length ) + '</strong>' +
-			suggestion.slice( loc + searchTerm.length );
-	} else {
-		t = suggestion;
+	const searchRegexp = new RegExp( searchTerm.replace( /[\^$()[\]{}*.+?|\\]/g, '\\$&' ), 'i' );
+	const match = searchRegexp.exec( suggestion );
+	if ( !match ) {
+		return new OO.ui.HtmlSnippet( pf.escapeHtml( suggestion ) );
 	}
-	return new OO.ui.HtmlSnippet( t );
+	const end = match.index + match[ 0 ].length;
+	return new OO.ui.HtmlSnippet(
+		pf.escapeHtml( suggestion.slice( 0, match.index ) ) +
+		'<strong>' + pf.escapeHtml( match[ 0 ] ) + '</strong>' +
+		pf.escapeHtml( suggestion.slice( end ) )
+	);
 };

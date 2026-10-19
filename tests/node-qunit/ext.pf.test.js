@@ -114,6 +114,23 @@ QUnit.module( 'pf.highlightText', () => {
 		assert.ok( () => pf.highlightText( 'foo.bar', 'foo.bar baz' ) );
 	} );
 
+	QUnit.test( 'escapes markup in the suggestion', ( assert ) => {
+		const result = pf.highlightText( 'foo', '<img src=x onerror=window.pfInjected=1>' );
+		const html = result.toString();
+		assert.false( html.includes( '<img' ), 'no element is created from the suggestion' );
+		assert.true( html.includes( '&lt;img src=x' ), 'the suggestion is shown literally' );
+	} );
+
+	QUnit.test( 'highlights a match inside a suggestion that contains markup', ( assert ) => {
+		const result = pf.highlightText( 'img', '<img src=x>' );
+		assert.strictEqual( result.toString(), '&lt;<strong>img</strong> src=x&gt;' );
+	} );
+
+	QUnit.test( 'escapes markup in the search term', ( assert ) => {
+		const result = pf.highlightText( '<b>', 'a <b> c' );
+		assert.strictEqual( result.toString(), 'a <strong>&lt;b&gt;</strong> c' );
+	} );
+
 	QUnit.test( 'match at position 0', ( assert ) => {
 		const result = pf.highlightText( 'foo', 'foobar' );
 		assert.ok( result.toString().startsWith( '<strong>foo</strong>' ) );
