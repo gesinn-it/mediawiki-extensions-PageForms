@@ -32,6 +32,11 @@
 			"contents": "<noinclude>{{#template_params:PFTestTDFieldName (label=PFTestTDLabel<script>alert(3)</script>)|PFTestTDFieldTags (list; delimiter=,)}}</noinclude><includeonly>{{#template_display:_format=table}}</includeonly>"
 		},
 		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTDTpl07",
+			"contents": "{{#template_params:PFTestTDFieldPlain|<img src=x onerror=alert`1`>|<script>alert`2`</script>}}"
+		},
+		{
 			"page": "PFTestTDSubj01",
 			"contents": "{{PFTestTDTpl01|PFTestTDFieldName=PFTestTDValue01|PFTestTDFieldDesc=PFTestTDValue02}}"
 		},
@@ -206,6 +211,24 @@
 					"onmouseover",
 					"onerror=\"",
 					"'''PFTestTDWiki"
+				]
+			}
+		},
+		{
+			"type": "parser",
+			"about": "#template_params shows field names as text",
+			"namespace": "NS_TEMPLATE",
+			"subject": "PFTestTDTpl07",
+			"assert-output": {
+				"to-contain": [
+					"|PFTestTDFieldPlain=",
+					"&lt;img src=x onerror=alert`1`&gt;=",
+					"&lt;script&gt;alert`2`&lt;/script&gt;="
+				],
+				"not-contain": [
+					"<img src",
+					"<script",
+					"onerror=\""
 				]
 			}
 		},

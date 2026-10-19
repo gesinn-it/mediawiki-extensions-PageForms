@@ -42,9 +42,9 @@ class PFTemplateParams {
 		$parserOutput->setPageProperty( 'PageFormsTemplateParams', serialize( $fieldData ) );
 
 		$text = wfMessage( "pf_template_docu", $title->getText() )->escaped();
-		$text .= "<pre>\n{{" . $title->getText() . "\n";
+		$text .= "<pre>\n{{" . htmlspecialchars( $title->getText() ) . "\n";
 		foreach ( $fieldData as $fieldName => $fieldParams ) {
-			$text .= "|$fieldName=\n";
+			$text .= '|' . htmlspecialchars( (string)$fieldName ) . "=\n";
 		}
 		$text .= "}}</pre>\n";
 		$text .= '<p>' . wfMessage( "pf_template_docufooter" )->escaped() . '</p>';
