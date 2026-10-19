@@ -6,10 +6,14 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.3.3] - 2026-10-19
+
+Fixes three problems with `values from category`, `values from property` and form tags at the end of parser functions.
+
 ### Fixed
-- With display titles switched on, a page of a category is no longer missing from the values of a `values from category` field when its name equals the display title of another page of the category ([#270](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/270))
-- Opening a form with a field whose values come from a number property (`values from property`) works again instead of failing with a "TypeError: str_replace()" error ([#273](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/273))
-- A form tag such as `{{{standard input|save}}}` at the end of a parser function (for example `{{#ifeq:…||{{{standard input|save}}}}}`) works again: the parser function is evaluated instead of being shown as text ([#272](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/272))
+- With display titles switched on, a page of a category is no longer missing from the values of a `values from category` field when its name equals the display title of another page of the category [`e9c1a018`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e9c1a018) ([#270](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/270))
+- Opening a form with a field whose values come from a number property (`values from property`) works again instead of failing with a "TypeError: str_replace()" error [`0180c2e9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/0180c2e9) ([#273](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/273))
+- A form tag such as `{{{standard input|save}}}` at the end of a parser function (for example `{{#ifeq:…||{{{standard input|save}}}}}`) works again: the parser function is evaluated instead of being shown as text [`e9da40d3`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e9da40d3) ([#272](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/272))
 
 ## [2.3.2] - 2026-10-11
 
@@ -377,7 +381,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.2...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.3...HEAD
+[2.3.3]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.2...2.3.3
 [2.3.2]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.1...2.3.2
 [2.3.1]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.2.0...2.3.0
