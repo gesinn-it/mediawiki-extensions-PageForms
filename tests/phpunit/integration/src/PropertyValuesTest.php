@@ -42,6 +42,24 @@ class PropertyValuesTest extends TestCase {
 	}
 
 	/**
+	 * Regression test for issue #273: the sort key of a number property is a float, which
+	 * str_replace() rejects under strict_types.
+	 *
+	 * @covers \MediaWiki\Extension\PageForms\PropertyValues::forSubject
+	 */
+	public function testForSubjectReturnsNumberValuesAsStrings(): void {
+		if ( !class_exists( '\SMW\Store' ) ) {
+			$this->markTestSkipped( 'SMW not installed' );
+		}
+
+		$store = $this->mockStoreReturning( [ 1900.0, 12.5, 7 ] );
+
+		$result = PropertyValues::forSubject( $store, null, 'Year' );
+
+		$this->assertSame( [ '1900', '12.5', '7' ], $result );
+	}
+
+	/**
 	 * Regression test for issue #175: on a wiki with a non-English content
 	 * language, forSubject() must prefix page-type values with the
 	 * canonical (English) namespace name, not the localized one. Wikitext
@@ -145,7 +163,7 @@ class PropertyValuesTest extends TestCase {
 	/**
 	 * Build a mock SMW store that returns the given string values from getPropertyValues().
 	 *
-	 * @param string[] $values
+	 * @param array $values
 	 * @return \SMW\Store
 	 */
 	private function mockStoreReturning( array $values ): \SMW\Store {

@@ -51,8 +51,8 @@ class PropertyValues {
 				$values[] = PageValue::newFromDIWikiPage( $value )->getCanonicalString();
 			} else {
 				// getSortKey() seems to return the correct
-				// value for all the other data types.
-				$values[] = str_replace( '_', ' ', $value->getSortKey() );
+				// value for all the other data types, but as a float for a number.
+				$values[] = str_replace( '_', ' ', (string)$value->getSortKey() );
 			}
 		}
 		return $values;

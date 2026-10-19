@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
+- Opening a form with a field whose values come from a number property (`values from property`) works again instead of failing with a "TypeError: str_replace()" error ([#273](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/273))
 - A form tag such as `{{{standard input|save}}}` at the end of a parser function (for example `{{#ifeq:…||{{{standard input|save}}}}}`) works again: the parser function is evaluated instead of being shown as text ([#272](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/272))
 
 ## [2.3.2] - 2026-10-11
