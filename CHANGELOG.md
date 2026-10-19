@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.3.5] - 2026-10-19
+
+Shows the field names listed by `#template_params` on a template page as text.
+
 ### Fixed
 - The list of parameters that `#template_params` shows on a template page displays the field names as typed [`294b7802`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/294b7802)
 
@@ -394,7 +398,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.4...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.5...HEAD
+[2.3.5]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.4...2.3.5
 [2.3.4]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.3...2.3.4
 [2.3.3]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.2...2.3.3
 [2.3.2]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.1...2.3.2
