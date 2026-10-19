@@ -36,7 +36,7 @@ $.fn.possiblyMinimizeAllOpenInstances = function() {
 	this.find('.multipleTemplateInstance').not('.minimized').each( function() {
 		const $instance = $(this);
 		$instance.addClass('minimized');
-		let valuesStr = '';
+		const values = [];
 		$instance.find( "input[type != 'hidden'][type != 'button'], select, textarea, div.ve-ce-surface" ).each( function() {
 			// If the set of fields to be displayed was specified in
 			// the form definition, check against that list.
@@ -69,16 +69,16 @@ $.fn.possiblyMinimizeAllOpenInstances = function() {
 			if ( curVal.length > 70 ) {
 				curVal = curVal.slice(0, 70) + "...";
 			}
-			if ( valuesStr !== '' ) {
-				valuesStr += ' &middot; ';
-			}
-			valuesStr += curVal;
+			values.push( curVal );
 		});
-		if ( valuesStr === '' ) {
-			valuesStr = '<em>No data</em>';
+		const $valuesDisplay = $( '<td class="fieldValuesDisplay">' );
+		if ( values.length === 0 ) {
+			$valuesDisplay.append( $( '<em>' ).text( 'No data' ) );
+		} else {
+			$valuesDisplay.text( values.join( ' \u00B7 ' ) );
 		}
 		$instance.find('.instanceMain').fadeOut( "medium", () => {
-			$instance.find('.instanceRearranger').after('<td class="fieldValuesDisplay">' + valuesStr + '</td>');
+			$instance.find('.instanceRearranger').after( $valuesDisplay );
 		});
 	});
 };

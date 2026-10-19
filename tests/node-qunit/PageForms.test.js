@@ -503,6 +503,18 @@ QUnit.test( 'does nothing when the list is not marked for minimizing', ( assert 
 		'instance is left untouched when the list lacks the minimizeAll class' );
 } );
 
+QUnit.test( 'shows field values in the minimized summary as text, not as markup', ( assert ) => {
+	const payload = '<img src=x onerror=window.pfInjected=1>';
+	const $wrapper = createMinimizeAllWrapper( { fieldValue: payload } );
+	const $list = $wrapper.find( '.multipleTemplateList' );
+
+	$list.possiblyMinimizeAllOpenInstances();
+
+	const $summary = $list.find( '.fieldValuesDisplay' );
+	assert.strictEqual( $summary.find( 'img' ).length, 0, 'no element is created from the field value' );
+	assert.strictEqual( $summary.text(), payload, 'the value is shown literally' );
+} );
+
 QUnit.test( 'marks open instances as minimized', ( assert ) => {
 	const $wrapper = createMinimizeAllWrapper( { fieldValue: 'hello' } );
 	const $list = $wrapper.find( '.multipleTemplateList' );
