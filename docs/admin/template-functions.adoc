@@ -83,6 +83,7 @@ Effects of adding `#template_params`:
 
 Place this call inside the template's `<includeonly>` block.
 It renders the template's field values in one of four layouts.
+Values and labels are treated as wikitext: links and formatting work, and HTML is filtered as on any other page.
 
 When `#template_params` is present, the simplest call is sufficient:
 

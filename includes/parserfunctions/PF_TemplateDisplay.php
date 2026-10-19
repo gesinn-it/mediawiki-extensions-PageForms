@@ -27,7 +27,7 @@ class PFTemplateDisplay {
 		if ( $templateParams == null ) {
 			return '<div class="error">' .
 				'Error: #template_params must be called in the template "' .
-				$templateTitle->getText() . '".</div>';
+				htmlspecialchars( $templateTitle->getText() ) . '".</div>';
 		}
 
 		$parser->getOutput()->addModules( [ 'ext.pageforms.templatedisplay' ] );
@@ -62,7 +62,8 @@ class PFTemplateDisplay {
 			$text = '<table class="wikitable">' . "\n";
 		} elseif ( $format == 'infobox' ) {
 			$text = '<table class="infoboxTable">' . "\n";
-			$text .= '<tr><th colspan="2" class="infoboxTitle">' . $title->getFullText() . '</th></tr>' . "\n";
+			$text .= '<tr><th colspan="2" class="infoboxTitle">' .
+				htmlspecialchars( $title->getFullText() ) . '</th></tr>' . "\n";
 		} else {
 			$text = '';
 		}
@@ -90,6 +91,9 @@ class PFTemplateDisplay {
 			if ( $fieldLabel == null ) {
 				$fieldLabel = $fieldName;
 			}
+			// The returned text is final HTML, so labels and values, which are wikitext,
+			// have to be turned into HTML here.
+			$fieldLabel = $parser->recursiveTagParse( (string)$fieldLabel );
 
 			// If this field holds a template, and it has a value,
 			// create a separate fieldset, outside of the table
@@ -108,7 +112,7 @@ class PFTemplateDisplay {
 						$text .= "</table>\n";
 					}
 					$text .= "<fieldset><legend>$fieldLabel</legend>";
-					$text .= $fieldValue;
+					$text .= $parser->recursiveTagParse( (string)$fieldValue );
 					$text .= '</fieldset>' . "\n";
 					if ( $format == 'table' ) {
 						$text .= '<table class="wikitable">' . "\n";
@@ -128,13 +132,13 @@ class PFTemplateDisplay {
 			} elseif ( $fieldType == 'Rating' ) {
 				$formattedFieldValue = self::ratingText( $fieldValue );
 			} elseif ( $fieldType == 'File' ) {
-				$formattedFieldValue = self::fileText( $fieldValue );
+				$formattedFieldValue = self::fileText( $parser, $fieldValue );
 			} elseif ( $fieldType == 'URL' ) {
 				$formattedFieldValue = self::urlText( $fieldValue );
 			} elseif ( $templateField->isList() ) {
-				$formattedFieldValue = self::stringListText( $fieldValue, $templateField );
+				$formattedFieldValue = self::stringListText( $parser, $fieldValue, $templateField );
 			} else {
-				$formattedFieldValue = $fieldValue;
+				$formattedFieldValue = $parser->recursiveTagParse( (string)$fieldValue );
 			}
 			if ( $format == 'table' || $format == 'infobox' ) {
 				$text .= "<tr><th>$fieldLabel</th><td>$formattedFieldValue</td></tr>\n";
@@ -149,6 +153,9 @@ class PFTemplateDisplay {
 			$text .= "</table>\n";
 		}
 
+		// Every value and label in $text went through recursiveTagParse() or htmlspecialchars();
+		// the rest is HTML of the link renderer and the Linker, which Phan cannot see through.
+		// @phan-suppress-next-line SecurityCheck-XSS
 		return [ $text, 'noparse' => true, 'isHTML' => true ];
 	}
 
@@ -186,12 +193,15 @@ class PFTemplateDisplay {
 		$target = $title->getFullText();
 		$formURL = $formSpecialPageTitle->getLocalURL() .
 			str_replace( ' ', '_', "/$form/$target" );
-		return Html::rawElement( 'a', [ 'href' => $formURL, 'class' => 'new' ], $value );
+		return Html::element( 'a', [ 'href' => $formURL, 'class' => 'new' ], $value );
 	}
 
-	private static function stringListText( $value, $templateField ) {
+	private static function stringListText( $parser, $value, $templateField ) {
 		$delimiter = $templateField->getDelimiter();
-		$fieldValues = explode( $delimiter, $value );
+		$fieldValues = array_map(
+			static fn ( $fieldValue ) => $parser->recursiveTagParse( $fieldValue ),
+			explode( $delimiter, $value )
+		);
 		return implode( ' <span class="pf-list-delimiter">&bull;</span> ', $fieldValues );
 	}
 
@@ -207,16 +217,16 @@ class PFTemplateDisplay {
 		return $text;
 	}
 
-	private static function fileText( $value ) {
+	private static function fileText( $parser, $value ) {
 		$title = Title::newFromText( $value, NS_FILE );
 		if ( $title == null || !$title->exists() ) {
-			return $value;
+			return $parser->recursiveTagParse( (string)$value );
 		}
 		$file = MediaWikiServices::getInstance()->getRepoGroup()->getLocalRepo()->newFile( $title );
 		return Linker::makeThumbLinkObj(
 			$title,
 			$file,
-			$value,
+			htmlspecialchars( $value ),
 			'',
 			'left'
 		);

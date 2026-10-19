@@ -27,6 +27,11 @@
 			"contents": "<includeonly>{{#template_display:_format=table}}</includeonly>"
 		},
 		{
+			"namespace": "NS_TEMPLATE",
+			"page": "PFTestTDTpl06",
+			"contents": "<noinclude>{{#template_params:PFTestTDFieldName (label=PFTestTDLabel<script>alert(3)</script>)|PFTestTDFieldTags (list; delimiter=,)}}</noinclude><includeonly>{{#template_display:_format=table}}</includeonly>"
+		},
+		{
 			"page": "PFTestTDSubj01",
 			"contents": "{{PFTestTDTpl01|PFTestTDFieldName=PFTestTDValue01|PFTestTDFieldDesc=PFTestTDValue02}}"
 		},
@@ -57,6 +62,10 @@
 		{
 			"page": "PFTestTDSubj08",
 			"contents": "{{PFTestTDTpl04|PFTestTDFieldName=PFTestTDValue15|PFTestTDFieldAge=PFTestTDValue16}}"
+		},
+		{
+			"page": "PFTestTDSubj10",
+			"contents": "{{PFTestTDTpl06|PFTestTDFieldName=<img src=x onerror=alert(1)> <b onmouseover=alert(2)>PFTestTDBold</b> '''PFTestTDWiki'''|PFTestTDFieldTags=<script>alert(4)</script>,PFTestTDValue18}}"
 		},
 		{
 			"page": "PFTestTDSubj09",
@@ -175,6 +184,28 @@
 				"not-contain": [
 					"class=\"wikitable\"",
 					"<h2>"
+				]
+			}
+		},
+		{
+			"type": "parser",
+			"about": "markup in values and labels is sanitized like any other wikitext",
+			"subject": "PFTestTDSubj10",
+			"assert-output": {
+				"to-contain": [
+					"&lt;img src=x onerror=alert(1)&gt;",
+					"<b>PFTestTDBold</b>",
+					"<b>PFTestTDWiki</b>",
+					"&lt;script&gt;alert(3)&lt;/script&gt;",
+					"&lt;script&gt;alert(4)&lt;/script&gt;",
+					"PFTestTDValue18"
+				],
+				"not-contain": [
+					"<img src",
+					"<script",
+					"onmouseover",
+					"onerror=\"",
+					"'''PFTestTDWiki"
 				]
 			}
 		},
