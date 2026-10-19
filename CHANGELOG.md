@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.3.4] - 2026-10-19
+
+Makes the dropdowns of autocomplete inputs, the summary of minimized template instances, the cells of spreadsheet inputs and `#template_display` show values as text and filter markup in them.
+
 ### Fixed
 - `#template_display` treats the values and labels of its fields as wikitext, so formatting and links in a value work and HTML in a value is filtered as on any other page [`78de4a4c`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/78de4a4c)
 - Suggestions in the dropdown of combobox, tokens and spreadsheet inputs are shown as typed, even if a value contains characters such as `<` and `>` [`23f52b2a`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/23f52b2a)
@@ -387,7 +391,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.3...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.4...HEAD
+[2.3.4]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.3...2.3.4
 [2.3.3]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.2...2.3.3
 [2.3.2]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.1...2.3.2
 [2.3.1]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.0...2.3.1
