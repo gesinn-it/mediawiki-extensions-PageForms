@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
+- `#template_display` treats the values and labels of its fields as wikitext, so formatting and links in a value work and HTML in a value is filtered as on any other page [`78de4a4c`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/78de4a4c)
 - Suggestions in the dropdown of combobox, tokens and spreadsheet inputs are shown as typed, even if a value contains characters such as `<` and `>` [`23f52b2a`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/23f52b2a)
 - The summary of a minimized instance of a multiple-instance template shows the field values as typed [`fb1f1b4e`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/fb1f1b4e)
 - Cell values of a spreadsheet input are shown as typed if they contain characters such as `<` and `>` [`8384b591`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/8384b591)
