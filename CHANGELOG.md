@@ -6,6 +6,11 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- Suggestions in the dropdown of combobox, tokens and spreadsheet inputs are shown as typed, even if a value contains characters such as `<` and `>` [`23f52b2a`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/23f52b2a)
+- The summary of a minimized instance of a multiple-instance template shows the field values as typed [`fb1f1b4e`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/fb1f1b4e)
+- Cell values of a spreadsheet input are shown as typed if they contain characters such as `<` and `>` [`8384b591`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/8384b591)
+
 ## [2.3.3] - 2026-10-19
 
 Fixes three problems with `values from category`, `values from property` and form tags at the end of parser functions.
