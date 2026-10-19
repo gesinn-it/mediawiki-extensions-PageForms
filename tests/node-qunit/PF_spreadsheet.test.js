@@ -128,6 +128,20 @@ QUnit.test( 'populateSpreadsheet builds a jexcel instance from wgPageFormsGridVa
 	assert.equal( templateName, 'MyTemplate' );
 } );
 
+QUnit.test( 'populateSpreadsheet decodes entities in cell values without parsing them into the page', ( assert ) => {
+	const htmlSpy = sinon.spy( $.fn, 'html' );
+	const { id } = createSpreadsheet( {
+		gridParams: [ { name: 'page' }, { name: 'Field1' } ],
+		gridValues: [ { page: 'Page1', Field1: 'a &amp; b <img src=x onerror=window.pfInjected=1>' } ]
+	} );
+
+	freshRequire();
+
+	assert.strictEqual( mw.spreadsheets[ id ]._data[ 0 ][ 1 ], 'a & b ', 'entities are decoded' );
+	assert.false( htmlSpy.getCalls().some( ( call ) => String( call.args[ 0 ] ).includes( '<img' ) ),
+		'the cell value is never passed to jQuery.html()' );
+} );
+
 QUnit.test( 'populateSpreadsheet renders a checkbox column value via valueIsYes decoding', ( assert ) => {
 	const { id } = createSpreadsheet( {
 		gridParams: [ { name: 'page' }, { name: 'Active', type: 'checkbox' } ],

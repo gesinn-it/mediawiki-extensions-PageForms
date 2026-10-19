@@ -250,8 +250,11 @@ function getDeleteIcon() {
 
 	// Decode values
 	jexcel.prototype.decodeValues = function( value ) {
-		value = $('<div />').html( value ).text();
-		return value;
+		// The content of a <template> is inert: unlike a detached element, it neither
+		// loads resources nor runs handlers for markup inside the value.
+		const template = document.createElement( 'template' );
+		template.innerHTML = value;
+		return template.content.textContent;
 	}
 
 	jexcel.prototype.deleteRow = function( spreadsheetID, rowNum ) {
