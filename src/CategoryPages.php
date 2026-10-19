@@ -160,7 +160,7 @@ class CategoryPages {
 				continue;
 			}
 			$value = $title->getPrefixedText();
-			if ( !in_array( $value, $pages ) ) {
+			if ( !array_key_exists( $value . '@', $pages ) ) {
 				$pages[$value . '@'] = DisplayTitles::resolve( $row['pp_displaytitle_value'] ?? null, $value );
 				$sortkeys[$value] = $row['pp_defaultsort_value'] ?? $value;
 			}

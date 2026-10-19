@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Fixed
+- With display titles switched on, a page of a category is no longer missing from the values of a `values from category` field when its name equals the display title of another page of the category ([#270](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/270))
 - Opening a form with a field whose values come from a number property (`values from property`) works again instead of failing with a "TypeError: str_replace()" error ([#273](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/273))
 - A form tag such as `{{{standard input|save}}}` at the end of a parser function (for example `{{#ifeq:…||{{{standard input|save}}}}}`) works again: the parser function is evaluated instead of being shown as text ([#272](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/272))
 

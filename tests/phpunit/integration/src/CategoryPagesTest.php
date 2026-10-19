@@ -106,6 +106,29 @@ class CategoryPagesTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [ 'PFCategoryPagesTestTitled' ], $names );
 	}
 
+	public function testGetKeepsAPageWhoseNameIsTheDisplayTitleOfAnotherPage(): void {
+		$this->setMwGlobals( [
+			'wgRestrictDisplayTitle' => false,
+			'wgPageFormsUseDisplayTitle' => true,
+		] );
+		// The first page sorts before the second one and shows the name of the second one.
+		$this->insertPage(
+			'PFCategoryPagesTestClashAlias',
+			'[[Category:PFCategoryPagesTestClash]]{{DISPLAYTITLE:PFCategoryPagesTestClashOriginal}}'
+		);
+		$this->insertPage( 'PFCategoryPagesTestClashOriginal', '[[Category:PFCategoryPagesTestClash]]' );
+
+		$result = CategoryPages::get( 'PFCategoryPagesTestClash', 1 );
+
+		$this->assertSame(
+			[
+				'PFCategoryPagesTestClashAlias' => 'PFCategoryPagesTestClashOriginal',
+				'PFCategoryPagesTestClashOriginal' => 'PFCategoryPagesTestClashOriginal',
+			],
+			$result
+		);
+	}
+
 	public function testFixedMultiSortKeepsNumericNames(): void {
 		$pages = [ '20@' => 'Twenty', '3@' => 'Three', '100@' => 'Hundred' ];
 		$sortkeys = [ '20' => 'b', '3' => 'a', '100' => 'c' ];
