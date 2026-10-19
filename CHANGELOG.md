@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- The list of parameters that `#template_params` shows on a template page displays the field names as typed [`294b7802`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/294b7802)
+
 ## [2.3.4] - 2026-10-19
 
 Makes the dropdowns of autocomplete inputs, the summary of minimized template instances, the cells of spreadsheet inputs and `#template_display` show values as text and filter markup in them.
