@@ -15,6 +15,11 @@ on:
       - 'docs/.submodule-ref'
   workflow_dispatch:
 
+# A newer push to the same branch or pull request makes the running CI obsolete.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
   psr4-guard:
@@ -63,15 +68,6 @@ jobs:
             dt_version: 4.0.3
             al_version: 0.7
             database_type: mysql
-            database_image: "mysql:8"
-            coverage: false
-            experimental: true
-          - mediawiki_version: '1.43'
-            smw_version: '7.3.1'
-            php_version: 8.3
-            dt_version: 4.0.3
-            al_version: 0.7
-            database_type: mysql
             database_image: "mariadb:12.3"
             coverage: true
             experimental: false
@@ -86,15 +82,6 @@ jobs:
             coverage: true
             jsonscript_only: true
             experimental: false
-          - mediawiki_version: '1.46'
-            smw_version: '7.3.1'
-            php_version: 8.4
-            dt_version: 4.0.3
-            al_version: 0.7
-            database_type: mysql
-            database_image: "mariadb:12.3"
-            coverage: false
-            experimental: true
 
     env:
       MW_VERSION: ${{ matrix.mediawiki_version }}
@@ -142,3 +129,49 @@ jobs:
           # codecov.yml path fixes and resolves PHP paths correctly.
           files: ${{ matrix.jsonscript_only && 'build/coverage/php/coverage.xml' || 'build/coverage/php/coverage.xml,build/coverage/js/clover.xml' }}
         if: matrix.coverage == true
+
+  # Allowed to fail and costly in runner minutes, so only on demand (workflow_dispatch).
+  test-experimental:
+
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mediawiki_version: '1.43'
+            smw_version: '7.3.1'
+            php_version: 8.3
+            dt_version: 4.0.3
+            al_version: 0.7
+            database_type: mysql
+            database_image: "mysql:8"
+          - mediawiki_version: '1.46'
+            smw_version: '7.3.1'
+            php_version: 8.4
+            dt_version: 4.0.3
+            al_version: 0.7
+            database_type: mysql
+            database_image: "mariadb:12.3"
+
+    env:
+      MW_VERSION: ${{ matrix.mediawiki_version }}
+      SMW_VERSION: ${{ matrix.smw_version }}
+      PHP_VERSION: ${{ matrix.php_version }}
+      DT_VERSION: ${{ matrix.dt_version }}
+      AL_VERSION: ${{ matrix.al_version }}
+      DB_TYPE: ${{ matrix.database_type }}
+      DB_IMAGE: ${{ matrix.database_image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Update submodules
+        run: git submodule update --init --remote
+
+      - name: Run tests
+        run: make ci
