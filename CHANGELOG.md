@@ -6,17 +6,21 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-20
+
+Stores dates as ISO dates, shows them the way the user prefers, no longer loses dates that a form cannot show, and repairs the calendar display. Templates that take a stored date apart themselves need to be adjusted, see the first entry.
+
 ### Changed
-- Date inputs store dates as ISO dates (`2026`, `2026-09`, `2026-09-30`, and `2026-09-30 14:05:00` with a time) whatever the input type, the language of the wiki and `$wgAmericanDates`. Formats written before, and dates typed into the wikitext, are still understood and are rewritten as ISO dates when the form is saved. Templates that take a stored date apart themselves, for example by splitting it at `/`, need to be adjusted [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61)
-- The month dropdown of the `date` and `datetime` inputs shows the names of the months in the language of the user, and the day, month and year entries follow the date format that the user chose in their preferences; `$wgAmericanDates` still decides if the user has not chosen one [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61)
-- The calendar and spreadsheet displays read and write ISO dates and no longer depend on `$wgAmericanDates` [`ea6e28eb`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/ea6e28eb)
+- Date inputs store dates as ISO dates (`2026`, `2026-09`, `2026-09-30`, and `2026-09-30 14:05:00` with a time) whatever the input type, the language of the wiki and `$wgAmericanDates`. Formats written before, and dates typed into the wikitext, are still understood and are rewritten as ISO dates when the form is saved. Templates that take a stored date apart themselves, for example by splitting it at `/`, need to be adjusted [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61) ([#255](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/255))
+- The month dropdown of the `date` and `datetime` inputs shows the names of the months in the language of the user, and the day, month and year entries follow the date format that the user chose in their preferences; `$wgAmericanDates` still decides if the user has not chosen one [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61) ([#255](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/255))
+- The calendar and spreadsheet displays read and write ISO dates and no longer depend on `$wgAmericanDates` [`ea6e28eb`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/ea6e28eb) ([#255](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/255))
 
 ### Fixed
-- Saving a form no longer drops a date that its input cannot show: a year or a month on its own in a `datepicker` or `datetimepicker` field is kept in a text field, and a value that is not a date is kept with a note instead of being emptied [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61)
-- A `datetime` input no longer shows a time of 12:00:00 AM for a stored value that has no time [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61)
-- Values typed into the day, month and year entries are shown as typed when the form is shown again, even if they contain characters such as `<` and `"` [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61)
-- A day that the month does not have, like the 31st of February, is rejected by the `date` input [`27640fe9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/27640fe9)
-- The calendar display (`display=calendar`) is shown again. Before, the calendar stayed empty and saving the form removed all calls of the template from the page [`6352966d`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/6352966d)
+- Saving a form no longer drops a date that its input cannot show: a year or a month on its own in a `datepicker` or `datetimepicker` field is kept in a text field, and a value that is not a date is kept with a note instead of being emptied [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61) ([#255](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/255))
+- A `datetime` input no longer shows a time of 12:00:00 AM for a stored value that has no time [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61) ([#255](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/255))
+- Values typed into the day, month and year entries are shown as typed when the form is shown again, even if they contain characters such as `<` and `"` [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61) ([#255](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/255))
+- A day that the month does not have, like the 31st of February, is rejected by the `date` input [`27640fe9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/27640fe9) ([#255](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/255))
+- The calendar display (`display=calendar`) is shown again. Before, the calendar stayed empty and saving the form removed all calls of the template from the page [`6352966d`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/6352966d) ([#255](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/255))
 
 ## [2.3.5] - 2026-10-19
 
@@ -410,7 +414,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.5...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.4.0...HEAD
+[2.4.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.5...2.4.0
 [2.3.5]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.4...2.3.5
 [2.3.4]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.3...2.3.4
 [2.3.3]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.2...2.3.3
