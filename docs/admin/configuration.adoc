@@ -104,6 +104,12 @@ Variables marked as _read-only_ are set internally by Page Forms and should not 
 |===
 | Variable | Default | Description
 
+| `$wgAmericanDates`
+| `false`
+| Order of the day, month and year entries of the `date` and `datetime` input fields for users who have not chosen a date format in their preferences: month, day, year if `true`, day, month, year otherwise.
+  A date format chosen in the preferences of the user takes precedence.
+  The value stored on the page does not depend on it, see xref:input-types.adoc#_how_dates_are_stored[How dates are stored].
+
 | `$wgPageForms24HourTime`
 | `false`
 | Use 24-hour clock format in `datetime` and `timepicker` input fields.

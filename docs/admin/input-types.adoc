@@ -238,10 +238,16 @@ _Special parameters:_
 === date
 
 This input contains three separate entries, for the year, month and day.
+The month is chosen from a dropdown that shows the names of the months in the language of the user, and the order of the three entries follows the date format that the user chose in their preferences.
+If the user has not chosen one, the order is month, day, year if `$wgAmericanDates = true;` is set in `LocalSettings.php`, and day, month, year otherwise.
+
+The day, or the day and the month, can be left empty: the value is then a year, or a month and a year.
+See <<How dates are stored>> for what is written to the page.
 
 === datetime
 
 The "datetime" input is similar to the "date" input, but includes additional entries for hours, minutes, seconds and AM/PM.
+If the hour and the minute are left empty, only the date is stored.
 
 By default the time portion uses 12-hour format with AM/PM.
 To switch to 24-hour format wiki-wide, add the following to `LocalSettings.php`:
@@ -276,7 +282,7 @@ _Special parameters:_
 | Parameter | Description
 
 | `date format=`
-| Sets a custom date format, used only for the input field. An example would be `DD-MM-YYYY`.
+| Sets a custom date format, used only for the input field. An example would be `DD-MM-YYYY`. The value that is stored on the page is always an ISO date, see <<How dates are stored>>.
 
 | `first date=`
 | Sets the first date the user is allowed to select.
@@ -285,11 +291,14 @@ _Special parameters:_
 | Sets the last date the user is allowed to select.
 |===
 
+The picker can only hold a complete date.
+If the page has a value for the field that is only a year or a month and a year, or text that is not a date, the field is shown as a text input instead, with a note, and the value is kept as it is when the form is saved.
+
 The starting day of the week (e.g., Saturday, Sunday or Monday) is set based on the language of the wiki; it unfortunately cannot be set independently of the language. If your wiki is in English and you would like weeks in the calendar input to start on Monday instead of Sunday (which is the default), you can do that by setting your wiki's language to be "en-gb" instead of "en".
 
 === datetimepicker
 
-"datetimepicker" is a JavaScript-based input type very similar to "datepicker", but it includes popups for selecting both the date and time. It defaults to `yyyy/mm/dd hh:mm`. Its set of parameters includes all of those for "datepicker" as well as the following:
+"datetimepicker" is a JavaScript-based input type very similar to "datepicker", but it includes popups for selecting both the date and time. The time is entered and stored in UTC. Its set of parameters includes all of those for "datepicker" as well as the following:
 
 [cols="1,2", options="header"]
 |===
@@ -447,6 +456,57 @@ _Special parameters:_
 | `label`
 | If set, interprets values in "Key (Label)" format (as returned by SMW plainlist results) and displays only the label portion.
 |===
+
+== How dates are stored
+
+Whatever the input type and whatever the language of the wiki or of the user, the inputs for dates write the value to the page as an https://en.wikipedia.org/wiki/ISO_8601[ISO 8601] date:
+
+[cols="1,1", options="header"]
+|===
+| What was entered | What is stored
+
+| A year only
+| `2026`
+
+| A year and a month
+| `2026-09`
+
+| A complete date
+| `2026-09-30`
+
+| A complete date and a time (`datetime`)
+| `2026-09-30 14:05:00`, always in 24-hour format; a time zone entry is appended, for example `2026-09-30 14:05:00 CEST`
+
+| A complete date and a time (`datetimepicker`)
+| `2026-09-30T14:05:00Z`, in UTC
+|===
+
+Only the display in the form depends on the user: the names of the months and the order of the entries (see <<date>>).
+
+Values that were written by an older version of Page Forms, or typed into the wikitext of a page, are still understood: ISO dates, dates with slashes or dots (`2026/09/30`, `30.09.2026`), dates with a month name (`30 September 2026`, `September 30, 2026`, `September 2026`) and times with AM/PM.
+Month names are read in English, in the language of the wiki and in the language of the user.
+Such a value is rewritten as an ISO date when the form is saved.
+
+A value that Page Forms cannot read as a date is never dropped.
+The `date` and `datetime` inputs keep it in a hidden field and show a warning, and the date inputs that use a picker show it in a text field.
+It stays on the page unchanged until a date is entered.
+
+=== Showing dates in a template
+
+How a date is shown on the page is up to the template, for example with the `#time` parser function of the ParserFunctions extension:
+
+[source]
+----
+{{#time:d F Y|{{{start date|}}}}}
+----
+
+Note that `#time` reads a value that consists of four digits, as a year only is, as a time of the day (`2026` is 20:26) and returns today's date.
+To show the year of a year-only value, add the rest of the date:
+
+[source]
+----
+{{#time:Y|{{{year|}}}-01-01}}
+----
 
 == Allowed input types for data types
 

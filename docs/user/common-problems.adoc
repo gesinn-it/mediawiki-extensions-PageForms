@@ -13,16 +13,19 @@ Another option that allows you to selectively suppress section-links (but still 
 
 == Page Forms issues
 
-* You can change the way dates are entered in, and outputted by, the forms by adding the line `$wgAmericanDates = true;` to the main MediaWiki `LocalSettings.php` file.
-By default, dates are printed out as `2007/06/20`; making this change will set dates to instead be printed out as "June 20, 2007" (with the month name dependent on the language of the wiki).
+* Dates are stored on the page as ISO dates (`2026-09-30`, and `2026-09` or `2026` if only a month or a year was entered), whatever the language of the wiki.
+The form shows the names of the months in the language of the user and puts the day, month and year in the order of the date format that the user chose in their preferences.
+If the user has not chosen one, adding the line `$wgAmericanDates = true;` to the main MediaWiki `LocalSettings.php` file makes the order month, day, year.
 +
-You can also manually set the display format for dates using the `#time` parser function, defined by the ParserFunctions extension.
+To show a date in another way on the page, use the `#time` parser function, defined by the ParserFunctions extension.
 For a European-style date format, for instance, you can have something like this in the template:
 +
 [source]
 ----
 {{#time:d.m.Y|{{{start date}}}}}
 ----
++
+See xref:../admin/input-types.adoc#_how_dates_are_stored[How dates are stored] for details, including what to do with a value that is only a year.
 
 * Similarly, you can change the way times are entered and displayed.
 If you have a form field with input type `datetime`, by default it will use the 12-hour format, with "AM" and "PM".
