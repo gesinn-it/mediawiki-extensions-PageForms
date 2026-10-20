@@ -327,9 +327,15 @@ $.fn.validateDateField = function() {
 	// validate only if day and year fields are both filled in
 	const dayVal = this.find(".dayInput").val();
 	const yearVal = this.find(".yearInput").val();
+	const monthVal = this.find(".monthInput").val();
 	if (dayVal === '' || yearVal === '') {
 		return true;
-	} else if (dayVal.match(/^\d+$/) && dayVal <= 31) {
+	} else if (dayVal.match(/^\d+$/) && dayVal >= 1 && dayVal <= 31 &&
+		// A day that the month does not have, like the 31st of February, is only checked
+		// for a year in four digits and a month that is known.
+		( !/^\d{4}$/.test( yearVal ) || !/^\d{1,2}$/.test( monthVal ) ||
+			dayVal <= new Date( yearVal, monthVal, 0 ).getDate() )
+	) {
 		// no year validation, since it can also include
 		// 'BC' and possibly other non-number strings
 		return true;

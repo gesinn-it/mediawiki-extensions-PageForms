@@ -479,3 +479,34 @@ function dateTimeInputsHtml( year, month, day, hours, minutes, seconds, ampm ) {
 		<input class="ampmInput" value="${ ampm }" />
 	`;
 }
+
+function createDateSpan( day, month, year ) {
+	return createSpan(
+		'<input class="dayInput" value="' + day + '">' +
+		'<select class="monthInput"><option value="' + month + '" selected>' + month + '</option></select>' +
+		'<input class="yearInput" value="' + year + '">'
+	);
+}
+
+QUnit.test( 'validateDateField accepts a day that the month has', ( assert ) => {
+	assert.true( createDateSpan( '30', '09', '2026' ).validateDateField() );
+	assert.true( createDateSpan( '29', '02', '2028' ).validateDateField(), 'leap day' );
+} );
+
+QUnit.test( 'validateDateField rejects a day that the month does not have', ( assert ) => {
+	assert.false( createDateSpan( '31', '09', '2026' ).validateDateField() );
+	assert.false( createDateSpan( '29', '02', '2026' ).validateDateField(), 'no leap day in a common year' );
+	assert.false( createDateSpan( '0', '09', '2026' ).validateDateField() );
+	assert.false( createDateSpan( '32', '01', '2026' ).validateDateField() );
+} );
+
+QUnit.test( 'validateDateField does not check the month if the year or month is not a plain number', ( assert ) => {
+	assert.true( createDateSpan( '31', '', '2026' ).validateDateField(), 'no month' );
+	assert.true( createDateSpan( '31', '02', '300 BC' ).validateDateField(), 'year with text' );
+} );
+
+QUnit.test( 'validateDateField does nothing without a day or a year', ( assert ) => {
+	assert.true( createDateSpan( '', '09', '2026' ).validateDateField() );
+	assert.true( createDateSpan( '31', '09', '' ).validateDateField() );
+} );
+
