@@ -16,6 +16,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 - A `datetime` input no longer shows a time of 12:00:00 AM for a stored value that has no time [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61)
 - Values typed into the day, month and year entries are shown as typed when the form is shown again, even if they contain characters such as `<` and `"` [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61)
 - A day that the month does not have, like the 31st of February, is rejected by the `date` input [`27640fe9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/27640fe9)
+- The calendar display (`display=calendar`) is shown again. Before, the calendar stayed empty and saving the form removed all calls of the template from the page [`6352966d`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/6352966d)
 
 ## [2.3.5] - 2026-10-19
 
