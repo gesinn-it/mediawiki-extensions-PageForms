@@ -27,7 +27,7 @@ class FormDateUtilsTest extends MediaWikiIntegrationTestCase {
 
 		$result = FormDateUtils::getStringForCurrentTime( false, false );
 
-		$this->assertMatchesRegularExpression( '/^\d{4}-\d{2}-\d{2}$/', $result );
+		$this->assertSame( 1, preg_match( '/^\d{4}-\d{2}-\d{2}$/', $result ) );
 	}
 
 	/**
@@ -38,7 +38,7 @@ class FormDateUtilsTest extends MediaWikiIntegrationTestCase {
 
 		$result = FormDateUtils::getStringForCurrentTime( true, false );
 
-		$this->assertMatchesRegularExpression( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $result );
+		$this->assertSame( 1, preg_match( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $result ) );
 	}
 
 	/**
@@ -49,7 +49,7 @@ class FormDateUtilsTest extends MediaWikiIntegrationTestCase {
 
 		$result = FormDateUtils::getStringForCurrentTime( true, true );
 
-		$this->assertMatchesRegularExpression( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC$/', $result );
+		$this->assertSame( 1, preg_match( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC$/', $result ) );
 	}
 
 	/**

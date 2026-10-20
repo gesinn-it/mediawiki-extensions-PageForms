@@ -118,10 +118,10 @@ class FormDateUtilsSubmissionTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testNowIsRecognisedAsAValue(): void {
-		$this->assertMatchesRegularExpression( '/^\d{4}-\d{2}-\d{2}$/', FormDateUtils::parse( 'now' )->toIso() );
-		$this->assertMatchesRegularExpression(
-			'/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/',
-			FormDateUtils::parse( 'now', true )->toIso()
+		$this->assertSame( 1, preg_match( '/^\d{4}-\d{2}-\d{2}$/', FormDateUtils::parse( 'now' )->toIso() ) );
+		$this->assertSame(
+			1,
+			preg_match( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', FormDateUtils::parse( 'now', true )->toIso() )
 		);
 	}
 
