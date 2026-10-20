@@ -186,6 +186,35 @@ class FormDateUtils {
 		return implode( '-', array_filter( [ $year, $month, $day ], 'strlen' ) );
 	}
 
+	/**
+	 * The values of the instances of a template, with the dates written the way they are stored today,
+	 * so that a script that reads them has one format to deal with, whatever an older version or a person
+	 * wrote. A value that is not a date is left as it is.
+	 *
+	 * @param array[]|null $rows The values of the template instances, by field name
+	 * @param array[] $params The fields of the template, with their `name` and `type`
+	 * @return array[]|null
+	 */
+	public static function withIsoDates( ?array $rows, array $params ): ?array {
+		if ( $rows === null ) {
+			return null;
+		}
+		$dateFields = [];
+		foreach ( $params as $param ) {
+			if ( in_array( $param['type'] ?? null, [ 'date', 'datetime' ], true ) ) {
+				$dateFields[] = $param['name'];
+			}
+		}
+		foreach ( $rows as $index => $row ) {
+			foreach ( $dateFields as $field ) {
+				if ( is_array( $row ) && isset( $row[$field] ) && is_string( $row[$field] ) ) {
+					$rows[$index][$field] = self::normalize( $row[$field] );
+				}
+			}
+		}
+		return $rows;
+	}
+
 	private static function getUserLanguage(): Language {
 		return RequestContext::getMain()->getLanguage();
 	}

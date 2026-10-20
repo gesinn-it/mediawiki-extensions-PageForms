@@ -75,7 +75,8 @@ function createCalendar( opts ) {
 		wgPageFormsCalendarParams: { [ templateName ]: calendarParams },
 		wgPageFormsCalendarValues: { [ templateName ]: calendarValues },
 		wgPageFormsCalendarHTML: { [ templateName ]: formHtml },
-		wgAmericanDates: false
+		wgAmericanDates: opts.americanDates === true,
+		wgPageForms24HourTime: opts.time24 === true
 	};
 	global.mw.config = { get: ( key ) => config[ key ] };
 	global.mw.msg = ( key ) => key;
@@ -142,7 +143,7 @@ QUnit.test( 'loads without error when no .pfFullCalendarJS element is present', 
 QUnit.test( 'renders one event per calendar-values row with a date-type field', ( assert ) => {
 	const { $fcDiv, calendarId } = createCalendar( {
 		calendarValues: [
-			{ Title: 'Meeting', EventDate: '2026/07/15' }
+			{ Title: 'Meeting', EventDate: '2026-07-15' }
 		]
 	} );
 
@@ -159,7 +160,7 @@ QUnit.test( 'skips rows whose date field does not match the expected format', ( 
 	const { $fcDiv } = createCalendar( {
 		calendarValues: [
 			{ Title: 'Bad row', EventDate: 'not-a-date' },
-			{ Title: 'Good row', EventDate: '2026/07/15' }
+			{ Title: 'Good row', EventDate: '2026-07-15' }
 		]
 	} );
 
@@ -180,7 +181,7 @@ QUnit.test( 'renders a start/end event pair for multi-day (event-start/end-date-
 			{ name: 'EndDate', type: 'date' }
 		],
 		calendarValues: [
-			{ Title: 'Conference', StartDate: '2026/07/15', EndDate: '2026/07/17' }
+			{ Title: 'Conference', StartDate: '2026-07-15', EndDate: '2026-07-17' }
 		]
 	} );
 
@@ -317,7 +318,7 @@ QUnit.test( 'submitting the edit popup updates the event title and date', ( asse
 QUnit.test( '#pfForm submit adds one hidden input per event field, keyed by row number', ( assert ) => {
 	const { $fcDiv } = createCalendar( {
 		calendarValues: [
-			{ Title: 'Meeting', EventDate: '2026/07/15' }
+			{ Title: 'Meeting', EventDate: '2026-07-15' }
 		]
 	} );
 	const $form = $( '<form>' ).attr( 'id', 'pfForm' ).appendTo( document.body );
@@ -332,5 +333,91 @@ QUnit.test( '#pfForm submit adds one hidden input per event field, keyed by row 
 	assert.equal( $titleInput.val(), 'Meeting' );
 
 	const $dateInput = $form.find( 'input[name="MyTemplate[1][EventDate]"]' );
-	assert.equal( $dateInput.val(), '2026/07/15', 'the date field is reassembled from day/month/year' );
+	assert.equal( $dateInput.val(), '2026-07-15', 'the date field is stored as an ISO date' );
+} );
+
+QUnit.test( 'reads and writes ISO dates whatever $wgAmericanDates says', ( assert ) => {
+	const { $fcDiv } = createCalendar( {
+		americanDates: true,
+		calendarValues: [
+			{ Title: 'Meeting', EventDate: '2026-07-15' }
+		]
+	} );
+	const $form = $( '<form>' ).attr( 'id', 'pfForm' ).appendTo( document.body );
+	$fcDiv.appendTo( $form );
+
+	freshRequire();
+
+	const events = $fcDiv.data( 'fullCalendarMockInstance' ).allEvents();
+	assert.equal( events.length, 1, 'the event is rendered' );
+	assert.equal( events[ 0 ].start, '2026-07-15' );
+
+	$form.trigger( 'submit' );
+	assert.equal( $form.find( 'input[name="MyTemplate[1][EventDate]"]' ).val(), '2026-07-15' );
+} );
+
+QUnit.test( 'day-click fills the month input with the number of the month', ( assert ) => {
+	const { $fcDiv } = createCalendar( { americanDates: true } );
+	freshRequire();
+
+	const start = fullCalendarMock.fakeMoment( { DD: '15', MM: '07', YYYY: '2026' } );
+	const end = fullCalendarMock.fakeMoment( { DD: '16', MM: '07', YYYY: '2026' } );
+	$fcDiv.data( 'fullCalendarMockInstance' ).options().select( start, end );
+
+	assert.equal( $( ':input[name="MyTemplate[cf][EventDate][month]"]' ).val(), '07' );
+} );
+
+/**
+ * A calendar of events with a date and time, whose popup form has the time inputs.
+ *
+ * @param {string} storedValue the stored date and time of the one event.
+ * @param {boolean} time24 whether the wiki uses 24 hour time.
+ * @return {Object} the result of createCalendar().
+ */
+function createDateTimeCalendar( storedValue, time24 ) {
+	const parts = [ 'day', 'month', 'year', 'hour', 'minute', 'second', 'ampm24h' ];
+	return createCalendar( {
+		time24,
+		calendarParams: [
+			{ name: 'Title', type: 'text' },
+			{ name: 'EventDate', type: 'datetime' }
+		],
+		calendarValues: [ { Title: 'Meeting', EventDate: storedValue } ],
+		formHtml: '<input name="MyTemplate[cf][Title]">' + parts.map(
+			( part ) => '<input name="MyTemplate[cf][EventDate][' + part + ']">'
+		).join( '' )
+	} );
+}
+
+QUnit.test( 'a stored date and time is written back in 24 hour form', ( assert ) => {
+	const { $fcDiv } = createDateTimeCalendar( '2026-07-15 14:05:09', false );
+	const $form = $( '<form>' ).attr( 'id', 'pfForm' ).appendTo( document.body );
+	$fcDiv.appendTo( $form );
+
+	freshRequire();
+	$form.trigger( 'submit' );
+
+	assert.equal( $form.find( 'input[name="MyTemplate[1][EventDate]"]' ).val(), '2026-07-15 14:05:09' );
+} );
+
+QUnit.test( 'the popup shows a stored time in 12 hour form unless the wiki uses 24 hour time', ( assert ) => {
+	const { $fcDiv } = createDateTimeCalendar( '2026-07-15 14:05:09', false );
+	freshRequire();
+
+	const instance = $fcDiv.data( 'fullCalendarMockInstance' );
+	instance.options().eventClick( { id: instance.allEvents()[ 0 ].id } );
+
+	assert.equal( $( ':input[name="MyTemplate[cf][EventDate][hour]"]' ).val(), '02' );
+	assert.equal( $( ':input[name="MyTemplate[cf][EventDate][ampm24h]"]' ).val(), 'PM' );
+} );
+
+QUnit.test( 'the popup shows a stored time as it is in a wiki with 24 hour time', ( assert ) => {
+	const { $fcDiv } = createDateTimeCalendar( '2026-07-15 14:05:09', true );
+	freshRequire();
+
+	const instance = $fcDiv.data( 'fullCalendarMockInstance' );
+	instance.options().eventClick( { id: instance.allEvents()[ 0 ].id } );
+
+	assert.equal( $( ':input[name="MyTemplate[cf][EventDate][hour]"]' ).val(), '14' );
+	assert.equal( $( ':input[name="MyTemplate[cf][EventDate][ampm24h]"]' ).val(), '' );
 } );

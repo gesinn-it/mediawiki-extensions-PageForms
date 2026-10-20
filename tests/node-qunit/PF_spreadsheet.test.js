@@ -540,3 +540,23 @@ QUnit.test( 'dependenton returns undefined when no dependent field pair matches'
 	mw.config = { get: ( key ) => key === 'wgPageFormsDependentFields' ? [ [ 'BaseField', 'DependentField' ] ] : undefined };
 	assert.equal( jexcel.prototype.dependenton( 'SomeOtherField' ), undefined );
 } );
+
+// --- dates: stored as ISO dates, so the numbers have two digits ---
+
+QUnit.test( 'getjExcelValue gives a stored date with two-digit month and day', ( assert ) => {
+	createSpreadsheet();
+	freshRequire();
+
+	const value = jexcel.prototype.getjExcelValue( '2026-09-05', { type: 'date' } );
+
+	assert.equal( value, '2026-09-05' );
+} );
+
+QUnit.test( 'getjExcelValue gives a stored date and time with two-digit parts', ( assert ) => {
+	createSpreadsheet();
+	freshRequire();
+
+	const value = jexcel.prototype.getjExcelValue( '2026-09-05 04:03:00', { type: 'datetime' } );
+
+	assert.equal( value, '2026-09-05 04:03' );
+} );

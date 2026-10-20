@@ -183,6 +183,31 @@ class CalendarHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [ 0 => [ 'F' => 'v' ] ], $wgPageFormsCalendarValues['MyTemplate'] );
 	}
 
+	public function testCalendarValuesOfDateFieldsAreWrittenAsIsoDates(): void {
+		global $wgPageFormsCalendarParams, $wgPageFormsCalendarValues;
+		$wgPageFormsCalendarParams = [];
+		$wgPageFormsCalendarValues = [];
+		$fields = [
+			$this->makeFormField( 'Title', 'text', null ),
+			$this->makeFormField( 'Day', 'date', null ),
+			$this->makeFormField( 'Start', 'datetime', null ),
+		];
+		$tif = $this->makeTif( 'T', $fields, [
+			0 => [ 'Title' => '30 September 2026', 'Day' => 'September 30, 2026', 'Start' => '2026/09/30 02:05:00 PM' ],
+			1 => [ 'Title' => 'x', 'Day' => 'not a date', 'Start' => '2026-09-30 14:05:00' ],
+		] );
+
+		$this->builder->calendarHTML( $tif, '/extensions/PageForms' );
+
+		$this->assertSame(
+			[
+				0 => [ 'Title' => '30 September 2026', 'Day' => '2026-09-30', 'Start' => '2026-09-30 14:05:00' ],
+				1 => [ 'Title' => 'x', 'Day' => 'not a date', 'Start' => '2026-09-30 14:05:00' ],
+			],
+			$wgPageFormsCalendarValues['T']
+		);
+	}
+
 	public function testCalendarHtmlUsesScriptPathForLoadingGif(): void {
 		global $wgPageFormsCalendarParams, $wgPageFormsCalendarValues;
 		$wgPageFormsCalendarParams = [];

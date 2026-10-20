@@ -215,7 +215,7 @@ class SpreadsheetHtmlBuilder {
 		$text = Html::rawElement( 'div', $templateDivAttrs, $loadingImageDiv );
 
 		$wgPageFormsGridParams[$templateName] = $gridParams;
-		$wgPageFormsGridValues[$templateName] = $tif->getGridValues();
+		$wgPageFormsGridValues[$templateName] = FormDateUtils::withIsoDates( $tif->getGridValues(), $gridParams );
 
 		SpreadsheetGlobals::setGlobalVarsForSpreadsheet();
 

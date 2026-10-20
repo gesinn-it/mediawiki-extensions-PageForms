@@ -62,9 +62,11 @@ function getDeleteIcon() {
 		return ( possibleYesMessages.includes(value) );
 	};
 
+	// Dates are stored as ISO dates, so the numbers have two digits.
+	const pad2 = ( number ) => ( '0' + number ).slice( -2 );
+
 	jexcel.prototype.getjExcelValue = function( mwValue, columnAttributes ) {
-		let date,
-			monthNum;
+		let date;
 		if ( mwValue == null ) {
 			return null;
 		}
@@ -83,8 +85,7 @@ function getDeleteIcon() {
 			date = new Date( mwValue );
 			// Avoid timezone strangeness.
 			date.setTime( date.getTime() + 60000 * date.getTimezoneOffset());
-			monthNum = date.getMonth() + 1;
-			return date.getFullYear() + '-' + monthNum + '-' + date.getDate();
+			return date.getFullYear() + '-' + pad2( date.getMonth() + 1 ) + '-' + pad2( date.getDate() );
 		} else if ( columnAttributes['type'] == 'datetime' ) {
 			date = new Date( mwValue );
 			// Avoid timezone strangeness, if what we're handling
@@ -92,9 +93,8 @@ function getDeleteIcon() {
 			if ( ! mwValue.includes(':') ) {
 				date.setTime( date.getTime() + 60000 * date.getTimezoneOffset());
 			}
-			monthNum = date.getMonth() + 1;
-			return date.getFullYear() + '-' + monthNum + '-' + date.getDate() +
-				' ' + date.getHours() + ':' + date.getMinutes();
+			return date.getFullYear() + '-' + pad2( date.getMonth() + 1 ) + '-' + pad2( date.getDate() ) +
+				' ' + pad2( date.getHours() ) + ':' + pad2( date.getMinutes() );
 		} else {
 			return mwValue;
 		}
@@ -788,9 +788,8 @@ function getDeleteIcon() {
 						// Special handling for some default values.
 						if ( defaultValue == 'now' ) {
 							const date = new Date();
-							const monthNum = date.getMonth() + 1;
-							realDefaultValue = date.getFullYear() + '-' + monthNum + '-' + date.getDate() +
-								' ' + date.getHours() + ':' + date.getMinutes();
+							realDefaultValue = date.getFullYear() + '-' + pad2( date.getMonth() + 1 ) + '-' +
+								pad2( date.getDate() ) + ' ' + pad2( date.getHours() ) + ':' + pad2( date.getMinutes() );
 						} else if ( defaultValue == 'current user' ) {
 							realDefaultValue = mw.config.get( 'wgUserName' );
 						} else if ( defaultValue == 'uuid' ) {

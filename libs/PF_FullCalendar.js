@@ -39,11 +39,6 @@
 		}
 
 		const fieldType=[];
-		const englishMonthNames = [ 'January', 'February',
-			'March', 'April', 'May', 'June', 'July',
-			'August', 'September', 'October', 'November',
-			'December' ];
-
 		// From here the game begins - getting the form HTML to be used as the popup form -
 		// for the calendar interface
 		const formHtml = calendarHTML[templateName];
@@ -215,21 +210,13 @@
 						$("#form_submit").attr("disabled", "disabled").css({'background-color':'#c8ccd1','color':'#fff'});
 					} else {
 						let date1, date2;
-						if( mw.config.get('wgAmericanDates') ) {
-							date1 = $( ':input[name="' + autoFillStartYear + '"]' ).val() + '-' +
-							padNumber(englishMonthNames.indexOf($( ':input[name="' + autoFillStartMonth + '"]' ).val())) + '-' +
-							padNumber($( ':input[name="' + autoFillStartDay + '"]' ).val());
-							date2 = $( ':input[name="' + autoFillEndYear + '"]' ).val() + '-' +
-							padNumber(englishMonthNames.indexOf($( ':input[name="' + autoFillEndMonth + '"]' ).val())) + '-' +
-							padNumber($( ':input[name="' + autoFillEndDay + '"]' ).val());
-						} else {
-							date1 = $( ':input[name="' + autoFillStartYear + '"]' ).val() + '-' +
-							$( ':input[name="' + autoFillStartMonth + '"]' ).val() + '-' +
-							padNumber($( ':input[name="' + autoFillStartDay + '"]' ).val());
-							date2 = $( ':input[name="' + autoFillEndYear + '"]' ).val() + '-' +
-							$( ':input[name="' + autoFillEndMonth + '"]' ).val() + '-' +
-							padNumber($( ':input[name="' + autoFillEndDay + '"]' ).val());
-						}
+						date1 = $( ':input[name="' + autoFillStartYear + '"]' ).val() + '-' +
+						$( ':input[name="' + autoFillStartMonth + '"]' ).val() + '-' +
+						padNumber($( ':input[name="' + autoFillStartDay + '"]' ).val());
+						date2 = $( ':input[name="' + autoFillEndYear + '"]' ).val() + '-' +
+						$( ':input[name="' + autoFillEndMonth + '"]' ).val() + '-' +
+						padNumber($( ':input[name="' + autoFillEndDay + '"]' ).val());
+
 						if( $( ':input[name="' + autoFillStartHour + '"]' ).val() !== undefined &&
 								$( ':input[name="' + autoFillStartMinute + '"]' ).val() !== undefined &&
 								$( ':input[name="' + autoFillStartSecond + '"]' ).val() !== undefined &&
@@ -271,12 +258,8 @@
 				if( arrData[dateEntry].name.includes('year') ) {
 					eventDateYear = arrData[dateEntry].value;
 				} else if ( arrData[dateEntry].name.includes('month') ) {
-					if ( mw.config.get('wgAmericanDates') ) { //check for date-style format.
-						monthIndex = englishMonthNames.indexOf( arrData[dateEntry].value );
-						eventDateMonth = padNumber(monthIndex + 1);
-					} else {
-						eventDateMonth = padNumber(arrData[dateEntry].value);
-					}
+					eventDateMonth = padNumber(arrData[dateEntry].value);
+
 				} else if ( arrData[dateEntry].name.includes('day') ) {
 					eventDateDay = padNumber( arrData[dateEntry].value ) ;
 				} else if ( arrData[dateEntry].name.includes('hour') ) {
@@ -336,43 +319,52 @@
 		// Check if the date/datetime formats are suitable for the
 		// calendar eventStartDate - if not, these are not proper
 		// events, and they will be stored in eventsNoDate.
+		// The values are stored as ISO dates (YYYY-MM-DD), see FormDate.
 		function isValidDate(dateString) {
-			if( mw.config.get( 'wgAmericanDates' ) ) {
-				const reg = /^(January?|February?|March?|April?|May|June?|July?|August?|September?|October?|November?|December?)\s\d{1,2},\s\d{4}$/;
-				if(!dateString.match(reg)) {
- return false;
-}
-			} else {
-				dateString = dateString.replace('/','-');
-				dateString = dateString.replace('/','-');
-				const regEx = /^\d{4}-\d{2}-\d{2}$/;
-				if(!dateString.match(regEx)) {
- return false;
-} // Invalid format
-				const d = new Date(dateString);
-				const dNum = d.getTime();
-				if(!dNum && dNum !== 0) {
- return false;
-} // NaN value, Invalid date
-				return d.toISOString().slice(0,10) === dateString;
+			if ( !/^\d{4}-\d{2}-\d{2}$/.test( dateString ) ) {
+				return false;
 			}
+			const d = new Date( dateString );
+			return !isNaN( d.getTime() ) && d.toISOString().slice( 0, 10 ) === dateString;
 		}
 
+		// A date and time is stored as YYYY-MM-DD HH:MM:SS, optionally followed by a timezone,
+		// or as YYYY-MM-DDTHH:MM:SSZ.
 		function dateTimeValidation(dateString) {
-			if( mw.config.get( 'wgAmericanDates' ) ) {
-				const reg = /^(January?|February?|March?|April?|May|June?|July?|August?|September?|October?|November?|December?)\s\d{1,2},\s\d{4}\s\d{2}:\d{2}:\d{2}$/;
-				if ( !dateString.match( reg ) ) {
- return false;
-}
-			} else {
-				dateString = dateString.replace('/','-');
-				dateString = dateString.replace('/','-');
-				const regEx = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
-				if ( !dateString.match( regEx ) ) {
- return false;
-} // Invalid format
-				return !!new Date(dateString).getTime();
+			return /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?: ?\S+)?$/.test( dateString ) &&
+				isValidDate( dateString.slice( 0, 10 ) );
+		}
+
+		// Splits a stored date and time into its parts, with the hour in the form the
+		// popup shows it: 24 hour, or 12 hour with AM/PM if the wiki does not use 24 hour time.
+		function splitDateTime( dateString ) {
+			const m = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}):(\d{2}))?/.exec( dateString );
+			const parts = { year: m[1], month: m[2], day: m[3], hour: '', minute: '', second: '', ampm24h: '' };
+			if ( m[4] !== undefined ) {
+				const hour24 = parseInt( m[4], 10 );
+				if ( mw.config.get( 'wgPageForms24HourTime' ) ) {
+					parts.hour = m[4];
+				} else {
+					parts.hour = padNumber( hour24 % 12 === 0 ? 12 : hour24 % 12 );
+					parts.ampm24h = hour24 >= 12 ? 'PM' : 'AM';
+				}
+				parts.minute = m[5];
+				parts.second = m[6];
 			}
+			return parts;
+		}
+
+		// The value to store, from the parts of the popup form. The hour is read as 12 hour if there is an AM/PM.
+		function joinDateTime( year, month, day, hour, minute, second, ampm ) {
+			const date = year + '-' + padNumber( month ) + '-' + padNumber( day );
+			if ( hour === '' ) {
+				return date;
+			}
+			let hour24 = parseInt( hour, 10 );
+			if ( ampm.trim() !== '' && hour24 >= 1 && hour24 <= 12 ) {
+				hour24 = hour24 % 12 + ( ampm.trim() === 'PM' ? 12 : 0 );
+			}
+			return date + ' ' + padNumber( hour24 ) + ':' + padNumber( minute ) + ':' + padNumber( second );
 		}
 
 		function addDays(myDate,days) {
@@ -421,17 +413,10 @@
 							currParam = calendarParams[templateName][j];
 							temp = eventData[currParam.name];
 							if( fieldType[currParam.name] === 'date' ) {
-								if ( mw.config.get( 'wgAmericanDates' ) ) { //check for date-style format.
-									dateSegment = temp.split(' ');
-									yearFC = dateSegment[2];
-									monthFC = dateSegment[0];
-									dateFC = padNumber(dateSegment[1].split(',')[0]);
-								} else {
-									dateSegment = temp.split('/');
-									yearFC = dateSegment[0];
-									monthFC = dateSegment[1];
-									dateFC = padNumber(dateSegment[2]);
-								}
+								dateSegment = temp.split('-');
+								yearFC = dateSegment[0];
+								monthFC = dateSegment[1];
+								dateFC = padNumber(dateSegment[2]);
 								dateEntry = {
 									'name': templateName + '[cf]['+currParam.name+'][day]',
 									'value': dateFC
@@ -448,34 +433,14 @@
 								};
 								data.push( yearEntry );
 							} else if ( fieldType[currParam.name] === "datetime" ) {
-								if ( mw.config.get('wgAmericanDates') ) { //check for date-style format.
-									dateSegment = temp.split(' ');
-									yearFC = dateSegment[2];
-									monthFC = dateSegment[0];
-									dateFC = padNumber(dateSegment[1].split(',')[0]);
-									timeSegment = dateSegment[3].split(':');
-									hourFC = timeSegment[0];
-									minuteFC = timeSegment[1];
-									secondFC = timeSegment[2];
-									ampm24h = dateSegment[4];
-									if( ampm24h === undefined ) {
-										ampm24h = '';
-									}
-								} else {
-									segment = temp.split(' '); // will be used
-									dateSegment = segment[0].split('/');
-									timeSegment = segment[1].split(':');
-									yearFC = dateSegment[0];
-									monthFC = dateSegment[1];
-									dateFC = padNumber(dateSegment[2]);
-									hourFC = timeSegment[0];
-									minuteFC = timeSegment[1];
-									secondFC = timeSegment[2];
-									ampm24h = segment[2];
-									if( ampm24h === undefined ) {
-										ampm24h = '';
-									}
-								}
+								segment = splitDateTime( temp );
+								yearFC = segment.year;
+								monthFC = segment.month;
+								dateFC = segment.day;
+								hourFC = segment.hour;
+								minuteFC = segment.minute;
+								secondFC = segment.second;
+								ampm24h = segment.ampm24h;
 
 								dateEntry = {
 									'name': templateName+'[cf]['+currParam.name+'][day]',
@@ -652,11 +617,8 @@
 					// Atuomatically set the event date value
 					$( ':input[name="' + autoFillDay + '"]' ).val( start.format( 'DD' ) );
 					$( ':input[name="' + autoFillYear + '"]' ).val( start.format( 'YYYY' ) );
-					if ( mw.config.get('wgAmericanDates') ) { //check for date-style format.
-						$( ':input[name="' + autoFillMonth + '"]' ).val( englishMonthNames[parseInt( start.format( 'MM' ) ) -1 ] );
-					} else {
-						$( ':input[name="' + autoFillMonth + '"]' ).val( start.format( 'MM' ) );
-					}
+					$( ':input[name="' + autoFillMonth + '"]' ).val( start.format( 'MM' ) );
+
 					checkAndSave( 'single' );
 					// Save all the data of the popup form and set the title, event date and the unique ID of the event
 					$( "#form_submit" ).click(( event ) => {
@@ -684,18 +646,12 @@
 					currentEndDateMoment = currentEndDateMoment.subtract(1 , 'days');
 					$( ':input[name="' + autoFillStartDay + '"]' ).val( Number(start.format( 'DD' )) );
 					$( ':input[name="' + autoFillStartYear + '"]' ).val( start.format( 'YYYY' ) );
-					if ( mw.config.get('wgAmericanDates') ) { //check for date-style format.
-						$( ':input[name="' + autoFillStartMonth + '"]' ).val( englishMonthNames[parseInt( start.format( 'MM' ) ) -1 ] );
-					} else {
-						$( ':input[name="' + autoFillStartMonth + '"]' ).val( start.format( 'MM' ) );
-					}
+					$( ':input[name="' + autoFillStartMonth + '"]' ).val( start.format( 'MM' ) );
+
 					$( ':input[name="' + autoFillEndDay + '"]' ).val( Number(currentEndDateMoment.format( 'DD' )) );
 					$( ':input[name="' + autoFillEndYear + '"]' ).val( currentEndDateMoment.format( 'YYYY' ) );
-					if ( mw.config.get('wgAmericanDates') ) { //check for date-style format.
-						$( ':input[name="' + autoFillEndMonth + '"]' ).val( englishMonthNames[parseInt( currentEndDateMoment.format( 'MM' ) ) -1 ] );
-					} else {
-						$( ':input[name="' + autoFillEndMonth + '"]' ).val( currentEndDateMoment.format( 'MM' ) );
-					}
+					$( ':input[name="' + autoFillEndMonth + '"]' ).val( currentEndDateMoment.format( 'MM' ) );
+
 
 					checkAndSave( 'multiple' );
 					$( "#form_submit" ).click(( event ) => {
@@ -753,15 +709,8 @@
 					paramName = temp.split('[')[2].split(']')[0];
 					// If there is a month field, set according to the date format
 					if ( temp.includes('month') ) {
-						if ( mw.config.get('wgAmericanDates') ) { //check for date-style format.
-							if ( englishMonthNames.includes(formContents[i].value) ) {
-								$(':input[name="'+temp+'"]').val( formContents[i].value );
-							} else {
-								$(':input[name="'+temp+'"]').val( englishMonthNames[ parseInt(formContents[i].value) - 1] );
-							}
-						} else {
-							$(':input[name="'+temp+'"]').val(formContents[i].value);
-						}
+						$(':input[name="'+temp+'"]').val(formContents[i].value);
+
 					} else if ( temp.includes('day') ) {
 						$(':input[name="'+temp+'"]').val( Number(formContents[i].value) );
 					} else {
@@ -904,21 +853,15 @@
 					if ( eventContents[i].name === autoFillStartDay ) {
 						eventContents[i].value = event.start.format('DD');
 					} else if ( eventContents[i].name === autoFillStartMonth ) {
-						if ( mw.config.get('wgAmericanDates') ) {
-							eventContents[i].value = englishMonthNames[ parseInt(event.start.format('MM')) - 1 ];
-						} else {
-							eventContents[i].value = event.start.format('MM');
-						}
+						eventContents[i].value = event.start.format('MM');
+
 					} else if ( eventContents[i].name === autoFillStartYear ) {
 						eventContents[i].value = event.start.format('YYYY');
 					} else if ( eventContents[i].name === autoFillEndDay ) {
 						eventContents[i].value = currentEndDateMoment.format('DD');
 					} else if ( eventContents[i].name === autoFillEndMonth ) {
-						if ( mw.config.get('wgAmericanDates') ) {
-							eventContents[i].value = englishMonthNames[ parseInt(currentEndDateMoment.format('MM')) - 1 ];
-						} else {
-							eventContents[i].value = currentEndDateMoment.format('MM');
-						}
+						eventContents[i].value = currentEndDateMoment.format('MM');
+
 					} else if ( eventContents[i].name === autoFillEndYear ) {
 						eventContents[i].value = currentEndDateMoment.format('YYYY');
 					} else if ( eventContents[i].name === autoFillStartHour ) {
@@ -962,21 +905,15 @@
 							if ( eventContents[i].name === autoFillStartDay ) {
 								eventContents[i].value = event.start.format('DD');
 							} else if ( eventContents[i].name === autoFillStartMonth ) {
-								if ( mw.config.get('wgAmericanDates') ) {
-									eventContents[i].value = englishMonthNames[ parseInt( event.start.format('MM')) - 1 ];
-								} else {
-									eventContents[i].value = event.start.format('MM');
-								}
+								eventContents[i].value = event.start.format('MM');
+
 							} else if ( eventContents[i].name === autoFillStartYear ) {
 								eventContents[i].value = event.start.format('YYYY');
 							} else if ( eventContents[i].name === autoFillEndDay ) {
 								eventContents[i].value = currentEndDateMoment.format('DD');
 							} else if ( eventContents[i].name === autoFillEndMonth ) {
-								if ( mw.config.get('wgAmericanDates') ) {
-									eventContents[i].value = englishMonthNames[ parseInt(currentEndDateMoment.format('MM')) - 1 ];
-								} else {
-									eventContents[i].value = currentEndDateMoment.format('MM');
-								}
+								eventContents[i].value = currentEndDateMoment.format('MM');
+
 							} else if ( eventContents[i].name === autoFillEndYear ) {
 								eventContents[i].value = currentEndDateMoment.format('YYYY');
 							} else if ( eventContents[i].name === autoFillStartHour ) {
@@ -1003,21 +940,15 @@
 							if ( eventContents[i].name === autoFillStartDay ) {
 								eventContents[i].value = event.start.format('DD');
 							} else if ( eventContents[i].name === autoFillStartMonth ) {
-								if ( mw.config.get('wgAmericanDates') ) {
-									eventContents[i].value = englishMonthNames[ parseInt( event.start.format('MM')) - 1 ];
-								} else {
-									eventContents[i].value = event.start.format('MM');
-								}
+								eventContents[i].value = event.start.format('MM');
+
 							} else if ( eventContents[i].name === autoFillStartYear ) {
 								eventContents[i].value = event.start.format('YYYY');
 							} else if ( eventContents[i].name === autoFillEndDay ) {
 								eventContents[i].value = event.start.format('DD');
 							} else if ( eventContents[i].name === autoFillEndMonth ) {
-								if ( mw.config.get('wgAmericanDates') ) {
-									eventContents[i].value = englishMonthNames[ parseInt( event.start.format('MM')) - 1 ];
-								} else {
-									eventContents[i].value = event.start.format('MM');
-								}
+								eventContents[i].value = event.start.format('MM');
+
 							} else if ( eventContents[i].name === autoFillEndYear ) {
 								eventContents[i].value = event.start.format('YYYY');
 							}
@@ -1031,11 +962,8 @@
 						if ( eventContents[i].name === autoFillDay ) {
 							eventContents[i].value = event.start.format('DD');
 						} else if ( eventContents[i].name === autoFillMonth ) {
-							if ( mw.config.get('wgAmericanDates') ) {
-								eventContents[i].value = englishMonthNames[ parseInt( event.start.format('MM')) - 1 ];
-							} else {
-								eventContents[i].value = event.start.format('MM');
-							}
+							eventContents[i].value = event.start.format('MM');
+
 						} else if ( eventContents[i].name === autoFillYear ) {
 							eventContents[i].value = event.start.format('YYYY');
 						} else if ( eventContents[i].name === autoFillHour ) {
@@ -1091,25 +1019,8 @@
 								}
 							}
 						}
-						if ( mw.config.get('wgAmericanDates') ) {
-							if( englishMonthNames.indexOf(month) ) {
-								dateValue = month + ' ' + day + ', ' + year;
-							} else if ( !englishMonthNames.includes(month) ) {
-								dateValue = englishMonthNames[ parseInt(month) - 1 ] + ' ' + day + ', ' + year;
-							}
-						} else {
-							dateValue = year + '/' + month + '/' + padNumber(day);
-							if( year === '' && month === '' && day === '' || year === '' && month === '' ) {
-								dateValue = '';
-							} else if ( day === '' ) {
-								if( month === '' && year !== '' ) {
-									dateValue = month;
-								} else if ( month !== '' && year === '' ) {
-									dateValue = year;
-								} else if ( month !== '' && year !== '' ) {
-									dateValue = month + ' ' + year;
-								}
-							}
+						if ( year !== '' && month !== '' && day !== '' ) {
+							dateValue = joinDateTime( year, month, day, '', '', '', '' );
 						}
 						inputValue = dateValue;
 					} else if ( fieldType[parameterName] === "datetime" ) {
@@ -1140,14 +1051,8 @@
 								}
 							}
 						}
-						if ( mw.config.get('wgAmericanDates') ) {
-							if( englishMonthNames.indexOf(month) ) {
-								dateValue = month + ' ' + day + ', ' + year + ' ' + padNumber(hour) + ':' + padNumber(minute) + ':' + padNumber(second) + ' ' + ampm24h;
-							} else if ( !englishMonthNames.includes(month) ) {
-								dateValue = englishMonthNames[ parseInt(month) - 1 ] + ' ' + day + ', ' + year + ' ' + padNumber(hour) + ':' + padNumber(minute) + ':' + padNumber(second) + ' ' + ampm24h;
-							}
-						} else {
-							dateValue = year + '/' + month + '/' + padNumber( day ) + ' ' + padNumber(hour) + ':' + padNumber(minute) + ':' + padNumber(second) + ' ' + ampm24h;
+						if ( year !== '' && month !== '' && day !== '' ) {
+							dateValue = joinDateTime( year, month, day, hour, minute, second, ampm24h );
 						}
 						inputValue = dateValue;
 					} else {

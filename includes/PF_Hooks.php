@@ -163,7 +163,7 @@ class PFHooks {
 		global $wgPageFormsHeightForMinimizingInstances;
 		global $wgPageFormsShowOnSelect, $wgPageFormsScriptPath;
 		global $edgValues, $wgPageFormsEDSettings;
-		global $wgAmericanDates;
+		global $wgAmericanDates, $wgPageForms24HourTime;
 
 		$vars['wgPageFormsTargetName'] = $wgPageFormsTargetName;
 		$vars['wgPageFormsAutocompleteValues'] = $wgPageFormsAutocompleteValues;
@@ -189,6 +189,7 @@ class PFHooks {
 		}
 		$vars['wgPageFormsEDSettings'] = $wgPageFormsEDSettings;
 		$vars['wgAmericanDates'] = $wgAmericanDates;
+		$vars['wgPageForms24HourTime'] = (bool)$wgPageForms24HourTime;
 
 		global $wgPageFormsSFSelectConfig;
 		$vars['sf_select'] = json_encode( $wgPageFormsSFSelectConfig ?? [] );
