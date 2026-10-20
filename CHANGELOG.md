@@ -6,6 +6,17 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Changed
+- Date inputs store dates as ISO dates (`2026`, `2026-09`, `2026-09-30`, and `2026-09-30 14:05:00` with a time) whatever the input type, the language of the wiki and `$wgAmericanDates`. Formats written before, and dates typed into the wikitext, are still understood and are rewritten as ISO dates when the form is saved. Templates that take a stored date apart themselves, for example by splitting it at `/`, need to be adjusted [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61)
+- The month dropdown of the `date` and `datetime` inputs shows the names of the months in the language of the user, and the day, month and year entries follow the date format that the user chose in their preferences; `$wgAmericanDates` still decides if the user has not chosen one [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61)
+- The calendar and spreadsheet displays read and write ISO dates and no longer depend on `$wgAmericanDates` [`ea6e28eb`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/ea6e28eb)
+
+### Fixed
+- Saving a form no longer drops a date that its input cannot show: a year or a month on its own in a `datepicker` or `datetimepicker` field is kept in a text field, and a value that is not a date is kept with a note instead of being emptied [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61)
+- A `datetime` input no longer shows a time of 12:00:00 AM for a stored value that has no time [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61)
+- Values typed into the day, month and year entries are shown as typed when the form is shown again, even if they contain characters such as `<` and `"` [`a9951a61`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/a9951a61)
+- A day that the month does not have, like the 31st of February, is rejected by the `date` input [`27640fe9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/27640fe9)
+
 ## [2.3.5] - 2026-10-19
 
 Shows the field names listed by `#template_params` on a template page as text.
