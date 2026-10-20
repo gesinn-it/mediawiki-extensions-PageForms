@@ -104,9 +104,37 @@ class FormDateTest extends TestCase {
 		$this->assertSame( '2026-09-30', FormDate::create( 2026, 9, 30, 14, 5 )->toPickerDate() );
 	}
 
-	public function testPickerDateTimeNeedsAFullDateAndDefaultsToMidnight(): void {
+	public function testPickerDateTimeNeedsAFullDateAndDefaultsToMidnightUtc(): void {
 		$this->assertNull( FormDate::create( 2026, 9 )->toPickerDateTime() );
-		$this->assertSame( '2026-09-30T00:00:00', FormDate::create( 2026, 9, 30 )->toPickerDateTime() );
-		$this->assertSame( '2026-09-30T14:05:09', FormDate::create( 2026, 9, 30, 14, 5, 9 )->toPickerDateTime() );
+		$this->assertSame( '2026-09-30T00:00:00Z', FormDate::create( 2026, 9, 30 )->toPickerDateTime() );
+	}
+
+	public function testPickerDateTimeTakesATimeWithoutTimezoneAsUtc(): void {
+		$this->assertSame( '2026-09-30T14:05:09Z', FormDate::create( 2026, 9, 30, 14, 5, 9 )->toPickerDateTime() );
+	}
+
+	public static function provideTimezonesForThePicker(): array {
+		return [
+			'UTC marker' => [ 'Z', '2026-09-30T14:05:00Z' ],
+			'positive offset' => [ '+02:00', '2026-09-30T12:05:00Z' ],
+			'negative offset' => [ '-0530', '2026-09-30T19:35:00Z' ],
+			'abbreviation' => [ 'CEST', '2026-09-30T12:05:00Z' ],
+			'unknown timezone is left alone' => [ 'XYZZY', '2026-09-30T14:05:00Z' ],
+		];
+	}
+
+	/**
+	 * @dataProvider provideTimezonesForThePicker
+	 */
+	public function testPickerDateTimeConvertsToUtc( string $timezone, string $expected ): void {
+		$date = FormDate::create( 2026, 9, 30, 14, 5, 0, $timezone );
+
+		$this->assertSame( $expected, $date->toPickerDateTime() );
+	}
+
+	public function testUtcMarkerIsWrittenInIso8601Form(): void {
+		$date = FormDate::create( 2026, 9, 30, 14, 5, 0, 'Z' );
+
+		$this->assertSame( '2026-09-30T14:05:00Z', $date->toIso() );
 	}
 }

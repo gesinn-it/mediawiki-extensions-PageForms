@@ -249,6 +249,8 @@
 	"pf_bad_number_error": "Warning message",
 	"pf_bad_integer_error": "Warning message",
 	"pf_bad_date_error": "Warning message",
+	"pf-date-unreadable": "Warning shown next to the day, month and year inputs of a date field when the value saved on the page is not a date that can be read, so the inputs are empty. $1 - the saved value",
+	"pf-datepicker-incomplete": "Warning shown next to a text field that replaces a date picker, because the value saved on the page is not a complete date (for example only a year) or not a date at all. $1 - the saved value",
 	"pf_start_end_date_error": "Warning message",
 	"pf_start_end_datetime_error": "Warning message",
 	"pf_modified_input_error": "Warning message",

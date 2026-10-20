@@ -12,6 +12,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormCounters;
+use MediaWiki\Extension\PageForms\FormDateUtils;
 use MediaWiki\Widget\DateInputWidget;
 
 class PFDatePickerInput extends PFFormInput {
@@ -28,13 +29,47 @@ class PFDatePickerInput extends PFFormInput {
 	 * @param array $other_args An associative array of other parameters that were present in the
 	 *  input definition.
 	 */
+	/**
+	 * The picker can only hold a complete date. Anything else that is stored (a year, a month,
+	 * or text that is not a date) is shown in a text field instead, so that it is not lost.
+	 * @var string|null
+	 */
+	protected $mTextValue = null;
+
 	public function __construct( $input_number, $cur_value, $input_name, $disabled, array $other_args ) {
-		if ( $cur_value != '' ) {
-			[ $year, $month, $day ] = PFDateInput::parseDate( $cur_value );
-			$cur_value = sprintf( '%04d-%02d-%02d', $year, $month, $day );
+		if ( trim( (string)$cur_value ) !== '' ) {
+			$parsed = FormDateUtils::parse( (string)$cur_value );
+			$pickerValue = $parsed === null ? null : $parsed->toPickerDate();
+			if ( $pickerValue === null ) {
+				$this->mTextValue = $parsed === null ? (string)$cur_value : $parsed->toIso();
+				$pickerValue = '';
+			}
+			$cur_value = $pickerValue;
 		}
 
 		parent::__construct( $input_number, $cur_value, $input_name, $disabled, $other_args );
+	}
+
+	/**
+	 * The text field that takes the place of a picker for a value it cannot show.
+	 *
+	 * @param string $inputName
+	 * @param string $text
+	 * @param bool $disabled
+	 * @param string $inputId
+	 * @return string
+	 */
+	public static function textFallbackHtml(
+		string $inputName, string $text, bool $disabled, string $inputId
+	): string {
+		return Html::element( 'input', [
+			'type' => 'text', 'name' => $inputName, 'value' => $text, 'id' => $inputId,
+			'class' => 'pfDateFallback', 'size' => 20, 'disabled' => $disabled
+		] ) . Html::element(
+			'span',
+			[ 'class' => 'pfDateUnreadable' ],
+			wfMessage( 'pf-datepicker-incomplete', $text )->text()
+		);
 	}
 
 	/**
@@ -89,17 +124,23 @@ class PFDatePickerInput extends PFFormInput {
 	 * @return string
 	 */
 	public function getHtmlText(): string {
-		$options = array_merge( $this->getOptions(), [
-			'type' => 'date',
-			'name' => $this->mInputName,
-			'value' => $this->mCurrentValue,
-			'id' => 'input_' . $this->mInputNumber,
-			'classes' => [ 'pfDatePicker', 'pfPicker' ],
-			'infusable' => true
-		] );
-		$widget = new DateInputWidget( $options );
-		$widget->setDisabled( $this->mIsDisabled );
-		$text = $widget->toString();
+		if ( $this->mTextValue !== null ) {
+			$text = self::textFallbackHtml(
+				$this->mInputName, $this->mTextValue, (bool)$this->mIsDisabled, 'input_' . $this->mInputNumber
+			);
+		} else {
+			$options = array_merge( $this->getOptions(), [
+				'type' => 'date',
+				'name' => $this->mInputName,
+				'value' => $this->mCurrentValue,
+				'id' => 'input_' . $this->mInputNumber,
+				'classes' => [ 'pfDatePicker', 'pfPicker' ],
+				'infusable' => true
+			] );
+			$widget = new DateInputWidget( $options );
+			$widget->setDisabled( $this->mIsDisabled );
+			$text = $widget->toString();
+		}
 
 		// We need a wrapper div so that OOUI won't override
 		// any classes added by "show on select".

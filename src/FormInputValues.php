@@ -46,71 +46,7 @@ class FormInputValues {
 			return PFUtils::getWordForYesOrNo( true );
 		// if it's 3 or greater, assume it's a date or datetime
 		} elseif ( count( $value ) >= 3 ) {
-			$month = $value['month'];
-			$day = $value['day'];
-			if ( $day !== '' ) {
-				global $wgAmericanDates;
-				if ( $wgAmericanDates == false ) {
-					// pad out day to always be two digits
-					$day = str_pad( $day, 2, "0", STR_PAD_LEFT );
-				}
-			}
-			$year = $value['year'];
-			$hour = $minute = $second = $ampm24h = $timezone = null;
-			if ( isset( $value['hour'] ) ) {
-				$hour = $value['hour'];
-			}
-			if ( isset( $value['minute'] ) ) {
-				$minute = $value['minute'];
-			}
-			if ( isset( $value['second'] ) ) {
-				$second = $value['second'];
-			}
-			if ( isset( $value['ampm24h'] ) ) {
-				$ampm24h = $value['ampm24h'];
-			}
-			if ( isset( $value['timezone'] ) ) {
-				$timezone = $value['timezone'];
-			}
-			if ( $year !== '' ) {
-				global $wgAmericanDates;
-
-				if ( $month == '' ) {
-					return $year;
-				} elseif ( $day == '' ) {
-					if ( !$wgAmericanDates ) {
-						// The month is a number - we need it to be a string,
-						// so that the date will be parsed correctly if
-						// strtotime() is used.
-						$monthNames = FormDateUtils::getMonthNames();
-						$month = $monthNames[$month - 1];
-					}
-					return "$month $year";
-				} else {
-					if ( $wgAmericanDates == true ) {
-						$new_value = "$month $day, $year";
-					} else {
-						$new_value = "$year/$month/$day";
-					}
-					// If there's a day, include whatever time information we have.
-					if ( $hour !== null ) {
-						$new_value .= " "
-						. str_pad( (string)intval( substr( $hour, 0, 2 ) ), 2, '0', STR_PAD_LEFT )
-						. ":"
-						. str_pad( (string)intval( substr( $minute, 0, 2 ) ), 2, '0', STR_PAD_LEFT );
-					}
-					if ( $second !== null ) {
-						$new_value .= ":" . str_pad( (string)intval( substr( $second, 0, 2 ) ), 2, '0', STR_PAD_LEFT );
-					}
-					if ( $ampm24h !== null ) {
-						$new_value .= " $ampm24h";
-					}
-					if ( $timezone !== null ) {
-						$new_value .= " $timezone";
-					}
-					return $new_value;
-				}
-			}
+			return FormDateUtils::getStringFromSubmission( $value );
 		}
 		return '';
 	}

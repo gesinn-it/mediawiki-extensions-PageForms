@@ -48,6 +48,14 @@ class FormDateParser {
 		);
 	}
 
+	/**
+	 * @param string $name A month name of one of the known languages
+	 * @return int|null 1 to 12
+	 */
+	public function monthNumber( string $name ): ?int {
+		return $this->monthNumbers[mb_strtolower( trim( $name ) )] ?? null;
+	}
+
 	public function parse( string $text ): ?FormDate {
 		$text = trim( preg_replace( '/\s+/u', ' ', $text ) ?? '' );
 		if ( $text === '' ) {
@@ -56,7 +64,7 @@ class FormDateParser {
 
 		$time = [ null, null, null, null ];
 		if ( preg_match(
-			'/^(.*?\d)(?: ?T ?| )(\d{1,2}):(\d{2})(?::(\d{2}))?(?: ?([AaPp])\.?[Mm]\.?)?'
+			'/^(.*?\d)(?: ?T ?| )(\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(?: ?([AaPp])\.?[Mm]\.?)?'
 				. '(?: ?(Z|[+-]\d{2}:?\d{2}|[A-Za-z]{2,5}))?$/u',
 			$text,
 			$m

@@ -69,7 +69,10 @@ class FormDateParserTest extends TestCase {
 			'American with time' => [ 'September 30, 2026 02:05:00 PM', '2026-09-30 14:05:00' ],
 			'day, month name, year and time' => [ '30 September 2026 14:05', '2026-09-30 14:05:00' ],
 			'timezone abbreviation' => [ '2026-09-30 14:05 CEST', '2026-09-30 14:05:00 CEST' ],
-			'UTC marker' => [ '2026-09-30T14:05:00Z', '2026-09-30 14:05:00 Z' ],
+			'UTC marker' => [ '2026-09-30T14:05:00Z', '2026-09-30T14:05:00Z' ],
+			'UTC marker with milliseconds, as the picker submits it' => [
+				'2026-09-30T14:05:00.000Z', '2026-09-30T14:05:00Z'
+			],
 			'offset' => [ '2026-09-30 14:05:00 +02:00', '2026-09-30 14:05:00 +02:00' ],
 		];
 	}
@@ -132,6 +135,14 @@ class FormDateParserTest extends TestCase {
 	 */
 	public function testUnreadableValuesGiveNoDate( string $raw ): void {
 		$this->assertNull( $this->parse( $raw ) );
+	}
+
+	public function testMonthNumberKnowsAllLanguages(): void {
+		$parser = new FormDateParser( [ self::GERMAN ] );
+
+		$this->assertSame( 3, $parser->monthNumber( 'März' ) );
+		$this->assertSame( 3, $parser->monthNumber( ' march ' ) );
+		$this->assertNull( $parser->monthNumber( 'Smarch' ) );
 	}
 
 	public function testResultKeepsTheParts(): void {

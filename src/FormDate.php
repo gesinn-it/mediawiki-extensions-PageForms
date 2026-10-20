@@ -4,6 +4,10 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use DateTimeImmutable;
+use DateTimeZone;
+use Exception;
+
 /**
  * A date as stored in the wikitext of a page: a year, optionally with a month, a day
  * and a time. Parts that are not known stay empty instead of being filled with a default,
@@ -136,8 +140,11 @@ class FormDate {
 		if ( $this->hour === null ) {
 			return $iso;
 		}
-		$iso .= sprintf( ' %02d:%02d:%02d', $this->hour, $this->minute ?? 0, $this->second ?? 0 );
-		return $this->timezone === null ? $iso : "$iso {$this->timezone}";
+		$time = sprintf( '%02d:%02d:%02d', $this->hour, $this->minute ?? 0, $this->second ?? 0 );
+		if ( $this->timezone === 'Z' ) {
+			return "{$iso}T{$time}Z";
+		}
+		return $this->timezone === null ? "$iso $time" : "$iso $time {$this->timezone}";
 	}
 
 	/**
@@ -153,16 +160,28 @@ class FormDate {
 	}
 
 	/**
-	 * The value for a date-and-time picker, which can only hold a complete date.
+	 * The value for a date-and-time picker, which holds a complete date and time in UTC.
+	 * A time without a timezone is taken as UTC, midnight is used if there is no time.
 	 *
-	 * @return string|null `YYYY-MM-DDTHH:MM:SS` (midnight if there is no time), or null if the day is not known
+	 * @return string|null `YYYY-MM-DDTHH:MM:SSZ`, or null if the day is not known
 	 */
 	public function toPickerDateTime(): ?string {
 		$date = $this->toPickerDate();
 		if ( $date === null ) {
 			return null;
 		}
-		return sprintf( '%sT%02d:%02d:%02d', $date, $this->hour ?? 0, $this->minute ?? 0, $this->second ?? 0 );
+		$local = sprintf( '%sT%02d:%02d:%02d', $date, $this->hour ?? 0, $this->minute ?? 0, $this->second ?? 0 );
+		if ( $this->timezone === null || $this->timezone === 'Z' ) {
+			return $local . 'Z';
+		}
+		try {
+			$utc = ( new DateTimeImmutable( $local, new DateTimeZone( $this->timezone ) ) )
+				->setTimezone( new DateTimeZone( 'UTC' ) );
+		} catch ( Exception ) {
+			// A timezone that PHP does not know: keep the time as it is.
+			return $local . 'Z';
+		}
+		return $utc->format( 'Y-m-d\TH:i:s\Z' );
 	}
 
 }

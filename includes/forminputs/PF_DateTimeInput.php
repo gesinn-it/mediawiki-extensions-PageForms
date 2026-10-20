@@ -4,6 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormCounters;
+use MediaWiki\Extension\PageForms\FormDateUtils;
 
 /**
  * @ingroup PFFormInput
@@ -26,6 +27,14 @@ class PFDateTimeInput extends PFDateInput {
 		return 'dateTimeInput';
 	}
 
+	private static function timeInputHtml(
+		string $inputName, string $part, string $class, $value, int $size, bool $isDisabled
+	): string {
+		return '<input tabindex="' . FormCounters::current()->tabIndex . '" name="' . htmlspecialchars( $inputName ) .
+			"[$part]" . '" type="text" class="' . $class . '" value="' . htmlspecialchars( (string)$value ) .
+			'" size="' . $size . '" ' . ( $isDisabled ? 'disabled' : '' ) . '/>';
+	}
+
 	public function getHTML( $datetime, $input_name, $is_mandatory, $is_disabled, array $other_args ) {
 		global $wgPageForms24HourTime;
 		$counters = FormCounters::current();
@@ -38,82 +47,49 @@ class PFDateTimeInput extends PFDateInput {
 		$ampm24h = '';
 		$timezone = '';
 
-		if ( $datetime ) {
-			// Can show up here either as an array or a string,
-			// depending on whether it came from user input or a
-			// wiki page.
-			if ( is_array( $datetime ) ) {
-				if ( isset( $datetime['hour'] ) ) {
-					$hour = $datetime['hour'];
-				}
-				if ( isset( $datetime['minute'] ) ) {
-					$minute = $datetime['minute'];
-				}
-				if ( isset( $datetime['second'] ) ) {
-					$second = $datetime['second'];
-				}
+		// Can show up here either as an array or a string,
+		// depending on whether it came from user input or a
+		// wiki page.
+		if ( is_array( $datetime ) ) {
+			$hour = $datetime['hour'] ?? null;
+			$minute = $datetime['minute'] ?? null;
+			$second = $datetime['second'] ?? $second;
+			if ( !$wgPageForms24HourTime ) {
+				$ampm24h = $datetime['ampm24h'] ?? '';
+			}
+			$timezone = $datetime['timezone'] ?? '';
+		} elseif ( trim( (string)$datetime ) !== '' ) {
+			// We get only the time data here - the main
+			// date data is handled by the call to
+			// parent::getMainHTML().
+			$parsed = FormDateUtils::parse( (string)$datetime, true );
+			if ( $parsed !== null && $parsed->hasTime() ) {
+				$hour = $parsed->getHour();
+				$minute = sprintf( '%02d', $parsed->getMinute() ?? 0 );
+				$second = sprintf( '%02d', $parsed->getSecond() ?? 0 );
 				if ( !$wgPageForms24HourTime ) {
-					if ( isset( $datetime['ampm24h'] ) ) {
-						$ampm24h = $datetime['ampm24h'];
-					}
+					$ampm24h = $hour >= 12 ? 'PM' : 'AM';
+					$hour = $hour % 12 ?: 12;
 				}
-				if ( isset( $datetime['timezone'] ) ) {
-					$timezone = $datetime['timezone'];
-				}
-			} else {
-				// Parse the date.
-				// We get only the time data here - the main
-				// date data is handled by the call to
-				// parent::getMainHTML().
-
-				// Handle 'default=now'.
-				if ( $datetime == 'now' ) {
-					global $wgLocaltimezone;
-					if ( $wgLocaltimezone == null ) {
-						$dateTimeObject = new DateTime( 'now' );
-					} else {
-						$dateTimeObject = new DateTime( 'now', new DateTimeZone( $wgLocaltimezone ) );
-					}
-				} else {
-					$dateTimeObject = new DateTime( $datetime );
-				}
-				if ( $wgPageForms24HourTime ) {
-					$hour = $dateTimeObject->format( 'G' );
-				} else {
-					$hour = $dateTimeObject->format( 'g' );
-				}
-				$minute = $dateTimeObject->format( 'i' );
-				$second = $dateTimeObject->format( 's' );
-				if ( !$wgPageForms24HourTime ) {
-					$ampm24h = $dateTimeObject->format( 'A' );
-				}
-				$timezone = $dateTimeObject->format( 'T' );
+				$timezone = $parsed->getTimezone() ?? '';
 			}
 		}
 
 		$text = parent::getMainHTML( $datetime, $input_name, $is_mandatory, $is_disabled, $other_args );
 		$disabled_text = ( $is_disabled ) ? 'disabled' : '';
-		$text .= "\t&#160;" .
-			'<input tabindex="' . $counters->tabIndex .
-			'" name="' . $input_name . '[hour]" type="text" class="hoursInput" value="' .
-			$hour . '" size="2"/ ' . $disabled_text . '>';
+		$text .= "\t&#160;" . self::timeInputHtml( $input_name, 'hour', 'hoursInput', $hour, 2, $is_disabled );
 		$counters->tabIndex++;
-		$text .= ':<input tabindex="' . $counters->tabIndex .
-			'" name="' . $input_name . '[minute]" type="text" class="minutesInput" value="' .
-			$minute . '" size="2"/ ' . $disabled_text . '>';
+		$text .= ':' . self::timeInputHtml( $input_name, 'minute', 'minutesInput', $minute, 2, $is_disabled );
 		$counters->tabIndex++;
-		$text .= ':<input tabindex="' . $counters->tabIndex .
-			'" name="' . $input_name . '[second]" type="text" class="secondsInput" value="' .
-			$second . '" size="2"/ ' . $disabled_text . '>' . "\n";
+		$text .= ':' . self::timeInputHtml( $input_name, 'second', 'secondsInput', $second, 2, $is_disabled ) . "\n";
 
 		if ( !$wgPageForms24HourTime ) {
 			$counters->tabIndex++;
 			$text .= ' <select tabindex="' . $counters->tabIndex .
-				'" name="' . $input_name . "[ampm24h]\" class=\"ampmInput\" $disabled_text>\n";
-			$ampm24h_options = [ '', 'AM', 'PM' ];
-			foreach ( $ampm24h_options as $value ) {
+				'" name="' . htmlspecialchars( $input_name ) . "[ampm24h]\" class=\"ampmInput\" $disabled_text>\n";
+			foreach ( [ '', 'AM', 'PM' ] as $value ) {
 				$text .= "				<option value=\"$value\"";
-				if ( $value == $ampm24h ) {
+				if ( $value === $ampm24h ) {
 					$text .= " selected=\"selected\"";
 				}
 				$text .= ">$value</option>\n";
@@ -123,9 +99,9 @@ class PFDateTimeInput extends PFDateInput {
 
 		if ( $include_timezone ) {
 			$counters->tabIndex++;
-			$text .= '<input tabindex="' . $counters->tabIndex .
-				'" name="' . $input_name . '[timezone]" type="text" value="' .
-				$timezone . '" size="3"/ ' . $disabled_text . '>' . "\n";
+			$text .= '<input tabindex="' . $counters->tabIndex . '" name="' . htmlspecialchars( $input_name ) .
+				'[timezone]" type="text" value="' . htmlspecialchars( (string)$timezone ) . '" size="3" ' .
+				( $is_disabled ? 'disabled' : '' ) . '/>' . "\n";
 		}
 
 		$spanClass = self::buildSpanClass( $this->getInputClass(), $is_mandatory );

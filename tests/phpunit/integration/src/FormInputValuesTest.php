@@ -57,29 +57,17 @@ class FormInputValuesTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormInputValues::getStringFromPassedInArray
 	 */
 	public function testGetStringFromPassedInArrayWithFullDateTimeComponents() {
-		global $wgAmericanDates;
-		$originalAmericanDates = $wgAmericanDates;
-		$wgAmericanDates = false;
+		$result = FormInputValues::getStringFromPassedInArray( [
+			'month' => '5',
+			'day' => '17',
+			'year' => '2024',
+			'hour' => '1',
+			'minute' => '45',
+			'second' => '30',
+			'ampm24h' => 'PM',
+			'timezone' => 'UTC',
+		], ',' );
 
-		try {
-			$result = FormInputValues::getStringFromPassedInArray( [
-				'month' => '5',
-				'day' => '17',
-				'year' => '2024',
-				'hour' => '13',
-				'minute' => '45',
-				'second' => '30',
-				'ampm24h' => 'PM',
-				'timezone' => 'UTC',
-			], ',' );
-
-			$this->assertStringContainsString( '2024/5/17', $result );
-			$this->assertStringContainsString( '13:45', $result );
-			$this->assertStringContainsString( ':30', $result );
-			$this->assertStringContainsString( 'PM', $result );
-			$this->assertStringContainsString( 'UTC', $result );
-		} finally {
-			$wgAmericanDates = $originalAmericanDates;
-		}
+		$this->assertSame( '2024-05-17 13:45:30 UTC', $result );
 	}
 }

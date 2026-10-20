@@ -202,6 +202,10 @@ class FormFieldCurrentValue {
 		}
 
 		$field_query_val = $this->field->autocapitalize( trim( $field_query_val ) );
+		if ( in_array( $this->field->getInputType(), [ 'datepicker', 'datetimepicker' ], true ) ) {
+			// Written in one form whatever the picker or an older version sent; text that is not a date is kept.
+			$field_query_val = FormDateUtils::normalize( $field_query_val );
+		}
 		if ( $map_field && $this->field->hasOwnPossibleValues() ) {
 			// this should be replaced with an input type neutral way of
 			// figuring out if this scalar input type is a list

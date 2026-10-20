@@ -95,4 +95,54 @@ class PFDateInputTest extends MediaWikiIntegrationTestCase {
 			$html
 		);
 	}
+
+	public function testMonthOptionsAreNumbersWithTheNamesInTheLanguageOfTheUser(): void {
+		$this->setUserLang( 'de' );
+
+		$html = $this->getHtml( '2024-03-15' );
+
+		$this->assertStringContainsString( '<option value="03" selected="">März</option>', $html );
+	}
+
+	public function testMonthOptionsAreNumbersInAmericanWikisToo(): void {
+		$this->setMwGlobals( 'wgAmericanDates', true );
+
+		$html = $this->getHtml( '2024-06-15' );
+
+		$this->assertStringContainsString( '<option value="06" selected="">June</option>', $html );
+		$this->assertStringNotContainsString( 'value="June"', $html );
+	}
+
+	public function testFieldsAreInTheOrderOfTheDatePreference(): void {
+		$this->setMwGlobals( 'wgAmericanDates', true );
+
+		$html = $this->getHtml( '2024-06-15' );
+
+		$this->assertLessThan( strpos( $html, 'dayInput' ), strpos( $html, 'monthInput' ) );
+		$this->assertLessThan( strpos( $html, 'yearInput' ), strpos( $html, 'dayInput' ) );
+	}
+
+	public function testUnreadableValueIsKeptInAHiddenFieldWithAWarning(): void {
+		$html = $this->getHtml( 'around 1900' );
+
+		$this->assertStringContainsString( 'type="hidden" name="PFDateField01[raw]" value="around 1900"', $html );
+		$this->assertStringContainsString( 'pfDateUnreadable', $html );
+	}
+
+	public function testReadableValueNeedsNoHiddenField(): void {
+		$html = $this->getHtml( '2024-06-15' );
+
+		$this->assertStringNotContainsString( '[raw]', $html );
+		$this->assertStringNotContainsString( 'pfDateUnreadable', $html );
+	}
+
+	public function testTypedValuesAreEscapedWhenTheFormIsShownAgain(): void {
+		$typed = [ 'day' => '"><b>x', 'month' => '', 'year' => '2024' ];
+		$input = new PFDateInput( 1, $typed, 'PFDateField01', false, [] );
+
+		$html = $input->getHtmlText();
+
+		$this->assertStringNotContainsString( '"><b>x', $html );
+		$this->assertStringContainsString( '&quot;&gt;&lt;b&gt;x', $html );
+	}
 }

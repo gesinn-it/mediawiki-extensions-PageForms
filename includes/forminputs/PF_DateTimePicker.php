@@ -11,6 +11,7 @@
  * @ingroup PageForms
  */
 
+use MediaWiki\Extension\PageForms\FormDateUtils;
 use MediaWiki\Widget\DateTimeInputWidget;
 
 class PFDateTimePicker extends PFFormInput {
@@ -27,10 +28,22 @@ class PFDateTimePicker extends PFFormInput {
 	 * @param array $other_args An associative array of other parameters that were present in the
 	 *  input definition.
 	 */
+	/**
+	 * The picker can only hold a complete date. Anything else that is stored (a year, a month,
+	 * or text that is not a date) is shown in a text field instead, so that it is not lost.
+	 * @var string|null
+	 */
+	protected $mTextValue = null;
+
 	public function __construct( $input_number, $cur_value, $input_name, $disabled, array $other_args ) {
-		if ( $cur_value != '' ) {
-			[ $year, $month, $day, $time ] = PFDateInput::parseDate( $cur_value, true );
-			$cur_value = sprintf( '%04d-%02d-%02dT%sZ', $year, $month, $day, $time ?? '' );
+		if ( trim( (string)$cur_value ) !== '' ) {
+			$parsed = FormDateUtils::parse( (string)$cur_value, true );
+			$pickerValue = $parsed === null ? null : $parsed->toPickerDateTime();
+			if ( $pickerValue === null ) {
+				$this->mTextValue = $parsed === null ? (string)$cur_value : $parsed->toIso();
+				$pickerValue = '';
+			}
+			$cur_value = $pickerValue;
 		}
 		parent::__construct( $input_number, $cur_value, $input_name, $disabled, $other_args );
 	}
@@ -45,15 +58,21 @@ class PFDateTimePicker extends PFFormInput {
 	 */
 	public function getHtmlText(): string {
 		$inputID = 'input_' . $this->mInputNumber;
-		$widget = new DateTimeInputWidget( [
-			'type' => 'datetime',
-			'name' => $this->mInputName,
-			'value' => $this->mCurrentValue,
-			'id' => $inputID,
-			'classes' => [ 'pfDateTimePicker', 'pfPicker' ],
-			'infusable' => true
-		] );
-		$text = $widget->toString();
+		if ( $this->mTextValue !== null ) {
+			$text = PFDatePickerInput::textFallbackHtml(
+				$this->mInputName, $this->mTextValue, (bool)$this->mIsDisabled, $inputID
+			);
+		} else {
+			$widget = new DateTimeInputWidget( [
+				'type' => 'datetime',
+				'name' => $this->mInputName,
+				'value' => $this->mCurrentValue,
+				'id' => $inputID,
+				'classes' => [ 'pfDateTimePicker', 'pfPicker' ],
+				'infusable' => true
+			] );
+			$text = $widget->toString();
+		}
 
 		// Unfortunately, DateTimeInputWidget only allows 24-hour
 		// (as opposed to AM/PM) data entry, so we'll add a label to

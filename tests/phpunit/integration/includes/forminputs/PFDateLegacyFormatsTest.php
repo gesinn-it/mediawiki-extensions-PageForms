@@ -30,8 +30,9 @@ class PFDateLegacyFormatsTest extends MediaWikiIntegrationTestCase {
 	}
 
 	private function useGerman(): void {
-		$this->setMwGlobals( 'wgLanguageCode', 'de' );
-		$this->setContentLang( 'de' );
+		// Changing the content language makes SMW refuse to load the options of the user, so the
+		// language of the user is changed. The content language is covered by FormDateParserTest.
+		$this->setUserLang( 'de' );
 	}
 
 	/**
@@ -80,7 +81,7 @@ class PFDateLegacyFormatsTest extends MediaWikiIntegrationTestCase {
 	/**
 	 * @dataProvider provideGermanDateStrings
 	 */
-	public function testDateInputPreloadsGermanMonthNamesInGermanWiki( string $stored, array $expected ): void {
+	public function testDateInputPreloadsGermanMonthNamesForAGermanUser( string $stored, array $expected ): void {
 		$this->useGerman();
 
 		$html = ( new PFDateInput( 1, $stored, 'PFDLField01', false, [] ) )->getHtmlText();
@@ -143,5 +144,40 @@ class PFDateLegacyFormatsTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertStringContainsString( 'class="hoursInput" value="14"', $html );
 		$this->assertStringContainsString( 'class="minutesInput" value="05"', $html );
+	}
+
+	public static function provideValuesAPickerCannotHold(): array {
+		return [
+			'year' => [ '2024', '2024' ],
+			'year and month' => [ 'June 2024', '2024-06' ],
+			'text' => [ 'around 1900', 'around 1900' ],
+		];
+	}
+
+	/**
+	 * @dataProvider provideValuesAPickerCannotHold
+	 */
+	public function testDatePickerShowsTextFieldForAValueItCannotHold( string $stored, string $shown ): void {
+		$html = ( new PFDatePickerInput( 1, $stored, 'PFDLField02', false, [] ) )->getHtmlText();
+
+		$this->assertStringContainsString( 'class="pfDateFallback"', $html );
+		$this->assertStringContainsString( 'value="' . $shown . '"', $html );
+		$this->assertStringNotContainsString( 'mw-widget-dateInputWidget', $html );
+	}
+
+	/**
+	 * @dataProvider provideValuesAPickerCannotHold
+	 */
+	public function testDateTimePickerShowsTextFieldForAValueItCannotHold( string $stored, string $shown ): void {
+		$html = ( new PFDateTimePicker( 1, $stored, 'PFDLField03', false, [] ) )->getHtmlText();
+
+		$this->assertStringContainsString( 'class="pfDateFallback"', $html );
+		$this->assertStringContainsString( 'value="' . $shown . '"', $html );
+	}
+
+	public function testDateTimePickerConvertsATimezoneToUtc(): void {
+		$html = ( new PFDateTimePicker( 1, '2024-06-15 14:05:00 +02:00', 'PFDLField03', false, [] ) )->getHtmlText();
+
+		$this->assertStringContainsString( '"value":"2024-06-15T12:05:00Z', $html );
 	}
 }

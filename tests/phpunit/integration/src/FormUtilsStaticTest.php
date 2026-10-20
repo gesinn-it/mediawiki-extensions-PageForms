@@ -66,51 +66,37 @@ class FormUtilsStaticTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * Year + month (non-American) returns "MonthName Year".
+	 * Year + month is written as ISO, whatever the language or the date format of the wiki.
 	 */
 	public function testGetStringFromPassedInArrayYearMonth() {
-		// Month name comes from getMonthNames() via wfMessage()->inContentLanguage(),
-		// so pin the content language rather than relying on the wiki's configured one.
-		$this->setContentLang( 'en' );
-		$GLOBALS['wgAmericanDates'] = false;
+		$this->setUserLang( 'de' );
 		$value = [ 'year' => '2024', 'month' => '3', 'day' => '' ];
 		$result = FormInputValues::getStringFromPassedInArray( $value, ',' );
-		// Month 3 → "March"
-		$this->assertStringContainsString( '2024', $result );
-		$this->assertStringContainsString( 'March', $result );
+		$this->assertSame( '2024-03', $result );
 	}
 
 	/**
-	 * Full date (non-American) returns "YYYY/MM/DD" — day is zero-padded, month is not.
+	 * A full date is written as ISO, whatever $wgAmericanDates says.
 	 */
-	public function testGetStringFromPassedInArrayFullDateNonAmerican() {
-		$GLOBALS['wgAmericanDates'] = false;
-		$value = [ 'year' => '2024', 'month' => '3', 'day' => '5' ];
-		$result = FormInputValues::getStringFromPassedInArray( $value, ',' );
-		$this->assertSame( '2024/3/05', $result );
+	public function testGetStringFromPassedInArrayFullDate() {
+		foreach ( [ false, true ] as $american ) {
+			$GLOBALS['wgAmericanDates'] = $american;
+			$value = [ 'year' => '2024', 'month' => '3', 'day' => '5' ];
+			$result = FormInputValues::getStringFromPassedInArray( $value, ',' );
+			$this->assertSame( '2024-03-05', $result );
+		}
 	}
 
 	/**
-	 * Full date (American) returns "Month Day, Year".
-	 */
-	public function testGetStringFromPassedInArrayFullDateAmerican() {
-		$GLOBALS['wgAmericanDates'] = true;
-		$value = [ 'year' => '2024', 'month' => '3', 'day' => '5' ];
-		$result = FormInputValues::getStringFromPassedInArray( $value, ',' );
-		$this->assertSame( '3 5, 2024', $result );
-	}
-
-	/**
-	 * Datetime includes time component.
+	 * Datetime includes the time component, in 24 hour format.
 	 */
 	public function testGetStringFromPassedInArrayDatetime() {
-		$GLOBALS['wgAmericanDates'] = false;
 		$value = [
 			'year' => '2024', 'month' => '3', 'day' => '5',
 			'hour' => '14', 'minute' => '30',
 		];
 		$result = FormInputValues::getStringFromPassedInArray( $value, ',' );
-		$this->assertStringContainsString( '14:30', $result );
+		$this->assertSame( '2024-03-05 14:30:00', $result );
 	}
 
 	/**
