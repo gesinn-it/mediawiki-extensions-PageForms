@@ -208,6 +208,21 @@ class CalendarHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
+	public function testCalendarHtmlGivesTheBrowserTheInputsOfAnEventForThePopup(): void {
+		global $wgPageFormsCalendarParams, $wgPageFormsCalendarValues, $wgPageFormsCalendarHTML;
+		$wgPageFormsCalendarParams = [];
+		$wgPageFormsCalendarValues = [];
+		$wgPageFormsCalendarHTML = [];
+
+		$tif = $this->makeTif( 'MyTemplate', [] );
+		$this->builder->calendarHTML( $tif, '/extensions/PageForms', '<input name="MyTemplate[num][Title]">' );
+
+		$this->assertSame(
+			[ 'MyTemplate' => '<input name="MyTemplate[cf][Title]">' ],
+			$wgPageFormsCalendarHTML
+		);
+	}
+
 	public function testCalendarHtmlUsesScriptPathForLoadingGif(): void {
 		global $wgPageFormsCalendarParams, $wgPageFormsCalendarValues;
 		$wgPageFormsCalendarParams = [];

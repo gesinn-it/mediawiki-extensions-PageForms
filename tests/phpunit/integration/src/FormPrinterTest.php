@@ -1108,6 +1108,34 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
+	 * The calendar builds the popup for a new event from the form of one instance, so the form has to
+	 * pass that markup on to the browser, with the inputs named for the popup.
+	 */
+	public function testFormHTMLGivesTheCalendarTheFormOfAnEvent(): void {
+		global $wgPageFormsFormPrinter, $wgOut, $wgPageFormsCalendarHTML;
+
+		$wgPageFormsCalendarHTML = [];
+		$wgOut->getContext()->setTitle( $this->getTitle() );
+		$formDef = "{{{for template|PFTestCalendarPopupTpl01|multiple|display=calendar"
+			. "|event title field=Name|event date field=When}}}\n"
+			. "{{{field|Name}}}\n"
+			. "{{{field|When|input type=date}}}\n"
+			. "{{{end template}}}\n"
+			. "{{{standard input|save}}}";
+
+		$wgPageFormsFormPrinter->formHTML(
+			$formDef, false, false, null, null,
+			'PFTestTemplateLayoutPage01', null, false, false, false, [],
+			self::getTestUser()->getUser()
+		);
+
+		$popup = $wgPageFormsCalendarHTML['PFTestCalendarPopupTpl01'] ?? '';
+		$this->assertStringContainsString( 'name="PFTestCalendarPopupTpl01[cf][Name]"', $popup );
+		$this->assertStringContainsString( 'name="PFTestCalendarPopupTpl01[cf][When][day]"', $popup );
+		$this->assertStringNotContainsString( '[num]', $popup );
+	}
+
+	/**
 	 * @return array<string, array{0: string, 1: string[]}>
 	 */
 	public static function provideTemplateTagLayouts(): array {

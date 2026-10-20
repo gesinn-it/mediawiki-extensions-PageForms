@@ -18,10 +18,13 @@ class CalendarHtmlBuilder {
 	 *
 	 * @param TemplateInForm $tif
 	 * @param string $scriptPath
+	 * @param string $instanceHtml The inputs of one instance of the template, with `[num]` in their names.
+	 *  The calendar shows them in the popup for an event, so the browser gets them with the names
+	 *  `Template[cf][Field]`.
 	 * @return string HTML string
 	 */
-	public function calendarHTML( TemplateInForm $tif, string $scriptPath ): string {
-		global $wgPageFormsCalendarParams, $wgPageFormsCalendarValues;
+	public function calendarHTML( TemplateInForm $tif, string $scriptPath, string $instanceHtml = '' ): string {
+		global $wgPageFormsCalendarParams, $wgPageFormsCalendarValues, $wgPageFormsCalendarHTML;
 
 		$params = [];
 		foreach ( $tif->getFields() as $formField ) {
@@ -81,6 +84,7 @@ class CalendarHtmlBuilder {
 		$text = "<div id='fullCalendarLoading1' style='display: none;'>" . $loadingImage . "</div>";
 		$text = Html::rawElement( 'div', $templateDivAttrs, $text );
 
+		$wgPageFormsCalendarHTML[$templateName] = str_replace( '[num]', '[cf]', $instanceHtml );
 		$wgPageFormsCalendarParams[$templateName] = $params;
 		$wgPageFormsCalendarValues[$templateName] = FormDateUtils::withIsoDates( $tif->getGridValues(), $params );
 

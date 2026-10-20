@@ -121,7 +121,9 @@ class SectionLayout {
 		if ( !$tif->allInstancesPrinted() ) {
 			return '';
 		}
-		return $this->calendarHtmlBuilder->calendarHTML( $tif, $context->request->scriptPath ) . "</fieldset>\n";
+		return $this->calendarHtmlBuilder->calendarHTML(
+			$tif, $context->request->scriptPath, $context->section
+		) . "</fieldset>\n";
 	}
 
 	/**
