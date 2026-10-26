@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- Page Forms works with MediaWiki 1.46: saving forms through the autoedit API, categories as the source of values and in tree inputs, uploads from the upload window and the caching of form definitions no longer fail.
+
 ## [2.4.0] - 2026-10-20
 
 Stores dates as ISO dates, shows them the way the user prefers, no longer loses dates that a form cannot show, and repairs the calendar display. Templates that take a stored date apart themselves need to be adjusted, see the first entry.
