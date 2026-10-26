@@ -435,6 +435,7 @@ class AutoeditApi extends ApiBase {
 				->getStatusFormatter( $this->getContext() )->getHTML( $status );
 		}
 		// MW < 1.42; called indirectly because newer versions no longer have the method
+		// @phan-suppress-next-line PhanUndeclaredMethodInCallable only Status has it, on MW < 1.42
 		return call_user_func( [ $status, 'getHTML' ] );
 	}
 
@@ -463,6 +464,7 @@ class AutoeditApi extends ApiBase {
 				->getStatusFormatter( $this->getContext() )->getWikiText( $status );
 		} else {
 			// MW < 1.42; called indirectly because newer versions no longer have the method
+			// @phan-suppress-next-line PhanUndeclaredMethodInCallable only Status has it, on MW < 1.42
 			$text = call_user_func( [ $status, 'getWikiText' ] );
 		}
 		$text = trim( $text );
