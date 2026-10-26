@@ -88,13 +88,12 @@ class CategoryPages {
 			array_merge( $schema->tables(), [ 'page' ] ),
 			[ 'page_title' ],
 			[
-				'cl_from = page_id',
 				$schema->categoryField() => str_replace( ' ', '_', $category ),
 				'page_namespace' => NS_CATEGORY,
 			],
 			__METHOD__,
 			[ 'ORDER BY' => 'cl_type, cl_sortkey' ],
-			$schema->joins()
+			array_merge( $schema->joins(), [ 'page' => [ 'JOIN', 'cl_from = page_id' ] ] )
 		);
 		$names = [];
 		foreach ( $res as $row ) {
@@ -116,8 +115,8 @@ class CategoryPages {
 		$schema = CategoryLinksSchema::current();
 		$tables = array_merge( $schema->tables(), [ 'page' ] );
 		$columns = [ 'page_title', 'page_namespace' ];
-		$conditions = [ 'cl_from = page_id', $schema->categoryField() => $category ];
-		$join = $schema->joins();
+		$conditions = [ $schema->categoryField() => $category ];
+		$join = array_merge( $schema->joins(), [ 'page' => [ 'JOIN', 'cl_from = page_id' ] ] );
 		if ( $wgPageFormsUseDisplayTitle ) {
 			[ $displayTables, $displayColumns, $displayJoin ] = AutocompleteSql::displayTitleAndSortKeyParts();
 			$tables = array_merge( $tables, $displayTables );
