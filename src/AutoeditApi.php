@@ -296,15 +296,16 @@ class AutoeditApi extends ApiBase {
 	protected function setResultFromOutput() {
 		// turn on output buffering
 		ob_start();
+		try {
+			// generate preview document and write it to output buffer
+			$this->getOutput()->output();
 
-		// generate preview document and write it to output buffer
-		$this->getOutput()->output();
-
-		// retrieve the preview document from output buffer
-		$targetHtml = ob_get_contents();
-
-		// clean output buffer, so MW can use it again
-		ob_clean();
+			// retrieve the preview document from output buffer
+			$targetHtml = ob_get_contents();
+		} finally {
+			// discard and close the buffer again, so MW can use the output as before
+			ob_end_clean();
+		}
 
 		// store the document as result
 		$this->getResult()->addValue( null, 'result', $targetHtml );
