@@ -523,6 +523,12 @@ class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 			static fn ( array $m ): string => 'class=' . $m[1] . '<oo-ui>' . $m[1],
 			$text
 		);
+		// Newer OOUI versions put the label reference of a button widget on the button, older ones on its wrapper.
+		$text = preg_replace(
+			"#(<span id='[^']*') (class='<oo-ui>'><button [^>]*?) aria-labelledby='(ooui-php-<n>)'#",
+			"\$1 aria-labelledby='\$3' \$2",
+			$text
+		);
 		// MediaWiki 1.39 does not give the output of the parser a language and direction, and
 		// writes the "edit" link of a heading differently.
 		$text = str_replace(
