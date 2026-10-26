@@ -116,7 +116,7 @@ class PossibleValueListTest extends MediaWikiIntegrationTestCase {
 		// MediaWikiTitleCodec (TitleParser/TitleFormatter), which captures its
 		// own ContentLanguage reference at construction time; resetting
 		// ContentLanguage alone leaves it parsing against the old language.
-		$services->resetServiceForTesting( '_MediaWikiTitleCodec' );
+		$this->resetTitleCodec( $services );
 
 		try {
 			$list = new PossibleValueList( [
@@ -137,7 +137,20 @@ class PossibleValueListTest extends MediaWikiIntegrationTestCase {
 		} finally {
 			$wgLanguageCode = $oldLanguageCode;
 			$services->resetServiceForTesting( 'ContentLanguage' );
-			$services->resetServiceForTesting( '_MediaWikiTitleCodec' );
+			$this->resetTitleCodec( $services );
+		}
+	}
+
+	/**
+	 * The title parser and formatter capture the content language when they are built; the services that
+	 * hold them are called "_MediaWikiTitleCodec" up to MediaWiki 1.43 and "TitleParser" and "TitleFormatter"
+	 * from 1.44 on.
+	 */
+	private function resetTitleCodec( MediaWikiServices $services ): void {
+		foreach ( [ '_MediaWikiTitleCodec', 'TitleParser', 'TitleFormatter' ] as $name ) {
+			if ( in_array( $name, $services->getServiceNames(), true ) ) {
+				$services->resetServiceForTesting( $name );
+			}
 		}
 	}
 

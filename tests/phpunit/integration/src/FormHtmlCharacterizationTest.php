@@ -533,6 +533,12 @@ class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 		$text = preg_replace(
 			'#<span class="mw-editsection">.*?\]</span></span>#', '<span class="mw-editsection"></span>', $text
 		);
+		// MediaWiki 1.45 wraps a heading in a div and no longer puts its text in a "mw-headline" span.
+		$text = preg_replace(
+			'#<div class="mw-heading mw-heading(\d)"><h\1 id="([^"]*)">(.*?)</h\1>(<span class="mw-editsection"></span>)</div>#',
+			'<h$1><span class="mw-headline" id="$2">$3</span>$4</h$1>',
+			$text
+		);
 		// MediaWiki 1.39 closes void elements with "/>" and writes the attributes of an option in
 		// another order.
 		$text = preg_replace( '#\s*/>#', '>', $text );

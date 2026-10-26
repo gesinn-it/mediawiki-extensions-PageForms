@@ -36,6 +36,8 @@ class PageCategoriesTest extends MediaWikiIntegrationTestCase {
 
 	public function testAllReturnsTheCategoriesOfTheWiki(): void {
 		$this->editPage( 'PFPageCategoriesTestInAll', '[[Category:PFPageCategoriesTestInAll]]' );
+		// The category table is filled by a job from MediaWiki 1.45 on
+		$this->runJobs();
 
 		$this->assertContains( 'PFPageCategoriesTestInAll', PageCategories::all() );
 	}
