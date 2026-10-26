@@ -2,6 +2,7 @@
 
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Html\Html;
+use MediaWiki\Html\TemplateParser;
 use MediaWiki\MediaWikiServices;
 
 /**

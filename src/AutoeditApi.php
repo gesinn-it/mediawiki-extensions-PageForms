@@ -422,6 +422,23 @@ class AutoeditApi extends ApiBase {
 	}
 
 	/**
+	 * The HTML of a status message. EditPage::attemptSave() returns a StatusValue from MW 1.46 on,
+	 * which no longer has getHTML() itself.
+	 *
+	 * @param \StatusValue $status
+	 * @return string
+	 */
+	private function getStatusHtml( \StatusValue $status ): string {
+		$services = MediaWikiServices::getInstance();
+		if ( method_exists( $services, 'getFormatterFactory' ) ) {
+			return $services->getFormatterFactory()
+				->getStatusFormatter( $this->getContext() )->getHTML( $status );
+		}
+		// MW < 1.42; called indirectly because newer versions no longer have the method
+		return call_user_func( [ $status, 'getHTML' ] );
+	}
+
+	/**
 	 * Names the outcome of EditPage::attemptSave() for a failed save: the EditPage::AS_*
 	 * constant, followed by the message MediaWiki attached to the status, if any.
 	 *
@@ -429,10 +446,10 @@ class AutoeditApi extends ApiBase {
 	 * a missing summary, ...) are reported to the caller with the same generic failure text,
 	 * so without this the reason of a failure cannot be told apart.
 	 *
-	 * @param \Status $status
+	 * @param \StatusValue $status
 	 * @return string
 	 */
-	private function describeSaveStatus( \Status $status ): string {
+	private function describeSaveStatus( \StatusValue $status ): string {
 		$name = 'AS_' . $status->value;
 		foreach ( ( new ReflectionClass( EditPage::class ) )->getConstants() as $constant => $value ) {
 			if ( $value === $status->value && str_starts_with( $constant, 'AS_' ) ) {
@@ -456,11 +473,11 @@ class AutoeditApi extends ApiBase {
 	 * Maps the EditPage::AS_* status returned by EditPage::attemptSave()
 	 * to a result/redirect/exception, per the contract documented on doStore().
 	 *
-	 * @param \Status $status
+	 * @param \StatusValue $status
 	 * @param EditPage $editor
 	 * @param array $resultDetails
 	 */
-	private function handleSaveStatus( \Status $status, EditPage $editor, array $resultDetails ): void {
+	private function handleSaveStatus( \StatusValue $status, EditPage $editor, array $resultDetails ): void {
 		switch ( $status->value ) {
 			case EditPage::AS_HOOK_ERROR_EXPECTED:
 				// A hook function returned an error
@@ -495,7 +512,7 @@ class AutoeditApi extends ApiBase {
 
 			case EditPage::AS_PARSE_ERROR:
 				// Can't parse content
-				throw new MWException( $status->getHTML() );
+				throw new MWException( $this->getStatusHtml( $status ) );
 
 			case EditPage::AS_SUCCESS_NEW_ARTICLE:
 				// Article successfully created
@@ -559,7 +576,7 @@ class AutoeditApi extends ApiBase {
 			default:
 				// We don't recognize $status->value. Presumably this can only
 				// happen if some other extension set the value.
-				throw new MWException( $status->getHTML() );
+				throw new MWException( $this->getStatusHtml( $status ) );
 		}
 	}
 
@@ -651,7 +668,10 @@ class AutoeditApi extends ApiBase {
 				$targetTitle = Title::newFromText( $this->mOptions['target'] );
 				$responseText = $this->getMessageCache()->parse(
 					$this->mOptions['ok text'], $targetTitle
-				)->getText();
+				);
+				$responseText = PFUtils::getParserOutputHtml(
+					$responseText, ParserOptions::newFromContext( $this->getContext() )
+				);
 			} elseif ( $this->mAction === self::ACTION_SAVE ) {
 				// We turn this into a link of the form [[:A|A]]
 				// so that pages in the File: namespace won't
@@ -667,7 +687,10 @@ class AutoeditApi extends ApiBase {
 				$targetTitle = Title::newFromText( $this->mOptions['target'] );
 				$responseText = $this->getMessageCache()->parse(
 					$this->mOptions['error text'], $targetTitle
-				)->getText();
+				);
+				$responseText = PFUtils::getParserOutputHtml(
+					$responseText, ParserOptions::newFromContext( $this->getContext() )
+				);
 			} elseif ( $this->mAction === self::ACTION_SAVE ) {
 				$targetText = ':' . $this->mOptions['target'] . '|' . $this->mOptions['target'];
 				$responseText = $this->msg( 'pf_autoedit_fail', $targetText )->parse();

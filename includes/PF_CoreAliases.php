@@ -16,6 +16,7 @@
 		'FauxRequest' => 'MediaWiki\\Request\\FauxRequest',
 		'Html' => 'MediaWiki\\Html\\Html',
 		'Linker' => 'MediaWiki\\Linker\\Linker',
+		'TemplateParser' => 'MediaWiki\\Html\\TemplateParser',
 		'Title' => 'MediaWiki\\Title\\Title',
 	] as $legacyName => $namespacedName ) {
 		if ( !class_exists( $namespacedName ) && class_exists( $legacyName ) ) {
