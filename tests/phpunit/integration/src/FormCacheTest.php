@@ -160,9 +160,9 @@ class FormCacheTest extends MediaWikiIntegrationTestCase {
 		// which assumes an outer parse already initialized $parser->mOutput.
 		$parser->clearState();
 		// A tag hook that forces the ParserOutput to report itself uncacheable,
-		// matching the $output->getCacheTime() == -1 branch in getFormDefinition().
+		// matching the !$output->isCacheable() branch in getFormDefinition().
 		$parser->setHook( 'pftestnocache', static function ( $input, $args, Parser $parser ) {
-			$parser->getOutput()->setCacheTime( '-1' );
+			$parser->getOutput()->updateCacheExpiry( 0 );
 			return '';
 		} );
 
@@ -367,7 +367,7 @@ class FormCacheTest extends MediaWikiIntegrationTestCase {
 		$parser->setTitle( $title );
 		$parser->clearState();
 		$parser->setHook( 'pftestnocacheformid', static function ( $input, $args, Parser $parser ) {
-			$parser->getOutput()->setCacheTime( '-1' );
+			$parser->getOutput()->updateCacheExpiry( 0 );
 			return '';
 		} );
 

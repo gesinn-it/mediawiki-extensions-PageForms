@@ -174,7 +174,7 @@ class FormCache {
 
 		$definition = $reader->read( $form_def );
 
-		if ( $output->getCacheTime() == -1 ) {
+		if ( !$output->isCacheable() ) {
 			$form_wikipage = $form_id !== null
 				? MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $form_id )
 				: null;
