@@ -121,12 +121,18 @@ class PFFormEditTest extends SpecialPageTestBase {
 
 		$mainContext = RequestContext::getMain();
 		$originalRequest = $mainContext->getRequest();
+		$originalTitle = $mainContext->getTitle();
 		$fauxRequest = new FauxRequest( [ 'wpPreview' => true ], true );
 		$mainContext->setRequest( $fauxRequest );
+		// A real request always has a title; extensions that run on the preview's output rely on it
+		$mainContext->setTitle( SpecialPage::getTitleFor( 'FormEdit', 'Thing' ) );
 		try {
 			[ $html ] = $this->executeSpecialPage( 'Thing', $fauxRequest );
 		} finally {
 			$mainContext->setRequest( $originalRequest );
+			if ( $originalTitle !== null ) {
+				$mainContext->setTitle( $originalTitle );
+			}
 		}
 
 		$this->assertStringContainsString( '<legend>Thing</legend>', $html );
