@@ -452,7 +452,6 @@ class PFUploadWindow extends UnlistedSpecialPage {
 	private function getUploadPermissionErrors() {
 		// verifyTitlePermissions() is gone from MW 1.45 on, authorizeUpload() exists from 1.44 on
 		if ( !method_exists( $this->mUpload, 'authorizeUpload' ) ) {
-			// @phan-suppress-next-line PhanUndeclaredMethod gone from MW 1.45 on
 			return $this->mUpload->verifyTitlePermissions( $this->getUser() );
 		}
 		if ( $this->mUpload->getTitle() === null ) {
