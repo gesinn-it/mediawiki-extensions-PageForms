@@ -445,13 +445,33 @@ class PFUploadWindow extends UnlistedSpecialPage {
 	}
 
 	/**
+	 * Whether the user may upload the file to the title it is going to get.
+	 *
+	 * @return array|true The permission errors as the legacy array, or true
+	 */
+	private function getUploadPermissionErrors() {
+		// verifyTitlePermissions() is gone from MW 1.45 on, authorizeUpload() exists from 1.44 on
+		if ( !method_exists( $this->mUpload, 'authorizeUpload' ) ) {
+			// @phan-suppress-next-line PhanUndeclaredMethod gone from MW 1.45 on
+			return $this->mUpload->verifyTitlePermissions( $this->getUser() );
+		}
+		if ( $this->mUpload->getTitle() === null ) {
+			// authorizeUpload() must only be called with a valid title, the file is not verified yet
+			return true;
+		}
+		// @phan-suppress-next-line PhanUndeclaredMethod only from MW 1.44 on
+		$status = $this->mUpload->authorizeUpload( $this->getUser() );
+		return $status->isGood() ? true : $status->toLegacyErrorArray();
+	}
+
+	/**
 	 * Do the upload.
 	 * Checks are made in SpecialUpload::execute()
 	 * @return array|bool|void
 	 */
 	protected function processUpload() {
 		// Verify permissions
-		$permErrors = $this->mUpload->verifyPermissions( $this->getUser() );
+		$permErrors = $this->getUploadPermissionErrors();
 		if ( $permErrors !== true ) {
 			return $this->getOutput()->showPermissionsErrorPage( $permErrors );
 		}

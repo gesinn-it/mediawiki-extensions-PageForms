@@ -319,14 +319,14 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 
 		$mockUpload = $this->getMockBuilder( UploadBase::class )
 			->onlyMethods( [
-				'verifyPermissions',
+				'getTitle',
 				'fetchFile',
 				'verifyUpload',
 				'checkWarnings',
 				'performUpload',
 			] )
 			->getMockForAbstractClass();
-		$mockUpload->method( 'verifyPermissions' )->willReturn( true );
+		$mockUpload->method( 'getTitle' )->willReturn( null );
 		$mockUpload->method( 'fetchFile' )->willReturn( Status::newGood() );
 		$mockUpload->method( 'verifyUpload' )->willReturn( [ 'status' => UploadBase::OK ] );
 		$mockUpload->method( 'checkWarnings' )->willReturn( [] );
