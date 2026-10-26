@@ -1,8 +1,10 @@
 <?php
 
+use MediaWiki\EditPage\EditPage;
 use MediaWiki\Extension\PageForms\AutoeditApi;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\MainConfigNames;
+use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
 use OOUI\BlankTheme;
 use Wikimedia\Timestamp\ConvertibleTimestamp;

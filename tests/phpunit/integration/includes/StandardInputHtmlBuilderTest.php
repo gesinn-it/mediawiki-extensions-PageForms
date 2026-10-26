@@ -4,7 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
-use FauxRequest;
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\StandardInputHtmlBuilder;
 use MediaWiki\Title\Title;

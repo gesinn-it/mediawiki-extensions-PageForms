@@ -5,6 +5,9 @@ declare( strict_types=1 );
 use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
 use PHPUnit\Framework\TestCase;
 
+// Unit tests do not run the extension's registration callback, which otherwise loads the core class aliases.
+require_once __DIR__ . '/../../../../includes/PF_CoreAliases.php';
+
 /**
  * @covers MediaWiki\Extension\PageForms\HiddenInputsBuilder
  */

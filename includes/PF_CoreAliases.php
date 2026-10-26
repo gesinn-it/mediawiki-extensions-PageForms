@@ -9,12 +9,17 @@
  * Remove the entries once the oldest supported MediaWiki has the namespaced class.
  */
 
-foreach ( [
-	'Html' => 'MediaWiki\\Html\\Html',
-	'Linker' => 'MediaWiki\\Linker\\Linker',
-	'Title' => 'MediaWiki\\Title\\Title',
-] as $legacyName => $namespacedName ) {
-	if ( !class_exists( $namespacedName ) && class_exists( $legacyName ) ) {
-		class_alias( $legacyName, $namespacedName );
+( static function () {
+	foreach ( [
+		'CommentStore' => 'MediaWiki\\CommentStore\\CommentStore',
+		'EditPage' => 'MediaWiki\\EditPage\\EditPage',
+		'FauxRequest' => 'MediaWiki\\Request\\FauxRequest',
+		'Html' => 'MediaWiki\\Html\\Html',
+		'Linker' => 'MediaWiki\\Linker\\Linker',
+		'Title' => 'MediaWiki\\Title\\Title',
+	] as $legacyName => $namespacedName ) {
+		if ( !class_exists( $namespacedName ) && class_exists( $legacyName ) ) {
+			class_alias( $legacyName, $namespacedName );
+		}
 	}
-}
+} )();

@@ -7,6 +7,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\EditPage\EditPage;
 use MediaWiki\Extension\PageForms\AutoeditApi;
 use MediaWiki\Extension\PageForms\Form;
 use MediaWiki\Extension\PageForms\FormCache;

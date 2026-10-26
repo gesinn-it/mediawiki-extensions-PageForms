@@ -4,10 +4,10 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use EditPage;
 use FatalError;
 use LogEventsList;
 use LogicException;
+use MediaWiki\EditPage\EditPage;
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormDefinition\StandardInputSpec;

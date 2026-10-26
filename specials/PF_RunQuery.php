@@ -115,7 +115,9 @@ class PFRunQuery extends IncludableSpecialPage {
 			$resultsParserOutput = $parser->parse(
 				$data_text, $this->getPageTitle(), $parserOptions, true, false
 			);
-			$resultsText = $resultsParserOutput->getText();
+			$resultsText = version_compare( MW_VERSION, '1.42', '>=' )
+				? $resultsParserOutput->getRawText()
+				: $resultsParserOutput->getText();
 		}
 
 		// Get the full text of the form.
