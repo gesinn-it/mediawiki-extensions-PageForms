@@ -18,7 +18,7 @@ DB_IMAGE?="mariadb:11"
 
 # extensions
 SMW_VERSION?=7.1.0
-DT_VERSION?=4.0.3
+DT_VERSION?=gesinn-it-pub/mediawiki-extensions-DisplayTitle@5.0.1
 AL_VERSION?=0.7
 
 # composer

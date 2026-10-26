@@ -57,7 +57,7 @@ jobs:
           - mediawiki_version: '1.39'
             smw_version: '5.1.0'
             php_version: 8.1
-            dt_version: 4.0.3
+            dt_version: gesinn-it-pub/mediawiki-extensions-DisplayTitle@4.2.2
             database_type: mysql
             database_image: "mysql:8"
             coverage: false
@@ -65,7 +65,7 @@ jobs:
           - mediawiki_version: '1.39'
             smw_version: '5.1.0'
             php_version: 8.2
-            dt_version: 4.0.3
+            dt_version: gesinn-it-pub/mediawiki-extensions-DisplayTitle@4.2.2
             database_type: mysql
             database_image: "mysql:8"
             coverage: false
@@ -73,7 +73,7 @@ jobs:
           - mediawiki_version: '1.43'
             smw_version: '7.3.1'
             php_version: 8.3
-            dt_version: 4.0.3
+            dt_version: gesinn-it-pub/mediawiki-extensions-DisplayTitle@5.0.1
             al_version: 0.7
             database_type: mysql
             database_image: "mariadb:12.3"
@@ -83,7 +83,7 @@ jobs:
           - mediawiki_version: '1.43'
             smw_version: '7.3.1'
             php_version: 8.3
-            dt_version: 4.0.3
+            dt_version: gesinn-it-pub/mediawiki-extensions-DisplayTitle@5.0.1
             al_version: 0.7
             database_type: mysql
             database_image: "mariadb:12.3"
@@ -152,14 +152,14 @@ jobs:
           - mediawiki_version: '1.43'
             smw_version: '7.3.1'
             php_version: 8.3
-            dt_version: 4.0.3
+            dt_version: gesinn-it-pub/mediawiki-extensions-DisplayTitle@5.0.1
             al_version: 0.7
             database_type: mysql
             database_image: "mysql:8"
           - mediawiki_version: '1.46'
             smw_version: '7.3.1'
             php_version: 8.4
-            dt_version: 4.0.3
+            dt_version: gesinn-it-pub/mediawiki-extensions-DisplayTitle@5.0.1
             al_version: 0.7
             database_type: mysql
             database_image: "mariadb:12.3"
