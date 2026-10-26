@@ -77,6 +77,33 @@ class CategoryPages {
 	}
 
 	/**
+	 * The names of the subcategories that are directly in the category, in the order of their sort keys.
+	 *
+	 * @param string $category
+	 * @return string[] The names with spaces, without the namespace
+	 */
+	public static function subcategories( string $category ): array {
+		$schema = CategoryLinksSchema::current();
+		$res = PFUtils::getReplicaDB()->select(
+			array_merge( $schema->tables(), [ 'page' ] ),
+			[ 'page_title' ],
+			[
+				'cl_from = page_id',
+				$schema->categoryField() => str_replace( ' ', '_', $category ),
+				'page_namespace' => NS_CATEGORY,
+			],
+			__METHOD__,
+			[ 'ORDER BY' => 'cl_type, cl_sortkey' ],
+			$schema->joins()
+		);
+		$names = [];
+		foreach ( $res as $row ) {
+			$names[] = str_replace( '_', ' ', $row->page_title );
+		}
+		return $names;
+	}
+
+	/**
 	 * The pages and subcategories that are directly in the category.
 	 *
 	 * @param string $category
@@ -86,14 +113,16 @@ class CategoryPages {
 	private static function queryMembers( string $category, ?string $substring ) {
 		global $wgPageFormsMaxAutocompleteValues, $wgPageFormsUseDisplayTitle;
 
-		$tables = [ 'categorylinks', 'page' ];
+		$schema = CategoryLinksSchema::current();
+		$tables = array_merge( $schema->tables(), [ 'page' ] );
 		$columns = [ 'page_title', 'page_namespace' ];
-		$conditions = [ 'cl_from = page_id', 'cl_to' => $category ];
-		$join = [];
+		$conditions = [ 'cl_from = page_id', $schema->categoryField() => $category ];
+		$join = $schema->joins();
 		if ( $wgPageFormsUseDisplayTitle ) {
-			[ $displayTables, $displayColumns, $join ] = AutocompleteSql::displayTitleAndSortKeyParts();
+			[ $displayTables, $displayColumns, $displayJoin ] = AutocompleteSql::displayTitleAndSortKeyParts();
 			$tables = array_merge( $tables, $displayTables );
 			$columns = array_merge( $columns, $displayColumns );
+			$join = array_merge( $join, $displayJoin );
 		}
 		if ( $substring != null ) {
 			$conditions[] = self::substringCondition( $substring );

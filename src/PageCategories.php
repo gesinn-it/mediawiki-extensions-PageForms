@@ -29,17 +29,18 @@ class PageCategories {
 			// Something's wrong - exit
 			return $categories;
 		}
-		$conditions = [ 'cl_from' => $titlekey ];
+		$schema = CategoryLinksSchema::current();
 		$res = $db->select(
-			'categorylinks',
-			'DISTINCT cl_to',
-			$conditions,
-			__METHOD__
+			$schema->tables(),
+			[ 'category' => $schema->categoryField() ],
+			[ 'cl_from' => $titlekey ],
+			__METHOD__,
+			[ 'DISTINCT' ],
+			$schema->joins()
 		);
-		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
-			$categories[] = $row['cl_to'];
+		foreach ( $res as $row ) {
+			$categories[] = $row->category;
 		}
-		$res->free();
 		return $categories;
 	}
 
