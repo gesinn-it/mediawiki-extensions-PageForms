@@ -294,6 +294,8 @@ class AutoeditApi extends ApiBase {
 	 * Sets the output HTML of wgOut as the module's result
 	 */
 	protected function setResultFromOutput() {
+		$targetHtml = '';
+
 		// turn on output buffering
 		ob_start();
 		try {
