@@ -3,6 +3,7 @@
 use MediaWiki\Extension\PageForms\FormButtons;
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
 use PHPUnit\Framework\TestCase;
 

@@ -6,6 +6,7 @@ namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\StandardInputHtmlBuilder;
+use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
 use MediaWikiIntegrationTestCase;
 use OOUI\BlankTheme;

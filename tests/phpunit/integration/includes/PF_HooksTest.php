@@ -1,6 +1,7 @@
 <?php
 
 use MediaWiki\EditPage\EditPage;
+use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
 
 /**

@@ -2,6 +2,7 @@
 
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
 use OOUI\BlankTheme;
 

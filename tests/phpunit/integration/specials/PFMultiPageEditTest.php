@@ -1,6 +1,7 @@
 <?php
 
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Request\FauxRequest;
 
 /**
  * Integration tests for the PFMultiPageEdit class.

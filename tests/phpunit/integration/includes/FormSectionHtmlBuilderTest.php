@@ -3,6 +3,7 @@
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\Extension\PageForms\FormSectionHtmlBuilder;
+use MediaWiki\Request\FauxRequest;
 use OOUI\BlankTheme;
 
 /**

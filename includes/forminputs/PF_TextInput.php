@@ -6,6 +6,7 @@
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 use MediaWiki\Html\Html;
+use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
 
 /**

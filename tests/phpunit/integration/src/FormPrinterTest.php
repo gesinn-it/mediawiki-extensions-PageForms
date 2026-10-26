@@ -3,6 +3,7 @@
 use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
 use OOUI\BlankTheme;
 
@@ -498,7 +499,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 			. "{{{standard input|save}}}";
 
 		// Simulate submitted form values via an explicit FauxRequest.
-		$fauxRequest = new \FauxRequest( [ 'PFTestFieldTpl03[Title]' => 'My Submitted Value' ], true );
+		$fauxRequest = new FauxRequest( [ 'PFTestFieldTpl03[Title]' => 'My Submitted Value' ], true );
 
 		[ $formHtml ] = $wgPageFormsFormPrinter->formHTML(
 			$formDef, true, false, null, null,
@@ -560,7 +561,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
 		// FauxRequest is pre-parsed: TemplateInForm::setFieldValuesFromSubmit reads
 		// $request->getArray($templateName), so fields go under the template name key.
-		$fauxRequest = new \FauxRequest(
+		$fauxRequest = new FauxRequest(
 			[
 				'PFTestFieldTpl06' => [
 					'FirstName' => 'Ada',
@@ -680,7 +681,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
 		// The formula must use the full input name <TemplateName[FieldName]>,
 		// which is what formHTML() matches against during field loop substitution.
-		$fauxRequest = new \FauxRequest(
+		$fauxRequest = new FauxRequest(
 			[ 'PFTestFieldTpl10' => [ 'Title' => 'MyGeneratedPage' ] ],
 			true
 		);
@@ -792,7 +793,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 			. "{{{end template}}}\n"
 			. "{{{standard input|save}}}";
 
-		$fauxRequest = new \FauxRequest(
+		$fauxRequest = new FauxRequest(
 			[ 'pf_free_text' => 'Some free body text' ],
 			true
 		);
@@ -991,7 +992,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
 		// No existing page content (source_is_page = false) and the field is
 		// submitted with the '+' (append) modifier suffix on its query key.
-		$fauxRequest = new \FauxRequest(
+		$fauxRequest = new FauxRequest(
 			[ 'PFTestModifierTpl01' => [ 'Notes+' => 'Appended text' ] ],
 			true
 		);
@@ -1337,7 +1338,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$formDef = "{{{field|#freetext#}}}\n"
 			. "{{{standard input|save}}}";
 
-		$fauxRequest = new \FauxRequest(
+		$fauxRequest = new FauxRequest(
 			[ 'free_text' => 'PFTestFreeTextQueryValue01' ],
 			true
 		);
@@ -1615,7 +1616,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 			. "{{{standard input|free text}}}\n"
 			. "{{{standard input|save}}}";
 
-		$fauxRequest = new \FauxRequest(
+		$fauxRequest = new FauxRequest(
 			[ 'pf_free_text' => '<onlyinclude>PFTestOnlyIncludeFreeTextValue01</onlyinclude>' ],
 			true
 		);
@@ -1673,7 +1674,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 			$formDef, true, false, null, null,
 			'PFTestOnlyIncludeFreeTextPage03', null, false, false, false, [],
 			self::getTestUser()->getUser(),
-			new \FauxRequest( [ 'PFTestOnlyIncludeTpl03' => [ 'Name' => 'x' ] ], true )
+			new FauxRequest( [ 'PFTestOnlyIncludeTpl03' => [ 'Name' => 'x' ] ], true )
 		);
 
 		$this->assertStringContainsString( '{{PFTestOnlyIncludeTpl03', $pageText );

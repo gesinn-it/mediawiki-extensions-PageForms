@@ -17,6 +17,7 @@ use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
 use MediaWiki\Html\Html;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Request\FauxRequest;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
 use MessageCache;
