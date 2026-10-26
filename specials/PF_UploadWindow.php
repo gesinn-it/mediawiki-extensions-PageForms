@@ -549,13 +549,14 @@ class PFUploadWindow extends UnlistedSpecialPage {
 		// Escape all attacker-influenced values before interpolating them
 		// into the <script> block below, since none of them are otherwise
 		// sanitized and this is printed directly to the response body.
-		// Xml::encodeJsVar() JSON-encodes the value (escaping quotes,
+		// FormatJson::encode() JSON-encodes the value (escaping quotes,
 		// backslashes, and '<'/'>'/'&', which is safe for inline <script>
 		// blocks) and returns it already wrapped in double quotes, so it
-		// can be used directly as a JS string-literal expression.
-		$basenameJs = Xml::encodeJsVar( $basename );
-		$inputIdJs = Xml::encodeJsVar( $this->mInputID ?? '' );
-		$delimiterJs = Xml::encodeJsVar( $this->mDelimiter ?? '' );
+		// can be used directly as a JS string-literal expression. This is
+		// what Xml::encodeJsVar() did, which MW 1.46 removed.
+		$basenameJs = FormatJson::encode( $basename, false, FormatJson::UTF8_OK );
+		$inputIdJs = FormatJson::encode( $this->mInputID ?? '', false, FormatJson::UTF8_OK );
+		$delimiterJs = FormatJson::encode( $this->mDelimiter ?? '', false, FormatJson::UTF8_OK );
 
 		$output = <<<END
 		<script type="text/javascript">
