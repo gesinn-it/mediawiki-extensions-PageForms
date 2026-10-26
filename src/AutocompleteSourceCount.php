@@ -4,9 +4,9 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Title\Title;
 use PFUtils;
 use SMWQuery;
-use Title;
 
 /**
  * How many values a source of autocomplete values has, counted cheaply, to decide whether the values

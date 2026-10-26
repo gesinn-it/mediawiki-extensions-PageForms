@@ -6,10 +6,10 @@ namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use MediaWikiIntegrationTestCase;
 use PFUtils;
 use ReflectionProperty;
-use Title;
 
 /**
  * @covers \MediaWiki\Extension\PageForms\FormLinker::setBrokenLink

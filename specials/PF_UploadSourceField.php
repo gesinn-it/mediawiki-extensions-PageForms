@@ -13,6 +13,8 @@
  * A form field that contains a radio box in the label.
  */
 
+use MediaWiki\Html\Html;
+
 /**
  * @ingroup PFSpecialPages
  */

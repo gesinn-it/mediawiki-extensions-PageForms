@@ -4,7 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use Title;
+use MediaWiki\Title\Title;
 
 /**
  * What a request to the pfautoedit API asks for: the options of the request with the aliases

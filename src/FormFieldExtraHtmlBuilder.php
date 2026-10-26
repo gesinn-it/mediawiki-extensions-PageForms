@@ -4,7 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use Html;
+use MediaWiki\Html\Html;
 
 /**
  * The HTML that goes next to the input of a field and is not part of the input itself: the

@@ -2,6 +2,7 @@
 
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\TemplateField;
+use MediaWiki\Title\Title;
 
 /**
  * @covers \MediaWiki\Extension\PageForms\TemplateField

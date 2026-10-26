@@ -5,11 +5,11 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use CommentStore;
-use Html;
+use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use OOUI\ButtonInputWidget;
 use RequestContext;
-use Title;
 
 /**
  * Buttons and inputs of the bottom of a form: summary, minor edit, watch, save, preview, changes, cancel and run query.

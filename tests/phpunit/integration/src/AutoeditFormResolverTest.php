@@ -2,6 +2,7 @@
 
 use MediaWiki\Extension\PageForms\AutoeditApi;
 use MediaWiki\Extension\PageForms\AutoeditFormResolver;
+use MediaWiki\Title\Title;
 
 /**
  * @covers \MediaWiki\Extension\PageForms\AutoeditFormResolver

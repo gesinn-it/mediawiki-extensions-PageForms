@@ -11,11 +11,11 @@ use MediaWiki\Extension\PageForms\SmwPurgeRequestShield;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RenderedRevision;
 use MediaWiki\Revision\RevisionRecord;
+use MediaWiki\Title\Title;
 use MediaWikiIntegrationTestCase;
 use Parser;
 use ParserOptions;
 use RuntimeException;
-use Title;
 use WikiPage;
 
 /**

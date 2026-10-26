@@ -4,7 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\FormRender;
 
-use Title;
+use MediaWiki\Title\Title;
 
 /**
  * The page a form is rendered for, and whether the user may edit it.

@@ -5,7 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use BagOStuff;
-use Title;
+use MediaWiki\Title\Title;
 
 /**
  * Keeps a pending Semantic MediaWiki purge request for a page out of reach of a parse that is not

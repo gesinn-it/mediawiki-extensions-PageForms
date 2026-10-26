@@ -1,4 +1,6 @@
 <?php
+use MediaWiki\Title\Title;
+
 /**
  * A class that defines a tree - and can populate it based on either
  * wikitext or a category structure.

@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\Title\Title;
+
 /**
  * '#default_form' is called as:
  * {{#default_form:formName}}

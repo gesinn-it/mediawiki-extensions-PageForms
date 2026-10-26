@@ -4,8 +4,8 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Title\Title;
 use PFUtils;
-use Title;
 
 /**
  * The pages of a category and its subcategories, as the values of a "values from category" field.

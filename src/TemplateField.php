@@ -4,9 +4,9 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Title\Title;
 use PFUtils;
 use SMW\DIProperty;
-use Title;
 
 /**
  * Defines a class, TemplateField, that represents a field in a template,

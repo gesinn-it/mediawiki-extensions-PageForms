@@ -4,7 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\FormRender;
 
-use Html;
 use MediaWiki\Extension\PageForms\FieldValueResolver;
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionException;
@@ -18,6 +17,7 @@ use MediaWiki\Extension\PageForms\MappingLabels;
 use MediaWiki\Extension\PageForms\RenderServices;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateInForm;
+use MediaWiki\Html\Html;
 use PFTextAreaInput;
 use PFUtils;
 

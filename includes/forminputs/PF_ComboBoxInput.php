@@ -7,6 +7,7 @@ use MediaWiki\Extension\PageForms\AutocompleteSettings;
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\PossibleValueList;
+use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 
 /**

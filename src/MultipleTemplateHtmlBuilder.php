@@ -4,7 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use Html;
+use MediaWiki\Html\Html;
 use OOUI;
 use Sanitizer;
 

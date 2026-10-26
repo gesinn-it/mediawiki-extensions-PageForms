@@ -4,9 +4,9 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Title\Title;
 use Parser;
 use Sanitizer;
-use Title;
 use WebRequest;
 
 /**

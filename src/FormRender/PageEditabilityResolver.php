@@ -6,8 +6,8 @@ namespace MediaWiki\Extension\PageForms\FormRender;
 
 use MediaWiki\Extension\PageForms\FormRenderRequest;
 use MediaWiki\Extension\PageForms\RenderServices;
+use MediaWiki\Title\Title;
 use RequestContext;
-use Title;
 
 /**
  * Finds out which page a form is rendered for and whether the user may edit it.

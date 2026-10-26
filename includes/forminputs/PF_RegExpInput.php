@@ -6,6 +6,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormPrinter;
+use MediaWiki\Html\Html;
 
 /**
  * This class represents the RegExp input.

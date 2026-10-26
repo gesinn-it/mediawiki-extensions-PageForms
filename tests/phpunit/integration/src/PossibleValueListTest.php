@@ -6,6 +6,7 @@ namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
 use MediaWiki\Extension\PageForms\PossibleValueList;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use MediaWikiIntegrationTestCase;
 
 /**
@@ -220,7 +221,7 @@ class PossibleValueListTest extends MediaWikiIntegrationTestCase {
 	public function testResolveMissingLabelUsesDisplayTitleWhenSet(): void {
 		$this->overrideConfigValue( 'RestrictDisplayTitle', false );
 
-		$title = \Title::makeTitle( NS_CATEGORY, 'PFResolveMissingLabelWithTitle' );
+		$title = Title::makeTitle( NS_CATEGORY, 'PFResolveMissingLabelWithTitle' );
 		$page = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
 		$this->editPage( $page, '{{DISPLAYTITLE:Resolved Display Title}}' );
 		\DeferredUpdates::doUpdates();

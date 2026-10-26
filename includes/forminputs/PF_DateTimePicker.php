@@ -12,6 +12,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormDateUtils;
+use MediaWiki\Html\Html;
 use MediaWiki\Widget\DateTimeInputWidget;
 
 class PFDateTimePicker extends PFFormInput {

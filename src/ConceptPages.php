@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use MWException;
 use PFUtils;
 use SMW\DIWikiPage;
@@ -14,7 +15,6 @@ use SMW\Query\Language\Description;
 use SMW\Query\Language\ValueDescription;
 use SMW\Query\PrintRequest;
 use SMWQuery;
-use Title;
 
 /**
  * The pages of a Semantic MediaWiki concept, as the values of a "values from concept" field.

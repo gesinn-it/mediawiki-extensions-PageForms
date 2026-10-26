@@ -4,7 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\FormRender;
 
-use Html;
 use MediaWiki\Extension\PageForms\CalendarHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormMarkup;
@@ -13,6 +12,7 @@ use MediaWiki\Extension\PageForms\FormRenderContext;
 use MediaWiki\Extension\PageForms\MultipleTemplateHtmlBuilder;
 use MediaWiki\Extension\PageForms\SpreadsheetHtmlBuilder;
 use MediaWiki\Extension\PageForms\TemplateInForm;
+use MediaWiki\Html\Html;
 
 /**
  * Adds the HTML of a section of the form definition to the form, around the template it

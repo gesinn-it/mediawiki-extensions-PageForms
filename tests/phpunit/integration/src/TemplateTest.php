@@ -8,9 +8,9 @@ use IDBAccessObject;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use MediaWikiIntegrationTestCase;
 use TemplateTestInjectionProbe;
-use Title;
 
 require_once __DIR__ . '/TemplateTestInjectionProbe.php';
 

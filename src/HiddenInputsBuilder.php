@@ -4,7 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use Html;
+use MediaWiki\Html\Html;
 
 /**
  * Converts a query-string-shaped array into a series of hidden <input>

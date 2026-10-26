@@ -34,6 +34,7 @@
  */
 
 use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
+use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 
 class PFFormInputParserFunction {

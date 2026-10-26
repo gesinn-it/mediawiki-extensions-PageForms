@@ -4,7 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use Title;
+use MediaWiki\Title\Title;
 
 /**
  * Static functions for handling lists of values and labels.

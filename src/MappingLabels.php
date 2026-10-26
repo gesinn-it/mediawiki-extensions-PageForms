@@ -4,9 +4,9 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Title\Title;
 use PFUtils;
 use RequestContext;
-use Title;
 
 /**
  * The labels a field shows instead of its values, for the "mapping template" and

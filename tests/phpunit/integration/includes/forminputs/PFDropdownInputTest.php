@@ -3,6 +3,7 @@
 declare( strict_types=1 );
 
 use MediaWiki\Extension\PageForms\FormCounters;
+use MediaWiki\Title\Title;
 
 /**
  * @covers \PFDropdownInput

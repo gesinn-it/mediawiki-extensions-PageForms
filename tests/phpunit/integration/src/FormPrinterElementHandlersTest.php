@@ -8,6 +8,7 @@ use MediaWiki\Extension\PageForms\FormRender\ElementHandlerException;
 use MediaWiki\Extension\PageForms\FormRender\TextHandler;
 use MediaWiki\Extension\PageForms\FormRenderContext;
 use MediaWiki\Extension\PageForms\FormRenderRequest;
+use MediaWiki\Title\Title;
 
 /**
  * @covers \MediaWiki\Extension\PageForms\FormPrinter

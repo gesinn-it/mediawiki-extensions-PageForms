@@ -4,10 +4,10 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Title\Title;
 use MessageLocalizer;
 use MWException;
 use PFUtils;
-use Title;
 
 /**
  * Finds the form that a request to the pfautoedit API edits the target page with.

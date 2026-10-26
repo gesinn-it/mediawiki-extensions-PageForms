@@ -4,8 +4,8 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Title\Title;
 use PFUtils;
-use Title;
 
 /**
  * The categories of a page, and all the categories of the wiki.

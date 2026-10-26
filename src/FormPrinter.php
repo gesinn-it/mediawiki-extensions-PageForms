@@ -6,7 +6,6 @@ namespace MediaWiki\Extension\PageForms;
 
 use EditPage;
 use FatalError;
-use Html;
 use LogEventsList;
 use LogicException;
 use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
@@ -18,7 +17,9 @@ use MediaWiki\Extension\PageForms\FormRender\FinalizedForm;
 use MediaWiki\Extension\PageForms\FormRender\PageEditabilityResolver;
 use MediaWiki\Extension\PageForms\FormRender\PageTextAssembler;
 use MediaWiki\Extension\PageForms\FormRender\SectionLayout;
+use MediaWiki\Html\Html;
 use MediaWiki\Permissions\PermissionStatus;
+use MediaWiki\Title\Title;
 use MWException;
 use OutputPage;
 use Parser;
@@ -27,7 +28,6 @@ use ParserOutput;
 use PFUtils;
 use RequestContext;
 use Sanitizer;
-use Title;
 use User;
 use WebRequest;
 

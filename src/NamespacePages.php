@@ -4,9 +4,9 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Title\Title;
 use MWException;
 use PFUtils;
-use Title;
 
 /**
  * The pages of one or more namespaces, as the values of a "values from namespace" field.

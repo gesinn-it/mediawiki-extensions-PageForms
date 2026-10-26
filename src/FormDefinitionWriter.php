@@ -4,9 +4,9 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Title\Title;
 use PFPageSection;
 use PFUtils;
-use Title;
 
 /**
  * Writes the wikitext of a form definition from the model of a form: the form itself, its

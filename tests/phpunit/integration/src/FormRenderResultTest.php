@@ -3,6 +3,7 @@
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Extension\PageForms\FormRenderResult;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use OOUI\BlankTheme;
 
 /**

@@ -7,9 +7,9 @@ namespace MediaWiki\Extension\PageForms\Tests\Integration;
 use FauxRequest;
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\StandardInputHtmlBuilder;
+use MediaWiki\Title\Title;
 use MediaWikiIntegrationTestCase;
 use OOUI\BlankTheme;
-use Title;
 
 /**
  * @covers \MediaWiki\Extension\PageForms\StandardInputHtmlBuilder

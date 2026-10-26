@@ -5,6 +5,8 @@
 
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\PossibleValueList;
+use MediaWiki\Html\Html;
+use MediaWiki\Title\Title;
 
 /**
  * @ingroup PFFormInput

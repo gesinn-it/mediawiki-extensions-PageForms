@@ -36,6 +36,8 @@ function runTestAutoLoader() {
 	return true;
 }
 
+require_once __DIR__ . '/../includes/PF_CoreAliases.php';
+
 if ( !runTestAutoLoader() ) {
 	die( 'The required test autoloader was not accessible' );
 }

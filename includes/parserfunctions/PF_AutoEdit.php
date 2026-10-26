@@ -18,6 +18,8 @@
  */
 
 use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
+use MediaWiki\Html\Html;
+use MediaWiki\Title\Title;
 
 class PFAutoEdit {
 	public static function run( Parser $parser ) {

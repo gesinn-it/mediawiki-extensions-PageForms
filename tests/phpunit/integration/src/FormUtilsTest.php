@@ -2,6 +2,7 @@
 
 use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use PHPUnit\Framework\TestCase;
 
 /**

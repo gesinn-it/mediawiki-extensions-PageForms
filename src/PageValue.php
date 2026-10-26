@@ -4,8 +4,8 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Title\Title;
 use PFUtils;
-use Title;
 
 /**
  * A single SMW page-type (_wpg) value: a page referenced by namespace and

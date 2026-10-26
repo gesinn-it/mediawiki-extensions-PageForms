@@ -4,10 +4,10 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use Html;
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormDefinition\SectionSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
+use MediaWiki\Html\Html;
 use PFPageSection;
 use PFTextAreaInput;
 use PFWikiPage;

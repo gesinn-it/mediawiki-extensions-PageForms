@@ -7,6 +7,7 @@ use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormMarkup;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 use MediaWiki\Extension\PageForms\ValuesUtils;
+use MediaWiki\Html\Html;
 
 /**
  * @ingroup PFFormInput

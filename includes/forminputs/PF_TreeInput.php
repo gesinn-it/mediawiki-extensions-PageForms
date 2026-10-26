@@ -9,6 +9,8 @@
  */
 
 use MediaWiki\Extension\PageForms\ValuesUtils;
+use MediaWiki\Html\Html;
+use MediaWiki\Title\Title;
 
 /**
  * @ingroup PFFormInput

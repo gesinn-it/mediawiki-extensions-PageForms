@@ -1,7 +1,10 @@
 <?php
 
 use MediaWiki\Extension\PageForms\Template;
+use MediaWiki\Html\Html;
+use MediaWiki\Linker\Linker;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 
 /**
  * Defines the #template_display parser function.

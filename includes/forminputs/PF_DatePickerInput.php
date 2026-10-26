@@ -13,6 +13,7 @@
 
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormDateUtils;
+use MediaWiki\Html\Html;
 use MediaWiki\Widget\DateInputWidget;
 
 class PFDatePickerInput extends PFFormInput {

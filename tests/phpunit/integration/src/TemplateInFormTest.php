@@ -6,11 +6,11 @@ namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
 use MediaWiki\Extension\PageForms\FormDefinition\TemplateSpec;
 use MediaWiki\Extension\PageForms\TemplateInForm;
+use MediaWiki\Title\Title;
 use MediaWikiIntegrationTestCase;
 use Parser;
 use ParserOptions;
 use PFUtils;
-use Title;
 
 /**
  * The parts of TemplateInForm that read a template page, use a parser or a title. The rest of the class

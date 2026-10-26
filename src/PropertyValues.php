@@ -4,11 +4,11 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Title\Title;
 use PFUtils;
 use SMW\DataValueFactory;
 use SMW\DataValues\PropertyValue;
 use SMWDIUri;
-use Title;
 
 /**
  * The values of a Semantic MediaWiki property, as the values of a field.

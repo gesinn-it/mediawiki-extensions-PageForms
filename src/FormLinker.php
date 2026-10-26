@@ -6,10 +6,10 @@ namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use PFCreatePageJob;
 use PFUtils;
 use RequestContext;
-use Title;
 use User;
 
 /**

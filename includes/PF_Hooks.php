@@ -19,7 +19,9 @@ use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWiki\Extension\PageForms\TemplateInForm;
 use MediaWiki\Extension\PageForms\ValuesUtils;
+use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 
 class PFHooks {
 
@@ -30,6 +32,8 @@ class PFHooks {
 			// Do not load Page Forms more than once.
 			return 1;
 		}
+
+		require_once __DIR__ . '/PF_CoreAliases.php';
 
 		define( 'PF_VERSION', ExtensionRegistry::getInstance()->getAllThings()['PageForms']['version'] );
 

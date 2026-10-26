@@ -5,7 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\MediaWikiServices;
-use Title;
+use MediaWiki\Title\Title;
 
 /**
  * The display titles ("DISPLAYTITLE") of the pages that are offered as values of a field.

@@ -7,6 +7,8 @@
  */
 
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
+use MediaWiki\Html\Html;
+use MediaWiki\Title\Title;
 
 /**
  * @ingroup PFSpecialPages

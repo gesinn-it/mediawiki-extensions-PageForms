@@ -4,9 +4,9 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
+use MediaWiki\Title\Title;
 use MessageLocalizer;
 use MWException;
-use Title;
 
 /**
  * Replaces the "unique number" tag of the name of a page to create ("Thing_{num}") with a number

@@ -7,6 +7,8 @@
  */
 
 use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
+use MediaWiki\Html\Html;
+use MediaWiki\Title\Title;
 
 class PFAutoEditRating {
 	public static function run( Parser $parser ) {

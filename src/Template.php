@@ -7,9 +7,9 @@ namespace MediaWiki\Extension\PageForms;
 use MediaWiki\Extension\PageForms\TemplateText\TemplateFieldParser;
 use MediaWiki\Extension\PageForms\TemplateText\TemplateWikitextWriter;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use PFUtils;
 use StringUtils;
-use Title;
 
 /**
  * Defines a class, Template, that represents a MediaWiki "infobox"

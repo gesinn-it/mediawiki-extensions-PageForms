@@ -5,6 +5,7 @@
 
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormMarkup;
+use MediaWiki\Html\Html;
 
 /**
  * @ingroup PFFormInput

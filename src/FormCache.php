@@ -9,6 +9,7 @@ use MediaWiki\Extension\PageForms\FormDefinition\FormDefinition;
 use MediaWiki\Extension\PageForms\FormDefinition\FormDefinitionReader;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RenderedRevision;
+use MediaWiki\Title\Title;
 use ObjectCache;
 use Parser;
 use ParserOptions;
@@ -16,7 +17,6 @@ use ParserOutput;
 use PFUtils;
 use RequestContext;
 use StringUtils;
-use Title;
 use WikiPage;
 
 /**

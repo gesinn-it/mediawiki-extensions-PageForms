@@ -5,9 +5,9 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
+use MediaWiki\Title\Title;
 use Parser;
 use PFWikiPage;
-use Title;
 
 /**
  * State of a single FormPrinter::render() call.

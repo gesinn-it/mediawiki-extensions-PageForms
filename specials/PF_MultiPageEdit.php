@@ -13,7 +13,9 @@
 
 use MediaWiki\Extension\PageForms\SpreadsheetGlobals;
 use MediaWiki\Extension\PageForms\Template;
+use MediaWiki\Html\Html;
 use MediaWiki\Revision\RevisionRecord;
+use MediaWiki\Title\Title;
 
 /**
  * @ingroup PFSpecialPages
