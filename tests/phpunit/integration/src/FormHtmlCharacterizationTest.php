@@ -535,7 +535,8 @@ class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 		);
 		// MediaWiki 1.45 wraps a heading in a div and no longer puts its text in a "mw-headline" span.
 		$text = preg_replace(
-			'#<div class="mw-heading mw-heading(\d)"><h\1 id="([^"]*)">(.*?)</h\1>(<span class="mw-editsection"></span>)</div>#',
+			'#<div class="mw-heading mw-heading(\d)"><h\1 id="([^"]*)">(.*?)</h\1>' .
+				'(<span class="mw-editsection"></span>)</div>#',
 			'<h$1><span class="mw-headline" id="$2">$3</span>$4</h$1>',
 			$text
 		);
