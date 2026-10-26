@@ -89,6 +89,22 @@ class PFUtils {
 	}
 
 	/**
+	 * The HTML of a parse result, wrapped in the "mw-parser-output" div like ParserOutput::getText()
+	 * returned it. getText() does not exist any more in MediaWiki 1.46, and its replacement
+	 * getRawText() does not add the wrapper.
+	 *
+	 * @param ParserOutput $output
+	 * @param ParserOptions $options
+	 * @return string
+	 */
+	public static function getParserOutputHtml( ParserOutput $output, ParserOptions $options ): string {
+		if ( method_exists( $output, 'runOutputPipeline' ) ) {
+			return $output->runOutputPipeline( $options, [] )->getContentHolderText();
+		}
+		return $output->getText();
+	}
+
+	/**
 	 * Ensures a Parser is safe to use for a recursiveTagParse()/replaceVariables()-style
 	 * call that must expand "{{...}}" constructs (templates, parser functions, magic
 	 * words) into HTML - e.g. resolving a 'mapping template=' or 'function=' field value.

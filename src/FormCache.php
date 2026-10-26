@@ -162,7 +162,7 @@ class FormCache {
 			$title,
 			static fn (): ParserOutput => $parser->parse( $form_def, $title, $options, true, false )
 		);
-		$form_def = version_compare( MW_VERSION, '1.42', '>=' ) ? $output->getRawText() : $output->getText();
+		$form_def = PFUtils::getParserOutputHtml( $output, $options );
 		$form_def = preg_replace_callback(
 			"/{$rnd}-item-(\d+)-{$rnd}/",
 			static function ( array $matches ) use ( $items ) {
