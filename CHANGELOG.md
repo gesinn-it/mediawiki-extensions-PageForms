@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ### Fixed
 - Page Forms works with MediaWiki 1.46: saving forms through the autoedit API, categories as the source of values and in tree inputs, uploads from the upload window and the caching of form definitions no longer fail.
+- The modules that a parser function or tag in a form definition asks for (for example the slideshow of a `<gallery>`) are loaded again when the form is shown after a preview or a failed save, not only the first time it is shown.
 
 ## [2.4.0] - 2026-10-20
 
