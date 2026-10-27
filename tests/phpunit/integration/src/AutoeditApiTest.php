@@ -1033,6 +1033,38 @@ class AutoeditApiTest extends ApiTestCase {
 	}
 
 	/**
+	 * The form is shown again after a preview and a failed save (and a diff), so the modules that the
+	 * parser functions and tags of the form definition ask for must reach the page then, too, not
+	 * only when the form is shown for the first time. The slideshow gallery is one that asks for a
+	 * module.
+	 *
+	 * @dataProvider provideFormModulesCases
+	 * @covers \MediaWiki\Extension\PageForms\AutoeditApi::doAction
+	 */
+	public function testModulesOfTheFormDefinitionReachThePage( array $extraOptions ): void {
+		static $counter = 0;
+		$counter++;
+		$formName = "AEModulesForm$counter";
+		$this->insertPage(
+			Title::makeTitle( PF_NS_FORM, $formName ),
+			"<gallery mode=\"slideshow\">\nFile:AEModules.png|x\n</gallery>\n"
+			. "{{{for template|AEModulesTpl}}}\n{{{field|text}}}\n{{{end template}}}\n"
+			. "{{{standard input|save}}} {{{standard input|preview}}} {{{standard input|changes}}}"
+		);
+
+		$module = $this->executeStore( $formName, "AEModulesTarget$counter", $extraOptions );
+
+		$this->assertContains( 'mediawiki.page.gallery.slideshow', $module->getOutput()->getModules() );
+	}
+
+	public static function provideFormModulesCases(): array {
+		return [
+			'preview' => [ [ 'wpSave' => null, 'wpPreview' => '1' ] ],
+			'failed save' => [ [ 'wpEditToken' => 'invalid' ] ],
+		];
+	}
+
+	/**
 	 * A user without 'edit' rights must be blocked from saving: doStore()
 	 * logs the permission errors via logMessage() (default ERROR level) and
 	 * returns early, without throwing. This must surface as status 400.

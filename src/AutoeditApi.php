@@ -908,14 +908,15 @@ class AutoeditApi extends ApiBase {
 
 		$this->mOptions['formHTML'] = $formHTML;
 
+		// Whatever the action, the form HTML ends up on the page (also after a preview, a diff or
+		// a failed save), so the modules its parser output asks for are needed.
+		if ( $formParserOutput !== null ) {
+			$this->getOutput()->addParserOutputMetadata( $formParserOutput );
+		}
+
 		if ( $isFormSubmitted ) {
 			$this->performSubmittedAction( $generatedTargetNameFormula, $targetContent );
 		} elseif ( $this->mAction === self::ACTION_FORMEDIT ) {
-			$out = $this->getOutput();
-			if ( $formParserOutput !== null ) {
-				$out->addParserOutputMetadata( $formParserOutput );
-			}
-
 			$this->getResult()->addValue( [ 'form' ], 'HTML', $formHTML );
 		}
 	}
