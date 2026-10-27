@@ -1033,7 +1033,7 @@ class AutoeditApiTest extends ApiTestCase {
 	}
 
 	/**
-	 * The form is shown again after a preview and a failed save (and a diff), so the modules that the
+	 * The form is shown again after a preview, a diff and a failed save, so the modules that the
 	 * parser functions and tags of the form definition ask for must reach the page then, too, not
 	 * only when the form is shown for the first time. The slideshow gallery is one that asks for a
 	 * module.
@@ -1052,6 +1052,14 @@ class AutoeditApiTest extends ApiTestCase {
 			. "{{{standard input|save}}} {{{standard input|preview}}} {{{standard input|changes}}}"
 		);
 
+		// The API context of the test has no title, which a preview and a diff write to the output page
+		// with (as Special:FormEdit has one); extensions such as DisplayTitle expect it.
+		$this->setTemporaryHook( 'BeforePageDisplay', static function ( $out ) {
+			if ( $out->getTitle() === null ) {
+				$out->getContext()->setTitle( Title::makeTitle( NS_SPECIAL, 'FormEdit' ) );
+			}
+		} );
+
 		$module = $this->executeStore( $formName, "AEModulesTarget$counter", $extraOptions );
 
 		$this->assertContains( 'mediawiki.page.gallery.slideshow', $module->getOutput()->getModules() );
@@ -1060,6 +1068,7 @@ class AutoeditApiTest extends ApiTestCase {
 	public static function provideFormModulesCases(): array {
 		return [
 			'preview' => [ [ 'wpSave' => null, 'wpPreview' => '1' ] ],
+			'diff' => [ [ 'wpSave' => null, 'wpDiff' => '1' ] ],
 			'failed save' => [ [ 'wpEditToken' => 'invalid' ] ],
 		];
 	}
