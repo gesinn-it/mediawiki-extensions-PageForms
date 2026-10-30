@@ -29,6 +29,9 @@ COMPOSER_EXT?=true
 # Enables node.js related tests and "npm install"
 NODE_JS?=true
 
+# coverage: PCOV is several times faster than Xdebug (line coverage only)
+COVERAGE_DRIVER?=pcov
+
 # check for build dir and git submodule init if it does not exist
 include build/Makefile
 
@@ -81,17 +84,17 @@ ci-coverage-quick: install composer-test-coverage-quick npm-test-coverage
 ci-coverage-jsonscript: install composer-test-coverage-jsonscript
 
 .PHONY: composer-test-coverage-quick
-composer-test-coverage-quick: .init
+composer-test-coverage-quick: .init .coverage-driver
 ifdef COMPOSER_EXT
 	$(show-current-target)
-	$(compose-exec-wiki-ci) bash -c "cd $(EXTENSION_FOLDER) && composer analyze && PF_COVERAGE_SUITES='unit integration-quick' composer phpunit-coverage $(COMPOSER_PARAMS) && composer post-test-coverage > /dev/null 2>&1 || true"
+	$(compose-exec-wiki-coverage) bash -c "cd $(EXTENSION_FOLDER) && composer analyze && PF_COVERAGE_SUITES='unit integration-quick' composer phpunit-coverage $(COMPOSER_PARAMS) && composer post-test-coverage > /dev/null 2>&1 || true"
 endif
 
 .PHONY: composer-test-coverage-jsonscript
-composer-test-coverage-jsonscript: .init
+composer-test-coverage-jsonscript: .init .coverage-driver
 ifdef COMPOSER_EXT
 	$(show-current-target)
-	$(compose-exec-wiki-ci) bash -c "cd $(EXTENSION_FOLDER) && PF_COVERAGE_SUITES=jsonscript composer phpunit-coverage $(COMPOSER_PARAMS) && composer post-test-coverage > /dev/null 2>&1 || true"
+	$(compose-exec-wiki-coverage) bash -c "cd $(EXTENSION_FOLDER) && PF_COVERAGE_SUITES=jsonscript composer phpunit-coverage $(COMPOSER_PARAMS) && composer post-test-coverage > /dev/null 2>&1 || true"
 endif
 
 # PHP development cycle: lint (full) + phpunit
