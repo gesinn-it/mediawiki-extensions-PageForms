@@ -19,4 +19,20 @@ class FormAssetsTest extends MediaWikiIntegrationTestCase {
 		$this->assertContains( 'ext.pageforms.main.styles', $output->getModuleStyles() );
 	}
 
+	public function testAddFormRLModulesAddsModulesFromTheAddRLModulesHook(): void {
+		$this->setTemporaryHook(
+			'PageForms::AddRLModules',
+			static function ( array &$modules ) {
+				$modules[] = 'ext.pageforms.test.hookmodule';
+			}
+		);
+		$parser = $this->getServiceContainer()->getParserFactory()->create();
+		$parser->setOptions( ParserOptions::newFromAnon() );
+		$parser->clearState();
+
+		FormAssets::addFormRLModules( $parser );
+
+		$this->assertContains( 'ext.pageforms.test.hookmodule', $parser->getOutput()->getModules() );
+	}
+
 }
