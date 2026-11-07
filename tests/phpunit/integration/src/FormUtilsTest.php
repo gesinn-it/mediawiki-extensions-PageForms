@@ -3,14 +3,13 @@
 use MediaWiki\Extension\PageForms\FormUtils;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
-use PHPUnit\Framework\TestCase;
 
 /**
  * The deprecated forwards of FormUtils.
  *
  * @group PF
  */
-class FormUtilsTest extends TestCase {
+class FormUtilsTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * Setup method for each test.
@@ -26,6 +25,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::getPreloadedText
 	 */
 	public function testGetPreloadedTextForwardsToFormCache() {
+		$this->hideDeprecated( FormUtils::class . '::getPreloadedText' );
 		$this->assertSame( '', FormUtils::getPreloadedText( '' ) );
 	}
 
@@ -33,6 +33,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::purgeCache
 	 */
 	public function testPurgeCacheForwardsToFormCache() {
+		$this->hideDeprecated( FormUtils::class . '::purgeCache' );
 		$title = Title::newFromText( 'PFTestFormUtilsPurgeCachePage01', NS_MAIN );
 		$wikiPage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
 
@@ -45,6 +46,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::purgeCacheOnSave
 	 */
 	public function testPurgeCacheOnSaveForwardsToFormCache() {
+		$this->hideDeprecated( FormUtils::class . '::purgeCacheOnSave' );
 		$revisionRecord = $this->createMock( MediaWiki\Revision\RevisionRecord::class );
 		$revisionRecord->method( 'getPageId' )->willReturn( 0 );
 
@@ -60,6 +62,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::getFormCache
 	 */
 	public function testGetFormCacheForwardsToFormCache() {
+		$this->hideDeprecated( FormUtils::class . '::getFormCache' );
 		$cache = FormUtils::getFormCache();
 		$this->assertInstanceOf( BagOStuff::class, $cache );
 	}
@@ -68,6 +71,7 @@ class FormUtilsTest extends TestCase {
 	 * @covers \MediaWiki\Extension\PageForms\FormUtils::getCacheKey
 	 */
 	public function testGetCacheKeyForwardsToFormCache() {
+		$this->hideDeprecated( FormUtils::class . '::getCacheKey' );
 		$key = FormUtils::getCacheKey( 42 );
 		$this->assertIsString( $key );
 		$this->assertStringContainsString( '42', $key );
