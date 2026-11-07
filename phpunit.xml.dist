@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- convertDeprecationsToExceptions: a deprecation raised by our own code (or by PHP, e.g. 8.1+ autovivification
+     of false) fails the test instead of staying invisible. Do not silence one here: fix the caller, or, for a
+     deprecation of a dependency that cannot be fixed yet, expect it in the test with a comment that names the
+     condition for removing the expectation. -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
          backupGlobals="false"
          bootstrap="tests/bootstrap.php"
          colors="true"
+         convertDeprecationsToExceptions="true"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
