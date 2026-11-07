@@ -32,6 +32,19 @@ class PFMultiPageEditTest extends SpecialPageTestBase {
 		return MediaWikiServices::getInstance()->getSpecialPageFactory()->getPage( 'MultiPageEdit' );
 	}
 
+	public function testRestrictionIsTheMultipageeditPermission() {
+		$this->setMwGlobals( 'wgGroupPermissions', [
+			'*' => [ 'multipageedit' => false ],
+			'user' => [ 'multipageedit' => true ]
+		] );
+		$page = $this->newSpecialPage();
+
+		$this->assertSame( 'multipageedit', $page->getRestriction() );
+		$this->assertTrue( $page->isRestricted() );
+		$this->assertFalse( $page->userCanExecute( $this->getServiceContainer()->getUserFactory()->newAnonymous() ) );
+		$this->assertTrue( $page->userCanExecute( $this->getTestUser()->getUser() ) );
+	}
+
 	public function testExecuteWithTemplateAndForm() {
 		$request = new FauxRequest( [ 'template' => 'TestTemplate', 'form' => 'TestForm' ] );
 

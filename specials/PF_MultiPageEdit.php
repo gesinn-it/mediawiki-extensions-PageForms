@@ -12,6 +12,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormTagParser;
+use MediaWiki\Extension\PageForms\SpecialPageRestriction;
 use MediaWiki\Extension\PageForms\SpreadsheetGlobals;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\WikiAccess;
@@ -40,7 +41,19 @@ class PFMultiPageEdit extends QueryPage {
 	private $mTemplatesUsed = [];
 
 	public function __construct() {
-		parent::__construct( 'MultiPageEdit', 'multipageedit' );
+		if ( SpecialPageRestriction::isSetByConstructor() ) {
+			parent::__construct( 'MultiPageEdit', 'multipageedit' );
+		} else {
+			parent::__construct( 'MultiPageEdit' );
+		}
+	}
+
+	/**
+	 * The permission that MediaWiki 1.46 and later read; see SpecialPageRestriction for the earlier ones.
+	 * @return string
+	 */
+	public function getRestriction(): string {
+		return 'multipageedit';
 	}
 
 	public function execute( $query ) {

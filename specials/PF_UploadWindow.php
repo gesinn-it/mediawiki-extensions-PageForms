@@ -9,6 +9,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\SpecialPageRestriction;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
@@ -23,8 +24,20 @@ class PFUploadWindow extends UnlistedSpecialPage {
 	 * @param WebRequest|null $request Data posted.
 	 */
 	public function __construct( $request = null ) {
-		parent::__construct( 'UploadWindow', 'upload' );
+		if ( SpecialPageRestriction::isSetByConstructor() ) {
+			parent::__construct( 'UploadWindow', 'upload' );
+		} else {
+			parent::__construct( 'UploadWindow' );
+		}
 		$this->loadRequest( $request instanceof WebRequest ? $request : $this->getRequest() );
+	}
+
+	/**
+	 * The permission that MediaWiki 1.46 and later read; see SpecialPageRestriction for the earlier ones.
+	 * @return string
+	 */
+	public function getRestriction(): string {
+		return 'upload';
 	}
 
 	/** Misc variables */

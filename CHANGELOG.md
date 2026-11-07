@@ -14,7 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ### Fixed
 - Storing a form definition in the cache for the first time no longer raises a PHP deprecation notice ("Automatic conversion of false to array") on PHP 8.1 and later ([#262](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/262))
 - A handler of the `PageForms::AddRLModules` hook that adds a single module name no longer causes an error when a form is shown ([#278](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/278))
-- Page Forms works with MediaWiki 1.46: saving forms through the autoedit API, categories as the source of values and in tree inputs, uploads from the upload window and the caching of form definitions no longer fail.
+- Page Forms works with MediaWiki 1.46: saving forms through the autoedit API, categories as the source of values and in tree inputs, uploads from the upload window and the caching of form definitions no longer fail, and the upload window and the multi-page editor no longer use constructor parameters that MediaWiki 1.46 deprecated. The permissions they need are unchanged ([#262](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/262)).
 - The modules that a parser function or tag in a form definition asks for (for example the slideshow of a `<gallery>`) are loaded again when the form is shown after a preview or a failed save, not only the first time it is shown.
 
 ## [2.4.0] - 2026-10-20

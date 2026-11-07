@@ -27,6 +27,19 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 	 *
 	 * Regression test for: "Call to a member function isDeleted() on null"
 	 */
+	public function testRestrictionIsTheUploadPermission() {
+		$this->setMwGlobals( 'wgGroupPermissions', [
+			'*' => [ 'upload' => false ],
+			'user' => [ 'upload' => true ]
+		] );
+		$page = $this->newSpecialPage();
+
+		$this->assertSame( 'upload', $page->getRestriction() );
+		$this->assertTrue( $page->isRestricted() );
+		$this->assertFalse( $page->userCanExecute( $this->getServiceContainer()->getUserFactory()->newAnonymous() ) );
+		$this->assertTrue( $page->userCanExecute( $this->getTestUser()->getUser() ) );
+	}
+
 	public function testShowViewDeletedLinksDoesNotCrashOnEmptyDestName() {
 		/** @var PFUploadWindow $page */
 		$page = $this->newSpecialPage();
