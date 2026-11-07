@@ -1393,14 +1393,12 @@ class AutoeditApiTest extends ApiTestCase {
 		$testUser = $this->getMutableTestUser();
 		$user = $testUser->getUser();
 
-		$block = new \MediaWiki\Block\DatabaseBlock( [
-			'by' => $user,
-			'reason' => 'AEStoreBlockTest',
-			'expiry' => 'infinity',
-		] );
-		$block->setTarget( $user );
-		$blockStore = \MediaWiki\MediaWikiServices::getInstance()->getDatabaseBlockStore();
-		$blockStore->insertBlock( $block );
+		$services = $this->getServiceContainer();
+		$blocker = $this->getTestSysop()->getAuthority();
+		$status = $services->getBlockUserFactory()
+			->newBlockUser( $user, $blocker, 'infinity', 'AEStoreBlockTest' )
+			->placeBlock();
+		$this->assertStatusGood( $status );
 
 		try {
 			$formName = $this->createTestForm( 'AEStoreFormBlockedUser' );
@@ -1417,7 +1415,9 @@ class AutoeditApiTest extends ApiTestCase {
 			$title = Title::newFromText( $targetName );
 			$this->assertFalse( $title->exists(), 'Page must not have been created for a blocked user' );
 		} finally {
-			$blockStore->deleteBlock( $block );
+			$services->getUnblockUserFactory()
+				->newUnblockUser( $user, $blocker, 'AEStoreBlockTest done' )
+				->unblock();
 		}
 	}
 
