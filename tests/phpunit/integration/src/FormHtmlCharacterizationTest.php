@@ -30,6 +30,8 @@ use OOUI\BlankTheme;
  */
 class FormHtmlCharacterizationTest extends MediaWikiIntegrationTestCase {
 
+	use \HidesLinkHolderDeprecation;
+
 	private const GOLDEN_DIR = __DIR__ . '/../golden/formhtml';
 
 	protected function setUp(): void {

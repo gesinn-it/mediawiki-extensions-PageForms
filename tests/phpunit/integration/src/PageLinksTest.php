@@ -44,7 +44,10 @@ class PageLinksTest extends MediaWikiIntegrationTestCase {
 		// getDescription() so it contains HTML metacharacters.
 		$this->setUserLang( 'en' );
 		$this->overrideConfigValue( 'UseDatabaseMessages', true );
-		$this->tablesUsed[] = 'page';
+		// MediaWiki 1.46 tracks the tables a test changes itself and no longer declares the property.
+		if ( property_exists( $this, 'tablesUsed' ) ) {
+			$this->tablesUsed[] = 'page';
+		}
 		$this->insertPage( 'MediaWiki:Version', 'Version & <Info> "quoted" \'stuff\'' );
 		$this->getServiceContainer()->getMessageCache()->clear();
 

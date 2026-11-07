@@ -5,7 +5,9 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
 use MediaWiki\Extension\PageForms\FormDefParser;
+use MediaWiki\Title\Title;
 use MediaWikiIntegrationTestCase;
+use RequestContext;
 
 /**
  * @covers \MediaWiki\Extension\PageForms\FormDefParser
@@ -17,6 +19,9 @@ class FormDefParserTest extends MediaWikiIntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
+		// A parser without a title is deprecated since MediaWiki 1.34 and reports so since 1.46: FormDefParser
+		// takes the title from the request context.
+		RequestContext::getMain()->setTitle( Title::makeTitle( NS_MAIN, 'PFTestFormDefParserContext' ) );
 		$this->parser = new FormDefParser(
 			$this->getServiceContainer()->getParserFactory()
 		);

@@ -28,6 +28,8 @@ $GLOBALS['wgExtraNamespaces'][TEST_NAMESPACE] = 'Test_Namespace';
  */
 class JsonTestCaseScriptRunnerTest extends JSONScriptTestCaseRunnerTest {
 
+	use \HidesLinkHolderDeprecation;
+
 	protected function setUp(): void {
 		parent::setUp();
 

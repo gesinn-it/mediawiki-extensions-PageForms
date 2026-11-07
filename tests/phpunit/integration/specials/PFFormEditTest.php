@@ -15,11 +15,15 @@ use MediaWiki\Title\Title;
 class PFFormEditTest extends SpecialPageTestBase {
 
 	use IntegrationTestHelpers;
+	use \HidesLinkHolderDeprecation;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->requireLanguageCodeEn();
-		$this->tablesUsed[] = 'page';
+		// MediaWiki 1.46 tracks the tables a test changes itself and no longer declares the property.
+		if ( property_exists( $this, 'tablesUsed' ) ) {
+			$this->tablesUsed[] = 'page';
+		}
 	}
 
 	/**

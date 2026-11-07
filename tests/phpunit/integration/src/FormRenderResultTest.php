@@ -14,6 +14,8 @@ use OOUI\BlankTheme;
  */
 class FormRenderResultTest extends MediaWikiIntegrationTestCase {
 
+	use \HidesLinkHolderDeprecation;
+
 	protected function setUp(): void {
 		\OOUI\Theme::setSingleton( new BlankTheme() );
 		MediaWikiServices::getInstance()->getHookContainer()->register(
