@@ -46,6 +46,9 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 		$wgPageFormsFormPrinter = FormPrinterFactory::create();
 
 		parent::setUp();
+		// A parser without a title is deprecated since MediaWiki 1.34 and reports so since 1.46: FormDefParser
+		// takes the title from the request context.
+		RequestContext::getMain()->setTitle( Title::makeTitle( NS_MAIN, 'PFTestFormPrinterContext' ) );
 	}
 
 	// Tests for page sections in the formHTML() method

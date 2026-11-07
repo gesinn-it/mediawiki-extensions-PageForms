@@ -1275,8 +1275,8 @@ class AutoeditApiTest extends ApiTestCase {
 
 		$this->assertSame( 200, $module->getStatus() );
 		$result = $module->getResult()->getResultData();
-		$this->assertArrayHasKey( 'redirect', $result );
-		$this->assertArrayNotHasKey( 'errors', $result );
+		$this->assertArrayNotHasKey( 'errors', $result, json_encode( $result ) );
+		$this->assertArrayHasKey( 'redirect', $result, json_encode( $result ) );
 
 		$title = Title::newFromText( $targetName );
 		$page = WikiAccess::newWikiPageFromTitle( $title );
@@ -1394,7 +1394,6 @@ class AutoeditApiTest extends ApiTestCase {
 		$user = $testUser->getUser();
 
 		$block = new \MediaWiki\Block\DatabaseBlock( [
-			'address' => $user->getName(),
 			'by' => $user,
 			'reason' => 'AEStoreBlockTest',
 			'expiry' => 'infinity',
