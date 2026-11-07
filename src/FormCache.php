@@ -235,6 +235,10 @@ class FormCache {
 
 		// Update list of form definitions
 		$listOfFormKeys = $cache->get( $cacheKeyForList );
+		// A cache miss returns false, which must not be used as an array.
+		if ( !is_array( $listOfFormKeys ) ) {
+			$listOfFormKeys = [];
+		}
 		// The list of values is used by self::purgeCache; keys are ignored.
 		// This way we automatically override duplicates.
 		$listOfFormKeys[$cacheKeyForForm] = $cacheKeyForForm;
