@@ -18,6 +18,7 @@
 		'Linker' => 'MediaWiki\\Linker\\Linker',
 		'TemplateParser' => 'MediaWiki\\Html\\TemplateParser',
 		'Title' => 'MediaWiki\\Title\\Title',
+		'WebRequest' => 'MediaWiki\\Request\\WebRequest',
 	] as $legacyName => $namespacedName ) {
 		if ( !class_exists( $namespacedName ) && class_exists( $legacyName ) ) {
 			class_alias( $legacyName, $namespacedName );
