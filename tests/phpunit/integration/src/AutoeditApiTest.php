@@ -1269,22 +1269,28 @@ class AutoeditApiTest extends ApiTestCase {
 
 		$this->insertPage( $targetName, '{{AEStoreTpl|text=old value}}' );
 
-		$traces = []; // DIAGNOSTIC-TEMP
-		set_error_handler( static function ( $no, $str ) use ( &$traces ) { // DIAGNOSTIC-TEMP
-			$traces[] = $str . "\n" . ( new \Exception() )->getTraceAsString(); // DIAGNOSTIC-TEMP
-			return false; // DIAGNOSTIC-TEMP
-		}, E_USER_DEPRECATED ); // DIAGNOSTIC-TEMP
-		try { // DIAGNOSTIC-TEMP
+		$traces = [];
+		set_error_handler(
+			static function ( $no, $str ) use ( &$traces ) {
+				$traces[] = $str . "\n" . ( new \Exception() )->getTraceAsString();
+				return false;
+			},
+			E_USER_DEPRECATED
+		);
+		try {
 			$module = $this->executeStore( $formName, $targetName, [
-			'AEStoreTpl' => [ 'text' => 'new value' ],
-		] );
-		} finally { restore_error_handler(); } // DIAGNOSTIC-TEMP
-		fwrite( STDERR, "\nDIAGTRACE\n" . implode( "\n--\n", $traces ) . "\nENDDIAG\n" ); // DIAGNOSTIC-TEMP
+				'AEStoreTpl' => [ 'text' => 'new value' ],
+			] );
+		} finally {
+			restore_error_handler();
+		}
+		fwrite( STDERR, "\nDIAGTRACE\n" . implode( "\n--\n", $traces ) . "\nENDDIAG\n" );
 
 		$this->assertSame( 200, $module->getStatus() );
 		$result = $module->getResult()->getResultData();
-		$this->assertArrayNotHasKey( 'errors', $result, json_encode( $result ) );
-		$this->assertArrayHasKey( 'redirect', $result, json_encode( $result ) );
+		$details = json_encode( $result ) . "\nTRACES:\n" . implode( "\n--\n", $traces );
+		$this->assertArrayNotHasKey( 'errors', $result, $details );
+		$this->assertArrayHasKey( 'redirect', $result, $details );
 
 		$title = Title::newFromText( $targetName );
 		$page = WikiAccess::newWikiPageFromTitle( $title );
