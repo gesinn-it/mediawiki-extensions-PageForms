@@ -18,8 +18,6 @@ use Wikimedia\Timestamp\ConvertibleTimestamp;
  */
 class AutoeditApiTest extends ApiTestCase {
 
-	use \HidesLinkHolderDeprecation;
-
 	protected function setUp(): void {
 		parent::setUp();
 		\OOUI\Theme::setSingleton( new BlankTheme() );

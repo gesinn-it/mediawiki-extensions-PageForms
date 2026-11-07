@@ -16,8 +16,6 @@ use OOUI\BlankTheme;
  */
 class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
-	use \HidesLinkHolderDeprecation;
-
 	/**
 	 * Set up the environment
 	 */

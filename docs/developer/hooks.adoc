@@ -745,7 +745,7 @@ class MyHookHandler {
 
 == PageForms::RenderingEnd
 
-Called after the complete form HTML has been assembled, just before it is returned to the caller. The hook fires once per form render, after the closing `</form>` tag has been appended and after `Parser::replaceLinkHolders()` has been run on the output. It allows extensions to inspect or modify the final form HTML string.
+Called after the complete form HTML has been assembled, just before it is returned to the caller. The hook fires once per form render, after the closing `</form>` tag has been appended. It allows extensions to inspect or modify the final form HTML string.
 
 === Parameters
 
@@ -759,7 +759,6 @@ Fired in `src/FormPrinter.php`, inside `FormPrinter::render()`, immediately afte
 [source,php]
 ----
 $form_text .= "\t</form>\n";
-$parser->replaceLinkHolders( $form_text );
 MediaWikiServices::getInstance()->getHookContainer()->run( 'PageForms::RenderingEnd', [ &$form_text ] );
 ----
 

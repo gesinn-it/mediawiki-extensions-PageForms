@@ -535,7 +535,6 @@ class FormPrinter {
 		$form_text .= $this->hiddenEditInputsHtml( $context );
 		$form_text .= "\t</form>\n";
 
-		$context->parser->replaceLinkHolders( $form_text );
 		$this->services->hookContainer()->run( 'PageForms::RenderingEnd', [ &$form_text ] );
 
 		$parserOutput = $this->finalParserOutput( $context );

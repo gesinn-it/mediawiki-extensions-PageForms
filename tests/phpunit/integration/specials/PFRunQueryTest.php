@@ -15,8 +15,6 @@ use MediaWiki\Title\Title;
  */
 class PFRunQueryTest extends SpecialPageTestBase {
 
-	use \HidesLinkHolderDeprecation;
-
 	protected function setUp(): void {
 		parent::setUp();
 

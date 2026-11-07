@@ -13,8 +13,6 @@ use MediaWiki\Title\Title;
  */
 class EditHooksTest extends MediaWikiIntegrationTestCase {
 
-	use \HidesLinkHolderDeprecation;
-
 	/**
 	 * Set up environment
 	 */

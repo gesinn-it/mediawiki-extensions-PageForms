@@ -15,7 +15,6 @@ use MediaWiki\Title\Title;
 class PFFormEditTest extends SpecialPageTestBase {
 
 	use IntegrationTestHelpers;
-	use \HidesLinkHolderDeprecation;
 
 	public function setUp(): void {
 		parent::setUp();

@@ -44,7 +44,12 @@ class StandardInputHtmlBuilder {
 			if ( count( $subComponents ) == 2 ) {
 				switch ( $subComponents[0] ) {
 					case 'label':
-						$inputLabel = $parser->recursiveTagParse( $subComponents[1] );
+						// Fully, so that the placeholders of the links in the label are replaced: the label
+						// goes into the HTML of the form as it is. Without the paragraph that comes with it,
+						// as the label is part of a line.
+						$inputLabel = Parser::stripOuterParagraph(
+							$parser->recursiveTagParseFully( $subComponents[1] )
+						);
 						break;
 					case 'class':
 						$attr['class'] = $subComponents[1];
