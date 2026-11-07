@@ -51,9 +51,13 @@ class StandardInputHtmlBuilderTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertStringNotContainsString( '<!--LINK', $html );
 		$this->assertStringNotContainsString( '<p>', $html );
-		$this->assertMatchesRegularExpression(
-			'/<a [^>]*href="[^"]*PFTestStandardInputLabelLink[^"]*"[^>]*>PFTestStandardInputLabelLink<\/a>/',
-			$html
+		// preg_match() rather than assertMatchesRegularExpression(), which the PHPUnit of MediaWiki 1.39 lacks.
+		$this->assertSame(
+			1,
+			preg_match(
+				'/<a [^>]*href="[^"]*PFTestStandardInputLabelLink[^"]*"[^>]*>PFTestStandardInputLabelLink<\/a>/',
+				$html
+			)
 		);
 	}
 
