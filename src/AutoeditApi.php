@@ -140,7 +140,7 @@ class AutoeditApi extends ApiBase {
 		$this->prepareAction();
 		$this->getOutput()->enableOOUI();
 
-		if ( PFUtils::ignoreFormName( $this->mOptions['form'] ) ) {
+		if ( FormNamespaces::ignoreFormName( $this->mOptions['form'] ) ) {
 			$this->logMessage( $this->msg( 'pf_autoedit_invalidform', $this->mOptions['form'] )->parse() );
 			return;
 		}

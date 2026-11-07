@@ -302,7 +302,7 @@ class TemplateField {
 	}
 
 	public function setNamespace( $namespace ) {
-		$this->mNSText = PFUtils::getCanonicalName( $namespace );
+		$this->mNSText = FormNamespaces::getCanonicalName( $namespace );
 		$this->mNamespace = $namespace;
 	}
 
@@ -317,7 +317,7 @@ class TemplateField {
 		$this->mFieldType = $fieldType;
 
 		if ( $fieldType == 'File' ) {
-			$this->mNSText = PFUtils::getCanonicalName( NS_FILE );
+			$this->mNSText = FormNamespaces::getCanonicalName( NS_FILE );
 			$this->mNamespace = NS_FILE;
 		}
 	}

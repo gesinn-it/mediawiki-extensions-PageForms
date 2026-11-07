@@ -6,6 +6,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormNamespaces;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Html\Html;
 use MediaWiki\Title\Title;
@@ -38,7 +39,7 @@ class PFRunQuery extends IncludableSpecialPage {
 		$req = $this->getRequest();
 		$user = $this->getUser();
 
-		if ( PFUtils::ignoreFormName( $form_name ) ) {
+		if ( FormNamespaces::ignoreFormName( $form_name ) ) {
 			$text = Html::rawElement( 'p', [ 'class' => 'error' ],
 				$this->msg( 'pf_autoedit_invalidform', PFUtils::linkText( PF_NS_FORM, $form_name ) )->parse() ) . "\n";
 			$out->addHTML( $text );

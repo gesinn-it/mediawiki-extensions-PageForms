@@ -196,7 +196,7 @@ class PFUtils {
 		if ( $namespace !== '' ) {
 			$namespace .= ':';
 		}
-		if ( self::isCapitalized( $title->getNamespace() ) ) {
+		if ( \MediaWiki\Extension\PageForms\FormNamespaces::isCapitalized( $title->getNamespace() ) ) {
 			return $namespace . self::getContLang()->ucfirst( $title->getPartialURL() );
 		} else {
 			return $namespace . $title->getPartialURL();
@@ -512,44 +512,31 @@ END;
 	}
 
 	/**
-	 * Return whether to "ignore" (treat as a non-form) a form with this
-	 * name, based on whether it matches any of the specified text patterns.
-	 *
-	 * @param string $formName
-	 * @return bool
+	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormNamespaces::ignoreFormName()}
 	 */
 	public static function ignoreFormName( $formName ) {
-		global $wgPageFormsIgnoreTitlePattern;
-
-		if ( !is_array( $wgPageFormsIgnoreTitlePattern ) ) {
-			$wgPageFormsIgnoreTitlePattern = [ $wgPageFormsIgnoreTitlePattern ];
-		}
-
-		foreach ( $wgPageFormsIgnoreTitlePattern as $pattern ) {
-			if ( $pattern !== '' && preg_match( '/' . $pattern . '/', $formName ) ) {
-				return true;
-			}
-		}
-
-		return false;
+		return \MediaWiki\Extension\PageForms\FormNamespaces::ignoreFormName( $formName );
 	}
 
+	/**
+	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormNamespaces::isCapitalized()}
+	 */
 	public static function isCapitalized( $index ) {
-		return MediaWikiServices::getInstance()
-			->getNamespaceInfo()
-			->isCapitalized( $index );
+		return \MediaWiki\Extension\PageForms\FormNamespaces::isCapitalized( $index );
 	}
 
+	/**
+	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormNamespaces::getCanonicalName()}
+	 */
 	public static function getCanonicalName( $index ) {
-		return MediaWikiServices::getInstance()
-			->getNamespaceInfo()
-			->getCanonicalName( $index );
+		return \MediaWiki\Extension\PageForms\FormNamespaces::getCanonicalName( $index );
 	}
 
+	/**
+	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormNamespaces::getNsText()}
+	 */
 	public static function getNsText( $index ) {
-		return MediaWikiServices::getInstance()
-			->getContentLanguage()
-			->getNsText( $index ) ?: '';
+		return \MediaWiki\Extension\PageForms\FormNamespaces::getNsText( $index );
 	}
 
 	public static function isTranslateEnabled() {

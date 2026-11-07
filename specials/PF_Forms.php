@@ -6,6 +6,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormNamespaces;
 use MediaWiki\Html\Html;
 use MediaWiki\Title\Title;
 
@@ -54,7 +55,7 @@ class PFForms extends QueryPage {
 	public function formatResult( $skin, $result ) {
 		$pageName = $result->value;
 
-		if ( PFUtils::ignoreFormName( $pageName ) ) {
+		if ( FormNamespaces::ignoreFormName( $pageName ) ) {
 			return null;
 		}
 

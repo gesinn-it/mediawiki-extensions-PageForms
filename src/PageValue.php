@@ -55,7 +55,7 @@ class PageValue {
 	 * "Kategorie" on a German wiki for NS_CATEGORY.
 	 */
 	public function getNamespaceText(): string {
-		return PFUtils::getNsText( $this->namespace );
+		return FormNamespaces::getNsText( $this->namespace );
 	}
 
 	/**
@@ -70,7 +70,7 @@ class PageValue {
 		if ( $this->namespace === 0 ) {
 			return $title;
 		}
-		return PFUtils::getCanonicalName( $this->namespace ) . ":$title";
+		return FormNamespaces::getCanonicalName( $this->namespace ) . ":$title";
 	}
 
 	/**
@@ -86,7 +86,7 @@ class PageValue {
 	}
 
 	private function normalizedDbKey(): string {
-		$dbKey = PFUtils::isCapitalized( $this->namespace )
+		$dbKey = FormNamespaces::isCapitalized( $this->namespace )
 			? PFUtils::getContLang()->ucfirst( $this->dbKey )
 			: $this->dbKey;
 		return str_replace( ' ', '_', $dbKey );
