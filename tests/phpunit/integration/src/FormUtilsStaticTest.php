@@ -40,7 +40,7 @@ class FormUtilsStaticTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * A single-element array (checkbox unchecked) and a two-element array
-	 * (checkbox checked) must map to different words — PFUtils::getWordForYesOrNo()
+	 * (checkbox checked) must map to different words — FormTagParser::getWordForYesOrNo()
 	 * is called with false and true respectively (src/FormUtils.php:535-538).
 	 * The actual words are locale-dependent, so we only assert they differ,
 	 * which still catches a regression that swaps the two boolean arguments.

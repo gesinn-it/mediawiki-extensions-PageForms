@@ -4,7 +4,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\FormDefinition;
 
-use PFUtils;
+use MediaWiki\Extension\PageForms\FormTagParser;
 
 /**
  * Turns a (parsed) form definition into a FormDefinition. This is the one place that
@@ -64,7 +64,7 @@ class FormDefinitionReader {
 		return [
 			'start' => $open,
 			'end' => $end,
-			'components' => PFUtils::getFormTagComponents( substr( $text, $open + 3, $end - 3 - ( $open + 3 ) ) ),
+			'components' => FormTagParser::getFormTagComponents( substr( $text, $open + 3, $end - 3 - ( $open + 3 ) ) ),
 		];
 	}
 

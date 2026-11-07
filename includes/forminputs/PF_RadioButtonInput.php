@@ -5,6 +5,7 @@
 
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormMarkup;
+use MediaWiki\Extension\PageForms\FormTagParser;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 use MediaWiki\Html\Html;
 
@@ -29,8 +30,8 @@ class PFRadioButtonInput extends PFEnumInput {
 			// If it's a Boolean property, display 'Yes' and 'No'
 			// as the values.
 			$possible_values = [
-				PFUtils::getWordForYesOrNo( true ),
-				PFUtils::getWordForYesOrNo( false ),
+				FormTagParser::getWordForYesOrNo( true ),
+				FormTagParser::getWordForYesOrNo( false ),
 			];
 		} else {
 			$possible_values = [];

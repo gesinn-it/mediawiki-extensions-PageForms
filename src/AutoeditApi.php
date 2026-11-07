@@ -964,7 +964,7 @@ class AutoeditApi extends ApiBase {
 			throw new MWException( $this->msg( 'pf_autoedit_notargetspecified' )->parse() );
 		}
 
-		$pageNameElements = PFUtils::getFormTagComponents( trim( $matches[1] ) );
+		$pageNameElements = FormTagParser::getFormTagComponents( trim( $matches[1] ) );
 		return $pageNameElements[0];
 	}
 

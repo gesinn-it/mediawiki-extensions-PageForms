@@ -6,6 +6,7 @@
 use MediaWiki\Extension\PageForms\AutocompleteSettings;
 use MediaWiki\Extension\PageForms\FormCounters;
 use MediaWiki\Extension\PageForms\FormMarkup;
+use MediaWiki\Extension\PageForms\FormTagParser;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
@@ -130,8 +131,8 @@ class PFComboBoxInput extends PFFormInput {
 			// as the values.
 			if ( array_key_exists( 'property_type', $other_args ) && $other_args['property_type'] == '_boo' ) {
 				$possible_values = [
-					PFUtils::getWordForYesOrNo( true ),
-					PFUtils::getWordForYesOrNo( false ),
+					FormTagParser::getWordForYesOrNo( true ),
+					FormTagParser::getWordForYesOrNo( false ),
 				];
 			} else {
 				$possible_values = [];

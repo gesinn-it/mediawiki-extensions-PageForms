@@ -13,13 +13,13 @@ use MediaWiki\Extension\PageForms\FormFieldExtraHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormFieldHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormPlaceholder;
 use MediaWiki\Extension\PageForms\FormRenderContext;
+use MediaWiki\Extension\PageForms\FormTagParser;
 use MediaWiki\Extension\PageForms\MappingLabels;
 use MediaWiki\Extension\PageForms\RenderServices;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateInForm;
 use MediaWiki\Html\Html;
 use PFTextAreaInput;
-use PFUtils;
 
 /**
  * The {{{field}}} tag: finds the current value of the field and adds its input.
@@ -335,7 +335,7 @@ class FieldHandler implements ElementHandler {
 		if ( $form_field->getInputType() != 'checkbox' ) {
 			return $cur_value;
 		}
-		$wordForYes = PFUtils::getWordForYesOrNo( true );
+		$wordForYes = FormTagParser::getWordForYesOrNo( true );
 
 		return strtolower( (string)$cur_value ) == strtolower( $wordForYes )
 			|| strtolower( (string)$cur_value ) == 'yes' || $cur_value == '1';

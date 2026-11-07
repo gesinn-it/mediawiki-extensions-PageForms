@@ -56,7 +56,7 @@ class TemplatePageValues {
 			return $existing_page_content;
 		}
 		$this->setFieldValuesFromPage( $existing_page_content );
-		return \PFUtils::strReplaceFirst( $this->getFullTextInPage(), '', $existing_page_content );
+		return FormTagParser::strReplaceFirst( $this->getFullTextInPage(), '', $existing_page_content );
 	}
 
 	/**

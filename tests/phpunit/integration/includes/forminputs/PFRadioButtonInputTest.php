@@ -3,6 +3,7 @@
 declare( strict_types=1 );
 
 use MediaWiki\Extension\PageForms\FormCounters;
+use MediaWiki\Extension\PageForms\FormTagParser;
 use MediaWiki\Title\Title;
 
 /**
@@ -181,8 +182,8 @@ class PFRadioButtonInputTest extends MediaWikiIntegrationTestCase {
 	public function testGetHtmlBooleanPropertyWithoutPossibleValuesRendersYesNo(): void {
 		$html = PFRadioButtonInput::getHTML( '', 'TestField', false, false, [ 'property_type' => '_boo' ] );
 
-		$this->assertStringContainsString( PFUtils::getWordForYesOrNo( true ), $html );
-		$this->assertStringContainsString( PFUtils::getWordForYesOrNo( false ), $html );
+		$this->assertStringContainsString( FormTagParser::getWordForYesOrNo( true ), $html );
+		$this->assertStringContainsString( FormTagParser::getWordForYesOrNo( false ), $html );
 	}
 
 	/**

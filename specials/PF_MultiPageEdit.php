@@ -11,6 +11,7 @@
  * @author Yaron Koren
  */
 
+use MediaWiki\Extension\PageForms\FormTagParser;
 use MediaWiki\Extension\PageForms\SpreadsheetGlobals;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Html\Html;
@@ -228,7 +229,7 @@ class PFMultiPageEdit extends QueryPage {
 		while ( $brackets_loc !== false ) {
 			$brackets_end_loc = strpos( $formContent, "}}}", $brackets_loc );
 			$bracketed_string = substr( $formContent, $brackets_loc + 3, $brackets_end_loc - ( $brackets_loc + 3 ) );
-			$tag_components = PFUtils::getFormTagComponents( $bracketed_string );
+			$tag_components = FormTagParser::getFormTagComponents( $bracketed_string );
 			$tag_title = trim( $tag_components[0] );
 			if ( $tag_title == 'for template' ) {
 				if ( count( $tag_components ) > 1 ) {

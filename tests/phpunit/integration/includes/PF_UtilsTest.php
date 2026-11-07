@@ -34,17 +34,6 @@ class PFUtilsTest extends MediaWikiIntegrationTestCase {
 		];
 	}
 
-	public function testGetWordForYesOrNoReturnsAWordThatDiffersForTrueAndFalse() {
-		$yes = PFUtils::getWordForYesOrNo( true );
-		$no = PFUtils::getWordForYesOrNo( false );
-
-		$this->assertIsString( $yes );
-		$this->assertNotEmpty( $yes );
-		$this->assertIsString( $no );
-		$this->assertNotEmpty( $no );
-		$this->assertNotSame( $yes, $no );
-	}
-
 	public function testLinkTextWithoutExplicitText() {
 		$result = PFUtils::linkText( NS_MAIN, 'SomePage' );
 		$this->assertStringContainsString( 'SomePage', $result );

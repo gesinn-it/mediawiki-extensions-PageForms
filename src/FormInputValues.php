@@ -4,8 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use PFUtils;
-
 /**
  * Helpers for the values of form inputs: array values from a submit, changed indices of lists and unique ids.
  *
@@ -41,9 +39,9 @@ class FormInputValues {
 		// - this handling will have to get more complex if other
 		// possibilities get added
 		if ( count( $value ) == 1 ) {
-			return PFUtils::getWordForYesOrNo( false );
+			return FormTagParser::getWordForYesOrNo( false );
 		} elseif ( count( $value ) == 2 ) {
-			return PFUtils::getWordForYesOrNo( true );
+			return FormTagParser::getWordForYesOrNo( true );
 		// if it's 3 or greater, assume it's a date or datetime
 		} elseif ( count( $value ) >= 3 ) {
 			return FormDateUtils::getStringFromSubmission( $value );
