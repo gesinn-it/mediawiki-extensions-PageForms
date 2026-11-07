@@ -48,7 +48,7 @@ Page Forms provides the following hooks. Register them in your extension's `exte
 | Inject HTML inside the `<form>` element on `Special:FormEdit`, before field rendering.
 
 | `PageForms::PrintRedirectForm`
-| `PF_Utils::printRedirectForm()`
+| `PageLinks::printRedirectForm()`
 | Inspect or modify the redirect form HTML after it has been assembled.
 
 | `PageForms::RenderingEnd`
@@ -679,7 +679,7 @@ class MyExtensionHooks {
 
 == PageForms::PrintRedirectForm
 
-Called at the end of `PF_Utils::printRedirectForm()`, after the redirect form HTML (a hidden mini-form and auto-submitting JavaScript) has been assembled. The hook receives the fully built output string by reference, allowing handlers to inspect or modify the final HTML before it is returned to the caller.
+Called at the end of `PageLinks::printRedirectForm()`, after the redirect form HTML (a hidden mini-form and auto-submitting JavaScript) has been assembled. The hook receives the fully built output string by reference, allowing handlers to inspect or modify the final HTML before it is returned to the caller.
 
 [WARNING]
 ====
@@ -712,7 +712,7 @@ It is retained for backward compatibility but may be removed in a future release
 
 === Source location
 
-`includes/PF_Utils.php`, method `PF_Utils::printRedirectForm()`.
+`includes/PF_Utils.php`, method `PageLinks::printRedirectForm()`.
 
 === Example
 

@@ -6,6 +6,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\PageLinks;
 use MediaWiki\Html\Html;
 use MediaWiki\Title\Title;
 
@@ -75,7 +76,7 @@ class PFTemplates extends QueryPage {
 		if ( $category !== '' ) {
 			$text .= ' ' . $this->msg(
 				'pf_templates_definescat',
-				PFUtils::linkText( NS_CATEGORY, $category )
+				PageLinks::linkText( NS_CATEGORY, $category )
 			)->parse();
 		}
 		return $text;

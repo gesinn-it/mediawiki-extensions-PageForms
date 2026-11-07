@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Extension\PageForms\PageLinks;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Html\Html;
 use MediaWiki\Linker\Linker;
@@ -182,15 +183,15 @@ class PFTemplateDisplay {
 		$namespace = $templateField->getNamespace();
 		$title = Title::makeTitleSafe( $namespace, $value );
 		if ( $title->exists() ) {
-			return PFUtils::makeLink( $linkRenderer, $title );
+			return PageLinks::makeLink( $linkRenderer, $title );
 		}
 		$form = $templateField->getForm();
 		if ( $form == null ) {
-			return PFUtils::makeLink( $linkRenderer, $title );
+			return PageLinks::makeLink( $linkRenderer, $title );
 		}
 		// The page doesn't exist, and a form has been found for this
 		// template field - link to this form for this page.
-		$formSpecialPage = PFUtils::getSpecialPage( 'FormEdit' );
+		$formSpecialPage = PageLinks::getSpecialPage( 'FormEdit' );
 		$formSpecialPageTitle = $formSpecialPage->getPageTitle();
 		$target = $title->getFullText();
 		$formURL = $formSpecialPageTitle->getLocalURL() .

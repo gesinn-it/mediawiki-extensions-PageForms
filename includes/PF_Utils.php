@@ -6,10 +6,11 @@
  * @ingroup PF
  */
 
-use MediaWiki\Html\Html;
-use MediaWiki\Linker\Linker;
-use MediaWiki\Linker\LinkRenderer;
-use MediaWiki\Linker\LinkTarget;
+use MediaWiki\Extension\PageForms\FormAssets;
+use MediaWiki\Extension\PageForms\FormNamespaces;
+use MediaWiki\Extension\PageForms\FormTagParser;
+use MediaWiki\Extension\PageForms\PageLinks;
+use MediaWiki\Extension\PageForms\QueryArrayMerger;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
@@ -144,63 +145,24 @@ class PFUtils {
 	}
 
 	/**
-	 * Creates a link to a special page, using that page's top-level description as the link text.
-	 * @param LinkRenderer $linkRenderer
-	 * @param string $specialPageName
-	 * @return string
+	 * @deprecated Use {@see PageLinks::linkForSpecialPage()}
 	 */
 	public static function linkForSpecialPage( $linkRenderer, $specialPageName ) {
-		$specialPage = self::getSpecialPage( $specialPageName );
-		// Don't use SpecialPage::getDescription() directly: its return value's
-		// escaping is not consistent across MediaWiki versions (MW <= 1.42
-		// returns plain text via Message::text(), MW >= 1.43 returns the bare
-		// Message object, whose __toString() calls Message::parse() and is
-		// therefore already HTML). Resolve the message ourselves with
-		// ->text() and escape it exactly once.
-		$description = htmlspecialchars( $specialPage->msg( strtolower( $specialPage->getName() ) )->text() );
-		return $linkRenderer->makeKnownLink( $specialPage->getPageTitle(), new HtmlArmor( $description ) );
+		return PageLinks::linkForSpecialPage( $linkRenderer, $specialPageName );
 	}
 
 	/**
-	 * @param LinkRenderer $linkRenderer
-	 * @param LinkTarget|Title $title
-	 * @param string|null $msg Must already be HTML escaped
-	 * @param array $attrs link attributes
-	 * @param array $params query parameters
-	 *
-	 * @return string|null HTML link
+	 * @deprecated Use {@see PageLinks::makeLink()}
 	 */
 	public static function makeLink( $linkRenderer, $title, $msg = null, $attrs = [], $params = [] ) {
-		$titleGlobal = RequestContext::getMain()->getTitle();
-
-		if ( $title === null ) {
-			return null;
-		} elseif ( $titleGlobal !== null && $title->equals( $titleGlobal ) ) {
-			// Display bolded text instead of a link.
-			return Linker::makeSelfLinkObj( $title, $msg );
-		} else {
-			$html = ( $msg == null ) ? null : new HtmlArmor( $msg );
-			return $linkRenderer->makeLink( $title, $html, $attrs, $params );
-		}
+		return PageLinks::makeLink( $linkRenderer, $title, $msg, $attrs, $params );
 	}
 
 	/**
-	 * Creates the name of the page that appears in the URL;
-	 * this method is necessary because Title::getPartialURL(), for
-	 * some reason, doesn't include the namespace
-	 * @param Title $title
-	 * @return string
+	 * @deprecated Use {@see PageLinks::titleURLString()}
 	 */
 	public static function titleURLString( $title ) {
-		$namespace = $title->getNsText();
-		if ( $namespace !== '' ) {
-			$namespace .= ':';
-		}
-		if ( \MediaWiki\Extension\PageForms\FormNamespaces::isCapitalized( $title->getNamespace() ) ) {
-			return $namespace . self::getContLang()->ucfirst( $title->getPartialURL() );
-		} else {
-			return $namespace . $title->getPartialURL();
-		}
+		return PageLinks::titleURLString( $title );
 	}
 
 	/**
@@ -229,10 +191,11 @@ class PFUtils {
 		return MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
 	}
 
+	/**
+	 * @deprecated Use {@see PageLinks::getSpecialPage()}
+	 */
 	public static function getSpecialPage( $pageName ) {
-		return MediaWikiServices::getInstance()
-			->getSpecialPageFactory()
-			->getPage( $pageName );
+		return PageLinks::getSpecialPage( $pageName );
 	}
 
 	/**
@@ -248,36 +211,14 @@ class PFUtils {
 	}
 
 	/**
-	 * Creates wiki-text for a link to a wiki page
-	 * @param int $namespace
-	 * @param string $name
-	 * @param string|null $text
-	 * @return string
+	 * @deprecated Use {@see PageLinks::linkText()}
 	 */
 	public static function linkText( $namespace, $name, $text = null ) {
-		$title = Title::makeTitleSafe( $namespace, $name );
-		if ( $title === null ) {
-			// TODO maybe report an error here?
-			return $name;
-		}
-		if ( $text === null ) {
-			return '[[:' . $title->getPrefixedText() . '|' . $name . ']]';
-		} else {
-			return '[[:' . $title->getPrefixedText() . '|' . $text . ']]';
-		}
+		return PageLinks::linkText( $namespace, $name, $text );
 	}
 
 	/**
-	 * Returns a hidden mini-form to be printed at the bottom of various helper
-	 * forms, like Special:CreateForm, so that the main form can either save or
-	 * preview the resulting page.
-	 *
-	 * @param string $title
-	 * @param string $page_contents
-	 * @param string $edit_summary
-	 * @param bool $is_save
-	 * @param User $user
-	 * @return string
+	 * @deprecated Use {@see PageLinks::printRedirectForm()}
 	 */
 	public static function printRedirectForm(
 		$title,
@@ -286,66 +227,14 @@ class PFUtils {
 		$is_save,
 		$user
 	) {
-		global $wgPageFormsScriptPath;
-
-		if ( $is_save ) {
-			$action = "wpSave";
-		} else {
-			$action = "wpPreview";
-		}
-
-		$text = <<<END
-	<p style="position: absolute; left: 45%; top: 45%;"><img src="$wgPageFormsScriptPath/skins/loading.gif" /></p>
-
-END;
-		$form_body = Html::hidden( 'wpTextbox1', $page_contents );
-		$form_body .= Html::hidden( 'wpUnicodeCheck', 'ℳ𝒲♥𝓊𝓃𝒾𝒸ℴ𝒹ℯ' );
-		$form_body .= Html::hidden( 'wpSummary', $edit_summary );
-		// @TODO - add this in at some point.
-		//$form_body .= Html::hidden( 'editRevId', $edit_rev_id );
-
-		$userIsRegistered = $user->isRegistered();
-		if ( $userIsRegistered ) {
-			$edit_token = $user->getEditToken();
-		} else {
-			$edit_token = \MediaWiki\Session\Token::SUFFIX;
-		}
-		$form_body .= Html::hidden( 'wpEditToken', $edit_token );
-		$form_body .= Html::hidden( $action, null );
-
-		$form_body .= Html::hidden( 'wpUltimateParam', true );
-
-		$text .= Html::rawElement(
-			'form',
-			[
-				'id' => 'editform',
-				'name' => 'editform',
-				'method' => 'post',
-				'action' => $title instanceof Title ? $title->getLocalURL( 'action=submit' ) : $title
-			],
-			$form_body
-		);
-
-		$text .= <<<END
-	<script type="text/javascript">
-	window.onload = function() {
-		document.editform.submit();
-	}
-	</script>
-
-END;
-		// @TODO - remove this hook? It seems useless.
-		MediaWikiServices::getInstance()->getHookContainer()->run(
-			'PageForms::PrintRedirectForm', [ $is_save, !$is_save, false, &$text ]
-		);
-		return $text;
+		return PageLinks::printRedirectForm( $title, $page_contents, $edit_summary, $is_save, $user );
 	}
 
 	/**
-	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormAssets::addFormRLModules()}
+	 * @deprecated Use {@see FormAssets::addFormRLModules()}
 	 */
 	public static function addFormRLModules( $parser = null ) {
-		return \MediaWiki\Extension\PageForms\FormAssets::addFormRLModules( $parser );
+		return FormAssets::addFormRLModules( $parser );
 	}
 
 	/**
@@ -392,66 +281,66 @@ END;
 	}
 
 	/**
-	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormTagParser::convertBackToPipes()}
+	 * @deprecated Use {@see FormTagParser::convertBackToPipes()}
 	 */
 	public static function convertBackToPipes( $s ) {
-		return \MediaWiki\Extension\PageForms\FormTagParser::convertBackToPipes( $s );
+		return FormTagParser::convertBackToPipes( $s );
 	}
 
 	/**
-	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormTagParser::smartSplitFormTag()}
+	 * @deprecated Use {@see FormTagParser::smartSplitFormTag()}
 	 */
 	public static function smartSplitFormTag( $string ) {
-		return \MediaWiki\Extension\PageForms\FormTagParser::smartSplitFormTag( $string );
+		return FormTagParser::smartSplitFormTag( $string );
 	}
 
 	/**
-	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormTagParser::getFormTagComponents()}
+	 * @deprecated Use {@see FormTagParser::getFormTagComponents()}
 	 */
 	public static function getFormTagComponents( $str ) {
-		return \MediaWiki\Extension\PageForms\FormTagParser::getFormTagComponents( $str );
+		return FormTagParser::getFormTagComponents( $str );
 	}
 
 	/**
-	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormTagParser::getWordForYesOrNo()}
+	 * @deprecated Use {@see FormTagParser::getWordForYesOrNo()}
 	 */
 	public static function getWordForYesOrNo( $isYes ) {
-		return \MediaWiki\Extension\PageForms\FormTagParser::getWordForYesOrNo( $isYes );
+		return FormTagParser::getWordForYesOrNo( $isYes );
 	}
 
 	/**
-	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\QueryArrayMerger::arrayMergeRecursiveDistinct()}
+	 * @deprecated Use {@see QueryArrayMerger::arrayMergeRecursiveDistinct()}
 	 */
 	public static function arrayMergeRecursiveDistinct( array &$array1, array &$array2 ) {
-		return \MediaWiki\Extension\PageForms\QueryArrayMerger::arrayMergeRecursiveDistinct( $array1, $array2 );
+		return QueryArrayMerger::arrayMergeRecursiveDistinct( $array1, $array2 );
 	}
 
 	/**
-	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormNamespaces::ignoreFormName()}
+	 * @deprecated Use {@see FormNamespaces::ignoreFormName()}
 	 */
 	public static function ignoreFormName( $formName ) {
-		return \MediaWiki\Extension\PageForms\FormNamespaces::ignoreFormName( $formName );
+		return FormNamespaces::ignoreFormName( $formName );
 	}
 
 	/**
-	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormNamespaces::isCapitalized()}
+	 * @deprecated Use {@see FormNamespaces::isCapitalized()}
 	 */
 	public static function isCapitalized( $index ) {
-		return \MediaWiki\Extension\PageForms\FormNamespaces::isCapitalized( $index );
+		return FormNamespaces::isCapitalized( $index );
 	}
 
 	/**
-	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormNamespaces::getCanonicalName()}
+	 * @deprecated Use {@see FormNamespaces::getCanonicalName()}
 	 */
 	public static function getCanonicalName( $index ) {
-		return \MediaWiki\Extension\PageForms\FormNamespaces::getCanonicalName( $index );
+		return FormNamespaces::getCanonicalName( $index );
 	}
 
 	/**
-	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormNamespaces::getNsText()}
+	 * @deprecated Use {@see FormNamespaces::getNsText()}
 	 */
 	public static function getNsText( $index ) {
-		return \MediaWiki\Extension\PageForms\FormNamespaces::getNsText( $index );
+		return FormNamespaces::getNsText( $index );
 	}
 
 	public static function isTranslateEnabled() {
@@ -459,9 +348,9 @@ END;
 	}
 
 	/**
-	 * @deprecated Use {@see \MediaWiki\Extension\PageForms\FormTagParser::strReplaceFirst()}
+	 * @deprecated Use {@see FormTagParser::strReplaceFirst()}
 	 */
 	public static function strReplaceFirst( string $search, string $replace, string $subject ): string {
-		return \MediaWiki\Extension\PageForms\FormTagParser::strReplaceFirst( $search, $replace, $subject );
+		return FormTagParser::strReplaceFirst( $search, $replace, $subject );
 	}
 }

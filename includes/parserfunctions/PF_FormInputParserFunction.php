@@ -34,6 +34,7 @@
  */
 
 use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
+use MediaWiki\Extension\PageForms\PageLinks;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 
@@ -175,7 +176,7 @@ class PFFormInputParserFunction {
 		// If the form start URL looks like "index.php?title=Special:FormStart"
 		// (i.e., it's in the default URL style), add in the title as a
 		// hidden value
-		$fs = PFUtils::getSpecialPage( 'FormStart' );
+		$fs = PageLinks::getSpecialPage( 'FormStart' );
 		$fsURL = $fs->getPageTitle()->getLocalURL();
 		$pos = strpos( $fsURL, "title=" );
 		if ( $pos > -1 ) {

@@ -174,7 +174,7 @@ class FormEditAction extends Action {
 		$pagesPerForm = self::getNumPagesPerForm();
 		[ 'main' => $mainForms, 'other' => $otherForms ] = self::classifyForms( $formNames, $pagesPerForm );
 
-		$fe = PFUtils::getSpecialPage( 'FormEdit' );
+		$fe = PageLinks::getSpecialPage( 'FormEdit' );
 		$hasMain = count( $mainForms ) > 0;
 		$hasOther = count( $otherForms ) > 0;
 

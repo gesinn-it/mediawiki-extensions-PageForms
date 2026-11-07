@@ -2,6 +2,7 @@
 use MediaWiki\Extension\PageForms\AutocompleteSettings;
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
+use MediaWiki\Extension\PageForms\PageLinks;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
@@ -183,9 +184,9 @@ class PFFormLink {
 		}
 
 		if ( $className == 'PFQueryFormLink' ) {
-			$formSpecialPage = PFUtils::getSpecialPage( 'RunQuery' );
+			$formSpecialPage = PageLinks::getSpecialPage( 'RunQuery' );
 		} else {
-			$formSpecialPage = PFUtils::getSpecialPage( 'FormEdit' );
+			$formSpecialPage = PageLinks::getSpecialPage( 'FormEdit' );
 		}
 		$formSpecialPageTitle = $formSpecialPage->getPageTitle();
 

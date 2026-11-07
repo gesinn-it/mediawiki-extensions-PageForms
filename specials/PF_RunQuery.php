@@ -9,6 +9,7 @@
 use MediaWiki\Extension\PageForms\FormAssets;
 use MediaWiki\Extension\PageForms\FormNamespaces;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
+use MediaWiki\Extension\PageForms\PageLinks;
 use MediaWiki\Html\Html;
 use MediaWiki\Title\Title;
 
@@ -42,7 +43,8 @@ class PFRunQuery extends IncludableSpecialPage {
 
 		if ( FormNamespaces::ignoreFormName( $form_name ) ) {
 			$text = Html::rawElement( 'p', [ 'class' => 'error' ],
-				$this->msg( 'pf_autoedit_invalidform', PFUtils::linkText( PF_NS_FORM, $form_name ) )->parse() ) . "\n";
+				$this->msg( 'pf_autoedit_invalidform', PageLinks::linkText( PF_NS_FORM, $form_name ) )->parse()
+			) . "\n";
 			$out->addHTML( $text );
 			return;
 		}
@@ -55,7 +57,8 @@ class PFRunQuery extends IncludableSpecialPage {
 				$text = Html::element( 'p', [ 'class' => 'error' ], $this->msg( 'pf_runquery_badurl' )->text() ) . "\n";
 			} else {
 				$text = Html::rawElement( 'p', [ 'class' => 'error' ],
-					$this->msg( 'pf_formstart_badform', PFUtils::linkText( PF_NS_FORM, $form_name ) )->parse() ) . "\n";
+					$this->msg( 'pf_formstart_badform', PageLinks::linkText( PF_NS_FORM, $form_name ) )->parse()
+				) . "\n";
 			}
 			$out->addHTML( $text );
 			return;

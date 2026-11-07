@@ -4,6 +4,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormCounters;
+use MediaWiki\Extension\PageForms\PageLinks;
 use MediaWiki\Extension\PageForms\PossibleValueList;
 use MediaWiki\Html\Html;
 use MediaWiki\Request\FauxRequest;
@@ -128,7 +129,7 @@ class PFTextInput extends PFFormInput {
 
 			return $text;
 		}
-		$upload_window_page = PFUtils::getSpecialPage( 'UploadWindow' );
+		$upload_window_page = PageLinks::getSpecialPage( 'UploadWindow' );
 		$query_string = "pfInputID=$input_id";
 		if ( $delimiter != null ) {
 			$query_string .= "&pfDelimiter=$delimiter";

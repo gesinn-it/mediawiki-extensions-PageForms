@@ -10,6 +10,7 @@
 use MediaWiki\EditPage\EditPage;
 use MediaWiki\Extension\PageForms\AutoeditApi;
 use MediaWiki\Extension\PageForms\FormAssets;
+use MediaWiki\Extension\PageForms\PageLinks;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
@@ -67,7 +68,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 
 	public function printAltFormsList( $alt_forms, $target_name ) {
 		$text = "";
-		$fe = PFUtils::getSpecialPage( 'FormEdit' );
+		$fe = PageLinks::getSpecialPage( 'FormEdit' );
 		$fe_url = $fe->getPageTitle()->getFullURL();
 		$i = 0;
 		foreach ( $alt_forms as $alt_form ) {

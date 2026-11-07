@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Title\Title;
-use PFUtils;
 
 /**
  * Writes the wikitext of a form definition from the model of a form: the form itself, its
@@ -50,8 +49,8 @@ END;
 	 */
 	private function formHeader( Form $form ): string {
 		$title = Title::makeTitle( PF_NS_FORM, $form->getFormName() );
-		$fs = PFUtils::getSpecialPage( 'FormStart' );
-		$form_start_url = PFUtils::titleURLString( $fs->getPageTitle() ) . "/" . $title->getPartialURL();
+		$fs = PageLinks::getSpecialPage( 'FormStart' );
+		$form_start_url = PageLinks::titleURLString( $fs->getPageTitle() ) . "/" . $title->getPartialURL();
 		$form_description = wfMessage( 'pf_form_docu', $form->getFormName(), $form_start_url )
 			->inContentLanguage()->text();
 		$form_input = "{{#forminput:form=" . str_replace( ',', '\,', $form->getFormName() );

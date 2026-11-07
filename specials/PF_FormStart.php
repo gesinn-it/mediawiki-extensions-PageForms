@@ -9,6 +9,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormLinker;
+use MediaWiki\Extension\PageForms\PageLinks;
 use MediaWiki\Html\Html;
 use MediaWiki\Title\Title;
 
@@ -89,7 +90,7 @@ class PFFormStart extends SpecialPage {
 		$out->addModules( 'ext.pageforms.forminput' );
 
 		if ( ( !$form_title || !$form_title->exists() ) && ( $form_name !== '' ) ) {
-			$linkToForm = PFUtils::linkText( PF_NS_FORM, $form_name );
+			$linkToForm = PageLinks::linkText( PF_NS_FORM, $form_name );
 			$badFormMsg = $this->msg( 'pf_formstart_badform', $linkToForm )->parse();
 			$text = Html::rawElement( 'p', [ 'class' => 'error' ], $badFormMsg ) . "\n";
 		} else {
@@ -141,7 +142,7 @@ END;
 	 * @return string
 	 */
 	public static function getFormEditURL( $formName, $targetName ) {
-		$fe = PFUtils::getSpecialPage( 'FormEdit' );
+		$fe = PageLinks::getSpecialPage( 'FormEdit' );
 		// Special handling for forms whose name contains a slash.
 		if ( str_contains( $formName, '/' ) ) {
 			return $fe->getPageTitle()->getLocalURL( [ 'form' => $formName, 'target' => $targetName ] );
@@ -164,7 +165,7 @@ END;
 			$redirect_target = $content ? $content->getRedirectTarget() : null;
 			if ( $redirect_target ) {
 				$page_title = $redirect_target;
-				$page_name = PFUtils::titleURLString( $page_title );
+				$page_name = PageLinks::titleURLString( $page_title );
 			}
 			// HACK - if this is the default form for
 			// this page, send to the regular 'formedit'
