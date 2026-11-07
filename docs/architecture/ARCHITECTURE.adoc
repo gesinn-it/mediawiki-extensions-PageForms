@@ -387,15 +387,15 @@ These hooks enable PageForms to integrate with the MediaWiki editing workflow.
 
 PageForms supports a range of MediaWiki versions. Where the MW or PHP API
 differs between versions, the compatibility gap is encapsulated in a static
-helper on `PFUtils` rather than repeated at each call site:
+helper on `WikiAccess` rather than repeated at each call site:
 
 [source,php]
 ----
 // DB reads — use the centralized helper:
-$db = PFUtils::getReplicaDB();
+$db = WikiAccess::getReplicaDB();
 
 // WikiPage from Title — use the centralized helper:
-$wikiPage = PFUtils::newWikiPageFromTitle( $title );
+$wikiPage = WikiAccess::newWikiPageFromTitle( $title );
 ----
 
 These helpers contain the version gate internally and shield all other code
@@ -405,19 +405,19 @@ Key compatibility boundaries:
 
 [cols="2,3,3,1,3",options="header"]
 |===
-| Boundary | Older API | Newer API | Since | PFUtils helper
+| Boundary | Older API | Newer API | Since | WikiAccess helper
 
 | DB replica connection
 | `wfGetDB( DB_REPLICA )`
 | `getConnectionProvider()->getReplicaDatabase()`
 | MW 1.42
-| `PFUtils::getReplicaDB()`
+| `WikiAccess::getReplicaDB()`
 
 | WikiPage from Title
 | `WikiPage::factory( $title )`
 | `getWikiPageFactory()->newFromTitle( $title )`
 | MW 1.36
-| `PFUtils::newWikiPageFromTitle( $title )`
+| `WikiAccess::newWikiPageFromTitle( $title )`
 
 | DB table JOIN
 | Raw SQL string as table name

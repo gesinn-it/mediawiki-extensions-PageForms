@@ -9,8 +9,10 @@ The sections below describe the top-level directories and their purpose.
 == Directory layout
 
 `includes/`::
-Core PHP classes: the utilities (`PF_Utils.php`). The extension registration
-(`Setup.php`) and the hook handlers (`Hooks/`) are in `src/`, as are the form printer, form field model, template model, the
+Core PHP classes: only `PF_Utils.php`, which holds deprecated forwards to the helper classes in
+`src/` (`FormTagParser`, `FormNamespaces`, `FormAssets`, `PageLinks`, `ParserAccess`, `WikiAccess`,
+`QueryArrayMerger`). The extension registration (`Setup.php`) and the hook handlers (`Hooks/`) are in `src/`,
+as are the form printer, form field model, template model, the
 autoedit and autocomplete APIs, the `formedit` and `formcreate` actions, the
 create-page job and the sources of autocomplete values have moved to `src/`
 (`FormPrinter.php`, `FormField.php`, `Template.php`, `AutoeditApi.php`,

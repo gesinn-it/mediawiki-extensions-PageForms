@@ -7,10 +7,12 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Deprecated
+- The static helpers of `PFUtils` are deprecated and only forward to the new classes `FormTagParser`, `FormNamespaces`, `FormAssets`, `PageLinks`, `ParserAccess`, `WikiAccess` and `QueryArrayMerger` in the `MediaWiki\Extension\PageForms` namespace. The forwards will be removed in the next major release (3.0.0) ([#278](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/278))
 - The global class name `PFHooks` is deprecated. It is now an alias of `MediaWiki\Extension\PageForms\Setup`, which only has `registerExtension()` and `initialize()`; the hook handler methods it used to have moved to the classes in `MediaWiki\Extension\PageForms\Hooks`. The alias will be removed in the next major release (3.0.0) ([#277](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/277))
 - The global class names `PFAutocompleteAPI`, `PFCreatePageJob`, `PFFormEditAction`, `PFHelperFormAction` and `PFPageSection` are deprecated in favor of `AutocompleteApi`, `CreatePageJob`, `FormEditAction`, `HelperFormAction` and `PageSection` in the `MediaWiki\Extension\PageForms` namespace. Aliases keep the old names working for other extensions and for site code, and will be removed in the next major release (3.0.0) ([#168](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/168))
 
 ### Fixed
+- A handler of the `PageForms::AddRLModules` hook that adds a single module name no longer causes an error when a form is shown ([#278](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/278))
 - Page Forms works with MediaWiki 1.46: saving forms through the autoedit API, categories as the source of values and in tree inputs, uploads from the upload window and the caching of form definitions no longer fail.
 - The modules that a parser function or tag in a form definition asks for (for example the slideshow of a `<gallery>`) are loaded again when the form is shown after a preview or a failed save, not only the first time it is shown.
 

@@ -12,7 +12,7 @@ Page Forms provides the following hooks. Register them in your extension's `exte
 | Hook | Fired from | Purpose
 
 | `PageForms::AddRLModules`
-| `PF_Utils::addFormRLModules()`
+| `FormAssets::addFormRLModules()`
 | Inject additional ResourceLoader modules into a form page.
 
 | `PageForms::BeforeFreeTextSubst`
@@ -82,7 +82,7 @@ Page Forms provides the following hooks. Register them in your extension's `exte
 
 == PageForms::AddRLModules
 
-Fired by `PF_Utils::addFormRLModules()` after Page Forms has enqueued its own ResourceLoader modules for a form page. Allows other extensions to inject additional ResourceLoader modules into the form page output.
+Fired by `FormAssets::addFormRLModules()` after Page Forms has enqueued its own ResourceLoader modules for a form page. Allows other extensions to inject additional ResourceLoader modules into the form page output.
 
 === Parameters
 
@@ -118,7 +118,7 @@ class Hooks {
 
 === Source
 
-Defined in `includes/PF_Utils.php`, method `PF_Utils::addFormRLModules()`.
+Defined in `src/FormAssets.php`, method `FormAssets::addFormRLModules()`.
 
 
 == PageForms::BeforeFreeTextSubst
@@ -712,7 +712,7 @@ It is retained for backward compatibility but may be removed in a future release
 
 === Source location
 
-`includes/PF_Utils.php`, method `PageLinks::printRedirectForm()`.
+`src/PageLinks.php`, method `PageLinks::printRedirectForm()`.
 
 === Example
 
