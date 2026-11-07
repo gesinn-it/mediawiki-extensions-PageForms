@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MWException;
-use PFUtils;
 
 /**
  * The values of a form, kept apart from the form's structure (FormDefinition): the value of each
@@ -136,7 +135,7 @@ class FormValues {
 		[ $request, $modifiedFields ] = $this->applyModifiers( $request );
 		$request = $this->markMappedFields( $request, $modifiedFields );
 		$values = $this->toOptions();
-		return PFUtils::arrayMergeRecursiveDistinct( $values, $request );
+		return QueryArrayMerger::arrayMergeRecursiveDistinct( $values, $request );
 	}
 
 	/**
@@ -172,7 +171,7 @@ class FormValues {
 					$key = $pageKey;
 				}
 				$instances[$key] = isset( $instances[$key] ) && is_array( $instance )
-					? PFUtils::arrayMergeRecursiveDistinct( $instances[$key], $instance )
+					? QueryArrayMerger::arrayMergeRecursiveDistinct( $instances[$key], $instance )
 					: $instance;
 			}
 			$request[$templateKey] = $instances;

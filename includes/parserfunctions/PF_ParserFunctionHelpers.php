@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\Extension\PageForms\QueryArrayMerger;
+
 class PFParserFunctionHelpers {
 
 	/**
@@ -14,7 +16,7 @@ class PFParserFunctionHelpers {
 		$value = html_entity_decode( $value );
 		$value = urlencode( $value );
 		parse_str( "$paramName=$value", $arr );
-		$inQueryArr = PFUtils::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
+		$inQueryArr = QueryArrayMerger::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
 		if ( $paramName == 'returnto' ) {
 			$hasReturnTo = true;
 		}

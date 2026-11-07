@@ -7,6 +7,7 @@
  */
 
 use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
+use MediaWiki\Extension\PageForms\QueryArrayMerger;
 use MediaWiki\Html\Html;
 use MediaWiki\Title\Title;
 
@@ -49,7 +50,7 @@ class PFAutoEditRating {
 				case 'target':
 					$value = $parser->recursiveTagParse( $value );
 					$arr = [ $key => $value ];
-					$inQueryArr = PFUtils::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
+					$inQueryArr = QueryArrayMerger::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
 
 					$targetTitle = Title::newFromText( $value );
 
@@ -92,7 +93,7 @@ class PFAutoEditRating {
 				default:
 					$value = $parser->recursiveTagParse( $value );
 					$arr = [ $key => $value ];
-					$inQueryArr = PFUtils::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
+					$inQueryArr = QueryArrayMerger::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
 			}
 		}
 

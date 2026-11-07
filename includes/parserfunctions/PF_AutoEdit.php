@@ -18,6 +18,7 @@
  */
 
 use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
+use MediaWiki\Extension\PageForms\QueryArrayMerger;
 use MediaWiki\Html\Html;
 use MediaWiki\Title\Title;
 
@@ -83,7 +84,7 @@ class PFAutoEdit {
 				case 'error text':
 					// do not parse ok text or error text yet. Will be parsed on api call
 					$arr = [ $key => $value ];
-					$inQueryArr = PFUtils::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
+					$inQueryArr = QueryArrayMerger::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
 					break;
 				case 'tooltip':
 					$inTooltip = Sanitizer::decodeCharReferences( $value );
@@ -93,7 +94,7 @@ class PFAutoEdit {
 				case 'title':
 					$value = $parser->recursiveTagParse( $value );
 					$arr = [ $key => $value ];
-					$inQueryArr = PFUtils::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
+					$inQueryArr = QueryArrayMerger::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
 
 					$targetTitle = Title::newFromText( $value );
 
@@ -122,7 +123,7 @@ class PFAutoEdit {
 				default:
 					$value = $parser->recursiveTagParse( $value );
 					$arr = [ $key => $value ];
-					$inQueryArr = PFUtils::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
+					$inQueryArr = QueryArrayMerger::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
 			}
 		}
 
@@ -219,6 +220,6 @@ class PFAutoEdit {
 
 		parse_str( $queryString, $arr );
 
-		return PFUtils::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
+		return QueryArrayMerger::arrayMergeRecursiveDistinct( $inQueryArr, $arr );
 	}
 }

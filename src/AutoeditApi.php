@@ -176,7 +176,9 @@ class AutoeditApi extends ApiBase {
 			Parser::OT_WIKI
 		);
 
-		$request = AutoeditRequest::fromOptions( PFUtils::arrayMergeRecursiveDistinct( $data, $this->mOptions ) );
+		$request = AutoeditRequest::fromOptions(
+			QueryArrayMerger::arrayMergeRecursiveDistinct( $data, $this->mOptions )
+		);
 		$this->mOptions = $request->options;
 		$this->mAction = $request->action;
 		$this->mIsAutoEdit = $request->isAutoEdit;

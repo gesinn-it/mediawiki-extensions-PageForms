@@ -2,14 +2,15 @@
 
 declare( strict_types=1 );
 
+use MediaWiki\Extension\PageForms\QueryArrayMerger;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The functions of PFUtils that only work on arrays, and need no wiki.
+ * QueryArrayMerger needs no wiki.
  *
- * @covers PFUtils::arrayMergeRecursiveDistinct
+ * @covers \MediaWiki\Extension\PageForms\QueryArrayMerger
  */
-class PFUtilsFunctionsTest extends TestCase {
+class QueryArrayMergerTest extends TestCase {
 
 	/**
 	 * @dataProvider provideArrayMerges
@@ -18,7 +19,7 @@ class PFUtilsFunctionsTest extends TestCase {
 	 * @param array $expected
 	 */
 	public function testArrayMergeRecursiveDistinct( array $a, array $b, array $expected ): void {
-		$this->assertSame( $expected, PFUtils::arrayMergeRecursiveDistinct( $a, $b ) );
+		$this->assertSame( $expected, QueryArrayMerger::arrayMergeRecursiveDistinct( $a, $b ) );
 	}
 
 	/**
