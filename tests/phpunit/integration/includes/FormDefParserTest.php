@@ -27,6 +27,36 @@ class FormDefParserTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
+	// ------------------------------------------------------------------ readPageValues
+
+	/**
+	 * @dataProvider parserTitleProvider
+	 */
+	public function testTitlesTheParserFromTheRequestElseFromTheFormPage(
+		?string $requestTitle, string $expected
+	): void {
+		$formTitle = Title::makeTitle( PF_NS_FORM, 'PFTestFDPOwnTitle' );
+		$formId = $this->insertPage( $formTitle, '' )['id'];
+		// A request to the API has nothing to take the title from.
+		$this->setMwGlobals( 'wgTitle', null );
+		RequestContext::getMain()->setTitle( $requestTitle === null ? null : Title::newFromText( $requestTitle ) );
+
+		$createParser = new \ReflectionMethod( FormDefParser::class, 'createParser' );
+		$createParser->setAccessible( true );
+		$parser = $createParser->invoke(
+			$this->parser, $this->getServiceContainer()->getParserFactory(), $formId
+		);
+
+		$this->assertSame( $expected, $parser->getTitle()->getPrefixedText() );
+	}
+
+	public static function parserTitleProvider(): array {
+		return [
+			'request with a title' => [ 'PFTestFDPRequestPage', 'PFTestFDPRequestPage' ],
+			'request without a title' => [ null, 'Form:PFTestFDPOwnTitle' ],
+		];
+	}
+
 	// ------------------------------------------------------------------ preparePreloadData
 
 	public function testReturnsFieldValuesFromExistingPageContent(): void {

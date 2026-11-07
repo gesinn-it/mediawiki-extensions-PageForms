@@ -12,6 +12,7 @@ use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormDefinition\TemplateSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TextSpec;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Title\Title;
 use Parser;
 use ParserFactory;
 use ParserOptions;
@@ -58,7 +59,7 @@ class FormDefParser {
 	public function readPageValues(
 		string $form_def, string $existing_page_content, ?int $form_id = null
 	): FormValues {
-		$parser = $this->createParser( $this->parserFactory );
+		$parser = $this->createParser( $this->parserFactory, $form_id );
 
 		$definition = FormCache::getFormDefinitionModel( $parser, $form_def, $form_id );
 
@@ -162,7 +163,7 @@ class FormDefParser {
 	public function getRestrictedInputs( string $form_def, ?int $form_id, User $user ): RestrictedInputs {
 		// The current services' parser factory, not the one this (long-lived) instance was built with:
 		// this runs on every autoedit request, including after the services have been replaced.
-		$parser = $this->createParser( MediaWikiServices::getInstance()->getParserFactory() );
+		$parser = $this->createParser( MediaWikiServices::getInstance()->getParserFactory(), $form_id );
 		$definition = FormCache::getFormDefinitionModel( $parser, $form_def, $form_id );
 		$restricted = new RestrictedInputs();
 
@@ -208,13 +209,22 @@ class FormDefParser {
 	 * A fresh parser, set up like the one formHTML() uses. It is titled from the current
 	 * request so wikitext parsed with it (e.g. a template-name tag containing {{PAGENAME}})
 	 * doesn't resolve against a "Badtitle" placeholder (see issue #189).
+	 *
+	 * A request without a title, like one to the API, gets the form page: a parser without a title
+	 * parses against that placeholder, which MediaWiki deprecated in 1.34 and reports since 1.46.
+	 *
+	 * @param ParserFactory $parserFactory
+	 * @param int|null $formId Page ID of the form page
 	 */
-	private function createParser( ParserFactory $parserFactory ): Parser {
+	private function createParser( ParserFactory $parserFactory, ?int $formId ): Parser {
 		$parser = $parserFactory->create();
 		$parser->setOptions( ParserOptions::newFromUser( RequestContext::getMain()->getUser() ) );
-		$contextTitle = RequestContext::getMain()->getTitle();
-		if ( $contextTitle !== null ) {
-			$parser->setTitle( $contextTitle );
+		$title = RequestContext::getMain()->getTitle();
+		if ( $title === null && $formId !== null ) {
+			$title = Title::newFromID( $formId );
+		}
+		if ( $title !== null ) {
+			$parser->setTitle( $title );
 		}
 		$parser->clearState();
 		return $parser;
