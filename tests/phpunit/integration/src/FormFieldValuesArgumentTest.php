@@ -8,10 +8,10 @@ use OOUI\BlankTheme;
 /**
  * What the 'values' argument of a field gives as the options of the input.
  *
- * The cases without a link pin what 'values' did before links in it were handled (#279), so that a
- * change in how the argument is read cannot change them unnoticed. They only list what is
- * correct; inputs whose result is known to be wrong (wiki markup such as ''italic'', a bare URL
- * or "----", which show as escaped HTML) are left out on purpose.
+ * The cases without a link or markup pin what 'values' did before they were handled (#279), so that
+ * a change in how the argument is read cannot change them unnoticed. Templates, parser functions
+ * and magic words are expanded; the result is read as plain text, so a link gives the name of the
+ * page and wiki markup or a bare URL stays as it was written.
  *
  * @covers \MediaWiki\Extension\PageForms\FormFieldTagReader
  * @group Database
@@ -30,6 +30,8 @@ class FormFieldValuesArgumentTest extends MediaWikiIntegrationTestCase {
 		global $wgPageFormsFormPrinter;
 		$wgPageFormsFormPrinter = FormPrinterFactory::create();
 		parent::setUp();
+		$this->insertPage( Title::makeTitle( NS_TEMPLATE, 'PFValuesWithParam' ), '{{{1}}}-t,u' );
+		$this->insertPage( Title::makeTitle( NS_TEMPLATE, 'PFValuesLinks' ), '[[A]],b,[[C d]]' );
 	}
 
 	/**
@@ -86,6 +88,11 @@ class FormFieldValuesArgumentTest extends MediaWikiIntegrationTestCase {
 			'same value twice' => [ 'a,a', [ 'a', 'a' ] ],
 			'template call' => [ '{{lc:X}},{{uc:y}}', [ 'x', 'Y' ] ],
 			'magic word' => [ '{{PAGENAME}},b', [ 'PFValuesPage', 'b' ] ],
+			'magic word with a parameter' => [ '{{ns:Help}},b', [ 'Help', 'b' ] ],
+			'template with a parameter' => [ '{{PFValuesWithParam|x}},z', [ 'x-t', 'u', 'z' ] ],
+			'template parameter with a default' => [ '{{{x|dflt}}},b', [ 'dflt', 'b' ] ],
+			'array map' => [ '{{#arraymap:p;q;r|;|x|x-1|,}}', [ 'p-1', 'q-1', 'r-1' ] ],
+			'at sign and semicolon' => [ 'a@b,c;d', [ 'a@b', 'c;d' ] ],
 			'other delimiter' => [ 'a,b;c d,e|delimiter=;', [ 'a,b', 'c d,e' ] ],
 		];
 	}
@@ -106,6 +113,9 @@ class FormFieldValuesArgumentTest extends MediaWikiIntegrationTestCase {
 
 	public static function provideLinks(): array {
 		return [
+			'links from a template' => [ '{{PFValuesLinks}}', [ 'A', 'b', 'C d' ] ],
+			'link made by a template call' => [ '[[{{lc:X}}]],b', [ 'x', 'b' ] ],
+			'link in a parser function' => [ '{{#arraymap:p;q|;|x|[[x]]|,}}', [ 'p', 'q' ] ],
 			'link' => [ '[[A]],b', [ 'A', 'b' ] ],
 			'only links' => [ '[[A]],[[B]]', [ 'A', 'B' ] ],
 			'link with spaces' => [ '[[ A b ]],c', [ 'A b', 'c' ] ],
@@ -114,5 +124,52 @@ class FormFieldValuesArgumentTest extends MediaWikiIntegrationTestCase {
 			'link in the middle of a value' => [ 'x [[A]] y,b', [ 'x A y', 'b' ] ],
 			'link and other delimiter' => [ '[[A]];b,c|delimiter=;', [ 'A', 'b,c' ] ],
 		];
+	}
+
+	/**
+	 * The text is plain: wiki markup and bare URLs are not turned into HTML, which the input would
+	 * show as text and which a saved value would hold.
+	 *
+	 * @dataProvider provideMarkup
+	 * @param string $values The 'values' argument
+	 * @param string[] $expected The values of the options
+	 */
+	public function testMarkupStaysText( string $values, array $expected ): void {
+		foreach ( [ 'dropdown', 'checkboxes' ] as $inputType ) {
+			$this->assertSame( $expected, $this->optionValues( $inputType, "values=$values" ), $inputType );
+		}
+	}
+
+	public static function provideMarkup(): array {
+		return [
+			'italic' => [ "''it'',b", [ "''it''", 'b' ] ],
+			'bold' => [ "'''bo''',b", [ "'''bo'''", 'b' ] ],
+			'bare URL' => [ 'http://x.org/a,b', [ 'http://x.org/a', 'b' ] ],
+			'external link' => [ '[http://x.org text],b', [ '[http://x.org text]', 'b' ] ],
+			'horizontal rule' => [ '----,b', [ '----', 'b' ] ],
+			'markup made by a template' => [ '{{PFValuesWithParam|\'\'\'x\'\'\'}},z', [ "'''x'''-t", 'u', 'z' ] ],
+		];
+	}
+
+	/**
+	 * The query of "#ask" has links in it, which must reach the parser function as they are written.
+	 * With the links in the result, the page names are the values. Both ways are in one test, as the
+	 * tables of Semantic MediaWiki are not reset between tests.
+	 */
+	public function testQueryOfParserFunctionIsNotChanged(): void {
+		if ( !defined( 'SMW_VERSION' ) ) {
+			$this->markTestSkipped( 'Semantic MediaWiki is not installed.' );
+		}
+		$this->insertPage( 'PFValuesMember', '[[Category:PFValuesCategory]]' );
+		// The category membership is stored by a deferred update.
+		\DeferredUpdates::doUpdates();
+		foreach ( [ 'links in the result' => '', 'no links in the result' => '|link=none' ] as $name => $linkMode ) {
+			$values = '{{#ask:[[Category:PFValuesCategory]]|format=plainlist|sep=,' . $linkMode . '}}';
+			foreach ( [ 'dropdown', 'checkboxes' ] as $inputType ) {
+				$this->assertSame(
+					[ 'PFValuesMember' ], $this->optionValues( $inputType, "values=$values" ), "$name, $inputType"
+				);
+			}
+		}
 	}
 }

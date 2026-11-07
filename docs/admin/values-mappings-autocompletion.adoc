@@ -51,7 +51,7 @@ Here are the parameters for the "field" tag that can be used in all cases:
 | `values=`
 | Finally, you can simply manually specify the set of values shown to the user; an example would be `values=Red,Yellow,Blue`.
   This set of values should be separated by commas by default, but the delimiter can be modified using the `delimiter=` parameter.
-  A value written as a link, such as `values=[[Red]],[[Blue]]`, gives the name of the page (`Red`, `Blue`); the link itself is not shown.
+  Templates and parser functions in it are expanded, and the result is used as plain text: a link, such as `values=[[Red]],[[Blue]]`, gives the name of the page (`Red`, `Blue`), and other wiki markup, such as `''italic''` or a bare URL, is kept as it was written.
 |===
 
 There are several more options for the autocompletion-based inputs; see <<autocompletion,Autocompletion>>, below.

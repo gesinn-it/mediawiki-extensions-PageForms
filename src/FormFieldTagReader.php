@@ -327,7 +327,7 @@ class FormFieldTagReader {
 		if ( $argName == 'values' ) {
 			// Handle this one only after
 			// 'delimiter' has also been set.
-			$args['values'] = $parser->recursiveTagParse( $this->linksToPageNames( $argValue ) );
+			$args['values'] = $this->linksToPageNames( $parser->recursivePreprocess( $argValue ) );
 		} elseif ( $argName == 'values from property' ) {
 			$args['valuesFromPropertyName'] = $argValue;
 		} elseif ( $argName == 'values from wikidata' ) {
@@ -422,11 +422,12 @@ class FormFieldTagReader {
 	}
 
 	/**
-	 * Replace each link in the text with the name of the page it links to.
+	 * Replace each link in the text, after templates and parser functions have been expanded, with
+	 * the name of the page it links to.
 	 *
-	 * The parser does not turn a link into text but into a placeholder that only a full parse
-	 * replaces, and the possible values of an input are escaped text, not HTML. A value is
-	 * stored as it is, so it has to be the page name. Text without a link is returned as it is.
+	 * A value is stored as it is, so it has to be plain text. Parsing the text instead would turn a
+	 * link into a placeholder that only a full parse replaces, and wiki markup and bare URLs into
+	 * HTML that the input then shows as text.
 	 *
 	 * @param string $text
 	 * @return string
@@ -435,9 +436,8 @@ class FormFieldTagReader {
 		if ( !str_contains( $text, '[[' ) ) {
 			return $text;
 		}
-		// The target ends at a "|" or at a template call, such as "{{!}}", that gives the "|".
 		return preg_replace_callback(
-			'/\[\[:?([^\[\]|{]*)(?:[|{][^\[\]]*)?\]\]/',
+			'/\[\[:?([^\[\]|]*)(?:\|[^\[\]]*)?\]\]/',
 			static fn ( array $match ): string => trim( $match[1] ) === '' ? $match[0] : trim( $match[1] ),
 			$text
 		);

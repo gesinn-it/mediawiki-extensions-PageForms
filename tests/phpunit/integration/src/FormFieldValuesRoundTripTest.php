@@ -33,6 +33,7 @@ class FormFieldValuesRoundTripTest extends MediaWikiIntegrationTestCase {
 		global $wgPageFormsFormPrinter;
 		$wgPageFormsFormPrinter = FormPrinterFactory::create();
 		parent::setUp();
+		$this->insertPage( Title::makeTitle( NS_TEMPLATE, 'PFRoundTripLinks' ), '[[A]],b,[[C d]]' );
 	}
 
 	/**
@@ -115,6 +116,7 @@ class FormFieldValuesRoundTripTest extends MediaWikiIntegrationTestCase {
 			'plain' => [ 'a,b,c d', [ 'a', 'b', 'c d' ] ],
 			'links' => [ '[[A]],b,[[C d]]', [ 'A', 'b', 'C d' ] ],
 			'link to a category' => [ '[[:Category:A]],b,c', [ 'Category:A', 'b', 'c' ] ],
+			'links from a template' => [ '{{PFRoundTripLinks}}', [ 'A', 'b', 'C d' ] ],
 		];
 		foreach ( $types as $type ) {
 			foreach ( $values as $name => [ $arg, $options ] ) {
