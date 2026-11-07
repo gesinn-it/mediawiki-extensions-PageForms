@@ -10,6 +10,7 @@
 return [
 	// # Issue statistics:
 	// SecurityCheck-DoubleEscaped : 10+ occurrences
+	// SecurityCheck-XSS : 2 occurrences
 	// PhanTypeMismatchProperty : 4 occurrences
 	// PhanTypeMismatchDimEmpty : 1 occurrence
 	// PhanTypeMismatchPropertyProbablyReal : 1 occurrence
@@ -30,11 +31,17 @@ return [
 		'includes/parserfunctions/PF_AutoEditRating.php' => [
 			'SecurityCheck-DoubleEscaped' => ['\\PFAutoEditRating::run']
 		],
+		'includes/parserfunctions/PF_FormLink.php' => [
+			'SecurityCheck-DoubleEscaped' => ['\\PFFormLink::createFormLink']
+		],
 		'includes/parserfunctions/PF_FormInputParserFunction.php' => [
 			'SecurityCheck-DoubleEscaped' => ['\\PFFormInputParserFunction::run']
 		],
 		'specials/PF_FormStart.php' => [
 			'SecurityCheck-DoubleEscaped' => ['\\PFFormStart::execute']
+		],
+		'specials/PF_RunQuery.php' => [
+			'SecurityCheck-XSS' => ['\\PFRunQuery::printPage']
 		],
 		'specials/PF_UploadForm.php' => [
 			'PhanTypeMismatchDimEmpty' => ['\\PFUploadForm::__construct'],
@@ -43,6 +50,9 @@ return [
 		],
 		'specials/PF_UploadWindow.php' => [
 			'SecurityCheck-DoubleEscaped' => ['\\PFUploadWindow::getExistsWarning', '\\PFUploadWindow::showViewDeletedLinks']
+		],
+		'src/AutoeditApi.php' => [
+			'SecurityCheck-XSS' => ['\\MediaWiki\\Extension\\PageForms\\AutoeditApi::doPreview']
 		],
 		'src/FormField.php' => [
 			'SecurityCheck-DoubleEscaped' => ['\\MediaWiki\\Extension\\PageForms\\FormField::newFromFormFieldTag']

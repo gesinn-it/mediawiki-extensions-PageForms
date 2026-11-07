@@ -1,29 +1,30 @@
 <?php
 
+use MediaWiki\Extension\PageForms\PageSection;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers PFPageSection
+ * @covers \MediaWiki\Extension\PageForms\PageSection
  */
-class PFPageSectionTest extends TestCase {
+class PageSectionTest extends TestCase {
 
 	// ── create() ──────────────────────────────────────────────────────────
 
 	public function testCreateReturnsPFPageSection() {
-		$ps = PFPageSection::create( 'Introduction' );
+		$ps = PageSection::create( 'Introduction' );
 
-		$this->assertInstanceOf( PFPageSection::class, $ps );
+		$this->assertInstanceOf( PageSection::class, $ps );
 		$this->assertSame( 'Introduction', $ps->getSectionName() );
 	}
 
 	public function testCreateHasDefaultLevel2() {
-		$ps = PFPageSection::create( 'Intro' );
+		$ps = PageSection::create( 'Intro' );
 
 		$this->assertSame( 2, $ps->getSectionLevel() );
 	}
 
 	public function testCreateHasDefaultsForFlags() {
-		$ps = PFPageSection::create( 'Intro' );
+		$ps = PageSection::create( 'Intro' );
 
 		$this->assertFalse( $ps->isMandatory() );
 		$this->assertFalse( $ps->isHidden() );
@@ -35,7 +36,7 @@ class PFPageSectionTest extends TestCase {
 	// ── Setters / getters ────────────────────────────────────────────────
 
 	public function testSetSectionLevel() {
-		$ps = PFPageSection::create( 'Intro' );
+		$ps = PageSection::create( 'Intro' );
 		$ps->setSectionLevel( 3 );
 
 		$this->assertSame( 3, $ps->getSectionLevel() );
@@ -45,7 +46,7 @@ class PFPageSectionTest extends TestCase {
 	 * @dataProvider provideFlagAccessors
 	 */
 	public function testSetAFlag( string $setter, string $getter ) {
-		$ps = PFPageSection::create( 'Intro' );
+		$ps = PageSection::create( 'Intro' );
 		$ps->$setter( true );
 
 		$this->assertTrue( $ps->$getter() );
@@ -63,7 +64,7 @@ class PFPageSectionTest extends TestCase {
 	}
 
 	public function testSetSectionArgs() {
-		$ps = PFPageSection::create( 'Intro' );
+		$ps = PageSection::create( 'Intro' );
 		$ps->setSectionArgs( 'rows', '5' );
 
 		$this->assertSame( [ 'rows' => '5' ], $ps->getSectionArgs() );
@@ -80,7 +81,7 @@ class PFPageSectionTest extends TestCase {
 	}
 
 	public function testNewFromFormTagBasic() {
-		$ps = PFPageSection::newFromFormTag(
+		$ps = PageSection::newFromFormTag(
 			[ 'section', 'Overview' ],
 			$this->makeUser()
 		);
@@ -99,7 +100,7 @@ class PFPageSectionTest extends TestCase {
 	public function testNewFromFormTagReadsAFlag(
 		string $component, bool $userMayEditRestricted, string $getter, bool $expected
 	) {
-		$ps = PFPageSection::newFromFormTag(
+		$ps = PageSection::newFromFormTag(
 			[ 'section', 'Overview', $component ],
 			$this->makeUser( $userMayEditRestricted )
 		);
@@ -127,7 +128,7 @@ class PFPageSectionTest extends TestCase {
 	 * @param array $expectedArgs
 	 */
 	public function testNewFromFormTagReadsAnArgument( string $component, array $expectedArgs ) {
-		$ps = PFPageSection::newFromFormTag(
+		$ps = PageSection::newFromFormTag(
 			[ 'section', 'Overview', $component ],
 			$this->makeUser()
 		);
@@ -150,7 +151,7 @@ class PFPageSectionTest extends TestCase {
 	}
 
 	public function testNewFromFormTagLevel() {
-		$ps = PFPageSection::newFromFormTag(
+		$ps = PageSection::newFromFormTag(
 			[ 'section', 'Overview', 'level=3' ],
 			$this->makeUser()
 		);
@@ -160,7 +161,7 @@ class PFPageSectionTest extends TestCase {
 
 	public function testNewFromFormTagUnknownComponentIsIgnored() {
 		// An unknown key=value component must not throw or set unexpected args
-		$ps = PFPageSection::newFromFormTag(
+		$ps = PageSection::newFromFormTag(
 			[ 'section', 'Overview', 'unknownkey=somevalue' ],
 			$this->makeUser()
 		);

@@ -1,16 +1,20 @@
 <?php
 
-use MediaWiki\Extension\PageForms\FormDefinitionWriter;
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use User;
 
 /**
  * Represents a page section in a user-defined form.
- * This class should really be called "PFPageSectionInForm", to differentiate
+ * This class should really be called "PageSectionInForm", to differentiate
  * it from the PFWikiPageSection class.
  *
  * @author Himeshi
  * @ingroup PF
  */
-class PFPageSection {
+class PageSection {
 	private $mSectionName;
 	private $mSectionLevel = 2;
 	private $mIsMandatory = false;
@@ -20,14 +24,14 @@ class PFPageSection {
 	private $mSectionArgs = [];
 
 	public static function create( $section_name ) {
-		$ps = new PFPageSection();
+		$ps = new PageSection();
 		$ps->mSectionName = $section_name;
 
 		return $ps;
 	}
 
 	public static function newFromFormTag( $tag_components, User $user ) {
-		$ps = new PFPageSection();
+		$ps = new PageSection();
 		$ps->mSectionName = trim( $tag_components[1] );
 
 		// cycle through the other components

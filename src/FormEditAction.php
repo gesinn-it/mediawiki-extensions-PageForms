@@ -1,9 +1,21 @@
 <?php
 
-use MediaWiki\Extension\PageForms\FormLinker;
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use Action;
+use Article;
+use ErrorPageError;
+use HtmlArmor;
+use IContextSource;
 use MediaWiki\Html\Html;
 use MediaWiki\Html\TemplateParser;
 use MediaWiki\MediaWikiServices;
+use MWException;
+use PFFormEdit;
+use PFUtils;
+use SpecialPage;
 
 /**
  * Handles the formedit action.
@@ -12,7 +24,7 @@ use MediaWiki\MediaWikiServices;
  * @author Stephan Gambke
  * @ingroup PF
  */
-class PFFormEditAction extends Action {
+class FormEditAction extends Action {
 
 	/**
 	 * Return the name of the action this object responds to

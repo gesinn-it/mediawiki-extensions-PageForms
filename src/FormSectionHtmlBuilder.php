@@ -8,7 +8,6 @@ use MediaWiki\Extension\PageForms\FormDefinition\FormElement;
 use MediaWiki\Extension\PageForms\FormDefinition\SectionSpec;
 use MediaWiki\Extension\PageForms\FormDefinition\TagSpec;
 use MediaWiki\Html\Html;
-use PFPageSection;
 use PFTextAreaInput;
 use PFWikiPage;
 use User;
@@ -47,7 +46,7 @@ class FormSectionHtmlBuilder {
 		$fieldNum = ( $counters ?? FormCounters::current() )->fieldNum;
 
 		$section_name = trim( $tag_components[1] );
-		$page_section_in_form = PFPageSection::newFromFormTag( $tag_components, $user );
+		$page_section_in_form = PageSection::newFromFormTag( $tag_components, $user );
 		$section_text = '';
 
 		if ( $source_is_page && $existing_page_content !== null ) {
@@ -95,7 +94,7 @@ class FormSectionHtmlBuilder {
 	 */
 	private function extractSectionFromPageContent(
 		string $section_name,
-		PFPageSection $page_section_in_form,
+		PageSection $page_section_in_form,
 		array $following_elements,
 		string &$existing_page_content,
 		User $user
@@ -163,7 +162,7 @@ class FormSectionHtmlBuilder {
 				return -1;
 			}
 			$components = $element->getComponents();
-			$page_next_section_in_form = PFPageSection::newFromFormTag( $components, $user );
+			$page_next_section_in_form = PageSection::newFromFormTag( $components, $user );
 			if ( preg_match(
 				'/(^={1,6}[ ]*?' . preg_quote( $components[1], '/' ) . '[ ]*?={1,6}\s*?$)/m',
 				$existing_page_content, $matches, PREG_OFFSET_CAPTURE
@@ -183,7 +182,7 @@ class FormSectionHtmlBuilder {
 	 */
 	private function extractSectionFromRequest(
 		string $section_name,
-		PFPageSection $page_section_in_form,
+		PageSection $page_section_in_form,
 		WebRequest $request,
 		PFWikiPage $wiki_page
 	): string {

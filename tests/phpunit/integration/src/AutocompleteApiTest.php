@@ -1,7 +1,9 @@
 <?php
 
+use MediaWiki\Extension\PageForms\AutocompleteApi;
+
 /**
- * @covers \PFAutocompleteAPI
+ * @covers \MediaWiki\Extension\PageForms\AutocompleteApi
  * @group PF
  * @group Database
  * @group medium
@@ -9,42 +11,42 @@
 class PFAutocompleteAPITest extends ApiTestCase {
 
 	/**
-	 * @covers \PFAutocompleteAPI::shiftExactMatch
+	 * @covers \MediaWiki\Extension\PageForms\AutocompleteApi::shiftExactMatch
 	 */
 	public function testShiftExactMatchMovesExactMatchToFront() {
 		$values = [ 'foobar', 'foo', 'foobaz' ];
-		$result = PFAutocompleteAPI::shiftExactMatch( 'foo', $values );
+		$result = AutocompleteApi::shiftExactMatch( 'foo', $values );
 		$this->assertSame( [ 'foo', 'foobar', 'foobaz' ], array_values( $result ) );
 	}
 
 	/**
-	 * @covers \PFAutocompleteAPI::shiftExactMatch
+	 * @covers \MediaWiki\Extension\PageForms\AutocompleteApi::shiftExactMatch
 	 */
 	public function testShiftExactMatchLeavesArrayUnchangedWhenNoMatch() {
 		$values = [ 'foobar', 'foobaz' ];
-		$result = PFAutocompleteAPI::shiftExactMatch( 'foo', $values );
+		$result = AutocompleteApi::shiftExactMatch( 'foo', $values );
 		$this->assertSame( [ 'foobar', 'foobaz' ], array_values( $result ) );
 	}
 
 	/**
-	 * @covers \PFAutocompleteAPI::shiftExactMatch
+	 * @covers \MediaWiki\Extension\PageForms\AutocompleteApi::shiftExactMatch
 	 */
 	public function testShiftExactMatchLeavesArrayUnchangedWhenMatchIsAlreadyFirst() {
 		$values = [ 'foo', 'foobar', 'foobaz' ];
-		$result = PFAutocompleteAPI::shiftExactMatch( 'foo', $values );
+		$result = AutocompleteApi::shiftExactMatch( 'foo', $values );
 		$this->assertSame( [ 'foo', 'foobar', 'foobaz' ], array_values( $result ) );
 	}
 
 	/**
-	 * @covers \PFAutocompleteAPI::shiftExactMatch
+	 * @covers \MediaWiki\Extension\PageForms\AutocompleteApi::shiftExactMatch
 	 */
 	public function testShiftExactMatchWithEmptyArray() {
-		$result = PFAutocompleteAPI::shiftExactMatch( 'foo', [] );
+		$result = AutocompleteApi::shiftExactMatch( 'foo', [] );
 		$this->assertSame( [], $result );
 	}
 
 	/**
-	 * @covers \PFAutocompleteAPI::execute
+	 * @covers \MediaWiki\Extension\PageForms\AutocompleteApi::execute
 	 */
 	public function testExecuteThrowsErrorWhenSubstrIsMissing() {
 		$this->expectException( ApiUsageException::class );
@@ -54,7 +56,7 @@ class PFAutocompleteAPITest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \PFAutocompleteAPI::execute
+	 * @covers \MediaWiki\Extension\PageForms\AutocompleteApi::execute
 	 */
 	public function testExecuteReturnsEmptyResultWhenBasepropSetButPropertyOmitted() {
 		[ $result ] = $this->doApiRequest( [

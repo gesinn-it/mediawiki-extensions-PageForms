@@ -33,7 +33,22 @@ change which source a form reads its values from.
 == Entries outside `src/`
 
 The entries for `includes/`, `specials/` and the upload form predate the refactoring of `FormPrinter`
-and have not been reviewed.
+and have not been reviewed, with the exception of the three below.
+
+Phan's taint analysis depends on the order in which it analyses the files, so moving classes from
+`includes/` to `src/` can make a finding appear or disappear in a file that was not touched. The
+three entries below appeared that way when the action, job, API and page section classes moved; the
+code they point at did not change.
+
+`PFFormLink::createFormLink`::
+The arguments of `#formlink` are parsed with `Parser::recursiveTagParse()` and used as attributes of
+the link. `Html::rawElement()` escapes attributes once; Phan sees the parsed argument as already
+escaped. Same cause as the entries for the other parser functions.
+
+`AutoeditApi::doPreview` and `PFRunQuery::printPage`::
+Phan follows the summary from the request (`wpSummary`) through `FormButtons::formBottom()` into
+`OutputPage::addHTML()`. The value only goes into the `value` attribute of an `OOUI\TextInputWidget`,
+which escapes it; Phan cannot follow the value through the widget.
 
 == Inline suppressions
 

@@ -34,7 +34,7 @@ Form field
 → Input type (combobox, tokens, etc.)
 → JavaScript widget
 → MediaWiki API request
-→ PFAutocompleteAPI
+→ AutocompleteApi
 → Data source (SMW / category / namespace / external service)
 ----
 
@@ -197,7 +197,7 @@ The client widget prefers `displaytitle` when present.
 Server-side autocomplete is implemented through the MediaWiki API module:
 
 ----
-PFAutocompleteAPI
+AutocompleteApi
 ----
 
 The module is exposed through:

@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Title\Title;
-use PFPageSection;
 use PFUtils;
 
 /**
@@ -110,7 +109,7 @@ END;
 		return $text . "{{{end template}}}\n";
 	}
 
-	public function section( PFPageSection $section ): string {
+	public function section( PageSection $section ): string {
 		$section_name = $section->getSectionName();
 		$section_level = $section->getSectionLevel();
 		// Set default section level to 2

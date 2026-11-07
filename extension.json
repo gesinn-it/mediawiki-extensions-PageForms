@@ -49,8 +49,8 @@
 		"multipageedit"
 	],
 	"Actions": {
-		"formedit": "PFFormEditAction",
-		"formcreate": "PFHelperFormAction"
+		"formedit": "MediaWiki\\Extension\\PageForms\\FormEditAction",
+		"formcreate": "MediaWiki\\Extension\\PageForms\\HelperFormAction"
 	},
 	"SpecialPages": {
 		"Forms": "PFForms",
@@ -62,10 +62,10 @@
 		"UploadWindow": "PFUploadWindow"
 	},
 	"JobClasses": {
-		"pageFormsCreatePage": "PFCreatePageJob"
+		"pageFormsCreatePage": "MediaWiki\\Extension\\PageForms\\CreatePageJob"
 	},
 	"APIModules": {
-		"pfautocomplete": "PFAutocompleteAPI",
+		"pfautocomplete": "MediaWiki\\Extension\\PageForms\\AutocompleteApi",
 		"pfautoedit": "MediaWiki\\Extension\\PageForms\\AutoeditApi",
 		"sformsselect": "PFSFSelectAPI"
 	},
@@ -103,10 +103,6 @@
 		"PFQueryFormLink": "includes/parserfunctions/PF_QueryFormLink.php",
 		"PFTemplateParams": "includes/parserfunctions/PF_TemplateParams.php",
 		"PFTemplateDisplay": "includes/parserfunctions/PF_TemplateDisplay.php",
-		"PFAutocompleteAPI": "includes/PF_AutocompleteAPI.php",
-		"PFFormEditAction": "includes/PF_FormEditAction.php",
-		"PFHelperFormAction": "includes/PF_HelperFormAction.php",
-		"PFPageSection": "includes/PF_PageSection.php",
 		"PFFormInput": "includes/forminputs/PF_FormInput.php",
 		"PFTextInput": "includes/forminputs/PF_TextInput.php",
 		"PFTextWithAutocompleteInput": "includes/forminputs/PF_TextWithAutocompleteInput.php",
@@ -147,7 +143,6 @@
 		"PFWikiPageTemplateParam": "includes/wikipage/PF_WikiPageTemplateParam.php",
 		"PFWikiPageSection": "includes/wikipage/PF_WikiPageSection.php",
 		"PFWikiPageFreeText": "includes/wikipage/PF_WikiPageFreeText.php",
-		"PFCreatePageJob": "includes/PF_CreatePageJob.php",
 		"IntegrationTestHelpers": "tests/phpunit/integration/IntegrationTestHelpers.php"
 	},
 	"AutoloadNamespaces": {
@@ -660,8 +655,8 @@
 	},
 	"Hooks": {
 		"SkinTemplateNavigation::Universal": [
-			"PFFormEditAction::displayTab",
-			"PFHelperFormAction::displayTab"
+			"MediaWiki\\Extension\\PageForms\\FormEditAction::displayTab",
+			"MediaWiki\\Extension\\PageForms\\HelperFormAction::displayTab"
 		],
 		"ArticlePurge": "MediaWiki\\Extension\\PageForms\\FormCache::purgeCache",
 		"ParserFirstCallInit": "PFHooks::registerFunctions",

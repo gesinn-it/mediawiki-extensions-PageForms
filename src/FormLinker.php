@@ -7,7 +7,6 @@ namespace MediaWiki\Extension\PageForms;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
-use PFCreatePageJob;
 use PFUtils;
 use RequestContext;
 use User;
@@ -92,7 +91,7 @@ class FormLinker {
 		}
 		$params['user_id'] = $userID;
 		$params['page_text'] = $result->getPageText();
-		$job = new PFCreatePageJob( $title, $params );
+		$job = new CreatePageJob( $title, $params );
 
 		$jobs = [ $job ];
 		MediaWikiServices::getInstance()->getJobQueueGroup()->push( $jobs );

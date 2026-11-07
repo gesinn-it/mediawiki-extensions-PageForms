@@ -7,10 +7,10 @@ namespace MediaWiki\Extension\PageForms\Tests\Integration;
 use MediaWiki\Extension\PageForms\Form;
 use MediaWiki\Extension\PageForms\FormDefinitionWriter;
 use MediaWiki\Extension\PageForms\FormField;
+use MediaWiki\Extension\PageForms\PageSection;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWiki\Extension\PageForms\TemplateInForm;
 use MediaWikiIntegrationTestCase;
-use PFPageSection;
 
 /**
  * @covers \MediaWiki\Extension\PageForms\FormDefinitionWriter
@@ -257,7 +257,7 @@ class FormDefinitionWriterTest extends MediaWikiIntegrationTestCase {
 	 * @param string $tag The level argument of the section tag
 	 */
 	public function testCreateMarkupWritesTheHeadingAndTagOfTheLevel( $level, string $heading, string $tag ) {
-		$ps = PFPageSection::create( 'Intro' );
+		$ps = PageSection::create( 'Intro' );
 		if ( $level !== null ) {
 			$ps->setSectionLevel( $level );
 		}
@@ -283,7 +283,7 @@ class FormDefinitionWriterTest extends MediaWikiIntegrationTestCase {
 	 * @dataProvider provideFlagMarkup
 	 */
 	public function testCreateMarkupWritesAFlag( string $setter, string $expected ) {
-		$ps = PFPageSection::create( 'Intro' );
+		$ps = PageSection::create( 'Intro' );
 		$ps->$setter( true );
 
 		$this->assertStringContainsString( $expected, $this->writer->section( $ps ) );
@@ -301,7 +301,7 @@ class FormDefinitionWriterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testCreateMarkupWithStringArg() {
-		$ps = PFPageSection::create( 'Rows' );
+		$ps = PageSection::create( 'Rows' );
 		$ps->setSectionArgs( 'rows', '5' );
 
 		$markup = $this->writer->section( $ps );
@@ -310,7 +310,7 @@ class FormDefinitionWriterTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testCreateMarkupWithBooleanArg() {
-		$ps = PFPageSection::create( 'Autogrow' );
+		$ps = PageSection::create( 'Autogrow' );
 		$ps->setSectionArgs( 'autogrow', true );
 
 		$markup = $this->writer->section( $ps );
@@ -366,7 +366,7 @@ class FormDefinitionWriterTest extends MediaWikiIntegrationTestCase {
 
 	public function testFormWritesItsTemplatesAndSectionsInOrder(): void {
 		$template = TemplateInForm::create( 'PFTestWriterTemplate02', null );
-		$section = PFPageSection::create( 'Intro' );
+		$section = PageSection::create( 'Intro' );
 		$form = Form::create( 'My Form', [
 			[ 'type' => 'template', 'item' => $template ],
 			[ 'type' => 'section', 'item' => $section ],

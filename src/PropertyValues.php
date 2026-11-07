@@ -62,7 +62,7 @@ class PropertyValues {
 	 * This function, unlike the others, doesn't take in a substring
 	 * because it uses the SMW data store, which can't perform
 	 * case-insensitive queries; for queries with a substring, the
-	 * function PFAutocompleteAPI::getAllValuesForProperty() exists.
+	 * function AutocompleteApi::getAllValuesForProperty() exists.
 	 *
 	 * @param string $property_name
 	 * @param \SMW\Store|null $store

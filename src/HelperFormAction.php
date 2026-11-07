@@ -1,6 +1,13 @@
 <?php
 
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use Action;
+use ErrorPageError;
 use MediaWiki\MediaWikiServices;
+use SkinTemplate;
 
 /**
  * Handles the formcreate action - used for helper forms for creating
@@ -9,7 +16,7 @@ use MediaWiki\MediaWikiServices;
  * @author Yaron Koren
  * @ingroup PF
  */
-class PFHelperFormAction extends Action {
+class HelperFormAction extends Action {
 
 	/**
 	 * Return the name of the action this object responds to

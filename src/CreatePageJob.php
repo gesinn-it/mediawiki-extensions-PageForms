@@ -1,11 +1,17 @@
 <?php
-/**
- *
- * @ingroup PF
- */
 
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use CommentStoreComment;
+use Job;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Title\Title;
+use PFUtils;
+use User;
+use WikitextContent;
 
 /**
  * Background job to create a new page, for use by the 'CreateClass' special
@@ -14,7 +20,7 @@ use MediaWiki\Title\Title;
  * @author Yaron Koren
  * @ingroup PF
  */
-class PFCreatePageJob extends Job {
+class CreatePageJob extends Job {
 
 	public function __construct( Title $title, array $params ) {
 		parent::__construct( 'pageFormsCreatePage', $title, $params );
@@ -53,7 +59,7 @@ class PFCreatePageJob extends Job {
 		}
 
 		$updater = $wikiPage->newPageUpdater( $user );
-		$updater->setContent( MediaWiki\Revision\SlotRecord::MAIN, $newContent );
+		$updater->setContent( SlotRecord::MAIN, $newContent );
 		$updater->saveRevision( CommentStoreComment::newUnsavedComment( $editSummary ), $flags );
 	}
 

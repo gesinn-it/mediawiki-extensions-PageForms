@@ -8,14 +8,19 @@
  */
 
 use MediaWiki\EditPage\EditPage;
+use MediaWiki\Extension\PageForms\AutocompleteApi;
 use MediaWiki\Extension\PageForms\AutoeditApi;
+use MediaWiki\Extension\PageForms\CreatePageJob;
 use MediaWiki\Extension\PageForms\Form;
 use MediaWiki\Extension\PageForms\FormCache;
+use MediaWiki\Extension\PageForms\FormEditAction;
 use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Extension\PageForms\FormUtils;
+use MediaWiki\Extension\PageForms\HelperFormAction;
+use MediaWiki\Extension\PageForms\PageSection;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWiki\Extension\PageForms\TemplateInForm;
@@ -42,12 +47,17 @@ class PFHooks {
 		// during the includes/ -> src/ PSR-4 migration. Registered here so the old
 		// global names are resolvable before any hook fires. See docs/developer/psr4-migration.adoc.
 		class_alias( AutoeditApi::class, 'PFAutoeditAPI' );
+		class_alias( AutocompleteApi::class, 'PFAutocompleteAPI' );
+		class_alias( CreatePageJob::class, 'PFCreatePageJob' );
 		class_alias( Form::class, 'PFForm' );
 		class_alias( FormCache::class, 'PFFormCache' );
+		class_alias( FormEditAction::class, 'PFFormEditAction' );
 		class_alias( FormField::class, 'PFFormField' );
 		class_alias( FormLinker::class, 'PFFormLinker' );
 		class_alias( FormPrinter::class, 'PFFormPrinter' );
 		class_alias( FormUtils::class, 'PFFormUtils' );
+		class_alias( HelperFormAction::class, 'PFHelperFormAction' );
+		class_alias( PageSection::class, 'PFPageSection' );
 		class_alias( Template::class, 'PFTemplate' );
 		class_alias( TemplateField::class, 'PFTemplateField' );
 		class_alias( TemplateInForm::class, 'PFTemplateInForm' );

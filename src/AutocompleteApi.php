@@ -1,18 +1,17 @@
 <?php
-/**
- * @ingroup PF
- */
 
-use MediaWiki\Extension\PageForms\AutocompleteSql;
-use MediaWiki\Extension\PageForms\CategoryPages;
-use MediaWiki\Extension\PageForms\ConceptPages;
-use MediaWiki\Extension\PageForms\DisplayTitles;
-use MediaWiki\Extension\PageForms\ExternalUrlValues;
-use MediaWiki\Extension\PageForms\FormCache;
-use MediaWiki\Extension\PageForms\MappingLabels;
-use MediaWiki\Extension\PageForms\NamespacePages;
-use MediaWiki\Extension\PageForms\WikidataValues;
+declare( strict_types=1 );
+
+namespace MediaWiki\Extension\PageForms;
+
+use ApiBase;
+use ApiMessage;
 use MediaWiki\MediaWikiServices;
+use Message;
+use PFUtils;
+use RawMessage;
+use SMW\DataValueFactory;
+use SMW\DataValues\PropertyValue;
 
 /**
  * Adds and handles the 'pfautocomplete' action to the MediaWiki API.
@@ -22,7 +21,7 @@ use MediaWiki\MediaWikiServices;
  * @author Sergey Chernyshev
  * @author Yaron Koren
  */
-class PFAutocompleteAPI extends ApiBase {
+class AutocompleteApi extends ApiBase {
 
 	public function execute() {
 		$params = $this->extractRequestParams();
@@ -229,9 +228,9 @@ class PFAutocompleteAPI extends ApiBase {
 		$sqlOptions = [];
 		$sqlOptions['LIMIT'] = $maxAutocompleteValues;
 
-		$property = SMW\DataValueFactory::getInstance()->newPropertyValueByLabel( $property_name );
+		$property = DataValueFactory::getInstance()->newPropertyValueByLabel( $property_name );
 
-		$propertyHasTypePage = ( $property instanceof SMW\DataValues\PropertyValue
+		$propertyHasTypePage = ( $property instanceof PropertyValue
 			&& $property->getPropertyTypeID() == '_wpg' );
 		$conditions = [ 'p_ids.smw_title' => $property_name ];
 
@@ -269,8 +268,8 @@ class PFAutocompleteAPI extends ApiBase {
 		}
 
 		if ( $basePropertyName !== null ) {
-			$baseProperty = SMW\DataValueFactory::getInstance()->newPropertyValueByLabel( $basePropertyName );
-			$basePropertyHasTypePage = ( $baseProperty instanceof SMW\DataValues\PropertyValue
+			$baseProperty = DataValueFactory::getInstance()->newPropertyValueByLabel( $basePropertyName );
+			$basePropertyHasTypePage = ( $baseProperty instanceof PropertyValue
 				&& $baseProperty->getPropertyTypeID() == '_wpg' );
 
 			$basePropertyName = str_replace( ' ', '_', $basePropertyName );

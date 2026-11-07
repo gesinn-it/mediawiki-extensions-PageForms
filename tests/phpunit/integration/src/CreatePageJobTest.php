@@ -2,21 +2,22 @@
 
 declare( strict_types=1 );
 
+use MediaWiki\Extension\PageForms\CreatePageJob;
 use MediaWiki\Title\Title;
 
 /**
- * @covers \PFCreatePageJob
+ * @covers \MediaWiki\Extension\PageForms\CreatePageJob
  * @group Database
  */
-class PFCreatePageJobTest extends MediaWikiIntegrationTestCase {
+class CreatePageJobTest extends MediaWikiIntegrationTestCase {
 
 	public function testRunCreatesPageWithGivenTextAndSummary(): void {
 		$title = Title::makeTitle( NS_MAIN, 'PFTestCreatePageJobNewPage' );
 		$user = $this->getTestSysop()->getUser();
 
-		$job = new PFCreatePageJob( $title, [
+		$job = new CreatePageJob( $title, [
 			'page_text' => 'Content from the job',
-			'edit_summary' => 'Created via PFCreatePageJob',
+			'edit_summary' => 'Created via CreatePageJob',
 			'user_id' => $user->getId(),
 		] );
 
@@ -29,14 +30,14 @@ class PFCreatePageJobTest extends MediaWikiIntegrationTestCase {
 			$page->getContent()->serialize()
 		);
 		$revision = $page->getRevisionRecord();
-		$this->assertSame( 'Created via PFCreatePageJob', $revision->getComment()->text );
+		$this->assertSame( 'Created via CreatePageJob', $revision->getComment()->text );
 	}
 
 	public function testRunWithoutEditSummaryUsesEmptySummary(): void {
 		$title = Title::makeTitle( NS_MAIN, 'PFTestCreatePageJobNoSummary' );
 		$user = $this->getTestSysop()->getUser();
 
-		$job = new PFCreatePageJob( $title, [
+		$job = new CreatePageJob( $title, [
 			'page_text' => 'Some content',
 			'user_id' => $user->getId(),
 		] );
@@ -54,7 +55,7 @@ class PFCreatePageJobTest extends MediaWikiIntegrationTestCase {
 		$this->getServiceContainer()->getUserGroupManager()->addUserToGroup( $user, 'bot' );
 		$wikiPage = $this->getServiceContainer()->getWikiPageFactory()->newFromTitle( $title );
 
-		PFCreatePageJob::createOrModifyPage( $wikiPage, 'Bot content', 'bot summary', $user );
+		CreatePageJob::createOrModifyPage( $wikiPage, 'Bot content', 'bot summary', $user );
 
 		$revision = $wikiPage->getRevisionRecord();
 		$this->assertTrue( $revision->getSlot( MediaWiki\Revision\SlotRecord::MAIN )->getContent()->equals(

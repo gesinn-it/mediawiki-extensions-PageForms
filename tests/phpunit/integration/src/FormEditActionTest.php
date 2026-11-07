@@ -1,13 +1,14 @@
 <?php
 
+use MediaWiki\Extension\PageForms\FormEditAction;
 use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
 
 /**
- * @covers \PFFormEditAction
+ * @covers \MediaWiki\Extension\PageForms\FormEditAction
  * @group Database
  */
-class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
+class FormEditActionTest extends MediaWikiIntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -20,7 +21,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newViewLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFFormEditAction::displayTab( $context, $links );
+		FormEditAction::displayTab( $context, $links );
 
 		$this->assertArrayNotHasKey( 'formedit', $links['views'] );
 		$this->assertSame( [ 'view', 'edit', 'history' ], array_keys( $links['views'] ) );
@@ -34,7 +35,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newViewLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFFormEditAction::displayTab( $context, $links );
+		FormEditAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formedit', $links['views'] );
 		$this->assertSame( wfMessage( 'formedit' )->text(), $links['views']['formedit']['text'] );
@@ -68,7 +69,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$context->method( 'getUser' )
 			->willReturnOnConsecutiveCalls( $editableUser, $userWithoutViewEditTab );
 
-		PFFormEditAction::displayTab( $context, $links );
+		FormEditAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formedit', $links['views'] );
 		$this->assertArrayNotHasKey( 'edit', $links['views'] );
@@ -84,7 +85,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newViewLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser(), [ 'action' => 'formedit' ] );
-		PFFormEditAction::displayTab( $context, $links );
+		FormEditAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formedit', $links['views'] );
 		$this->assertSame( 'selected', $links['views']['formedit']['class'] );
@@ -95,7 +96,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newViewLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFFormEditAction::displayTab( $context, $links );
+		FormEditAction::displayTab( $context, $links );
 
 		$this->assertArrayNotHasKey( 'formedit', $links['views'] );
 	}
@@ -114,7 +115,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		];
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFFormEditAction::displayTab( $context, $links );
+		FormEditAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formedit', $links['views'] );
 		$this->assertSame( [ 'view', 'formedit', 'viewsource', 'history' ], array_keys( $links['views'] ) );
@@ -133,7 +134,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		];
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFFormEditAction::displayTab( $context, $links );
+		FormEditAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formedit', $links['views'] );
 		$this->assertSame( [ 'formedit', 'edit', 'history' ], array_keys( $links['views'] ) );
@@ -152,7 +153,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		];
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFFormEditAction::displayTab( $context, $links );
+		FormEditAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formedit', $links['views'] );
 		// Inserted at position 0 (array_splice with -1 wraps to beginning for
@@ -170,7 +171,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newViewLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFFormEditAction::displayTab( $context, $links );
+		FormEditAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formedit', $links['views'] );
 		$this->assertSame( wfMessage( 'edit' )->text(), $links['views']['formedit']['text'] );
@@ -194,7 +195,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$this->setService( 'PermissionManager', $permManager );
 
 		$context = $this->newContext( $title, $userWithoutEdit );
-		PFFormEditAction::displayTab( $context, $links );
+		FormEditAction::displayTab( $context, $links );
 
 		// With RenameEditTabs and a non-editable user: formedit tab uses 'pf_viewform',
 		// and since isAllowed('viewedittab') is false the edit tab is removed entirely.
@@ -214,7 +215,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newViewLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFFormEditAction::displayTab( $context, $links );
+		FormEditAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formedit', $links['views'] );
 		$this->assertSame( wfMessage( 'formedit' )->text(), $links['views']['formedit']['text'] );
@@ -229,7 +230,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 	 * Helper: invoke the private static classifyForms() method via reflection.
 	 */
 	private function classifyForms( array $allFormNames, array $pagesPerForm ): array {
-		$method = new ReflectionMethod( PFFormEditAction::class, 'classifyForms' );
+		$method = new ReflectionMethod( FormEditAction::class, 'classifyForms' );
 		$method->setAccessible( true );
 		return $method->invoke( null, $allFormNames, $pagesPerForm );
 	}
@@ -330,7 +331,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 	 * @return int[]
 	 */
 	private function getNumPagesPerForm(): array {
-		$method = new ReflectionMethod( PFFormEditAction::class, 'getNumPagesPerForm' );
+		$method = new ReflectionMethod( FormEditAction::class, 'getNumPagesPerForm' );
 		$method->setAccessible( true );
 		return $method->invoke( null );
 	}
@@ -424,7 +425,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$output = new OutputPage( $context );
 		$output->setTitle( $title );
 
-		PFFormEditAction::displayFormChooser( $output, $title );
+		FormEditAction::displayFormChooser( $output, $title );
 		$html = $output->getHTML();
 
 		// The message text must appear escaped exactly once: HTML entities
@@ -445,7 +446,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$article = Article::newFromTitle( $title, RequestContext::getMain() );
 		$context = new DerivativeContext( RequestContext::getMain() );
 		$context->setTitle( $title );
-		$action = new PFFormEditAction( $article, $context );
+		$action = new FormEditAction( $article, $context );
 
 		$this->assertSame( 'formedit', $action->getName() );
 	}
@@ -455,7 +456,7 @@ class PFFormEditActionTest extends MediaWikiIntegrationTestCase {
 		$article = Article::newFromTitle( $title, RequestContext::getMain() );
 		$context = new DerivativeContext( RequestContext::getMain() );
 		$context->setTitle( $title );
-		$action = new PFFormEditAction( $article, $context );
+		$action = new FormEditAction( $article, $context );
 
 		$this->assertTrue( $action->execute() );
 	}

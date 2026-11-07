@@ -1,13 +1,14 @@
 <?php
 
+use MediaWiki\Extension\PageForms\HelperFormAction;
 use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
 
 /**
- * @covers \PFHelperFormAction
+ * @covers \MediaWiki\Extension\PageForms\HelperFormAction
  * @group Database
  */
-class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
+class HelperFormActionTest extends MediaWikiIntegrationTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -23,7 +24,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		$article = Article::newFromTitle( $title, RequestContext::getMain() );
 		$context = new DerivativeContext( RequestContext::getMain() );
 		$context->setTitle( $title );
-		$action = new PFHelperFormAction( $article, $context );
+		$action = new HelperFormAction( $article, $context );
 
 		$this->assertSame( 'formcreate', $action->getName() );
 	}
@@ -33,7 +34,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		$article = Article::newFromTitle( $title, RequestContext::getMain() );
 		$context = new DerivativeContext( RequestContext::getMain() );
 		$context->setTitle( $title );
-		$action = new PFHelperFormAction( $article, $context );
+		$action = new HelperFormAction( $article, $context );
 
 		$this->assertTrue( $action->execute() );
 	}
@@ -47,7 +48,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newCreateLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayNotHasKey( 'formcreate', $links['views'] );
 		$this->assertSame( [ 'view', 'edit', 'history' ], array_keys( $links['views'] ) );
@@ -60,7 +61,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newCreateLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayNotHasKey( 'formcreate', $links['views'] );
 	}
@@ -72,7 +73,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newCreateLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayNotHasKey( 'formcreate', $links['views'] );
 	}
@@ -83,7 +84,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newCreateLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayNotHasKey( 'formcreate', $links['views'] );
 	}
@@ -97,7 +98,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newCreateLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formcreate', $links['views'] );
 		$this->assertSame( wfMessage( 'pf_formcreate' )->text(), $links['views']['formcreate']['text'] );
@@ -110,7 +111,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newCreateLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formcreate', $links['views'] );
 		$this->assertSame( wfMessage( 'pf_formcreate' )->text(), $links['views']['formcreate']['text'] );
@@ -121,7 +122,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newCreateLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formcreate', $links['views'] );
 		$this->assertSame( wfMessage( 'pf_formcreate' )->text(), $links['views']['formcreate']['text'] );
@@ -138,7 +139,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 
 		$links = $this->newCreateLinks();
 		$context = $this->newContext( $title, $userWithoutEdit );
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formcreate', $links['views'] );
 		$this->assertSame( wfMessage( 'pf_viewform' )->text(), $links['views']['formcreate']['text'] );
@@ -149,7 +150,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		$links = $this->newCreateLinks();
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser(), [ 'action' => 'formcreate' ] );
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formcreate', $links['views'] );
 		$this->assertSame( 'selected', $links['views']['formcreate']['class'] );
@@ -166,7 +167,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		];
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formcreate', $links['views'] );
 		$this->assertSame( [ 'view', 'formcreate', 'viewsource', 'history' ], array_keys( $links['views'] ) );
@@ -182,7 +183,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		];
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formcreate', $links['views'] );
 		$this->assertSame( [ 'formcreate', 'edit', 'history' ], array_keys( $links['views'] ) );
@@ -198,7 +199,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		];
 
 		$context = $this->newContext( $title, $this->getTestUser()->getUser() );
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formcreate', $links['views'] );
 		$this->assertContains( 'formcreate', array_keys( $links['views'] ) );
@@ -227,7 +228,7 @@ class PFHelperFormActionTest extends MediaWikiIntegrationTestCase {
 		$context->method( 'getUser' )
 			->willReturnOnConsecutiveCalls( $editableUser, $userWithoutViewEditTab );
 
-		PFHelperFormAction::displayTab( $context, $links );
+		HelperFormAction::displayTab( $context, $links );
 
 		$this->assertArrayHasKey( 'formcreate', $links['views'] );
 		$this->assertArrayNotHasKey( 'edit', $links['views'] );
