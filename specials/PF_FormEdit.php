@@ -9,6 +9,7 @@
 
 use MediaWiki\EditPage\EditPage;
 use MediaWiki\Extension\PageForms\AutoeditApi;
+use MediaWiki\Extension\PageForms\FormAssets;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
@@ -97,7 +98,7 @@ class PFFormEdit extends UnlistedSpecialPage {
 
 		// If this call is lower down, it doesn't take effect in
 		// "show changes" mode for some MW versions, for some reason.
-		PFUtils::addFormRLModules();
+		FormAssets::addFormRLModules();
 
 		$module = new AutoeditApi( new ApiMain(), 'pfautoedit' );
 		$module->setOption( 'form', $form_name );

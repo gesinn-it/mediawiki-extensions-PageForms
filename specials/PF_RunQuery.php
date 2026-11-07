@@ -6,6 +6,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\FormAssets;
 use MediaWiki\Extension\PageForms\FormNamespaces;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Html\Html;
@@ -202,7 +203,7 @@ END;
 		// initializes the global parser during field rendering - ensure it here
 		// too, since addFormRLModules() reads its ParserOutput.
 		$rlModulesParser = $embedded ? PFUtils::ensureParserInitialized( PFUtils::getParser(), $user ) : null;
-		PFUtils::addFormRLModules( $rlModulesParser );
+		FormAssets::addFormRLModules( $rlModulesParser );
 		if ( !$embedded ) {
 			// Use the ParserOutput returned by formHTML() rather than the global
 			// parser's, since FormField::clearState() resets the latter during

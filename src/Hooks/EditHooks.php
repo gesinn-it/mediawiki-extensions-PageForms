@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms\Hooks;
 
 use MediaWiki\EditPage\EditPage;
+use MediaWiki\Extension\PageForms\FormAssets;
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
@@ -14,7 +15,6 @@ use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Storage\EditResult;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
-use PFUtils;
 use RequestContext;
 use StringUtils;
 use WikiPage;
@@ -84,7 +84,7 @@ class EditHooks {
 
 		$wgOut->addParserOutputMetadata( $result->getParserOutput() );
 
-		PFUtils::addFormRLModules();
+		FormAssets::addFormRLModules();
 		$editpage->previewTextAfterContent .=
 			'<div style="margin-top: 15px">' . $result->getFormText() . "</div>";
 
