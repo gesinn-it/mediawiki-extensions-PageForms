@@ -1269,9 +1269,17 @@ class AutoeditApiTest extends ApiTestCase {
 
 		$this->insertPage( $targetName, '{{AEStoreTpl|text=old value}}' );
 
-		$module = $this->executeStore( $formName, $targetName, [
+		$traces = []; // DIAGNOSTIC-TEMP
+		set_error_handler( static function ( $no, $str ) use ( &$traces ) { // DIAGNOSTIC-TEMP
+			$traces[] = $str . "\n" . ( new \Exception() )->getTraceAsString(); // DIAGNOSTIC-TEMP
+			return false; // DIAGNOSTIC-TEMP
+		}, E_USER_DEPRECATED ); // DIAGNOSTIC-TEMP
+		try { // DIAGNOSTIC-TEMP
+			$module = $this->executeStore( $formName, $targetName, [
 			'AEStoreTpl' => [ 'text' => 'new value' ],
 		] );
+		} finally { restore_error_handler(); } // DIAGNOSTIC-TEMP
+		fwrite( STDERR, "\nDIAGTRACE\n" . implode( "\n--\n", $traces ) . "\nENDDIAG\n" ); // DIAGNOSTIC-TEMP
 
 		$this->assertSame( 200, $module->getStatus() );
 		$result = $module->getResult()->getResultData();
