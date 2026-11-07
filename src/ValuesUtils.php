@@ -71,6 +71,7 @@ class ValuesUtils {
 	 * @return string
 	 */
 	public static function resolveDisplayTitle( ?string $raw, string $fallback ): string {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return DisplayTitles::resolve( $raw, $fallback );
 	}
 
@@ -80,6 +81,7 @@ class ValuesUtils {
 	 * @return array
 	 */
 	public static function addDisplayTitlesForPageValues( array $pageTitles ): array {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return DisplayTitles::forPages( $pageTitles );
 	}
 
@@ -90,6 +92,7 @@ class ValuesUtils {
 	 * @return array
 	 */
 	public static function getAllValuesFromWikidata( $query, $substring = null ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return WikidataValues::fetch( $query, $substring );
 	}
 
@@ -100,6 +103,7 @@ class ValuesUtils {
 	 * @return string
 	 */
 	public static function buildWikidataSparqlQuery( $query, $substring = null ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return WikidataValues::buildQuery( $query, $substring );
 	}
 
@@ -109,6 +113,7 @@ class ValuesUtils {
 	 * @return string[]
 	 */
 	public static function parseWikidataResponse( $response ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return WikidataValues::parseResponse( $response );
 	}
 
@@ -120,6 +125,7 @@ class ValuesUtils {
 	 * @return string
 	 */
 	public static function getSQLConditionForAutocompleteInColumn( $column, $substring, $replaceSpaces = true ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return AutocompleteSql::conditionForColumn( $column, $substring, $replaceSpaces );
 	}
 
@@ -130,6 +136,7 @@ class ValuesUtils {
 	 * @return array
 	 */
 	public static function getAllPagesForNamespace( $namespaceStr, $substring = null ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return NamespacePages::get( $namespaceStr, $substring );
 	}
 
@@ -139,6 +146,7 @@ class ValuesUtils {
 	 * @return string
 	 */
 	public static function standardizeNamespace( $namespaceStr ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return NamespaceFinder::standardize( $namespaceStr );
 	}
 
@@ -150,6 +158,7 @@ class ValuesUtils {
 	 * @return string[]
 	 */
 	public static function getAllPagesForCategory( $top_category, $num_levels, $substring = null ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return CategoryPages::get( $top_category, $num_levels, $substring );
 	}
 
@@ -160,6 +169,7 @@ class ValuesUtils {
 	 * @return string[]
 	 */
 	public static function fixedMultiSort( $sortkeys, $pages ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return CategoryPages::fixedMultiSort( $sortkeys, $pages );
 	}
 
@@ -170,6 +180,7 @@ class ValuesUtils {
 	 * @return string[]
 	 */
 	public static function getAllPagesForConcept( $conceptName, $substring = null ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return ConceptPages::get( $conceptName, $substring );
 	}
 
@@ -183,6 +194,7 @@ class ValuesUtils {
 	public static function getSourceCount(
 		string $autocompleteFieldType, string $autocompletionSource, $store = null
 	): ?int {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return AutocompleteSourceCount::get( $autocompleteFieldType, $autocompletionSource, $store );
 	}
 
@@ -190,6 +202,7 @@ class ValuesUtils {
 	 * @deprecated use AutocompleteSourceCount::reset()
 	 */
 	public static function resetSourceCounts(): void {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		AutocompleteSourceCount::reset();
 	}
 
@@ -202,6 +215,7 @@ class ValuesUtils {
 	public static function exceedsLocalAutocompleteThreshold(
 		string $autocompleteFieldType, string $autocompletionSource
 	): bool {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return AutocompleteSourceCount::exceedsLocalThreshold( $autocompleteFieldType, $autocompletionSource );
 	}
 
@@ -211,6 +225,7 @@ class ValuesUtils {
 	 * @return array
 	 */
 	public static function getAutocompletionTypeAndSource( &$field_args ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return AutocompleteSettings::typeAndSource( $field_args );
 	}
 
@@ -227,6 +242,7 @@ class ValuesUtils {
 		$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings,
 		bool $forceRemote = false
 	) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return AutocompleteSettings::remoteDataType(
 			$autocompleteFieldType, $autocompletionSource, $field_args, $autocompleteSettings, $forceRemote
 		);
@@ -239,6 +255,7 @@ class ValuesUtils {
 	 * @return array
 	 */
 	public static function maybeDisambiguateAutocompleteLabels( array $autocompleteValues, $autocompleteFieldType ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return AutocompleteSettings::maybeDisambiguateLabels( $autocompleteValues, $autocompleteFieldType );
 	}
 
@@ -250,6 +267,7 @@ class ValuesUtils {
 	 * @return array
 	 */
 	public static function setAutocompleteValues( $field_args, $is_list, bool $forceRemote = false ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return AutocompleteSettings::forField( $field_args, (bool)$is_list, $forceRemote );
 	}
 
@@ -262,6 +280,7 @@ class ValuesUtils {
 	 * @return array
 	 */
 	public static function getSMWPropertyValues( $store, ?Title $subject, $propID, $requestOptions = null ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return PropertyValues::forSubject( $store, $subject, $propID, $requestOptions );
 	}
 
@@ -276,6 +295,7 @@ class ValuesUtils {
 	public static function getAllValuesForProperty(
 		$property_name, $store = null, $maxValues = null, $useDisplayTitle = null
 	) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return PropertyValues::all( $property_name, $store, $maxValues, $useDisplayTitle );
 	}
 
@@ -285,6 +305,7 @@ class ValuesUtils {
 	 * @return array
 	 */
 	public static function getCategoriesForPage( $title ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return PageCategories::forPage( $title );
 	}
 
@@ -293,6 +314,7 @@ class ValuesUtils {
 	 * @return array
 	 */
 	public static function getAllCategories() {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return PageCategories::all();
 	}
 
@@ -303,6 +325,7 @@ class ValuesUtils {
 	 * @return array|\Message
 	 */
 	public static function getValuesFromExternalURL( $external_url_alias, $substring ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return ExternalUrlValues::get( $external_url_alias, $substring );
 	}
 
@@ -312,6 +335,7 @@ class ValuesUtils {
 	 * @return array
 	 */
 	public static function getAllPagesForQuery( $rawQuery ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return QueryPages::get( $rawQuery );
 	}
 
@@ -321,6 +345,7 @@ class ValuesUtils {
 	 * @return array
 	 */
 	public static function disambiguateLabels( array $labels ) {
+		wfDeprecated( __METHOD__, '2.4.0' );
 		return MappingLabels::disambiguate( $labels );
 	}
 }
