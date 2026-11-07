@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 ## [Unreleased]
 
 ### Deprecated
+- The global class name `PFHooks` is deprecated. It is now an alias of `MediaWiki\Extension\PageForms\Setup`, which only has `registerExtension()` and `initialize()`; the hook handler methods it used to have moved to the classes in `MediaWiki\Extension\PageForms\Hooks`. The alias will be removed in the next major release (3.0.0) ([#277](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/277))
 - The global class names `PFAutocompleteAPI`, `PFCreatePageJob`, `PFFormEditAction`, `PFHelperFormAction` and `PFPageSection` are deprecated in favor of `AutocompleteApi`, `CreatePageJob`, `FormEditAction`, `HelperFormAction` and `PageSection` in the `MediaWiki\Extension\PageForms` namespace. Aliases keep the old names working for other extensions and for site code, and will be removed in the next major release (3.0.0) ([#168](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/168))
 
 ### Fixed

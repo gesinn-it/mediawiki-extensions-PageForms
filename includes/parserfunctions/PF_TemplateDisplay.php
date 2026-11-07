@@ -157,8 +157,7 @@ class PFTemplateDisplay {
 		}
 
 		// Every value and label in $text went through recursiveTagParse() or htmlspecialchars();
-		// the rest is HTML of the link renderer and the Linker, which Phan cannot see through.
-		// @phan-suppress-next-line SecurityCheck-XSS
+		// the rest is HTML of the link renderer and the Linker.
 		return [ $text, 'noparse' => true, 'isHTML' => true ];
 	}
 

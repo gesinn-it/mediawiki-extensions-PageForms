@@ -1,77 +1,26 @@
 <?php
 
 use MediaWiki\EditPage\EditPage;
+use MediaWiki\Extension\PageForms\Hooks\EditHooks;
 use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
 
 /**
- * @covers \PFHooks
+ * @covers \MediaWiki\Extension\PageForms\Hooks\EditHooks
  * @group Database
  *
  * @author gesinn-it-wam
  */
-class PFHooksTest extends MediaWikiIntegrationTestCase {
+class EditHooksTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * Set up environment
 	 */
+	private EditHooks $hooks;
+
 	public function setUp(): void {
 		parent::setUp();
-	}
-
-	public function testVisitSomeLinesOfCodeOnly() {
-		self::expectNotToPerformAssertions();
-
-		PFHooks::registerExtension();
-		PFHooks::initialize();
-
-		$resourceLoaderClass = class_exists( 'MediaWiki\\ResourceLoader\\ResourceLoader' )
-			? \MediaWiki\ResourceLoader\ResourceLoader::class
-			: \ResourceLoader::class;
-		$resourceLoader = $this->createStub( $resourceLoaderClass );
-		PFHooks::registerModules( $resourceLoader );
-
-		$list = [];
-		PFHooks::registerNamespaces( $list );
-
-		$parser = $this->createStub( Parser::class );
-		PFHooks::registerFunctions( $parser );
-	}
-
-	// -------------------------------------------------------------------------
-	// registerNamespaces()
-	// -------------------------------------------------------------------------
-
-	public function testRegisterNamespacesAddsFormNamespaces(): void {
-		$list = [];
-
-		PFHooks::registerNamespaces( $list );
-
-		$this->assertSame( 'Form', $list[PF_NS_FORM] );
-		$this->assertSame( 'Form_talk', $list[PF_NS_FORM_TALK] );
-	}
-
-	public function testRegisterNamespacesEnablesSubpagesForFormTalk(): void {
-		global $wgNamespacesWithSubpages;
-		$list = [];
-
-		PFHooks::registerNamespaces( $list );
-
-		$this->assertTrue( $wgNamespacesWithSubpages[PF_NS_FORM_TALK] );
-	}
-
-	// -------------------------------------------------------------------------
-	// registerModules()
-	// -------------------------------------------------------------------------
-
-	public function testRegisterModulesRegistersMapsModuleWithNonOfflineScript(): void {
-		$resourceLoader = $this->getServiceContainer()->getResourceLoader();
-
-		$result = PFHooks::registerModules( $resourceLoader );
-
-		$this->assertTrue( $result );
-		$this->assertContains( 'ext.pageforms.maps', $resourceLoader->getModuleNames() );
-		$this->assertNotNull( $resourceLoader->getModule( 'ext.pageforms.maps' ) );
+		$this->hooks = new EditHooks();
 	}
 
 	// -------------------------------------------------------------------------
@@ -81,21 +30,21 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 	public function testDisableTinyMCEReturnsFalseForFormNamespaceTitle(): void {
 		$title = Title::makeTitle( PF_NS_FORM, 'PFTestHooksFormNamespaceTitle01' );
 
-		$this->assertFalse( PFHooks::disableTinyMCE( $title ) );
+		$this->assertFalse( $this->hooks->onTinyMCEDisable( $title ) );
 	}
 
 	public function testDisableTinyMCEReturnsFalseWhenPageHasDefaultForm(): void {
 		$title = Title::newFromText( 'PFTestHooksPageWithDefaultForm01' );
 		$this->insertPage( $title, '{{#default_form:PFTestHooksForm01}}' );
 
-		$this->assertFalse( PFHooks::disableTinyMCE( $title ) );
+		$this->assertFalse( $this->hooks->onTinyMCEDisable( $title ) );
 	}
 
 	public function testDisableTinyMCEReturnsTrueForNormalPageWithNoDefaultForm(): void {
 		$title = Title::newFromText( 'PFTestHooksPageWithoutDefaultForm01' );
 		$this->insertPage( $title, 'Plain content without a default form.' );
 
-		$this->assertTrue( PFHooks::disableTinyMCE( $title ) );
+		$this->assertTrue( $this->hooks->onTinyMCEDisable( $title ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -109,7 +58,7 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 		$editPage = $this->newEditPage( $title );
 		$editPage->preview = false;
 
-		$result = PFHooks::showFormPreview( $editPage, new FauxRequest() );
+		$result = $this->hooks->onEditPage__importFormData( $editPage, new FauxRequest() );
 
 		$this->assertTrue( $result );
 		$this->assertSame( '', $editPage->previewTextAfterContent );
@@ -121,7 +70,7 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 		$editPage = $this->newEditPage( $title );
 		$editPage->preview = true;
 
-		$result = PFHooks::showFormPreview( $editPage, new FauxRequest() );
+		$result = $this->hooks->onEditPage__importFormData( $editPage, new FauxRequest() );
 
 		$this->assertTrue( $result );
 		$this->assertSame( '', $editPage->previewTextAfterContent );
@@ -131,7 +80,7 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 		global $wgPageFormsFormPrinter, $wgOut;
 		$this->assertNotNull(
 			$wgPageFormsFormPrinter,
-			'PFHooks::initialize() must have run to set up the global form printer'
+			'Setup::initialize() must have run to set up the global form printer'
 		);
 
 		$title = Title::makeTitle( PF_NS_FORM, 'PFTestHooksPreviewForm01' );
@@ -148,7 +97,7 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 		// global RequestContext spoofing.
 		$request = new FauxRequest( [ 'PFTestHooksPreviewTpl01' => [ 'Name' => 'PFTestHooksPreviewValue01' ] ], true );
 
-		$result = PFHooks::showFormPreview( $editPage, $request );
+		$result = $this->hooks->onEditPage__importFormData( $editPage, $request );
 
 		$this->assertTrue( $result );
 		$this->assertStringContainsString( 'pfForm', $editPage->previewTextAfterContent );
@@ -165,7 +114,7 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 		$wgPageFormsFormPrinter = null;
 
 		try {
-			$result = PFHooks::setPostEditCookie( ...$this->newSetPostEditCookieArgs() );
+			$result = $this->hooks->onPageSaveComplete( ...$this->newSetPostEditCookieArgs() );
 			$this->assertTrue( $result );
 		} finally {
 			$wgPageFormsFormPrinter = $savedFormPrinter;
@@ -179,7 +128,7 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 		$wgPageFormsFormPrinter = new stdClass();
 
 		try {
-			$result = PFHooks::setPostEditCookie( ...$this->newSetPostEditCookieArgs() );
+			$result = $this->hooks->onPageSaveComplete( ...$this->newSetPostEditCookieArgs() );
 			$this->assertTrue( $result );
 		} finally {
 			$wgPageFormsFormPrinter = $savedFormPrinter;
@@ -190,7 +139,7 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 		global $wgPageFormsFormPrinter;
 		$this->assertNotNull(
 			$wgPageFormsFormPrinter,
-			'PFHooks::initialize() must have run to set up the global form printer'
+			'Setup::initialize() must have run to set up the global form printer'
 		);
 		// Build fixtures under the default request first, so the real
 		// PageSaveComplete hook fired by insertPage() doesn't interfere with
@@ -207,7 +156,9 @@ class PFHooksTest extends MediaWikiIntegrationTestCase {
 		$context->setRequest( $botRequest );
 
 		try {
-			$result = PFHooks::setPostEditCookie( $wikiPage, $user, $summary, $flags, $revisionRecord, $editResult );
+			$result = $this->hooks->onPageSaveComplete(
+				$wikiPage, $user, $summary, $flags, $revisionRecord, $editResult
+			);
 
 			$this->assertTrue( $result );
 			$this->assertFalse(

@@ -35,9 +35,9 @@ class PFRegExpInput extends PFFormInput {
 	 */
 	public function __construct( $input_number, $cur_value, $input_name, $disabled, array $other_args ) {
 		global $wgPageFormsFormPrinter;
-		// $wgPageFormsFormPrinter is set up in PFHooks::registerExtension(), which
+		// $wgPageFormsFormPrinter is set up in Setup::initialize(), which
 		// runs before any form input can be constructed; the null case can't
-		// happen in practice, but PFHooks::onPageSaveComplete() null-checks the
+		// happen in practice, but EditHooks::onPageSaveComplete() null-checks the
 		// same global, so Phan infers a nullable type for it across the codebase.
 		'@phan-var FormPrinter $wgPageFormsFormPrinter';
 

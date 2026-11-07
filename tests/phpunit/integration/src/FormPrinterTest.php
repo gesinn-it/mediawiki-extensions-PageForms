@@ -32,7 +32,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 			} );
 
 		// $wgPageFormsFormPrinter is a global singleton (constructed once by
-		// PFHooks::initialize()) that captures a ParserFactory reference at
+		// Setup::initialize()) that captures a ParserFactory reference at
 		// construction time. If an earlier test in the same process calls
 		// resetServices() (e.g. AutoeditApiTest, to invalidate a cached
 		// PermissionManager result), that reference goes stale and

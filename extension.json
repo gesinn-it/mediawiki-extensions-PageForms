@@ -25,9 +25,9 @@
 			"conditional": true
 		}
 	],
-	"callback": "PFHooks::registerExtension",
+	"callback": "MediaWiki\\Extension\\PageForms\\Setup::registerExtension",
 	"ExtensionFunctions": [
-		"PFHooks::initialize"
+		"MediaWiki\\Extension\\PageForms\\Setup::initialize"
 	],
 	"requires": {
 		"MediaWiki": ">= 1.39.0"
@@ -90,7 +90,6 @@
 		"PFUploadSourceField": "specials/PF_UploadSourceField.php",
 		"PFUploadWindow": "specials/PF_UploadWindow.php",
 		"PFUtils": "includes/PF_Utils.php",
-		"PFHooks": "includes/PF_Hooks.php",
 		"PFParserFunctionHelpers": "includes/parserfunctions/PF_ParserFunctionHelpers.php",
 		"PFArrayMap": "includes/parserfunctions/PF_ArrayMap.php",
 		"PFArrayMapTemplate": "includes/parserfunctions/PF_ArrayMapTemplate.php",
@@ -653,21 +652,32 @@
 		"localBasePath": "",
 		"remoteExtPath": "PageForms"
 	},
+	"HookHandlers": {
+		"edit": {
+			"class": "MediaWiki\\Extension\\PageForms\\Hooks\\EditHooks"
+		},
+		"output": {
+			"class": "MediaWiki\\Extension\\PageForms\\Hooks\\OutputHooks"
+		},
+		"registration": {
+			"class": "MediaWiki\\Extension\\PageForms\\Hooks\\RegistrationHooks"
+		}
+	},
 	"Hooks": {
 		"SkinTemplateNavigation::Universal": [
 			"MediaWiki\\Extension\\PageForms\\FormEditAction::displayTab",
 			"MediaWiki\\Extension\\PageForms\\HelperFormAction::displayTab"
 		],
 		"ArticlePurge": "MediaWiki\\Extension\\PageForms\\FormCache::purgeCache",
-		"ParserFirstCallInit": "PFHooks::registerFunctions",
-		"MakeGlobalVariablesScript": "PFHooks::setGlobalJSVariables",
-		"EditPage::importFormData": "PFHooks::showFormPreview",
-		"PageSaveComplete": "PFHooks::setPostEditCookie",
+		"ParserFirstCallInit": "registration",
+		"MakeGlobalVariablesScript": "output",
+		"EditPage::importFormData": "edit",
+		"PageSaveComplete": "edit",
 		"MultiContentSave": "MediaWiki\\Extension\\PageForms\\FormCache::purgeCacheOnSave",
 		"HtmlPageLinkRendererEnd": "MediaWiki\\Extension\\PageForms\\FormLinker::setBrokenLink",
-		"TinyMCEDisable": "PFHooks::disableTinyMCE",
-		"CanonicalNamespaces": "PFHooks::registerNamespaces",
-		"ResourceLoaderRegisterModules": "PFHooks::registerModules"
+		"TinyMCEDisable": "edit",
+		"CanonicalNamespaces": "registration",
+		"ResourceLoaderRegisterModules": "registration"
 	},
 	"config": {
 		"PageFormsVisualEditorMaxHeight": 400,
