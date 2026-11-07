@@ -1,6 +1,7 @@
 <?php
 
 use MediaWiki\Extension\PageForms\FormLinker;
+use MediaWiki\Extension\PageForms\ParserAccess;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWiki\Title\Title;
 
@@ -221,7 +222,7 @@ class TemplateFieldTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetFormReturnsNamespaceDefaultForm() {
-		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_USER];
+		$namespaceLabel = ParserAccess::getContLang()->getNamespaces()[NS_USER];
 		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
 		$this->insertPage( $nsPageTitle, '{{#default_form:PFTemplateFieldEdgeCaseNSForm01}}' );
 

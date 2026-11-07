@@ -151,11 +151,11 @@ class AutoeditApi extends ApiBase {
 			// This has to be Exception, not MWException, due to
 			// DateTime errors and possibly others.
 			// prepareAction() above left the global Parser singleton in
-			// OT_WIKI mode (see PFUtils::ensureParserReadyForTagParse()) -
+			// OT_WIKI mode (see ParserAccess::ensureParserReadyForTagParse()) -
 			// reset it before this recursiveTagParseFully() call, or any
 			// "{{...}}" in the exception message is returned unexpanded.
-			$parser = PFUtils::ensureParserReadyForTagParse(
-				PFUtils::getParser(), $this->getUser(), RequestContext::getMain()->getTitle()
+			$parser = ParserAccess::ensureParserReadyForTagParse(
+				ParserAccess::getParser(), $this->getUser(), RequestContext::getMain()->getTitle()
 			);
 			// A form definition error carries its own HTML; every other message is wikitext.
 			$message = $e instanceof FormDefinitionException ? $e->getErrorHtml() : $e->getMessage();
@@ -170,7 +170,7 @@ class AutoeditApi extends ApiBase {
 		// Get options from the request, but keep the explicitly set options.
 		$data = $this->getRequest()->getValues();
 
-		PFUtils::getParser()->startExternalParse(
+		ParserAccess::getParser()->startExternalParse(
 			null,
 			ParserOptions::newFromUser( $this->getUser() ),
 			Parser::OT_WIKI
@@ -676,7 +676,7 @@ class AutoeditApi extends ApiBase {
 				$responseText = $this->getMessageCache()->parse(
 					$this->mOptions['ok text'], $targetTitle
 				);
-				$responseText = PFUtils::getParserOutputHtml(
+				$responseText = ParserAccess::getParserOutputHtml(
 					$responseText, ParserOptions::newFromContext( $this->getContext() )
 				);
 			} elseif ( $this->mAction === self::ACTION_SAVE ) {
@@ -695,7 +695,7 @@ class AutoeditApi extends ApiBase {
 				$responseText = $this->getMessageCache()->parse(
 					$this->mOptions['error text'], $targetTitle
 				);
-				$responseText = PFUtils::getParserOutputHtml(
+				$responseText = ParserAccess::getParserOutputHtml(
 					$responseText, ParserOptions::newFromContext( $this->getContext() )
 				);
 			} elseif ( $this->mAction === self::ACTION_SAVE ) {
@@ -773,7 +773,7 @@ class AutoeditApi extends ApiBase {
 
 		// Now run the parser on it.
 		$parserOptions = ParserOptions::newFromUser( $this->getUser() );
-		$targetName = PFUtils::getParser()->transformMsg(
+		$targetName = ParserAccess::getParser()->transformMsg(
 			$targetName, $parserOptions, $this->getTitle()
 		);
 

@@ -6,6 +6,7 @@
  * @ingroup PF
  */
 
+use MediaWiki\Extension\PageForms\ParserAccess;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -353,7 +354,7 @@ class PFUploadForm extends HTMLForm {
 		$out->disable();
 		$titleGlobal = SpecialPage::getTitleFor( 'Upload' );
 
-		$dir = PFUtils::getContLang()->isRTL() ? "rtl" : "ltr";
+		$dir = ParserAccess::getContLang()->isRTL() ? "rtl" : "ltr";
 		$text = "<!DOCTYPE html>\n<html lang=\"{$languageCode}\" dir=\"{$dir}\">";
 
 		$text .= <<<END

@@ -5,8 +5,8 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms\TemplateText;
 
 use Closure;
+use MediaWiki\Extension\PageForms\ParserAccess;
 use MediaWiki\Extension\PageForms\TemplateField;
-use PFUtils;
 
 /**
  * Finds the fields of a template, along with the semantic property attached to each one (if
@@ -80,7 +80,7 @@ class TemplateFieldParser {
 		string $templateText, string $fieldName, string $propertyName, bool $isList
 	): array {
 		$templateField = TemplateField::create(
-			$fieldName, PFUtils::getContLang()->ucfirst( $fieldName ), $propertyName,
+			$fieldName, ParserAccess::getContLang()->ucfirst( $fieldName ), $propertyName,
 			$isList
 		);
 		return [ $this->positionOf( $templateText, $fieldName ), $templateField ];
@@ -207,7 +207,7 @@ class TemplateFieldParser {
 				$found->add(
 					$fieldName,
 					$this->positionOf( $text, $fieldName ),
-					TemplateField::create( $fieldName, PFUtils::getContLang()->ucfirst( $fieldName ) )
+					TemplateField::create( $fieldName, ParserAccess::getContLang()->ucfirst( $fieldName ) )
 				);
 			}
 		}

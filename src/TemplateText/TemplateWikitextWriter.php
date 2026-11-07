@@ -4,10 +4,10 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\TemplateText;
 
+use MediaWiki\Extension\PageForms\ParserAccess;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWiki\HookContainer\HookContainer;
-use PFUtils;
 
 /**
  * Writes the wikitext of a template, for Special:CreateTemplate and Special:CreateClass.
@@ -99,7 +99,7 @@ class TemplateWikitextWriter {
 		if ( $categoryName === '' || $categoryName === null ) {
 			return '';
 		}
-		$namespaceLabels = PFUtils::getContLang()->getNamespaces();
+		$namespaceLabels = ParserAccess::getContLang()->getNamespaces();
 		$categoryNamespace = $namespaceLabels[NS_CATEGORY];
 		return "\n[[$categoryNamespace:" . $categoryName . "]]\n";
 	}

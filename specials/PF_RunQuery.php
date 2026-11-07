@@ -10,6 +10,7 @@ use MediaWiki\Extension\PageForms\FormAssets;
 use MediaWiki\Extension\PageForms\FormNamespaces;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Extension\PageForms\PageLinks;
+use MediaWiki\Extension\PageForms\ParserAccess;
 use MediaWiki\Html\Html;
 use MediaWiki\Title\Title;
 
@@ -108,7 +109,7 @@ class PFRunQuery extends IncludableSpecialPage {
 		if ( $form_submitted ) {
 			// @TODO - fix RunQuery's parsing so that this check
 			// isn't needed.
-			$parser = PFUtils::ensureParserInitialized( PFUtils::getParser(), $user );
+			$parser = ParserAccess::ensureParserInitialized( ParserAccess::getParser(), $user );
 			$headItems = $parser->getOutput()->getHeadItems();
 			foreach ( $headItems as $key => $item ) {
 				$out->addHeadItem( $key, "\t\t" . $item . "\n" );
@@ -120,7 +121,7 @@ class PFRunQuery extends IncludableSpecialPage {
 			$resultsParserOutput = $parser->parse(
 				$data_text, $this->getPageTitle(), $parserOptions, true, false
 			);
-			$resultsText = PFUtils::getParserOutputHtml( $resultsParserOutput, $parserOptions );
+			$resultsText = ParserAccess::getParserOutputHtml( $resultsParserOutput, $parserOptions );
 		}
 
 		// Get the full text of the form.
@@ -205,7 +206,7 @@ END;
 		// never runs FormField::newFromFormFieldTag(), which is what otherwise
 		// initializes the global parser during field rendering - ensure it here
 		// too, since addFormRLModules() reads its ParserOutput.
-		$rlModulesParser = $embedded ? PFUtils::ensureParserInitialized( PFUtils::getParser(), $user ) : null;
+		$rlModulesParser = $embedded ? ParserAccess::ensureParserInitialized( ParserAccess::getParser(), $user ) : null;
 		FormAssets::addFormRLModules( $rlModulesParser );
 		if ( !$embedded ) {
 			// Use the ParserOutput returned by formHTML() rather than the global

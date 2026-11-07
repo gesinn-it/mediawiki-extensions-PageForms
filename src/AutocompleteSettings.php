@@ -4,8 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use PFUtils;
-
 /**
  * What a form input that autocompletes needs of the arguments of its field: where the values come
  * from, whether they are loaded into the form or fetched while the user types, and the settings
@@ -89,7 +87,7 @@ class AutocompleteSettings {
 
 		if ( $autocompletionSource !== null && $wgCapitalLinks &&
 			$autocompleteFieldType != 'external_url' ) {
-			$autocompletionSource = PFUtils::getContLang()->ucfirst( $autocompletionSource );
+			$autocompletionSource = ParserAccess::getContLang()->ucfirst( $autocompletionSource );
 		}
 
 		return [ $autocompleteFieldType, $autocompletionSource ];

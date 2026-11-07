@@ -160,7 +160,7 @@ class PFSFSelectInputTest extends MediaWikiIntegrationTestCase {
 	 * SF_Select field is rendered on the resulting edit form. In OT_WIKI mode,
 	 * braceSubstitution() deliberately leaves "{{#arraymap:...}}" unexpanded,
 	 * so PFSFSelectInput::getHTML() must reset the singleton via
-	 * PFUtils::ensureParserReadyForTagParse() before constructing
+	 * ParserAccess::ensureParserReadyForTagParse() before constructing
 	 * PFSFSelectField, or the raw, unexpanded function call leaks into the
 	 * rendered <option> text instead of the resolved values.
 	 *

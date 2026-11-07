@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\MediaWikiServices;
-use PFUtils;
 
 /**
  * Finds a namespace by the name a form author wrote in a "values from namespace" argument.
@@ -54,7 +53,7 @@ class NamespaceFinder {
 	public static function findCode( string $normalizedName ): ?int {
 		global $wgLanguageCode;
 
-		$code = array_search( $normalizedName, PFUtils::getContLang()->getNamespaces(), true );
+		$code = array_search( $normalizedName, ParserAccess::getContLang()->getNamespaces(), true );
 		if ( $code === false && $wgLanguageCode !== 'en' ) {
 			$english = MediaWikiServices::getInstance()->getLanguageFactory()->getLanguage( 'en' );
 			$code = array_search( $normalizedName, $english->getNamespaces(), true );

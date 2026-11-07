@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Title\Title;
-use PFUtils;
 
 /**
  * A single SMW page-type (_wpg) value: a page referenced by namespace and
@@ -87,7 +86,7 @@ class PageValue {
 
 	private function normalizedDbKey(): string {
 		$dbKey = FormNamespaces::isCapitalized( $this->namespace )
-			? PFUtils::getContLang()->ucfirst( $this->dbKey )
+			? ParserAccess::getContLang()->ucfirst( $this->dbKey )
 			: $this->dbKey;
 		return str_replace( ' ', '_', $dbKey );
 	}

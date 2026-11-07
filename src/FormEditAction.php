@@ -312,7 +312,7 @@ class FormEditAction extends Action {
 		);
 
 		// Build label→namespace index reverse map once.
-		$namespacesByLabel = array_flip( PFUtils::getContLang()->getNamespaces() );
+		$namespacesByLabel = array_flip( ParserAccess::getContLang()->getNamespaces() );
 		$blankLabel = wfMessage( 'pf_blank_namespace' )->inContentLanguage()->text();
 
 		$pagesPerForm = [];

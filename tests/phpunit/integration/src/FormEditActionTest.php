@@ -1,6 +1,7 @@
 <?php
 
 use MediaWiki\Extension\PageForms\FormEditAction;
+use MediaWiki\Extension\PageForms\ParserAccess;
 use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
 
@@ -340,7 +341,7 @@ class FormEditActionTest extends MediaWikiIntegrationTestCase {
 		// Simulate a namespace-based #default_form assignment:
 		// Create a Project-namespace page whose title is the content-language
 		// name of NS_USER ("User"), with a PFDefaultForm page property.
-		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_USER];
+		$namespaceLabel = ParserAccess::getContLang()->getNamespaces()[NS_USER];
 		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
 
 		// Create the namespace-definition page with a #default_form property.

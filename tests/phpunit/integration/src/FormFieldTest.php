@@ -4,6 +4,7 @@ use MediaWiki\Extension\PageForms\FormDefinition\FieldSpec;
 use MediaWiki\Extension\PageForms\FormField;
 use MediaWiki\Extension\PageForms\FormFieldExtraHtmlBuilder;
 use MediaWiki\Extension\PageForms\FormInstanceField;
+use MediaWiki\Extension\PageForms\ParserAccess;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWiki\Extension\PageForms\TemplateInForm;
@@ -1253,7 +1254,7 @@ class FormFieldTest extends TestCase {
 		$field = FormField::create( $this->mockTemplateField );
 		$field->setFieldArg( 'mapping using translate', 'pf-formfield-test-mapping-' );
 
-		$other_args = $field->getArgumentsForInputCall( PFUtils::getParser() );
+		$other_args = $field->getArgumentsForInputCall( ParserAccess::getParser() );
 
 		// The message keys don't exist, so the real parser renders them as
 		// missing-message placeholders; what matters for coverage is that
@@ -1319,7 +1320,7 @@ class FormFieldTest extends TestCase {
 		$this->mockTemplateField->method( 'getSemanticProperty' )->willReturn( '' );
 		$this->mockTemplateField->method( 'getPropertyType' )->willReturn( '' );
 
-		$parser = PFUtils::getParser();
+		$parser = ParserAccess::getParser();
 		$ref = new ReflectionClass( $parser );
 		$prop = $ref->getProperty( 'mOptions' );
 		$prop->setAccessible( true );

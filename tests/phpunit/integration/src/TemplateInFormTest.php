@@ -5,12 +5,12 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
 use MediaWiki\Extension\PageForms\FormDefinition\TemplateSpec;
+use MediaWiki\Extension\PageForms\ParserAccess;
 use MediaWiki\Extension\PageForms\TemplateInForm;
 use MediaWiki\Title\Title;
 use MediaWikiIntegrationTestCase;
 use Parser;
 use ParserOptions;
-use PFUtils;
 
 /**
  * The parts of TemplateInForm that read a template page, use a parser or a title. The rest of the class
@@ -55,7 +55,7 @@ class TemplateInFormTest extends MediaWikiIntegrationTestCase {
 		// shared singleton here exercises the same MW 1.43 compat requirement
 		// as FormField::newFromFormFieldTag() (ParserOptions before clearState()
 		// can call resetOutput()).
-		$parser = PFUtils::getParser();
+		$parser = ParserAccess::getParser();
 		if ( !$parser->getOptions() ) {
 			$parser->setOptions( ParserOptions::newFromAnon() );
 		}

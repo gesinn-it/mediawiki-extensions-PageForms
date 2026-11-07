@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Title\Title;
-use PFUtils;
 use RequestContext;
 
 /**
@@ -36,11 +35,11 @@ class MappingLabels {
 	public function forTemplate( string $templateName, array $values ): array {
 		$title = Title::makeTitleSafe( NS_TEMPLATE, $templateName );
 		$templateExists = $title->exists();
-		// See PFUtils::ensureParserReadyForTagParse() for why the global Parser
+		// See ParserAccess::ensureParserReadyForTagParse() for why the global Parser
 		// singleton needs both initialization and an output-type/title reset
 		// before a recursiveTagParse() call like the one below.
-		$parser = PFUtils::ensureParserReadyForTagParse(
-			PFUtils::getParser(), RequestContext::getMain()->getUser(), RequestContext::getMain()->getTitle()
+		$parser = ParserAccess::ensureParserReadyForTagParse(
+			ParserAccess::getParser(), RequestContext::getMain()->getUser(), RequestContext::getMain()->getTitle()
 		);
 		$prefix = '';
 		if ( $templateExists ) {

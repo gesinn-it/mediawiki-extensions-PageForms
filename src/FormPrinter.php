@@ -747,7 +747,7 @@ class FormPrinter {
 	 */
 	private function createFreshParser( $user, Title $pageTitle ) {
 		// getFreshParser() was removed in MW 1.43; use the factory on newer versions.
-		$globalParser = PFUtils::getParser();
+		$globalParser = ParserAccess::getParser();
 		if ( method_exists( $globalParser, 'getFreshParser' ) ) {
 			// MW < 1.43: reset the global parser instance in-place
 			// Remove this guard and the branch once the minimum MediaWiki version is 1.43, which no

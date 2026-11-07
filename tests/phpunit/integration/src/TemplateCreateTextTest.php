@@ -4,10 +4,10 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
+use MediaWiki\Extension\PageForms\ParserAccess;
 use MediaWiki\Extension\PageForms\Template;
 use MediaWiki\Extension\PageForms\TemplateField;
 use MediaWikiIntegrationTestCase;
-use PFUtils;
 
 if ( !class_exists( 'MediaWikiIntegrationTestCase' ) ) {
 	class_alias( 'MediaWikiTestCase', 'MediaWikiIntegrationTestCase' );
@@ -201,7 +201,7 @@ class TemplateCreateTextTest extends MediaWikiIntegrationTestCase {
 		$t = $this->makeTemplate( [ [ 'name' => 'Name' ] ] );
 		$text = $t->createText();
 		// No category namespace link should appear
-		$langs = PFUtils::getContLang()->getNamespaces();
+		$langs = ParserAccess::getContLang()->getNamespaces();
 		$catNs = $langs[NS_CATEGORY];
 		$this->assertStringNotContainsString( "[[$catNs:", $text );
 	}

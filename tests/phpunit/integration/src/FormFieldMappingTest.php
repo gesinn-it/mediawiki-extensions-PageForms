@@ -225,7 +225,7 @@ class FormFieldMappingTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
-	 * The global Parser singleton returned by PFUtils::getParser() can be left
+	 * The global Parser singleton returned by ParserAccess::getParser() can be left
 	 * in OT_WIKI mode by other code that used it earlier this request without
 	 * resetting it - e.g. AutoeditApi::prepareAction() calls
 	 * startExternalParse( null, ..., Parser::OT_WIKI ) on this same singleton

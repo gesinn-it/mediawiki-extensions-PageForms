@@ -5,10 +5,10 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms\Tests\Integration;
 
 use MediaWiki\Extension\PageForms\FormLinker;
+use MediaWiki\Extension\PageForms\ParserAccess;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use MediaWikiIntegrationTestCase;
-use PFUtils;
 use ReflectionProperty;
 
 /**
@@ -60,7 +60,7 @@ class FormLinkerTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetDefaultFormForNamespaceReturnsConfiguredForm(): void {
-		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_HELP];
+		$namespaceLabel = ParserAccess::getContLang()->getNamespaces()[NS_HELP];
 		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
 		$this->insertPage( $nsPageTitle, '{{#default_form:PFTestFormLinkerNSForm01}}' );
 
@@ -68,7 +68,7 @@ class FormLinkerTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetDefaultFormForNamespaceReturnsSameValueOnRepeatedCalls(): void {
-		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_CATEGORY];
+		$namespaceLabel = ParserAccess::getContLang()->getNamespaces()[NS_CATEGORY];
 		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
 		$this->insertPage( $nsPageTitle, '{{#default_form:PFTestFormLinkerNSForm02}}' );
 
@@ -118,7 +118,7 @@ class FormLinkerTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetDefaultFormsForPageReturnsEmptyForSubpageWithOnlyNamespaceDefaultForm(): void {
-		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_PROJECT];
+		$namespaceLabel = ParserAccess::getContLang()->getNamespaces()[NS_PROJECT];
 		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
 		$this->insertPage( $nsPageTitle, '{{#default_form:PFTestFormLinkerNSSubpageForm01}}' );
 
@@ -263,7 +263,7 @@ class FormLinkerTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetDefaultFormsForPageFallsBackToNamespaceDefaultForm(): void {
-		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_TEMPLATE];
+		$namespaceLabel = ParserAccess::getContLang()->getNamespaces()[NS_TEMPLATE];
 		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
 		$this->insertPage( $nsPageTitle, '{{#default_form:PFTestFormLinkerNamespaceFallbackForm01}}' );
 
@@ -300,7 +300,7 @@ class FormLinkerTest extends MediaWikiIntegrationTestCase {
 	public function testSetBrokenLinkModifiesRedLinkWhenNamespaceHasDefaultFormRegardlessOfFeatureFlag(): void {
 		$this->setMwGlobals( 'wgPageFormsLinkAllRedLinksToForms', false );
 
-		$namespaceLabel = PFUtils::getContLang()->getNamespaces()[NS_FILE];
+		$namespaceLabel = ParserAccess::getContLang()->getNamespaces()[NS_FILE];
 		$nsPageTitle = Title::makeTitleSafe( NS_PROJECT, $namespaceLabel );
 		$this->insertPage( $nsPageTitle, '{{#default_form:PFTestFormLinkerBrokenLinkNSForm01}}' );
 

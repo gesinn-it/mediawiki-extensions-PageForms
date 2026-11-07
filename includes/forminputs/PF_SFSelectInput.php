@@ -14,6 +14,7 @@
  */
 
 use MediaWiki\Extension\PageForms\FormCounters;
+use MediaWiki\Extension\PageForms\ParserAccess;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -44,10 +45,10 @@ class PFSFSelectInput extends PFFormInput {
 		global $wgPageFormsSFSelectConfig;
 		$counters = FormCounters::current();
 
-		// See PFUtils::ensureParserReadyForTagParse() for why the global Parser
+		// See ParserAccess::ensureParserReadyForTagParse() for why the global Parser
 		// singleton needs both initialization and an output-type/title reset
 		// before PFSFSelectField::setFunction()'s replaceVariables() call below.
-		$parser = PFUtils::ensureParserReadyForTagParse(
+		$parser = ParserAccess::ensureParserReadyForTagParse(
 			MediaWikiServices::getInstance()->getParser(),
 			RequestContext::getMain()->getUser(),
 			RequestContext::getMain()->getTitle()

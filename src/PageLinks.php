@@ -11,7 +11,6 @@ use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
-use PFUtils;
 use RequestContext;
 use User;
 
@@ -76,7 +75,7 @@ class PageLinks {
 			$namespace .= ':';
 		}
 		if ( FormNamespaces::isCapitalized( $title->getNamespace() ) ) {
-			return $namespace . PFUtils::getContLang()->ucfirst( $title->getPartialURL() );
+			return $namespace . ParserAccess::getContLang()->ucfirst( $title->getPartialURL() );
 		} else {
 			return $namespace . $title->getPartialURL();
 		}

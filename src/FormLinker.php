@@ -222,7 +222,7 @@ class FormLinker {
 			// file named with the word for "Main" in this language.
 			$namespace_label = wfMessage( 'pf_blank_namespace' )->inContentLanguage()->text();
 		} else {
-			$namespace_labels = PFUtils::getContLang()->getNamespaces();
+			$namespace_labels = ParserAccess::getContLang()->getNamespaces();
 			if ( !array_key_exists( $namespace, $namespace_labels ) ) {
 				// This can happen if it's a custom namespace that
 				// was not entirely correctly declared.
