@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Title\Title;
-use PFUtils;
 
 /**
  * The pages of a category and its subcategories, as the values of a "values from category" field.
@@ -84,7 +83,7 @@ class CategoryPages {
 	 */
 	public static function subcategories( string $category ): array {
 		$schema = CategoryLinksSchema::current();
-		$res = PFUtils::getReplicaDB()->select(
+		$res = WikiAccess::getReplicaDB()->select(
 			array_merge( $schema->tables(), [ 'page' ] ),
 			[ 'page_title' ],
 			[
@@ -126,7 +125,7 @@ class CategoryPages {
 		if ( $substring != null ) {
 			$conditions[] = self::substringCondition( $substring );
 		}
-		return PFUtils::getReplicaDB()->select(
+		return WikiAccess::getReplicaDB()->select(
 			$tables,
 			$columns,
 			$conditions,

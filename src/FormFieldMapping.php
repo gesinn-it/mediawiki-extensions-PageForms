@@ -4,8 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use PFUtils;
-
 /**
  * Replaces the possible values of a field with their labels, for the "mapping template" and
  * "mapping property" arguments of the field.
@@ -48,7 +46,7 @@ class FormFieldMapping {
 	 * @param \SMW\Store|null $store Injectable for testing; defaults to the live SMW store.
 	 */
 	public function withProperty( $store = null ): void {
-		$store ??= PFUtils::getSMWStore();
+		$store ??= WikiAccess::getSMWStore();
 		if ( $store == null ) {
 			return;
 		}

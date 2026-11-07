@@ -1187,7 +1187,7 @@ class FormFieldTest extends TestCase {
 		$formField->setPossibleValues( [ 'val1' => 'val1' ] );
 
 		// Pass a falsy-but-non-null value: the production code uses
-		// `$store ??= PFUtils::getSMWStore();`, which only invokes the
+		// `$store ??= WikiAccess::getSMWStore();`, which only invokes the
 		// fallback when $store is literally null - passing null here would
 		// therefore resolve to the real (non-null) SMW store in this
 		// environment and never hit the early return.

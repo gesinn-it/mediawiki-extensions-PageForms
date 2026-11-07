@@ -10,6 +10,7 @@
 
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\PageLinks;
+use MediaWiki\Extension\PageForms\WikiAccess;
 use MediaWiki\Html\Html;
 use MediaWiki\Title\Title;
 
@@ -118,13 +119,13 @@ END;
 			// the user choose the form.
 			if ( $form_name === '' ) {
 				try {
-					$allForms = PFUtils::getAllForms();
+					$allForms = WikiAccess::getAllForms();
 				} catch ( MWException $e ) {
 					$out->addHTML( Html::element( 'div', [ 'class' => 'error' ], $e->getMessage() ) );
 					return;
 				}
 				$formInputAttrs['data-possible-forms'] = implode( '|', $allForms );
-				$formInputAttrs['data-form-label'] = PFUtils::getFormDropdownLabel();
+				$formInputAttrs['data-form-label'] = WikiAccess::getFormDropdownLabel();
 			} else {
 				$formInputAttrs['data-autofocus'] = true;
 			}
@@ -161,7 +162,7 @@ END;
 		if ( $page_title->exists() ) {
 			// It exists - see if page is a redirect; if
 			// it is, edit the target page instead.
-			$content = PFUtils::newWikiPageFromTitle( $page_title )->getContent();
+			$content = WikiAccess::newWikiPageFromTitle( $page_title )->getContent();
 			$redirect_target = $content ? $content->getRedirectTarget() : null;
 			if ( $redirect_target ) {
 				$page_title = $redirect_target;

@@ -14,7 +14,6 @@ use ObjectCache;
 use Parser;
 use ParserOptions;
 use ParserOutput;
-use PFUtils;
 use RequestContext;
 use StringUtils;
 use WikiPage;
@@ -73,7 +72,7 @@ class FormCache {
 			return '';
 		}
 
-		$text = PFUtils::getPageText( $preloadTitle ) ?? '';
+		$text = WikiAccess::getPageText( $preloadTitle ) ?? '';
 		// Remove <noinclude> sections and <includeonly> tags from text
 		$text = StringUtils::delimiterReplace( '<noinclude>', '</noinclude>', '', $text );
 		$text = strtr( $text, [ '<includeonly>' => '', '</includeonly>' => '' ] );
@@ -117,7 +116,7 @@ class FormCache {
 
 		if ( $form_id !== null ) {
 			$form_title = Title::newFromID( $form_id );
-			$form_def = PFUtils::getPageText( $form_title ) ?? '';
+			$form_def = WikiAccess::getPageText( $form_title ) ?? '';
 		} elseif ( $form_def == null ) {
 			return new FormDefinition();
 		}

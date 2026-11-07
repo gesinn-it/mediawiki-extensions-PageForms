@@ -12,7 +12,7 @@ use MediaWiki\Extension\PageForms\FormTagParser;
 use MediaWiki\Extension\PageForms\PageLinks;
 use MediaWiki\Extension\PageForms\ParserAccess;
 use MediaWiki\Extension\PageForms\QueryArrayMerger;
-use MediaWiki\MediaWikiServices;
+use MediaWiki\Extension\PageForms\WikiAccess;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
 
@@ -75,29 +75,17 @@ class PFUtils {
 	}
 
 	/**
-	 * Gets the text contents of a page with the passed-in Title object.
-	 * @param Title $title
-	 * @param int $audience
-	 * @return string|null
+	 * @deprecated Use {@see WikiAccess::getPageText()}
 	 */
 	public static function getPageText( $title, $audience = RevisionRecord::FOR_PUBLIC ) {
-		$wikiPage = self::newWikiPageFromTitle( $title );
-		$content = $wikiPage->getContent( $audience );
-		if ( $content instanceof TextContent ) {
-			return $content->getText();
-		} else {
-			return null;
-		}
+		return WikiAccess::getPageText( $title, $audience );
 	}
 
 	/**
-	 * Creates a WikiPage for the given Title, using the correct API for the current MW version.
-	 *
-	 * @param Title $title
-	 * @return WikiPage
+	 * @deprecated Use {@see WikiAccess::newWikiPageFromTitle()}
 	 */
 	public static function newWikiPageFromTitle( Title $title ): WikiPage {
-		return MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
+		return WikiAccess::newWikiPageFromTitle( $title );
 	}
 
 	/**
@@ -108,15 +96,10 @@ class PFUtils {
 	}
 
 	/**
-	 * Helper function to get the SMW data store, if SMW is installed.
-	 * @return \SMW\Store|null
+	 * @deprecated Use {@see WikiAccess::getSMWStore()}
 	 */
 	public static function getSMWStore() {
-		if ( class_exists( '\SMW\StoreFactory' ) ) {
-			return \SMW\StoreFactory::getStore();
-		} else {
-			return null;
-		}
+		return WikiAccess::getSMWStore();
 	}
 
 	/**
@@ -147,46 +130,24 @@ class PFUtils {
 	}
 
 	/**
-	 * Returns a read-only database connection, using the correct API for the current MW version.
-	 *
-	 * @return \Wikimedia\Rdbms\IReadableDatabase|\Wikimedia\Rdbms\IDatabase
+	 * @deprecated Use {@see WikiAccess::getReplicaDB()}
 	 */
 	public static function getReplicaDB() {
-		if ( version_compare( MW_VERSION, '1.42', '>=' ) ) {
-			return MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-		}
-		// MW < 1.42: getConnectionProvider() did not exist; getDBLoadBalancer() was the only option
-		return MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
+		return WikiAccess::getReplicaDB();
 	}
 
 	/**
-	 * Returns an array of all form names on this wiki.
-	 * @return string[]
+	 * @deprecated Use {@see WikiAccess::getAllForms()}
 	 */
 	public static function getAllForms() {
-		$dbr = self::getReplicaDB();
-		$res = $dbr->select( 'page',
-			'page_title',
-			[ 'page_namespace' => PF_NS_FORM,
-				'page_is_redirect' => false ],
-			__METHOD__,
-			[ 'ORDER BY' => 'page_title' ] );
-		$form_names = [];
-		for ( $row = $res->fetchRow(); $row; $row = $res->fetchRow() ) {
-			$form_names[] = str_replace( '_', ' ', $row[0] );
-		}
-		$res->free();
-		if ( count( $form_names ) == 0 ) {
-			// This case requires special handling in the UI.
-			throw new MWException( wfMessage( 'pf-noforms-error' )->parse() );
-		}
-		return $form_names;
+		return WikiAccess::getAllForms();
 	}
 
+	/**
+	 * @deprecated Use {@see WikiAccess::getFormDropdownLabel()}
+	 */
 	public static function getFormDropdownLabel() {
-		$namespaceStrings = \MediaWiki\Extension\PageForms\ParserAccess::getContLang()->getNamespaces();
-		$formNSString = $namespaceStrings[PF_NS_FORM];
-		return $formNSString . wfMessage( 'colon-separator' )->escaped();
+		return WikiAccess::getFormDropdownLabel();
 	}
 
 	/**
@@ -252,8 +213,11 @@ class PFUtils {
 		return FormNamespaces::getNsText( $index );
 	}
 
+	/**
+	 * @deprecated Use {@see WikiAccess::isTranslateEnabled()}
+	 */
 	public static function isTranslateEnabled() {
-		return ExtensionRegistry::getInstance()->isLoaded( 'Translate' );
+		return WikiAccess::isTranslateEnabled();
 	}
 
 	/**

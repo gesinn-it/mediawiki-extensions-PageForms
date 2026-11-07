@@ -1,6 +1,7 @@
 <?php
 
 use MediaWiki\Extension\PageForms\AutocompleteSql;
+use MediaWiki\Extension\PageForms\WikiAccess;
 
 /**
  * @covers \MediaWiki\Extension\PageForms\AutocompleteSql
@@ -10,7 +11,7 @@ use MediaWiki\Extension\PageForms\AutocompleteSql;
 class AutocompleteSqlTest extends MediaWikiIntegrationTestCase {
 
 	private function like( string ...$parts ): string {
-		$db = PFUtils::getReplicaDB();
+		$db = WikiAccess::getReplicaDB();
 		return $db->buildLike( ...array_map(
 			static fn ( $part ) => $part === '*' ? $db->anyString() : $part,
 			$parts

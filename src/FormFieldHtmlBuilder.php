@@ -7,7 +7,6 @@ namespace MediaWiki\Extension\PageForms;
 use MediaWiki\Html\Html;
 use Parser;
 use PFRegExpInput;
-use PFUtils;
 
 /**
  * Assembles the HTML fragment for a single form field within a PageForms form.
@@ -130,7 +129,7 @@ class FormFieldHtmlBuilder {
 		FormField &$form_field,
 		?string &$cur_value
 	): void {
-		if ( $cur_value === null || PFUtils::isTranslateEnabled()
+		if ( $cur_value === null || WikiAccess::isTranslateEnabled()
 			|| !$form_field->hasFieldArg( 'translatable' )
 			|| !$form_field->getFieldArg( 'translatable' ) ) {
 			return;
@@ -165,7 +164,7 @@ class FormFieldHtmlBuilder {
 	 * @param string &$text
 	 */
 	private function addTranslatableInput( FormField $form_field, string &$text ): void {
-		if ( PFUtils::isTranslateEnabled() || !$form_field->hasFieldArg( 'translatable' )
+		if ( WikiAccess::isTranslateEnabled() || !$form_field->hasFieldArg( 'translatable' )
 			|| !$form_field->getFieldArg( 'translatable' ) ) {
 			return;
 		}

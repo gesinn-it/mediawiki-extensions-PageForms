@@ -4,7 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use PFUtils;
 use SMWQueryProcessor;
 
 /**
@@ -25,7 +24,7 @@ class QueryPages {
 		[ $queryObj ] = SMWQueryProcessor::getQueryAndParamsFromFunctionParams(
 			$rawQueryArray, SMW_OUTPUT_WIKI, SMWQueryProcessor::SPECIAL_PAGE, false
 		);
-		$res = PFUtils::getSMWStore()->getQueryResult( $queryObj );
+		$res = WikiAccess::getSMWStore()->getQueryResult( $queryObj );
 		$rows = $res->getResults();
 		$pages = [];
 		foreach ( $rows as $row ) {

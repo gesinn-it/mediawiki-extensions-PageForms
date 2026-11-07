@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Title\Title;
-use PFUtils;
 use SMWQuery;
 
 /**
@@ -114,7 +113,7 @@ class AutocompleteSourceCount {
 	 * @return int|null Null when SMW is unavailable.
 	 */
 	private static function getDistinctPropertyValueCount( string $propertyName, int $limit, $store = null ): ?int {
-		$store ??= PFUtils::getSMWStore();
+		$store ??= WikiAccess::getSMWStore();
 		if ( $store === null ) {
 			return null;
 		}
@@ -174,7 +173,7 @@ class AutocompleteSourceCount {
 	): ?int {
 		global $wgPageFormsMaxLocalAutocompleteValues;
 
-		$store ??= PFUtils::getSMWStore();
+		$store ??= WikiAccess::getSMWStore();
 		if ( $store === null ) {
 			return null;
 		}

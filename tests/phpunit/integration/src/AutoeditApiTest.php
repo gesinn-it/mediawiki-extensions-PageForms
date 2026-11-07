@@ -3,6 +3,7 @@
 use MediaWiki\EditPage\EditPage;
 use MediaWiki\Extension\PageForms\AutoeditApi;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
+use MediaWiki\Extension\PageForms\WikiAccess;
 use MediaWiki\MainConfigNames;
 use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
@@ -1276,7 +1277,7 @@ class AutoeditApiTest extends ApiTestCase {
 		$this->assertArrayNotHasKey( 'errors', $result );
 
 		$title = Title::newFromText( $targetName );
-		$page = PFUtils::newWikiPageFromTitle( $title );
+		$page = WikiAccess::newWikiPageFromTitle( $title );
 		$text = $page->getContent()->getWikitextForTransclusion();
 		$this->assertStringContainsString( 'new value', $text );
 	}
@@ -1612,7 +1613,7 @@ class AutoeditApiTest extends ApiTestCase {
 		try {
 			ConvertibleTimestamp::setFakeTime( '20260101120000' );
 			$this->insertPage( $targetName, "{{AEStoreConflictTpl\n|text=first\n}}\n" );
-			$page = PFUtils::newWikiPageFromTitle( Title::newFromText( $targetName ) );
+			$page = WikiAccess::newWikiPageFromTitle( Title::newFromText( $targetName ) );
 			$page->clear();
 			$staleTimestamp = $page->getTimestamp();
 			$staleRevId = $page->getLatest();

@@ -7,7 +7,6 @@ namespace MediaWiki\Extension\PageForms;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
-use PFUtils;
 use RequestContext;
 use User;
 
@@ -37,7 +36,7 @@ class FormLinker {
 		}
 
 		$pageID = $title->getArticleID();
-		$dbr = PFUtils::getReplicaDB();
+		$dbr = WikiAccess::getReplicaDB();
 		$res = $dbr->select( 'page_props',
 			[
 				'pp_value'
@@ -64,7 +63,7 @@ class FormLinker {
 		$wgOut->enableOOUI();
 
 		$formTitle = Title::makeTitleSafe( PF_NS_FORM, $formName );
-		$formDefinition = PFUtils::getPageText( $formTitle );
+		$formDefinition = WikiAccess::getPageText( $formTitle );
 		$preloadContent = null;
 
 		// Allow outside code to set/change the preloaded text.

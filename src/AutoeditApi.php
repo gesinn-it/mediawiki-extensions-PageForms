@@ -25,7 +25,6 @@ use MWException;
 use Parser;
 use ParserOptions;
 use PermissionsError;
-use PFUtils;
 use ReadOnlyError;
 use ReflectionClass;
 use RequestContext;
@@ -657,7 +656,7 @@ class AutoeditApi extends ApiBase {
 		$reload = $this->getRequest()->getText( 'reload' );
 		if ( $returnto !== null ) {
 			// Purge the returnto page
-			$returntoPage = PFUtils::newWikiPageFromTitle( $returnto );
+			$returntoPage = WikiAccess::newWikiPageFromTitle( $returnto );
 			if ( $returntoPage->exists() && $reload ) {
 				$returntoPage->doPurge();
 			}
@@ -948,7 +947,7 @@ class AutoeditApi extends ApiBase {
 	private function readFormContent( Title $formTitle ): string {
 		return StringUtils::delimiterReplace(
 			'<noinclude>', '</noinclude>', '',
-			PFUtils::getPageText( $formTitle, RevisionRecord::RAW ) ?? ''
+			WikiAccess::getPageText( $formTitle, RevisionRecord::RAW ) ?? ''
 		);
 	}
 
@@ -986,7 +985,7 @@ class AutoeditApi extends ApiBase {
 	 * the same second (the reason for T58849); the revision ID is exact.
 	 */
 	private function rememberEditBaseRevision( Title $targetTitle ): void {
-		$targetPage = PFUtils::newWikiPageFromTitle( $targetTitle );
+		$targetPage = WikiAccess::newWikiPageFromTitle( $targetTitle );
 		$targetPage->clear();
 		$this->mOptions['editRevId'] = $targetPage->getLatest();
 	}
@@ -1010,7 +1009,7 @@ class AutoeditApi extends ApiBase {
 
 			if ( $preloadTitle !== null && $preloadTitle->exists() ) {
 				// the content of the page that was specified to be used for preloading
-				$preloadContent = PFUtils::getPageText( $preloadTitle, RevisionRecord::RAW ) ?? '';
+				$preloadContent = WikiAccess::getPageText( $preloadTitle, RevisionRecord::RAW ) ?? '';
 
 				$pageExists = true;
 

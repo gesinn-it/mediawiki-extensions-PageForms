@@ -14,7 +14,6 @@ use MediaWiki\Html\TemplateParser;
 use MediaWiki\MediaWikiServices;
 use MWException;
 use PFFormEdit;
-use PFUtils;
 use SpecialPage;
 
 /**
@@ -165,7 +164,7 @@ class FormEditAction extends Action {
 		$output->setPageTitle( wfMessage( "creating", $targetName )->text() );
 
 		try {
-			$formNames = PFUtils::getAllForms();
+			$formNames = WikiAccess::getAllForms();
 		} catch ( MWException $e ) {
 			$output->addHTML( Html::element( 'div', [ 'class' => 'error' ], $e->getMessage() ) );
 			return;
@@ -253,7 +252,7 @@ class FormEditAction extends Action {
 	 * @return int[]
 	 */
 	private static function getNumPagesPerFormFromCategories(): array {
-		$dbr = PFUtils::getReplicaDB();
+		$dbr = WikiAccess::getReplicaDB();
 		$res = $dbr->select(
 			[ 'category', 'page', 'page_props' ],
 			[ 'pp_value', 'SUM(cat_pages) AS total_pages' ],
@@ -292,7 +291,7 @@ class FormEditAction extends Action {
 	 * @return int[]
 	 */
 	private static function getNumPagesPerFormFromNamespaces(): array {
-		$dbr = PFUtils::getReplicaDB();
+		$dbr = WikiAccess::getReplicaDB();
 
 		// Fetch all Project-namespace pages that carry a default-form property.
 		// Both tables are aliased so that MW's SQLPlatform resolves qualified

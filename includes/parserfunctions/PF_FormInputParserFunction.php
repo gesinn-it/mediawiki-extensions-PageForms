@@ -35,6 +35,7 @@
 
 use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
 use MediaWiki\Extension\PageForms\PageLinks;
+use MediaWiki\Extension\PageForms\WikiAccess;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 
@@ -189,18 +190,18 @@ class PFFormInputParserFunction {
 		unset( $formName );
 		if ( $inFormName == '' ) {
 			try {
-				$allForms = PFUtils::getAllForms();
+				$allForms = WikiAccess::getAllForms();
 			} catch ( MWException $e ) {
 				return Html::element( 'div', [ 'class' => 'error' ], $e->getMessage() );
 			}
 			$formInputAttrs['data-possible-forms'] = implode( '|', $allForms );
-			$formInputAttrs['data-form-label'] = PFUtils::getFormDropdownLabel();
+			$formInputAttrs['data-form-label'] = WikiAccess::getFormDropdownLabel();
 		} elseif ( count( $listOfForms ) == 1 ) {
 			$inFormName = str_replace( '\,', ',', $inFormName );
 			$formContents .= Html::hidden( "form", $inFormName );
 		} else {
 			$formInputAttrs['data-possible-forms'] = implode( '|', $listOfForms );
-			$formInputAttrs['data-form-label'] = PFUtils::getFormDropdownLabel();
+			$formInputAttrs['data-form-label'] = WikiAccess::getFormDropdownLabel();
 		}
 
 		// Recreate the passed-in query string as a set of hidden

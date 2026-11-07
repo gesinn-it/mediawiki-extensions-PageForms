@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Title\Title;
-use PFUtils;
 use SMW\DataValueFactory;
 use SMW\DataValues\PropertyValue;
 use SMWDIUri;
@@ -75,7 +74,7 @@ class PropertyValues {
 	) {
 		global $wgPageFormsMaxAutocompleteValues, $wgPageFormsUseDisplayTitle;
 
-		$store ??= PFUtils::getSMWStore();
+		$store ??= WikiAccess::getSMWStore();
 		if ( $store == null ) {
 			return [];
 		}

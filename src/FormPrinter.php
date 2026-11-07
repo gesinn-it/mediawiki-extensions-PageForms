@@ -25,7 +25,6 @@ use OutputPage;
 use Parser;
 use ParserOptions;
 use ParserOutput;
-use PFUtils;
 use RequestContext;
 use Sanitizer;
 use User;
@@ -615,7 +614,7 @@ class FormPrinter {
 		if ( $context->request->isQuery ) {
 			return '';
 		}
-		$mwWikiPage = PFUtils::newWikiPageFromTitle( $context->pageTitle );
+		$mwWikiPage = WikiAccess::newWikiPageFromTitle( $context->pageTitle );
 		return Html::hidden( 'wpStarttime', wfTimestampNow() ) .
 			Html::hidden( 'wpEdittime', $mwWikiPage->getTimestamp() ) .
 			Html::hidden( 'editRevId', 0 ) .

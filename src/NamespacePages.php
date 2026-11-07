@@ -6,7 +6,6 @@ namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Title\Title;
 use MWException;
-use PFUtils;
 
 /**
  * The pages of one or more namespaces, as the values of a "values from namespace" field.
@@ -47,7 +46,7 @@ class NamespacePages {
 			$conditions[] = self::substringCondition( $substring, $queriedNamespaces );
 		}
 
-		$res = PFUtils::getReplicaDB()->select( $tables, $columns, $conditions, __METHOD__, [], $join );
+		$res = WikiAccess::getReplicaDB()->select( $tables, $columns, $conditions, __METHOD__, [], $join );
 		return self::readPages( $res );
 	}
 

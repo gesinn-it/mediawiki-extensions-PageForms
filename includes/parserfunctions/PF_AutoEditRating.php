@@ -8,6 +8,7 @@
 
 use MediaWiki\Extension\PageForms\HiddenInputsBuilder;
 use MediaWiki\Extension\PageForms\QueryArrayMerger;
+use MediaWiki\Extension\PageForms\WikiAccess;
 use MediaWiki\Html\Html;
 use MediaWiki\Title\Title;
 
@@ -63,7 +64,7 @@ class PFAutoEditRating {
 							$errorMsg = wfMessage( 'pf-autoedit-invalidnamespace', $targetTitle->getNsText() )->parse();
 							return Html::element( 'div', [ 'class' => 'error' ], $errorMsg );
 						}
-						$targetWikiPage = PFUtils::newWikiPageFromTitle( $targetTitle );
+						$targetWikiPage = WikiAccess::newWikiPageFromTitle( $targetTitle );
 						$targetWikiPage->clear();
 						$editTime = $targetWikiPage->getTimestamp();
 						$latestRevId = $targetWikiPage->getLatest();

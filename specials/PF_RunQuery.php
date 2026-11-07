@@ -11,6 +11,7 @@ use MediaWiki\Extension\PageForms\FormNamespaces;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
 use MediaWiki\Extension\PageForms\PageLinks;
 use MediaWiki\Extension\PageForms\ParserAccess;
+use MediaWiki\Extension\PageForms\WikiAccess;
 use MediaWiki\Html\Html;
 use MediaWiki\Title\Title;
 
@@ -66,7 +67,7 @@ class PFRunQuery extends IncludableSpecialPage {
 		}
 
 		// Initialize variables.
-		$form_definition = PFUtils::getPageText( $form_title );
+		$form_definition = WikiAccess::getPageText( $form_title );
 		if ( $embedded ) {
 			$req = $this->getUser()->getRequest();
 		} else {

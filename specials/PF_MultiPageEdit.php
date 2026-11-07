@@ -14,6 +14,7 @@
 use MediaWiki\Extension\PageForms\FormTagParser;
 use MediaWiki\Extension\PageForms\SpreadsheetGlobals;
 use MediaWiki\Extension\PageForms\Template;
+use MediaWiki\Extension\PageForms\WikiAccess;
 use MediaWiki\Html\Html;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Title\Title;
@@ -176,7 +177,7 @@ class PFMultiPageEdit extends QueryPage {
 	 * form names in an array using helper functions.
 	 */
 	public function setTemplateList() {
-		$dbr = PFUtils::getReplicaDB();
+		$dbr = WikiAccess::getReplicaDB();
 		$res = $dbr->select(
 			[ 'page' ],
 			[ 'page_title' ],
@@ -223,7 +224,7 @@ class PFMultiPageEdit extends QueryPage {
 
 	public function findTemplatesForForm( $formName ) {
 		$formTitle = Title::makeTitle( PF_NS_FORM, $formName );
-		$formContent = PFUtils::getPageText( $formTitle, RevisionRecord::RAW );
+		$formContent = WikiAccess::getPageText( $formTitle, RevisionRecord::RAW );
 		$start_position = 0;
 		$brackets_loc = strpos( $formContent, '{{{', $start_position );
 		while ( $brackets_loc !== false ) {

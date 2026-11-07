@@ -4,8 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use PFUtils;
-
 /**
  * The value that a field of a form has when the form is shown: what the request says, with the
  * labels of a mapped field turned back into values, or else the default or the preloaded value.
@@ -40,7 +38,7 @@ class FormFieldCurrentValue {
 		// it's there, and if it's not an array.
 		$delimiter = $this->field->getFieldArg( 'delimiter' );
 
-		if ( PFUtils::isTranslateEnabled() &&
+		if ( WikiAccess::isTranslateEnabled() &&
 			$this->field->hasFieldArg( 'translatable' ) && $this->field->getFieldArg( 'translatable' ) ) {
 			$this->addTranslateTagToQueryValue( $template_instance_query_values );
 		}

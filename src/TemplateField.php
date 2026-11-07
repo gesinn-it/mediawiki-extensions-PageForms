@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Title\Title;
-use PFUtils;
 use SMW\DIProperty;
 
 /**
@@ -149,7 +148,7 @@ class TemplateField {
 			return;
 		}
 
-		$store ??= PFUtils::getSMWStore();
+		$store ??= WikiAccess::getSMWStore();
 		// this returns an array of objects
 		$allowed_values = PropertyValues::forSubject( $store, $proptitle, "Allows value" );
 		if ( $allowed_values === [] ) {

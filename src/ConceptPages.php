@@ -7,7 +7,6 @@ namespace MediaWiki\Extension\PageForms;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use MWException;
-use PFUtils;
 use SMW\DIWikiPage;
 use SMW\Query\Language\ConceptDescription;
 use SMW\Query\Language\Conjunction;
@@ -33,7 +32,7 @@ class ConceptPages {
 	public static function get( string $conceptName, ?string $substring = null ): array {
 		global $wgPageFormsMaxAutocompleteValues, $wgPageFormsUseDisplayTitle;
 
-		$store = PFUtils::getSMWStore();
+		$store = WikiAccess::getSMWStore();
 		if ( $store == null ) {
 			return [];
 		}

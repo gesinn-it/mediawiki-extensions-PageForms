@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace MediaWiki\Extension\PageForms;
 
 use MediaWiki\Title\Title;
-use PFUtils;
 
 /**
  * The categories of a page, and all the categories of the wiki.
@@ -23,7 +22,7 @@ class PageCategories {
 	 */
 	public static function forPage( Title $title ): array {
 		$categories = [];
-		$db = PFUtils::getReplicaDB();
+		$db = WikiAccess::getReplicaDB();
 		$titlekey = $title->getArticleID();
 		if ( $titlekey == 0 ) {
 			// Something's wrong - exit
@@ -50,7 +49,7 @@ class PageCategories {
 	 */
 	public static function all(): array {
 		$categories = [];
-		$db = PFUtils::getReplicaDB();
+		$db = WikiAccess::getReplicaDB();
 		$res = $db->select(
 			'category',
 			'cat_title',

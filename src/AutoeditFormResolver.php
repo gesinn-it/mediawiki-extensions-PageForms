@@ -7,7 +7,6 @@ namespace MediaWiki\Extension\PageForms;
 use MediaWiki\Title\Title;
 use MessageLocalizer;
 use MWException;
-use PFUtils;
 
 /**
  * Finds the form that a request to the pfautoedit API edits the target page with.
@@ -79,7 +78,7 @@ final class AutoeditFormResolver {
 	 */
 	public function followRedirects( Title $formTitle, string $formName ): Title {
 		for ( $i = 0; $i < self::MAX_REDIRECT_HOPS && $formTitle->isRedirect(); $i++ ) {
-			$newTitle = PFUtils::newWikiPageFromTitle( $formTitle )->getRedirectTarget();
+			$newTitle = WikiAccess::newWikiPageFromTitle( $formTitle )->getRedirectTarget();
 			if ( !( $newTitle instanceof Title ) || !$newTitle->isValidRedirectTarget() ) {
 				break;
 			}
@@ -88,7 +87,7 @@ final class AutoeditFormResolver {
 
 		// if we exceeded the hop limit or encountered an invalid redirect target, give up
 		if ( $formTitle->isRedirect() ) {
-			$newTitle = PFUtils::newWikiPageFromTitle( $formTitle )->getRedirectTarget();
+			$newTitle = WikiAccess::newWikiPageFromTitle( $formTitle )->getRedirectTarget();
 
 			if ( $newTitle instanceof Title && $newTitle->isValidRedirectTarget() ) {
 				throw new MWException( $this->messages->msg( 'pf_autoedit_redirectlimitexeeded', $formName )->parse() );

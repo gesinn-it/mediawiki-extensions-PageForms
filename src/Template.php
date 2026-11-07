@@ -8,7 +8,6 @@ use MediaWiki\Extension\PageForms\TemplateText\TemplateFieldParser;
 use MediaWiki\Extension\PageForms\TemplateText\TemplateWikitextWriter;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
-use PFUtils;
 use StringUtils;
 
 /**
@@ -102,7 +101,7 @@ class Template {
 			return;
 		}
 
-		$templateText = PFUtils::getPageText( $templateTitle ) ?? '';
+		$templateText = WikiAccess::getPageText( $templateTitle ) ?? '';
 		// Ignore 'noinclude' sections and 'includeonly' tags.
 		$templateText = StringUtils::delimiterReplace( '<noinclude>', '</noinclude>', '', $templateText );
 		$this->mTemplateText = strtr( $templateText, [ '<includeonly>' => '', '</includeonly>' => '' ] );

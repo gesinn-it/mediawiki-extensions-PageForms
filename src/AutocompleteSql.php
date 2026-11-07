@@ -4,8 +4,6 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms;
 
-use PFUtils;
-
 /**
  * The parts of the queries on the page table that find pages for an autocompletion substring.
  *
@@ -24,7 +22,7 @@ class AutocompleteSql {
 	public static function conditionForColumn( string $column, string $substring, bool $replaceSpaces = true ): string {
 		global $wgPageFormsAutocompleteOnAllChars;
 
-		$db = PFUtils::getReplicaDB();
+		$db = WikiAccess::getReplicaDB();
 
 		// CONVERT() is also supported in PostgreSQL, but it doesn't
 		// seem to work the same way.

@@ -8,7 +8,6 @@ use ApiBase;
 use ApiMessage;
 use MediaWiki\MediaWikiServices;
 use Message;
-use PFUtils;
 use RawMessage;
 use SMW\DataValueFactory;
 use SMW\DataValues\PropertyValue;
@@ -224,7 +223,7 @@ class AutocompleteApi extends ApiBase {
 		$maxAutocompleteValues = $this->getConfig()->get( 'PageFormsMaxAutocompleteValues' );
 		$useDisplayTitle = $this->getConfig()->get( 'PageFormsUseDisplayTitle' );
 
-		$db = PFUtils::getReplicaDB();
+		$db = WikiAccess::getReplicaDB();
 		$sqlOptions = [];
 		$sqlOptions['LIMIT'] = $maxAutocompleteValues;
 

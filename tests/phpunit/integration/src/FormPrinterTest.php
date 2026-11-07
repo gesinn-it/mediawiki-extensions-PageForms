@@ -2,6 +2,7 @@
 
 use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
+use MediaWiki\Extension\PageForms\WikiAccess;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Request\FauxRequest;
 use MediaWiki\Title\Title;
@@ -1190,7 +1191,7 @@ class FormPrinterTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertNotEmpty( $formHtml );
 		// The hidden edit time is read from the page the form resolved its title to.
-		$timestamp = PFUtils::newWikiPageFromTitle( $title )->getTimestamp();
+		$timestamp = WikiAccess::newWikiPageFromTitle( $title )->getTimestamp();
 		$this->assertStringContainsString( "value=\"$timestamp\" name=\"wpEdittime\"", $formHtml );
 	}
 

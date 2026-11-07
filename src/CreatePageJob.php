@@ -9,7 +9,6 @@ use Job;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Title\Title;
-use PFUtils;
 use User;
 use WikitextContent;
 
@@ -32,7 +31,7 @@ class CreatePageJob extends Job {
 	 * @return bool success
 	 */
 	public function run() {
-		$wikiPage = PFUtils::newWikiPageFromTitle( $this->title );
+		$wikiPage = WikiAccess::newWikiPageFromTitle( $this->title );
 		$pageText = $this->params['page_text'];
 		if ( array_key_exists( 'edit_summary', $this->params ) ) {
 			$editSummary = $this->params['edit_summary'];
