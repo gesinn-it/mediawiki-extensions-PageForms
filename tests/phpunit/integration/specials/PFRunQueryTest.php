@@ -80,6 +80,66 @@ class PFRunQueryTest extends SpecialPageTestBase {
 	}
 
 	/**
+	 * An embedded query form submits to Special:RunQuery without a subpage when the request of the embedding page
+	 * has no 'title' parameter (for example 'index.php?oldid=...'). The form name then only travels in the
+	 * 'pfRunQueryFormName' parameter that the form adds itself.
+	 *
+	 * @see https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/30
+	 */
+	public function testSubmitWithoutFormNameInTheUrlUsesPfRunQueryFormName() {
+		$this->insertPage( Title::newFromText( 'PFRunQueryTestFormNameFallback', PF_NS_FORM ), 'Form content here' );
+
+		$request = new FauxRequest( [
+			'pfRunQueryFormName' => 'PFRunQueryTestFormNameFallback',
+			'wpTextbox1' => 'Some content for query',
+		] );
+
+		[ $html ] = $this->executeSpecialPage( '', $request );
+
+		$this->assertStringContainsString( 'Some content for query', $html );
+		$this->assertStringNotContainsString( wfMessage( 'pf_runquery_badurl' )->text(), $html );
+	}
+
+	public function testFormNameInTheUrlWinsOverPfRunQueryFormName() {
+		$this->insertPage( Title::newFromText( 'PFRunQueryTestFormNameWins', PF_NS_FORM ), 'Form content here' );
+
+		$request = new FauxRequest( [
+			'pfRunQueryFormName' => 'PFRunQueryTestFormNameOther',
+			'wpTextbox1' => 'Some content for query',
+		] );
+
+		[ $html ] = $this->executeSpecialPage( 'PFRunQueryTestFormNameWins', $request );
+
+		// The form echoes pfRunQueryFormName as a hidden field, so the form in use shows in its action.
+		$this->assertStringContainsString( 'Special:RunQuery/PFRunQueryTestFormNameWins', $html );
+		$this->assertStringNotContainsString( 'Special:RunQuery/PFRunQueryTestFormNameOther', $html );
+	}
+
+	public function testFormParameterWinsOverPfRunQueryFormName() {
+		$this->insertPage( Title::newFromText( 'PFRunQueryTestFormParamWins', PF_NS_FORM ), 'Form content here' );
+
+		$request = new FauxRequest( [
+			'form' => 'PFRunQueryTestFormParamWins',
+			'pfRunQueryFormName' => 'PFRunQueryTestFormParamOther',
+		] );
+
+		[ $html ] = $this->executeSpecialPage( '', $request );
+
+		$this->assertStringContainsString( 'Special:RunQuery/PFRunQueryTestFormParamWins', $html );
+		$this->assertStringNotContainsString( 'Special:RunQuery/PFRunQueryTestFormParamOther', $html );
+	}
+
+	public function testUnknownFormNameInPfRunQueryFormNameIsReported() {
+		$request = new FauxRequest( [ 'pfRunQueryFormName' => 'PFRunQueryTestNoSuchForm' ] );
+
+		[ $html ] = $this->executeSpecialPage( '', $request );
+
+		$this->assertStringContainsString( 'class="error"', $html );
+		$this->assertStringContainsString( 'PFRunQueryTestNoSuchForm', $html );
+		$this->assertStringNotContainsString( wfMessage( 'pf_runquery_badurl' )->text(), $html );
+	}
+
+	/**
 	 * The global Parser's $mOutput is only populated once something has
 	 * called Parser::clearState() (directly, or via a first parse()). If
 	 * nothing did so yet this request, PFRunQuery::printPage() must not

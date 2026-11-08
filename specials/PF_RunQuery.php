@@ -31,6 +31,12 @@ class PFRunQuery extends IncludableSpecialPage {
 		$this->getOutput()->enableOOUI();
 
 		$form_name = $this->including() ? $query : $this->getRequest()->getVal( 'form', $query );
+		if ( !$this->including() && ( $form_name === null || $form_name === '' ) ) {
+			// A query form that is embedded in a page submits to this page without a subpage if the request of
+			// the embedding page had no 'title' parameter (for example 'index.php?oldid=...'). The form itself
+			// carries its name in 'pfRunQueryFormName'.
+			$form_name = $this->getRequest()->getVal( 'pfRunQueryFormName' );
+		}
 		$form_name = str_replace( '_', ' ', $form_name ?? '' );
 
 		$this->printPage( $form_name, $this->including() );
