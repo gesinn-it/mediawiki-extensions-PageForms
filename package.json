@@ -45,7 +45,7 @@
 	},
 	"dependencies": {
 		"fullcalendar": "3.9.0",
-		"jspreadsheet-ce": "4.6.0",
+		"jspreadsheet-ce": "4.15.0",
 		"jstree": "3.3.17",
 		"select2": "4.0.13",
 		"sortablejs": "1.8.0-rc1"
