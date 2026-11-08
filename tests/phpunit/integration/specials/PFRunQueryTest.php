@@ -264,10 +264,10 @@ class PFRunQueryTest extends SpecialPageTestBase {
 
 		$html = $context->getOutput()->getHTML();
 		// MediaWiki 1.39 writes self-closing hidden inputs, later versions do not.
-		$this->assertMatchesRegularExpression( '#<input type="hidden" value="5" name="oldid"\s*/?>#', $html );
-		$this->assertMatchesRegularExpression(
+		$this->assertSame( 1, preg_match( '#<input type="hidden" value="5" name="oldid"\s*/?>#', $html ) );
+		$this->assertSame( 1, preg_match(
 			'#<input type="hidden" value="PFRunQueryTestEmbeddedHidden" name="pfRunQueryFormName"\s*/?>#', $html
-		);
+		) );
 	}
 
 	public function testEmbeddedFormWithTitleInTheRequestSubmitsToTheEmbeddingPage() {
