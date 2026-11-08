@@ -85,9 +85,14 @@ function build( outDir ) {
 
 		for ( const patch of lib.patches ) {
 			const patchFile = path.join( root, 'libs-patches', patch + '.patch' );
-			const result = spawnSync( 'patch', [ '-s', '--no-backup-if-mismatch', '-p1', '-d', outDir, '-i', patchFile ], { encoding: 'utf8' } );
+			const result = spawnSync(
+				'patch',
+				[ '-s', '--no-backup-if-mismatch', '-p1', '-d', outDir, '-i', patchFile ],
+				{ encoding: 'utf8' }
+			);
 			if ( result.error || result.status !== 0 ) {
-				fail( `Patch ${ patch } does not apply to ${ lib.to }:\n${ result.stdout || '' }${ result.stderr || '' }${ result.error || '' }` );
+				const output = ( result.stdout || '' ) + ( result.stderr || '' ) + ( result.error || '' );
+				fail( `Patch ${ patch } does not apply to ${ lib.to }:\n${ output }` );
 			}
 		}
 	}
