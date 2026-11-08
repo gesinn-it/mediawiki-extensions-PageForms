@@ -187,6 +187,61 @@ QUnit.test( 'fires the pf.addTemplateInstance hook with the new instance', ( ass
 	assert.true( $firedWith.hasClass( 'multipleTemplateInstance' ), 'hook received the new instance' );
 } );
 
+function createWrapperWithUploadInterface() {
+	const $wrapper = createMultipleInstanceWrapper();
+	const $starterInput = $wrapper.find( '.multipleTemplateStarter input' );
+	// The starter carries the input ID that the server rendered; the upload interface names it.
+	$starterInput.attr( 'id', 'input_2' );
+	$( '<span class="simpleUploadInterface" data-input-id="input_2"></span>' ).insertAfter( $starterInput );
+	return $wrapper;
+}
+
+QUnit.test( 'keeps the upload interface of a new instance pointing at the input of that instance', ( assert ) => {
+	const $wrapper = createWrapperWithUploadInterface();
+	const $adder = $wrapper.find( '.multipleTemplateAdder' );
+
+	$adder.addInstance( false );
+
+	const $newInstance = $wrapper.find( '.multipleTemplateList > .multipleTemplateInstance' ).last();
+	const inputId = $newInstance.find( 'input' ).attr( 'id' );
+	assert.notStrictEqual( inputId, 'input_2', 'the input got a new ID' );
+	assert.strictEqual(
+		$newInstance.find( '.simpleUploadInterface' ).attr( 'data-input-id' ),
+		inputId,
+		'data-input-id names the new ID of the input'
+	);
+	assert.strictEqual( $( '#' + inputId ).length, 1, 'the ID in data-input-id finds exactly one element' );
+} );
+
+QUnit.test( 'gives every instance an upload interface that points at its own input', ( assert ) => {
+	const $wrapper = createWrapperWithUploadInterface();
+	const $adder = $wrapper.find( '.multipleTemplateAdder' );
+
+	$adder.addInstance( false );
+	$adder.addInstance( false );
+
+	const $instances = $wrapper.find( '.multipleTemplateList > .multipleTemplateInstance' );
+	assert.strictEqual( $instances.length, 2, 'two instances were added' );
+	const targets = $instances.map( ( index, instance ) => $( instance ).find( '.simpleUploadInterface' )
+		.attr( 'data-input-id' ) ).get();
+	assert.notStrictEqual( targets[ 0 ], targets[ 1 ], 'the instances point at different inputs' );
+	$instances.each( ( index, instance ) => {
+		const $input = $( instance ).find( 'input' );
+		assert.strictEqual( $input.attr( 'id' ), targets[ index ], `instance ${ index } points at its own input` );
+	} );
+} );
+
+QUnit.test( 'leaves the upload interface of the starter pointing at the ID of the starter input', ( assert ) => {
+	const $wrapper = createWrapperWithUploadInterface();
+	const $adder = $wrapper.find( '.multipleTemplateAdder' );
+
+	$adder.addInstance( false );
+
+	const $starter = $wrapper.find( '.multipleTemplateStarter' );
+	assert.strictEqual( $starter.find( '.simpleUploadInterface' ).attr( 'data-input-id' ), 'input_2' );
+	assert.strictEqual( $starter.find( 'input' ).attr( 'id' ), 'input_2' );
+} );
+
 QUnit.module( 'PageForms show-on-select (showDiv/hideDiv)', {
 	beforeEach() {
 		stubShowOnSelectConfig();

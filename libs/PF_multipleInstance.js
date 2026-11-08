@@ -319,6 +319,13 @@ $.fn.addInstance = function( addAboveCurInstance ) {
 		return this.href.replace(/input_/g, 'input_' + num_elements + '_');
 	});
 
+	// Elements that name an input by its ID (the upload interface of an input
+	// with "uploadable") have to follow the rename above, or they refer to the
+	// starter's input instead of the input of this instance.
+	$new_div.find('[data-input-id]').attr('data-input-id', function() {
+		return $(this).attr('data-input-id').replace(/input_/g, 'input_' + num_elements + '_');
+	});
+
 	$new_div.find('span').attr('id', function() {
 		return this.id.replace(/span_/g, 'span_' + num_elements + '_');
 	});
