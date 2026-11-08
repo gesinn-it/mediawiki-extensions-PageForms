@@ -46,7 +46,7 @@ _(compatible with this extension's GPL-2.0-or-later)_
 | Lightbox for image preview
 
 | link:https://github.com/prrashi/rateyo[rateYo]
-| 2.3.2
+| API of 2.3.2 (re-implemented, see below)
 | MIT
 | Star rating input
 
@@ -114,7 +114,16 @@ Every patch starts with a short description of why it exists.
 * *jSuites* is a snapshot of the upstream repository (header says 3.5.3) and differs from
   the npm release of that number, so it cannot be reproduced from npm yet. It is dealt
   with together with the jspreadsheet upgrade.
-* *fancyBox* and *rateYo* are planned to be replaced rather than upgraded.
+* *fancyBox* is planned to be replaced rather than upgraded (#280).
+
+== rateYo
+
+rateYo has not been maintained since 2018. `libs/jquery.rateyo.js` is a compatible re-implementation:
+the same markup (so `skins/jquery.rateyo.css` and site CSS keep working), options, methods and events
+(`rateyo.init`, `rateyo.change`, `rateyo.set`). `tests/node-qunit/jquery.rateyo.test.js` runs it side by
+side with the original, which is a dev dependency (`rateyo` in `package.json`) used only by that test, and
+requires the same markup, events, return values and errors. The one known difference is the detection of
+mobile browsers, which uses a short list of user agents instead of the long list of the original.
 
 For build- and test-time dependencies (not shipped to the browser), see `composer.json`
 (PHP) and `package.json` (JavaScript tooling) in the repository root.

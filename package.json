@@ -21,6 +21,7 @@
 		"jsdom": "^29.0.1",
 		"nyc": "^18.0.0",
 		"qunit": "^3.0.0",
+		"rateyo": "2.3.2",
 		"sinon": "^22.0.0"
 	},
 	"overrides": {
@@ -32,7 +33,6 @@
 	"nyc": {
 		"exclude": [
 			"libs/jquery.browser.js",
-			"libs/jquery.rateyo.js",
 			"libs/FullCalendar/fullcalendar.js",
 			"libs/FullCalendar/locale-all.js",
 			"libs/FancyBox/jquery.fancybox.js",

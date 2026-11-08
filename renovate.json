@@ -88,6 +88,11 @@
 			"matchPackageNames": ["select2"],
 			"allowedVersions": "<4.1.0",
 			"description": "Bundled in libs/select2.js via scripts/update-libs.js. select2 4.1.0 declares engines.node >=24, while the CI base images run Node.js 20.19.2 (see the jsdom rule), and the Page Forms RTL patch has to be re-checked against 4.1.0 first (see #286). Remove this ceiling once tests cover the upgrade."
+		},
+		{
+			"matchPackageNames": ["rateyo"],
+			"enabled": false,
+			"description": "rateyo 2.3.2 is only the reference that tests/node-qunit/jquery.rateyo.test.js compares libs/jquery.rateyo.js (a compatible re-implementation) against. It must stay at exactly that version; the project is not maintained and the behaviour must not move."
 		}
 	]
 }
