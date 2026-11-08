@@ -6,10 +6,15 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+## [2.5.1] - 2026-11-08
+
+Replaces the unmaintained rateYo library behind the `rating` input, updates the bundled jsTree and Sortable libraries, and fixes the markup handling of the rating stars.
+
 ### Fixed
 - The `rating` input and the rating of an `#autoedit` call no longer read the markup of their stars from a `data-rateyo-star-svg` attribute of the element [`05da0235`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/05da0235) ([#287](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/287))
 
 ### Changed
+- The `rating` input no longer uses the rateYo library, which has not been maintained since 2018, but an own implementation with the same markup, options and events. Ratings look and behave as before; only mobile browsers are now detected with a shorter list of user agents [`0327ac47`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/0327ac47) ([#287](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/287))
 - The tree input uses jsTree 3.3.17 (was 3.3.10), and rearranging the instances of a multiple-instance template and the tokens of a `tokens` input uses Sortable 1.15.7 instead of the 1.8.0 pre-release that was bundled before. Both work as before [`44df4496`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/44df4496) [`fc8b3ede`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/fc8b3ede) ([#115](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/115))
 
 ## [2.5.0] - 2026-11-08
@@ -441,7 +446,8 @@ MW < 1.39 and PHP < 8.0 support, and ships a major internal refactoring of
 - Bump `mediawiki/mediawiki-phan-config` from 0.14.0 to 0.20.0 [`69edc6d9`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/69edc6d9)
 - Bump `undici` to 7.28.0 [`e8aafc73`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/e8aafc73)
 
-[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.5.0...HEAD
+[Unreleased]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.5.1...HEAD
+[2.5.1]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.5.0...2.5.1
 [2.5.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.4.0...2.5.0
 [2.4.0]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.5...2.4.0
 [2.3.5]: https://github.com/gesinn-it/mediawiki-extensions-PageForms/compare/2.3.4...2.3.5
