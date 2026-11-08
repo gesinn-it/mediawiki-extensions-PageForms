@@ -3,13 +3,15 @@
 	"scripts": {
 		"test": "npm run analyze && npm run node-qunit",
 		"test-coverage": "npm run analyze && npm run node-qunit-coverage",
-		"analyze": "npm run eslint && npm run banana-checker",
+		"analyze": "npm run eslint && npm run banana-checker && npm run libs:check",
 		"fix": "npm run eslint:fix",
 		"eslint": "eslint --cache '{libs,tests,i18n}/**/*.{js,json}'",
 		"eslint:fix": "npm run eslint -- --fix",
 		"banana-checker": "banana-checker i18n",
 		"node-qunit": "qunit --require ./tests/node-qunit/setup.js 'tests/node-qunit/**/*.test.js'",
-		"node-qunit-coverage": "nyc --reporter=text --reporter=html --reporter=clover --report-dir=coverage/js --all --include='libs/**' npm run node-qunit"
+		"node-qunit-coverage": "nyc --reporter=text --reporter=html --reporter=clover --report-dir=coverage/js --all --include='libs/**' npm run node-qunit",
+		"libs:update": "node scripts/update-libs.js",
+		"libs:check": "node scripts/update-libs.js --check"
 	},
 	"devDependencies": {
 		"eslint": "^8.57.1",
@@ -40,5 +42,12 @@
 			"libs/select2.js",
 			"libs/Sortable.js"
 		]
+	},
+	"dependencies": {
+		"fullcalendar": "3.9.0",
+		"jspreadsheet-ce": "4.6.0",
+		"jstree": "3.3.10",
+		"select2": "4.0.13",
+		"sortablejs": "1.8.0-rc1"
 	}
 }

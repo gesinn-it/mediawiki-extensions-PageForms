@@ -25,12 +25,12 @@ managing them via npm. This page lists them for reference, along with their lice
 | Tree-structured selection input
 
 | link:https://bossanova.uk/jsuites[jSuites]
-| —
+| 3.5.3 (snapshot, see below)
 | MIT
 | Spreadsheet view UI components
 
 | link:https://bossanova.uk/jexcel[jspreadsheet (jExcel CE)]
-| 4.5.0
+| 4.6.0
 | MIT
 | Spreadsheet view for multiple-instance templates
 
@@ -56,8 +56,68 @@ _(compatible with this extension's GPL-2.0-or-later)_
 | Browser detection shim, used where jQuery's own `$.browser` was removed
 |===
 
-NOTE: Versions above reflect the code currently vendored in `libs/`. When upgrading a
-bundled library, update the version in the file's header comment and in the table above.
+NOTE: Versions above reflect the code currently vendored in `libs/`.
+
+== Managed libraries
+
+Select2, Sortable.js, jsTree, FullCalendar and jspreadsheet are npm dependencies in
+`package.json` (exact versions). `scripts/update-libs.js` copies the unminified build
+from `node_modules` into `libs/` and then applies the Page Forms specific patches from
+`libs-patches/`. The files in `libs/` stay checked in, so ResourceLoader and the
+browser keep working with readable source.
+
+[source,bash]
+----
+npm run libs:update   # regenerate libs/ from node_modules + patches
+npm run libs:check    # fail if libs/ differs (part of "npm run analyze" and CI)
+----
+
+Do not edit these files in `libs/` by hand. Change the patch instead, or the check fails.
+
+=== Upgrading a library
+
+. Change the version in `package.json` and run `npm install`.
+. Check the path of the build artifact in the new package and adjust `LIBS` in
+  `scripts/update-libs.js` if it moved.
+. Run `npm run libs:update`. A patch that no longer applies is reported with the failing
+  hunk. Decide for each one whether upstream fixed the problem (drop the patch) or the
+  patch is still needed (refresh it).
+. Run the tests and smoke-test the feature in a browser.
+. Update the version in the table above.
+
+=== Patches
+
+Every patch starts with a short description of why it exists.
+
+[cols="2,3"]
+|===
+| Patch | Reason
+
+| `select2-no-commonjs`, `sortable-no-commonjs`, `jstree-no-commonjs`, `jspreadsheet-no-require`
+| In ResourceLoader `module` and `require` are defined, so the UMD wrapper of these
+  libraries would take the CommonJS branch and not create the global object (or fail
+  on `require()`). The libraries are loaded as plain scripts.
+
+| `select2-rtl-dropdown`
+| Dropdown position on RTL pages.
+
+| `sortable-ghost-position`
+| Position of the drag ghost for multiple-instance templates.
+
+| `jspreadsheet-header-title`, `jspreadsheet-null-guards`
+| Small bug fixes.
+
+| `jspreadsheet-pf-autocomplete`
+| Page Forms autocompletion in spreadsheet cell editors (Page Forms code inside the
+  library).
+|===
+
+== Not managed yet
+
+* *jSuites* is a snapshot of the upstream repository (header says 3.5.3) and differs from
+  the npm release of that number, so it cannot be reproduced from npm yet. It is dealt
+  with together with the jspreadsheet upgrade.
+* *fancyBox* and *rateYo* are planned to be replaced rather than upgraded.
 
 For build- and test-time dependencies (not shipped to the browser), see `composer.json`
 (PHP) and `package.json` (JavaScript tooling) in the repository root.

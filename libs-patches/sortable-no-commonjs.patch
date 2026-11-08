@@ -1,0 +1,20 @@
+Sortable: disable the CommonJS export.
+In ResourceLoader "module" is defined, so the UMD wrapper would not create the global
+Sortable object.
+
+--- a/libs/Sortable.js
++++ b/libs/Sortable.js
+@@ -11,9 +11,10 @@
+ 	if (typeof define === "function" && define.amd) {
+ 		define(factory);
+ 	}
+-	else if (typeof module != "undefined" && typeof module.exports != "undefined") {
+-		module.exports = factory();
+-	}
++	// Commented out for Page Forms.
++//	else if (typeof module != "undefined" && typeof module.exports != "undefined") {
++//		module.exports = factory();
++//	}
+ 	else {
+ 		/* jshint sub:true */
+ 		window["Sortable"] = factory();

@@ -1,0 +1,25 @@
+jsTree: disable the CommonJS export and expose jQuery as "jQuery".
+In ResourceLoader "module" is defined, which caused occasional JS errors ("Fixes for
+occasional JS errors with jsTree").
+
+--- a/libs/jstree.js
++++ b/libs/jstree.js
+@@ -4,13 +4,14 @@
+ 	if (typeof define === 'function' && define.amd) {
+ 		define(['jquery'], factory);
+ 	}
+-	else if(typeof module !== 'undefined' && module.exports) {
+-		module.exports = factory(require('jquery'));
+-	}
++	// Commented out for Page Forms.
++	//else if(typeof module !== 'undefined' && module.exports) {
++	//	module.exports = factory(require('jquery'));
++	//}
+ 	else {
+ 		factory(jQuery);
+ 	}
+-}(function ($, undefined) {
++}(function (jQuery, undefined) {
+ 	"use strict";
+ /*!
+  * jsTree 3.3.10

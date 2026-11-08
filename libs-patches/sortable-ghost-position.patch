@@ -1,0 +1,41 @@
+Sortable: ghost element positioning for multiple-instance templates.
+Introduced together with the first Sortable integration; the reason is not recorded.
+Sortable 1.15.x rewrote this code, so this patch has to be re-evaluated on upgrade.
+
+--- a/libs/Sortable.js
++++ b/libs/Sortable.js
+@@ -825,8 +826,7 @@
+ 			if (!ghostEl) {
+ 				var rect = dragEl.getBoundingClientRect(),
+ 					css = _css(dragEl),
+-					options = this.options,
+-					ghostRect;
++					options = this.options;
+ 
+ 				ghostEl = dragEl.cloneNode(true);
+ 
+@@ -834,8 +834,10 @@
+ 				_toggleClass(ghostEl, options.fallbackClass, true);
+ 				_toggleClass(ghostEl, options.dragClass, true);
+ 
+-				_css(ghostEl, 'top', rect.top - parseInt(css.marginTop, 10));
+-				_css(ghostEl, 'left', rect.left - parseInt(css.marginLeft, 10));
++				_css(ghostEl, 'box-sizing', 'border-box');
++				_css(ghostEl, 'margin', 0);
++				_css(ghostEl, 'top', rect.top);
++				_css(ghostEl, 'left', rect.left);
+ 				_css(ghostEl, 'width', rect.width);
+ 				_css(ghostEl, 'height', rect.height);
+ 				_css(ghostEl, 'opacity', '0.8');
+@@ -844,11 +846,6 @@
+ 				_css(ghostEl, 'pointerEvents', 'none');
+ 
+ 				options.fallbackOnBody && document.body.appendChild(ghostEl) || rootEl.appendChild(ghostEl);
+-
+-				// Fixing dimensions.
+-				ghostRect = ghostEl.getBoundingClientRect();
+-				_css(ghostEl, 'width', rect.width * 2 - ghostRect.width);
+-				_css(ghostEl, 'height', rect.height * 2 - ghostRect.height);
+ 			}
+ 		},
+ 

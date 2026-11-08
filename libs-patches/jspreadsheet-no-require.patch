@@ -1,0 +1,19 @@
+jspreadsheet: disable the require() of jSuites; it is loaded as a separate script.
+
+--- a/libs/jspreadsheet.js
++++ b/libs/jspreadsheet.js
+@@ -7,10 +7,10 @@
+  * This software is distribute under MIT License
+  */
+ 
+-if (! jSuites && typeof(require) === 'function') {
+-    var jSuites = require('jsuites');
+-    require('jsuites/dist/jsuites.css');
+-}
++//  if (! jSuites && typeof(require) === 'function') {
++//     var jSuites = require('jsuites');
++//     require('jsuites/dist/jsuites.css');
++// }
+ 
+ ;(function (global, factory) {
+     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :

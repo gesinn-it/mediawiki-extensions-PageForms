@@ -1,0 +1,13 @@
+jspreadsheet: take the column header tooltip from the column "title" option.
+
+--- a/libs/jspreadsheet.js
++++ b/libs/jspreadsheet.js
+@@ -1304,7 +1304,7 @@
+             obj.headers[colNumber].setAttribute('data-x', colNumber);
+             obj.headers[colNumber].style.textAlign = colAlign;
+             if (obj.options.columns[colNumber].title) {
+-                obj.headers[colNumber].setAttribute('title', obj.options.columns[colNumber].textContent);
++                obj.headers[colNumber].setAttribute('title', obj.options.columns[colNumber].title);
+             }
+     
+             // Width control
