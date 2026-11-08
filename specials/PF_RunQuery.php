@@ -147,11 +147,18 @@ class PFRunQuery extends IncludableSpecialPage {
 				$dividerText = "\n<hr style=\"margin: 15px 0;\" />\n";
 			}
 
+			// Without an action attribute the browser submits to the address the user is on.
+			$submitToCurrentAddress = false;
 			if ( $embedded ) {
 				$embeddingPageName = $req->getVal( 'title' );
 				if ( $embeddingPageName == '' ) {
-					// Seems to happen on page save.
+					// The request of the embedding page has no 'title' parameter (for example
+					// 'index.php?oldid=...'), so the page is not known here. The values of the request are
+					// kept as hidden fields below, which makes a submission to the current address show the
+					// result on the embedding page. After a POST (page save) the values are not meant to be
+					// sent back as they are, and the submission goes to the special page.
 					$realTitle = $this->getPageTitle();
+					$submitToCurrentAddress = !$req->wasPosted();
 				} else {
 					$realTitle = Title::newFromText( $embeddingPageName );
 				}
@@ -166,10 +173,12 @@ class PFRunQuery extends IncludableSpecialPage {
 			if ( !array_key_exists( 'pfRunQueryFormName', $queryStringValues ) ) {
 				$queryStringValues['pfRunQueryFormName'] = $form_name;
 			}
-			$action = htmlspecialchars( $realTitle->getLocalURL() );
+			$actionAttribute = $submitToCurrentAddress
+				? ''
+				: ' action="' . htmlspecialchars( $realTitle->getLocalURL() ) . '"';
 
 			$fullFormText .= <<<END
-	<form id="pfForm" name="createbox" action="$action" method="get" class="createbox">
+	<form id="pfForm" name="createbox"$actionAttribute method="get" class="createbox">
 
 END;
 			foreach ( $queryStringValues as $key => $value ) {

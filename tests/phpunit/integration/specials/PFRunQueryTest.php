@@ -196,6 +196,98 @@ class PFRunQueryTest extends SpecialPageTestBase {
 	}
 
 	/**
+	 * Renders an embedded query form for the given request of the embedding page and returns the form tag.
+	 *
+	 * @param string $formName
+	 * @param FauxRequest $request Request of the page that embeds the form
+	 * @return string
+	 */
+	private function renderEmbeddedFormTag( string $formName, FauxRequest $request ): string {
+		$this->setMwGlobals( 'wgRequest', $request );
+		$main = RequestContext::getMain();
+		$originalRequest = $main->getRequest();
+		$main->setRequest( $request );
+
+		try {
+			$page = $this->newSpecialPage();
+			$context = new DerivativeContext( $main );
+			$context->setOutput( new OutputPage( $context ) );
+			// A user that has no request of its own reads the request of the main context.
+			$context->setUser( $this->getTestUser()->getUser() );
+			$page->setContext( $context );
+
+			$page->printPage( $formName, true );
+		} finally {
+			$main->setRequest( $originalRequest );
+		}
+
+		$html = $context->getOutput()->getHTML();
+		$this->assertSame( 1, preg_match( '/<form id="pfForm"[^>]*>/', $html, $matches ) );
+		return $matches[0];
+	}
+
+	/**
+	 * Without the 'title' parameter the form cannot name the embedding page. It must then submit to the address
+	 * the user is on (no action attribute), so that the result shows on the embedding page.
+	 *
+	 * @see https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/30
+	 */
+	public function testEmbeddedFormWithoutTitleInTheRequestSubmitsToTheCurrentAddress() {
+		$this->insertPage( Title::newFromText( 'PFRunQueryTestEmbeddedNoTitle', PF_NS_FORM ), 'Form content here' );
+
+		$formTag = $this->renderEmbeddedFormTag(
+			'PFRunQueryTestEmbeddedNoTitle', new FauxRequest( [ 'oldid' => '5' ] )
+		);
+
+		$this->assertStringNotContainsString( 'action=', $formTag );
+		$this->assertStringContainsString( 'method="get"', $formTag );
+	}
+
+	public function testEmbeddedFormWithoutTitleKeepsTheValuesOfTheRequestAsHiddenFields() {
+		$this->insertPage( Title::newFromText( 'PFRunQueryTestEmbeddedHidden', PF_NS_FORM ), 'Form content here' );
+		$request = new FauxRequest( [ 'oldid' => '5' ] );
+		$this->setMwGlobals( 'wgRequest', $request );
+		$main = RequestContext::getMain();
+		$originalRequest = $main->getRequest();
+		$main->setRequest( $request );
+
+		try {
+			$page = $this->newSpecialPage();
+			$context = new DerivativeContext( $main );
+			$context->setOutput( new OutputPage( $context ) );
+			$context->setUser( $this->getTestUser()->getUser() );
+			$page->setContext( $context );
+			$page->printPage( 'PFRunQueryTestEmbeddedHidden', true );
+		} finally {
+			$main->setRequest( $originalRequest );
+		}
+
+		$html = $context->getOutput()->getHTML();
+		$this->assertStringContainsString( '<input type="hidden" value="5" name="oldid">', $html );
+		$this->assertStringContainsString(
+			'<input type="hidden" value="PFRunQueryTestEmbeddedHidden" name="pfRunQueryFormName">', $html
+		);
+	}
+
+	public function testEmbeddedFormWithTitleInTheRequestSubmitsToTheEmbeddingPage() {
+		$this->insertPage( Title::newFromText( 'PFRunQueryTestEmbeddedTitle', PF_NS_FORM ), 'Form content here' );
+
+		$formTag = $this->renderEmbeddedFormTag(
+			'PFRunQueryTestEmbeddedTitle', new FauxRequest( [ 'title' => 'PFRunQueryTestEmbeddingPage' ] )
+		);
+
+		$this->assertStringContainsString( 'action="/wiki/PFRunQueryTestEmbeddingPage"', $formTag );
+	}
+
+	public function testEmbeddedFormWithoutTitleAfterAPostSubmitsToTheSpecialPage() {
+		$this->insertPage( Title::newFromText( 'PFRunQueryTestEmbeddedPost', PF_NS_FORM ), 'Form content here' );
+
+		$formTag = $this->renderEmbeddedFormTag( 'PFRunQueryTestEmbeddedPost', new FauxRequest( [], true ) );
+
+		$this->assertStringContainsString( 'action="/wiki/Special:RunQuery"', $formTag );
+	}
+
+	/**
 	 * ResourceLoader modules registered by parser tag hooks (e.g. ext.headertabs
 	 * from <headertabs />) while rendering the form definition must reach the
 	 * real OutputPage, not just the internal parser used by formHTML().
