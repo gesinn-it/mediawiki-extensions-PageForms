@@ -308,3 +308,28 @@ QUnit.test( 'a mobile browser keeps the shown rating on mouseleave', ( assert ) 
 		}
 	}
 } );
+
+QUnit.test( 'does not parse markup from a data-rateyo-star-svg attribute', ( assert ) => {
+	// The attribute is content of the page: a wiki editor can put data-* attributes on an element
+	// of the page, so its value must never be parsed as HTML (an <img> would start loading and
+	// run its onerror handler even if it were never inserted).
+	const payload = '<img src="x" onerror="window.pfRateYoXss = true">';
+	const attrs = { 'data-rateyo-star-svg': payload, 'data-rateyo-num-stars': '3', 'data-rateyo-max-value': '3' };
+
+	const made = create( mine, { rating: 1 }, attrs );
+	const reference = create( mine, { rating: 1, numStars: 3, maxValue: 3 } );
+
+	assert.strictEqual( made.$el.find( 'img' ).length, 0, 'no element was created from the attribute' );
+	assert.strictEqual( made.$el.find( 'svg' ).length, 6, 'the default stars are used (3 normal and 3 rated)' );
+	assert.strictEqual( made.$el.html().indexOf( 'onerror' ), -1, 'the value is not in the markup' );
+	assert.strictEqual( made.$el.html(), reference.$el.html(), 'same markup as without the attribute' );
+	assert.strictEqual( window.pfRateYoXss, undefined, 'no handler ran' );
+} );
+
+QUnit.test( 'still takes starSvg from the options passed by code', ( assert ) => {
+	const starSvg = '<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>';
+
+	const made = create( mine, { starSvg, numStars: 2, maxValue: 2, rating: 1 } );
+
+	assert.strictEqual( made.$el.find( 'circle' ).length, 4, 'custom stars (2 normal and 2 rated)' );
+} );

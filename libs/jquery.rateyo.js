@@ -13,8 +13,9 @@
  *   events: rateyo.init, rateyo.change, rateyo.set  (data: { rating: number })
  *
  * tests/node-qunit/jquery.rateyo.test.js runs this file and the original side by side.
- * Known difference: the mobile browser detection of the original (a long list of device names)
- * is replaced by a short check for common mobile user agents.
+ * Known differences: the mobile browser detection of the original (a long list of device names)
+ * is replaced by a short check for common mobile user agents, and the option starSvg (markup that is
+ * parsed as HTML) is no longer read from a data-rateyo-star-svg attribute.
  */
 ( function ( $ ) {
 	'use strict';
@@ -530,12 +531,15 @@
 			const optionsCopy = $.extend( {}, options );
 
 			const data = $( node ).data();
-			Object.keys( data ).filter( ( key ) => key.indexOf( 'rateyo' ) === 0 ).forEach( ( key ) => {
-				let optionName = key.replace( /^rateyo/, '' );
-				optionName = optionName[ 0 ].toLowerCase() + optionName.slice( 1 );
-				dataAttrs[ optionName ] = data[ key ];
-				delete optionsCopy[ optionName ];
-			} );
+			// starSvg is markup that is parsed as HTML. It may be passed by code, but it is not taken
+			// from a data attribute: those are content of the page and can be set by any editor.
+			Object.keys( data ).filter( ( key ) => key.indexOf( 'rateyo' ) === 0 && key !== 'rateyoStarSvg' )
+				.forEach( ( key ) => {
+					let optionName = key.replace( /^rateyo/, '' );
+					optionName = optionName[ 0 ].toLowerCase() + optionName.slice( 1 );
+					dataAttrs[ optionName ] = data[ key ];
+					delete optionsCopy[ optionName ];
+				} );
 
 			// The constructor registers the instance
 			// eslint-disable-next-line no-new, no-jquery/no-extend
