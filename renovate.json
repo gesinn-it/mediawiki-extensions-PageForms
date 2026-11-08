@@ -90,6 +90,12 @@
 			"description": "Bundled in libs/select2.js via scripts/update-libs.js. select2 4.1.0 declares engines.node >=24, while the CI base images run Node.js 20.19.2 (see the jsdom rule), and the Page Forms RTL patch has to be re-checked against 4.1.0 first (see #286). Remove this ceiling once tests cover the upgrade."
 		},
 		{
+			"matchManagers": ["npm"],
+			"matchDepTypes": ["dependencies"],
+			"dependencyDashboardApproval": true,
+			"description": "The runtime dependencies are bundled into libs/ by scripts/update-libs.js, and Renovate cannot run that script (no postUpgradeTasks), so every bump PR fails libs:check in CI. Hold these updates on the Dependency Dashboard until someone approves one; then regenerate libs/ with `npm run libs:update` on the PR branch. Remove this rule once the libs are regenerated automatically."
+		},
+		{
 			"matchPackageNames": ["rateyo"],
 			"enabled": false,
 			"description": "rateyo 2.3.2 is only the reference that tests/node-qunit/jquery.rateyo.test.js compares libs/jquery.rateyo.js (a compatible re-implementation) against. It must stay at exactly that version; the project is not maintained and the behaviour must not move."
