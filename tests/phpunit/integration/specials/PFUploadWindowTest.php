@@ -105,6 +105,122 @@ class PFUploadWindowTest extends SpecialPageTestBase {
 	}
 
 	/**
+	 * Runs showViewDeletedLinks() for a file in an isolated output and returns what it printed.
+	 *
+	 * @param PFUploadWindow $page
+	 * @param \MediaWiki\Permissions\Authority $performer
+	 * @param string $fileName
+	 * @return string
+	 */
+	private function renderViewDeletedLinks( PFUploadWindow $page, $performer, string $fileName ): string {
+		$context = new DerivativeContext( RequestContext::getMain() );
+		$context->setUser( $performer->getUser() );
+		$context->setOutput( new OutputPage( $context ) );
+		$context->setTitle( Title::makeTitle( NS_SPECIAL, 'UploadWindow' ) );
+		$page->setContext( $context );
+		$page->mDesiredDestName = $fileName;
+
+		$method = new ReflectionMethod( PFUploadWindow::class, 'showViewDeletedLinks' );
+		$method->setAccessible( true );
+		$method->invoke( $page );
+
+		return $context->getOutput()->getHTML();
+	}
+
+	private function deleteFile( string $fileName ): Title {
+		$sysop = $this->getTestUser( [ 'sysop' ] )->getAuthority();
+		$title = Title::makeTitle( NS_FILE, $fileName );
+		$this->insertPage( $title );
+		MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title )
+			->doDeleteArticleReal( 'test deletion', $sysop );
+		return $title;
+	}
+
+	public function testShowViewDeletedLinksOffersTheRestoreLinkWithTheNumberOfDeletedEdits() {
+		$title = $this->deleteFile( 'PFTestUploadWindowRestoreLink.png' );
+		$sysop = $this->getTestUser( [ 'sysop' ] )->getAuthority();
+
+		$html = $this->renderViewDeletedLinks( $this->newSpecialPage(), $sysop, $title->getText() );
+
+		$this->assertStringContainsString( 'id="contentSub2"', $html );
+		$this->assertStringContainsString( 'Special:Undelete/File:PFTestUploadWindowRestoreLink.png', $html );
+		$this->assertStringContainsString( wfMessage( 'restorelink' )->numParams( 1 )->escaped(), $html );
+	}
+
+	public function testShowViewDeletedLinksCountsEveryDeletedEdit() {
+		$sysop = $this->getTestUser( [ 'sysop' ] )->getAuthority();
+		$title = Title::makeTitle( NS_FILE, 'PFTestUploadWindowRestoreLinkTwoEdits.png' );
+		$this->insertPage( $title );
+		$this->editPage( $title, 'second revision' );
+		MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title )
+			->doDeleteArticleReal( 'test deletion', $sysop );
+
+		$html = $this->renderViewDeletedLinks( $this->newSpecialPage(), $sysop, $title->getText() );
+
+		$this->assertStringContainsString( wfMessage( 'restorelink' )->numParams( 2 )->escaped(), $html );
+	}
+
+	public function testShowViewDeletedLinksHidesTheRestoreLinkWithoutTheRightToSeeDeletedHistory() {
+		$title = $this->deleteFile( 'PFTestUploadWindowRestoreLinkHidden.png' );
+		$performer = $this->getTestUser()->getAuthority();
+
+		$html = $this->renderViewDeletedLinks( $this->newSpecialPage(), $performer, $title->getText() );
+
+		$this->assertStringNotContainsString( 'contentSub2', $html );
+		$this->assertStringNotContainsString( 'Special:Undelete', $html );
+	}
+
+	public function testShowViewDeletedLinksPrintsNothingForAFileThatWasNeverDeleted() {
+		$sysop = $this->getTestUser( [ 'sysop' ] )->getAuthority();
+
+		$html = $this->renderViewDeletedLinks(
+			$this->newSpecialPage(), $sysop, 'PFTestUploadWindowNeverDeleted.png'
+		);
+
+		$this->assertSame( '', $html );
+	}
+
+	public function testShowViewDeletedLinksShowsTheDeletionLogForAFileThatIsStillDeleted() {
+		$title = $this->deleteFile( 'PFTestUploadWindowDeletionLog.png' );
+		$performer = $this->getTestUser()->getAuthority();
+
+		/** @var PFUploadWindow&\PHPUnit\Framework\MockObject\MockObject $page */
+		$page = $this->getMockBuilder( PFUploadWindow::class )
+			->onlyMethods( [ 'showDeletionLog' ] )
+			->getMock();
+		$page->expects( $this->once() )->method( 'showDeletionLog' )
+			->with( $this->anything(), 'File:PFTestUploadWindowDeletionLog.png' );
+
+		$this->renderViewDeletedLinks( $page, $performer, $title->getText() );
+	}
+
+	public function testShowViewDeletedLinksSkipsTheDeletionLogForAFileThatExistsAgain() {
+		$title = $this->deleteFile( 'PFTestUploadWindowDeletionLogRecreated.png' );
+		$this->insertPage( $title );
+		$performer = $this->getTestUser()->getAuthority();
+
+		/** @var PFUploadWindow&\PHPUnit\Framework\MockObject\MockObject $page */
+		$page = $this->getMockBuilder( PFUploadWindow::class )
+			->onlyMethods( [ 'showDeletionLog' ] )
+			->getMock();
+		$page->expects( $this->never() )->method( 'showDeletionLog' );
+
+		$this->renderViewDeletedLinks( $page, $performer, $title->getText() );
+	}
+
+	public function testShowViewDeletedLinksSkipsTheDeletionLogForAFileThatWasNeverDeleted() {
+		$performer = $this->getTestUser()->getAuthority();
+
+		/** @var PFUploadWindow&\PHPUnit\Framework\MockObject\MockObject $page */
+		$page = $this->getMockBuilder( PFUploadWindow::class )
+			->onlyMethods( [ 'showDeletionLog' ] )
+			->getMock();
+		$page->expects( $this->never() )->method( 'showDeletionLog' );
+
+		$this->renderViewDeletedLinks( $page, $performer, 'PFTestUploadWindowNeverDeletedLog.png' );
+	}
+
+	/**
 	 * getUploadForm() must return a PFUploadForm instance without throwing,
 	 * given a fully wired context.
 	 */

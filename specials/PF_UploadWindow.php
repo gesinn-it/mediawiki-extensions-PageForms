@@ -350,7 +350,7 @@ class PFUploadWindow extends UnlistedSpecialPage {
 			return;
 		}
 		// Show a subtitle link to deleted revisions (to sysops et al only)
-		$count = $title->isDeleted();
+		$count = $title->getDeletedEditsCount();
 		if ( $count > 0 && $this->getUser()->isAllowed( 'deletedhistory' ) ) {
 			$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
 			$link = $this->msg( $this->getUser()->isAllowed( 'delete' ) ? 'thisisdeleted' : 'viewdeleted' )
@@ -363,7 +363,7 @@ class PFUploadWindow extends UnlistedSpecialPage {
 		}
 
 		// Show the relevant lines from deletion log (for still deleted files only)
-		if ( $title->isDeletedQuick() && !$title->exists() ) {
+		if ( $title->hasDeletedEdits() && !$title->exists() ) {
 			$this->showDeletionLog( $this->getOutput(), $title->getPrefixedText() );
 		}
 	}
