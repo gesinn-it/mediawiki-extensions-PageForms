@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Fixed
+- The `rating` input and the rating of an `#autoedit` call no longer read the markup of their stars from a `data-rateyo-star-svg` attribute of the element [`05da0235`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/05da0235) ([#287](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/287))
+
 ### Changed
 - The tree input uses jsTree 3.3.17 (was 3.3.10), and rearranging the instances of a multiple-instance template and the tokens of a `tokens` input uses Sortable 1.15.7 instead of the 1.8.0 pre-release that was bundled before. Both work as before [`44df4496`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/44df4496) [`fc8b3ede`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/fc8b3ede) ([#115](https://github.com/gesinn-it/mediawiki-extensions-PageForms/issues/115))
 
