@@ -263,9 +263,10 @@ class PFRunQueryTest extends SpecialPageTestBase {
 		}
 
 		$html = $context->getOutput()->getHTML();
-		$this->assertStringContainsString( '<input type="hidden" value="5" name="oldid">', $html );
-		$this->assertStringContainsString(
-			'<input type="hidden" value="PFRunQueryTestEmbeddedHidden" name="pfRunQueryFormName">', $html
+		// MediaWiki 1.39 writes self-closing hidden inputs, later versions do not.
+		$this->assertMatchesRegularExpression( '#<input type="hidden" value="5" name="oldid"\s*/?>#', $html );
+		$this->assertMatchesRegularExpression(
+			'#<input type="hidden" value="PFRunQueryTestEmbeddedHidden" name="pfRunQueryFormName"\s*/?>#', $html
 		);
 	}
 
@@ -276,7 +277,8 @@ class PFRunQueryTest extends SpecialPageTestBase {
 			'PFRunQueryTestEmbeddedTitle', new FauxRequest( [ 'title' => 'PFRunQueryTestEmbeddingPage' ] )
 		);
 
-		$this->assertStringContainsString( 'action="/wiki/PFRunQueryTestEmbeddingPage"', $formTag );
+		$expectedAction = Title::newFromText( 'PFRunQueryTestEmbeddingPage' )->getLocalURL();
+		$this->assertStringContainsString( 'action="' . $expectedAction . '"', $formTag );
 	}
 
 	public function testEmbeddedFormWithoutTitleAfterAPostSubmitsToTheSpecialPage() {
@@ -284,7 +286,8 @@ class PFRunQueryTest extends SpecialPageTestBase {
 
 		$formTag = $this->renderEmbeddedFormTag( 'PFRunQueryTestEmbeddedPost', new FauxRequest( [], true ) );
 
-		$this->assertStringContainsString( 'action="/wiki/Special:RunQuery"', $formTag );
+		$expectedAction = SpecialPage::getTitleFor( 'RunQuery' )->getLocalURL();
+		$this->assertStringContainsString( 'action="' . $expectedAction . '"', $formTag );
 	}
 
 	/**
