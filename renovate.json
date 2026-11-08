@@ -73,6 +73,21 @@
 			"matchPackageNames": ["jsdom"],
 			"allowedVersions": "<30.0.0",
 			"description": "All three CI legs' base images (gesinn/mediawiki-ci:1.39-php8.1, 1.43-php8.3, 1.46-php8.4) run Node.js v20.19.2 (checked via `docker run --rm <image> node --version`, 2026-08-25). jsdom 30.x requires engines.node '^22.22.2 || ^24.15.0 || >=26.0.0' (jsdom 29.x only required '^20.19.0 || ...') — confirmed via `make ci` (PR #202): jsdom 30's undici dependency crashes with `TypeError: webidl.util.markAsUncloneable is not a function` on Node 20, since that API doesn't exist until later Node majors. Remove this ceiling once the CI base images are upgraded to a Node.js version jsdom 30+ supports."
+		},
+		{
+			"matchPackageNames": ["fullcalendar"],
+			"allowedVersions": "<4.0.0",
+			"description": "Bundled in libs/FullCalendar via scripts/update-libs.js. 3.10.5 is the last 3.x release; v4 and later drop jQuery and are a migration of their own (see #115), which also depends on replacing fancyBox (#280). Remove this ceiling once that migration is done."
+		},
+		{
+			"matchPackageNames": ["jspreadsheet-ce"],
+			"allowedVersions": "<=4.6.0",
+			"description": "Bundled in libs/jspreadsheet.js with Page Forms patches (libs-patches/jspreadsheet-*.patch). Only 4.6.0 ships the unminified dist/jexcel.js; from 4.6.2 on the package contains only a minified bundle (dist/index.js), to which the patches cannot be applied (checked via the npm tarballs, 2026-11-08). Remove this ceiling once #283 is decided."
+		},
+		{
+			"matchPackageNames": ["select2"],
+			"allowedVersions": "<4.1.0",
+			"description": "Bundled in libs/select2.js via scripts/update-libs.js. select2 4.1.0 declares engines.node >=24, while the CI base images run Node.js 20.19.2 (see the jsdom rule), and the Page Forms RTL patch has to be re-checked against 4.1.0 first (see #115). Remove this ceiling once tests cover the upgrade."
 		}
 	]
 }
