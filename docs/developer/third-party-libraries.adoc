@@ -20,7 +20,7 @@ managing them via npm. This page lists them for reference, along with their lice
 | Drag-and-drop reordering of multiple-instance template fields
 
 | link:https://www.jstree.com[jsTree]
-| 3.3.10
+| 3.3.17
 | MIT
 | Tree-structured selection input
 
