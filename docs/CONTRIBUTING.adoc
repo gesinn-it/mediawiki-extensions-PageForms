@@ -813,7 +813,7 @@ When a test starts failing after upgrading the platform, framework, or a depende
 
 *Running tests*
 
-See the *Execution — Install Dependencies · MediaWiki* and *Execution — Run Tests (PHPUnit) · MediaWiki* reference files loaded by this skill.
+Installing the dependencies and running the tests are described in *Execution — Install Dependencies · MediaWiki* and *Execution — Run Tests (PHPUnit) · MediaWiki*.
 
 '''
 
@@ -829,7 +829,7 @@ host are *not* automatically reflected in a running container.
 
 NOTE: When a `docker-compose.override.yml` with a bind-mount of the extension
 source directory is active (local development setup), `make install` is only
-required at the start of a new session or after dependency changes. For
+required when you start working and after dependency changes. For
 iterative test runs, use `make php-test` or `make dev-test` directly.
 
 [source,console]
@@ -902,7 +902,7 @@ make bash
 
 *Execution — Pre-Commit Gate · MediaWiki*
 
-**Do not commit until the pre-commit gate exits with code 0. If it fails, fix all violations before proceeding.**
+**Do not commit until the pre-commit gate exits with code 0. If it fails, fix all violations first.**
 
 Run the pre-commit gate before every commit:
 
@@ -976,7 +976,7 @@ Guidelines:
 * Use the commit body to explain *why*, not only *what*
 * Scopes should be short, lowercase identifiers (e.g. `api`, `parser`, `smw`, `mediawiki`, `docker`)
 * Use `chore` only for repository maintenance tasks that do not affect runtime behavior, dependencies, CI configuration, or tests
-* Do *not* add a `Co-Authored-By:` trailer or any agent attribution line to the commit message
+* Do *not* add `Co-Authored-By:` trailers or similar attribution lines to the commit message
 
 Changelog:
 
@@ -984,7 +984,7 @@ Changelog:
 
 Issue linking:
 
-* If the session resolves a GitHub issue, add a footer line to the commit message so GitHub closes the issue itself once the commit reaches the default branch — do not close it manually
+* If the commit resolves a GitHub issue, add a footer line to the commit message so GitHub closes the issue itself once the commit reaches the default branch — do not close it manually
 * Use `Closes #123` when the commit completes all work for the issue
 * Use `Refs #123` when the issue is only partly addressed
 * If it is unclear whether all work is done, ask before choosing the keyword
