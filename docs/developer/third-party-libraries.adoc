@@ -15,7 +15,7 @@ managing them via npm. This page lists them for reference, along with their lice
 | Combo box / tag token inputs
 
 | link:https://github.com/SortableJS/Sortable[Sortable.js]
-| 1.8.0-rc1
+| 1.15.7
 | MIT
 | Drag-and-drop reordering of multiple-instance template fields
 
@@ -100,9 +100,6 @@ Every patch starts with a short description of why it exists.
 
 | `select2-rtl-dropdown`
 | Dropdown position on RTL pages.
-
-| `sortable-ghost-position`
-| Position of the drag ghost for multiple-instance templates.
 
 | `jspreadsheet-header-title`, `jspreadsheet-null-guards`
 | Small bug fixes.

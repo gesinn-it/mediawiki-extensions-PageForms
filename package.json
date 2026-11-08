@@ -48,6 +48,6 @@
 		"jspreadsheet-ce": "4.6.0",
 		"jstree": "3.3.17",
 		"select2": "4.0.13",
-		"sortablejs": "1.8.0-rc1"
+		"sortablejs": "1.15.7"
 	}
 }

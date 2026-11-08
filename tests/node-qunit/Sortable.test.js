@@ -6,14 +6,30 @@
 // that changes the API Page Forms relies on is noticed. Real dragging needs layout and is not
 // possible in jsdom; it is checked in a browser.
 
-require( '../../libs/Sortable.js' );
+const fs = require( 'fs' );
+const path = require( 'path' );
 
-// The library publishes its global on the jsdom window (1.8.x) or on globalThis (1.9 and later).
-const Sortable = global.Sortable || window.Sortable;
+/**
+ * Evaluates libs/Sortable.js like ResourceLoader does: as a plain script of which "this" is the window,
+ * with a "module" that is defined. The library must still publish the global "Sortable" then.
+ *
+ * @return {{Sortable: Function, moduleExports: Object}}
+ */
+function loadLikeResourceLoader() {
+	const source = fs.readFileSync( path.resolve( __dirname, '../../libs/Sortable.js' ), 'utf8' );
+	const module = { exports: {} };
+	// eslint-disable-next-line no-new-func
+	new Function( 'module', 'exports', source ).call( window, module, module.exports );
+	return { Sortable: window.Sortable, moduleExports: module.exports };
+}
+
+let Sortable;
 
 QUnit.module( 'Sortable (real library)', {
+	beforeEach() {
+		Sortable = loadLikeResourceLoader().Sortable;
+	},
 	afterEach() {
-		delete global.Sortable;
 		delete window.Sortable;
 	}
 } );
@@ -33,9 +49,14 @@ function order( $list ) {
 	return $list.children().map( ( i, el ) => $( el ).attr( 'data-id' ) ).get();
 }
 
-QUnit.test( 'is exposed as a global with create()', ( assert ) => {
-	assert.strictEqual( typeof Sortable, 'function', 'Sortable is a constructor' );
-	assert.strictEqual( typeof Sortable.create, 'function', 'Sortable.create exists' );
+QUnit.test( 'is exposed as a global although "module" is defined', ( assert ) => {
+	delete window.Sortable;
+
+	const loaded = loadLikeResourceLoader();
+
+	assert.strictEqual( typeof window.Sortable, 'function', 'window.Sortable is a constructor' );
+	assert.strictEqual( typeof window.Sortable.create, 'function', 'Sortable.create exists' );
+	assert.deepEqual( Object.keys( loaded.moduleExports ), [], 'nothing is exported through module.exports' );
 } );
 
 QUnit.test( 'create() returns an instance that keeps the options Page Forms passes', ( assert ) => {

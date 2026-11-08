@@ -34,7 +34,7 @@ const LIBS = [
 		pkg: 'sortablejs',
 		from: 'Sortable.js',
 		to: 'libs/Sortable.js',
-		patches: [ 'sortable-no-commonjs', 'sortable-ghost-position' ]
+		patches: [ 'sortable-no-commonjs' ]
 	},
 	{
 		pkg: 'jstree',
