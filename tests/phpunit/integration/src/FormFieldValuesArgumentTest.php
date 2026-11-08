@@ -160,6 +160,9 @@ class FormFieldValuesArgumentTest extends MediaWikiIntegrationTestCase {
 		if ( !defined( 'SMW_VERSION' ) ) {
 			$this->markTestSkipped( 'Semantic MediaWiki is not installed.' );
 		}
+		if ( version_compare( SMW_VERSION, '7.0.0', '<' ) ) {
+			$this->markTestSkipped( 'The "#ask" query finds no pages in the test before SMW 7.0.0' );
+		}
 		$this->insertPage( 'PFValuesMember', '[[Category:PFValuesCategory]]' );
 		// The category membership is stored by a deferred update.
 		\DeferredUpdates::doUpdates();
