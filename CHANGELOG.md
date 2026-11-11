@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/) and
 
 ## [Unreleased]
 
+### Changed
+- The calendar format uses FullCalendar 3.10.5 (was 3.9.0), the last release of the 3.x line. It works as before [`d3b21f07`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/d3b21f07) [`50b29347`](https://github.com/gesinn-it/mediawiki-extensions-PageForms/commit/50b29347)
+
 ## [2.5.1] - 2026-11-08
 
 Replaces the unmaintained rateYo library behind the `rating` input, updates the bundled jsTree and Sortable libraries, and fixes the markup handling of the rating stars.
