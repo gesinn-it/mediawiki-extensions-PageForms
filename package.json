@@ -44,7 +44,7 @@
 		]
 	},
 	"dependencies": {
-		"fullcalendar": "3.9.0",
+		"fullcalendar": "3.10.5",
 		"jspreadsheet-ce": "4.6.0",
 		"jstree": "3.3.17",
 		"select2": "4.0.13",
