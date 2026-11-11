@@ -37,9 +37,8 @@ class RegistrationHooksTest extends MediaWikiIntegrationTestCase {
 	public function testResourceLoaderRegisterModulesRegistersMapsModuleWithNonOfflineScript(): void {
 		$resourceLoader = $this->getServiceContainer()->getResourceLoader();
 
-		$result = ( new RegistrationHooks() )->onResourceLoaderRegisterModules( $resourceLoader );
+		( new RegistrationHooks() )->onResourceLoaderRegisterModules( $resourceLoader );
 
-		$this->assertTrue( $result );
 		$this->assertContains( 'ext.pageforms.maps', $resourceLoader->getModuleNames() );
 		$this->assertNotNull( $resourceLoader->getModule( 'ext.pageforms.maps' ) );
 	}

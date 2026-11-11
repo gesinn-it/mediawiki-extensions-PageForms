@@ -4,8 +4,11 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\Hooks;
 
-use ExtensionRegistry;
-use Parser;
+use MediaWiki\Hook\CanonicalNamespacesHook;
+use MediaWiki\Hook\ParserFirstCallInitHook;
+use MediaWiki\Parser\Parser;
+use MediaWiki\Registration\ExtensionRegistry;
+use MediaWiki\ResourceLoader\Hook\ResourceLoaderRegisterModulesHook;
 
 /**
  * Hook handlers that register Page Forms' namespaces, parser functions and
@@ -13,7 +16,11 @@ use Parser;
  *
  * @ingroup PF
  */
-class RegistrationHooks {
+class RegistrationHooks implements
+	CanonicalNamespacesHook,
+	ParserFirstCallInitHook,
+	ResourceLoaderRegisterModulesHook
+{
 
 	private ExtensionRegistry $extensionRegistry;
 
@@ -27,9 +34,8 @@ class RegistrationHooks {
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ResourceLoaderRegisterModules
 	 *
 	 * @param \MediaWiki\ResourceLoader\ResourceLoader $resourceLoader
-	 * @return bool Always true
 	 */
-	public function onResourceLoaderRegisterModules( $resourceLoader ) {
+	public function onResourceLoaderRegisterModules( $resourceLoader ): void {
 		$mapsModuleAttrs = [
 			// The extension's root directory; apparently __DIR__-relative paths
 			// resolved differently across installations, so set it explicitly.
@@ -46,8 +52,6 @@ class RegistrationHooks {
 		}
 
 		$resourceLoader->register( [ 'ext.pageforms.maps' => $mapsModuleAttrs ] );
-
-		return true;
 	}
 
 	/**

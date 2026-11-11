@@ -4,18 +4,20 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\PageForms\Hooks;
 
+use MediaWiki\Context\RequestContext;
 use MediaWiki\EditPage\EditPage;
 use MediaWiki\Extension\PageForms\FormAssets;
 use MediaWiki\Extension\PageForms\FormLinker;
 use MediaWiki\Extension\PageForms\FormPrinter;
 use MediaWiki\Extension\PageForms\FormPrinterFactory;
+use MediaWiki\Hook\EditPage__importFormDataHook;
 use MediaWiki\Html\Html;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Storage\EditResult;
+use MediaWiki\Storage\Hook\PageSaveCompleteHook;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
-use RequestContext;
 use StringUtils;
 use WikiPage;
 
@@ -24,7 +26,7 @@ use WikiPage;
  *
  * @ingroup PF
  */
-class EditHooks {
+class EditHooks implements EditPage__importFormDataHook, PageSaveCompleteHook {
 
 	/**
 	 * Disable TinyMCE if this is a form definition page, or a form-editable page.
@@ -53,7 +55,7 @@ class EditHooks {
 	 * @return bool Always true
 	 */
 	// phpcs:ignore MediaWiki.NamingConventions.LowerCamelFunctionsName.FunctionName -- MediaWiki maps "EditPage::importFormData" to this name
-	public function onEditPage__importFormData( EditPage $editpage, WebRequest $request ) {
+	public function onEditPage__importFormData( $editpage, $request ) {
 		global $wgOut;
 
 		wfDebug( __METHOD__ . ": enter.\n" );
@@ -110,8 +112,7 @@ class EditHooks {
 	 * @return bool
 	 */
 	public function onPageSaveComplete(
-		WikiPage $wikiPage, UserIdentity $user, string $summary, int $flags,
-		RevisionRecord $revisionRecord, EditResult $editResult
+		$wikiPage, $user, $summary, $flags, $revisionRecord, $editResult
 	) {
 		$request = RequestContext::getMain()->getRequest();
 		// Bots don't need this cookie

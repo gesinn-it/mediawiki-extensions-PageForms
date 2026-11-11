@@ -12,10 +12,13 @@
 ( static function () {
 	foreach ( [
 		'CommentStore' => 'MediaWiki\\CommentStore\\CommentStore',
+		'ExtensionRegistry' => 'MediaWiki\\Registration\\ExtensionRegistry',
 		'EditPage' => 'MediaWiki\\EditPage\\EditPage',
 		'FauxRequest' => 'MediaWiki\\Request\\FauxRequest',
 		'Html' => 'MediaWiki\\Html\\Html',
 		'Linker' => 'MediaWiki\\Linker\\Linker',
+		'Parser' => 'MediaWiki\\Parser\\Parser',
+		'RequestContext' => 'MediaWiki\\Context\\RequestContext',
 		'TemplateParser' => 'MediaWiki\\Html\\TemplateParser',
 		'Title' => 'MediaWiki\\Title\\Title',
 		'WebRequest' => 'MediaWiki\\Request\\WebRequest',
