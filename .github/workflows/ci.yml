@@ -71,7 +71,7 @@ jobs:
             coverage: false
             experimental: false
           - mediawiki_version: '1.43'
-            smw_version: '7.4.0'
+            smw_version: '7.4.1'
             php_version: 8.3
             dt_version: gesinn-it-pub/mediawiki-extensions-DisplayTitle@5.0.1
             al_version: 0.7
@@ -81,7 +81,7 @@ jobs:
             experimental: false
           # The JSONScript tests of the coverage run, in a job of their own (see ci-coverage-jsonscript).
           - mediawiki_version: '1.43'
-            smw_version: '7.4.0'
+            smw_version: '7.4.1'
             php_version: 8.3
             dt_version: gesinn-it-pub/mediawiki-extensions-DisplayTitle@5.0.1
             al_version: 0.7
@@ -160,7 +160,7 @@ jobs:
       matrix:
         include:
           - mediawiki_version: '1.43'
-            smw_version: '7.4.0'
+            smw_version: '7.4.1'
             php_version: 8.3
             dt_version: gesinn-it-pub/mediawiki-extensions-DisplayTitle@5.0.1
             al_version: 0.7
